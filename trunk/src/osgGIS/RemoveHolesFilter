@@ -1,0 +1,21 @@
+#ifndef _OSGGIS_REMOVE_HOLES_FILTER_H_
+#define _OSGGIS_REMOVE_HOLES_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT RemoveHolesFilter : public FeatureFilter
+    {
+    public:
+        RemoveHolesFilter();
+        
+        virtual ~RemoveHolesFilter();
+        
+    public:
+        FeatureList process( Feature* input, FilterEnv* env );
+    };
+}
+
+#endif // _OSGGIS_REMOVE_HOLES_FILTER_H_
