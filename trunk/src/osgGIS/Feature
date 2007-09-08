@@ -1,0 +1,113 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FEATURE_H_
+#define _OSGGIS_FEATURE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoShape>
+#include <vector>
+#include <list>
+
+namespace osgGIS
+{
+    /** unique feature identifier type. */
+	typedef long FeatureOID;
+	
+    /**
+     * A GIS feature.
+     *
+     * The feature is the primitive object within a geospatial information
+     * system. It consists of two parts: geospatial data (the "shapes") and
+     * attributes (a set of arbitrary name/value pairs).
+     */
+	class OSGGIS_EXPORT Feature : public osg::Referenced
+	{
+	public:		
+        /**
+         * Gets the unique object identifier (primary key) for this feature.
+         * This ID is unique within the feature store from which the feature
+         * was read.
+         */
+		virtual const FeatureOID& getOID() const =0;
+		
+        /** 
+         * Gets the geodata associated with the feature. The geodata conveys
+         * sets of coordinates, how they are to be interpreted (e.g. point,
+         * line, polygon) and the spatial reference system (SRS) in which the
+         * coordinates are expressed.
+         */
+		virtual const GeoShapeList& getShapes() const =0;
+		
+        /**
+         * Gets the geodata associated with the feature.
+         */
+		virtual GeoShapeList& getShapes() =0;
+		
+        /**
+         * Gets the minimum bounding rectangle containing all the points in
+         * the feature's geodata.
+         */
+		virtual const GeoExtent& getExtent() const =0;
+	};
+	
+	/** A list of reference-counted features. */
+	typedef std::vector< osg::ref_ptr<Feature> > FeatureList;
+	
+    /** A list of feautre OIDs. */
+	typedef std::vector< FeatureOID > FeatureOIDList;
+	
+	
+    /**
+     * A cursor for iterating over a collection of features.
+     */
+    class OSGGIS_EXPORT FeatureCursor : public osg::Referenced
+    {
+    public:
+        /**
+         * Resets the iterator so that the next call to next() will
+         * return the first feature in the collection (if there is one).
+         */
+        virtual void reset() =0;
+        
+        /**
+         * Gets whether a call to next() will return a feature (true) or
+         * NULL (false).
+         */
+        virtual bool hasNext() const =0;
+
+        /**
+         * Gets the next feature in the collection, or NULL if you are at
+         * the end.
+         */
+        virtual Feature* next() =0;
+    };
+
+
+    /** Functor used to supply custom feature-related functionality to various
+        components in the library */
+    template<class T>
+    class OSGGIS_EXPORT FeatureFunctor : public osg::Referenced
+    {
+    public:
+        virtual T get( Feature* f ) =0;
+    };
+}
+
+#endif // _OSGGIS_FEATURE_H_
