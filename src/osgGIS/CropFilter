@@ -1,0 +1,63 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_CROP_FILTER_H_
+#define _OSGGIS_CROP_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    /**
+     * This filter crops feature data to a spatial extent. This may
+     * result in a feature shape being broken up into multiple parts.
+     */
+    class OSGGIS_EXPORT CropFilter : public FeatureFilter
+    {
+    public:
+        enum Options
+        {
+            /** Add lines to the cropped feature set to show the
+                extent to which the features were cropped. */
+            SHOW_CROP_LINES = 0x01
+        };
+
+    public:
+        /**
+         * Constructs a new cropping filter.
+         */
+        CropFilter();
+
+        /**
+         * Constructs a new cropping filter.
+         */
+        CropFilter( int options );
+
+    public:
+        FeatureList process( Feature* input, FilterEnv* env );
+
+        virtual ~CropFilter();
+
+    private:
+        int options;
+    };
+}
+
+#endif // _OSGGIS_CROP_FILTER_H_

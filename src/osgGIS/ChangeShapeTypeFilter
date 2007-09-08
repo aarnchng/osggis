@@ -1,0 +1,71 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_CHANGE_SHAPE_TYPE_FILTER_H_
+#define _OSGGIS_CHANGE_SHAPE_TYPE_FILTER_H_ 1
+
+#include <osgGIS/FeatureFilter>
+#include <osgGIS/GeoShape>
+
+namespace osgGIS
+{
+    /**
+     * Changes the shape type of incoming features. For example, you
+     * can use this filter to treat polygon data as line data if you
+     * are just interested in the polygon outlines.
+     */
+    class OSGGIS_EXPORT ChangeShapeTypeFilter : public FeatureFilter
+    {
+    public:
+        ChangeShapeTypeFilter();
+
+        /**
+         * Constructs a new filter that will change feature shape types
+         * to the specified type.
+         * @param new_type
+         *      Type to which to change incoming feature shapes.
+         */
+        ChangeShapeTypeFilter( 
+            const GeoShape::ShapeType& new_type );
+
+        /** 
+         * Sets the shape type to which to change all feature shapes.
+         * @param new_type
+         *      New shape type
+         */
+        void setNewShapeType( const GeoShape::ShapeType& new_type );
+
+        /**
+         * Gets the shape type that this filter will assign to incoming
+         * feature shapes.
+         */
+        const GeoShape::ShapeType& getNewShapeType() const;
+
+    public:
+        virtual FeatureList process( Feature* input, FilterEnv* env );
+
+        virtual ~ChangeShapeTypeFilter();
+
+    private:
+        GeoShape::ShapeType new_type;
+    };
+}
+
+
+#endif // _OSGGIS_CHANGE_SHAPE_TYPE_FILTER_H_

@@ -1,0 +1,137 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_TRANSFORM_FEATURE_FILTER_H_
+#define _OSGGIS_TRANSFORM_FEATURE_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+#include <osgGIS/SpatialReference>
+#include <osg/Matrix>
+
+namespace osgGIS
+{
+    /**
+     * Transforms feature data by way of spatial reference reprojtion and/or
+     * matrix transformation. Note that the filter first reprojects using the 
+     * target SRS, then transforms the reprojected geodata using the matrix.
+     */
+    class OSGGIS_EXPORT TransformFilter : public FeatureFilter
+    {
+    public:
+        enum Options {
+            LOCALIZE = 0x01 // make a local origin at the centroid of the working extent
+        };
+
+    public:
+        /**
+         * Constructs a new transform filter.
+         */
+        TransformFilter();
+        
+        /**
+         * Constructs a new transform filter.
+         *
+         * @param srs
+         *      Spatial reference system into which to transform feature geodata.
+         */
+        TransformFilter( const SpatialReference* srs );
+
+        /**
+         * Constructs a new transform filter.
+         *
+         * @param srs
+         *      Spatial reference system into which to transform feature geodata.
+         * @param options
+         *      Transformation options (see enum Options)
+         */
+        TransformFilter( const SpatialReference* srs, const int& options );
+        
+        /**
+         * Constucts a new transform filter.
+         *
+         * @param matrix
+         *      Matrix to use to transform feature data.
+         */
+        TransformFilter( const osg::Matrix& matrix );
+
+        /**
+         * Sets a transform matrix to use to transform feature geodata.
+         *
+         * @param xform_matrix
+         *      Matrix to use to transform geodata. Note that SRS reprojection
+         *      happens before matrix transformation.
+         */
+        void setMatrix( const osg::Matrix& xform_matrix );
+
+        /**
+         * Gets the matrix used to transform feature geodata.
+         * 
+         * @return A transformation matrix.
+         */
+        const osg::Matrix& getMatrix() const;
+
+        /**
+         * Sets the spatial reference system into which to reproject feature geodata.
+         *
+         * @param srs
+         *      Target spatial reference system.
+         */
+        void setSRS( const SpatialReference* srs );
+
+        /**
+         * Gets the spatial reference system into which the filter will reproject
+         * feature geodata.
+         *
+         * @return
+         *      A spatial reference system.
+         */
+        const SpatialReference* getSRS() const;
+
+        /**
+         * Sets whether to localize the feature geodata by transforming it so it is
+         * relative to the centroid of the script's working extent
+         *
+         * @param enabled
+         *      True to localize geodata; false to not localize
+         */
+        void setLocalize( bool enabled );
+
+        /**
+         * Gets whether to localize the feature geodata by transforming it so it is
+         * relative to the centroid of the script's working extent.
+         *
+         * @return True to localize, false to not localize.
+         */
+        bool getLocalize() const;
+
+    public:
+        virtual FeatureList process( Feature* input, FilterEnv* env );
+        
+        virtual ~TransformFilter();
+
+    private:
+        osg::ref_ptr<SpatialReference> srs;
+        osg::Matrix                    xform_matrix;
+        int                            options;
+    };
+}
+
+
+#endif // _OSGGIS_TRANSFORM_FEATURE_FILTER_H_

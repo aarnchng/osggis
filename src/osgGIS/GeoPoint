@@ -1,0 +1,185 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_GEOPOINT
+#define _OSGGIS_GEOPOINT 1
+
+#include <osgGIS/Common>
+#include <osgGIS/SpatialReference>
+#include <osg/Vec3d>
+#include <osg/Vec2d>
+#include <vector>
+
+namespace osgGIS
+{
+    /**
+     * A 2D or 3D georeferenced point in space.
+     */
+    class OSGGIS_EXPORT GeoPoint : public osg::Vec3d
+    {
+    public:
+        /**
+         * Constructs a new invalid point.
+         */
+        GeoPoint();
+
+        /**
+         * Copy constructor.
+         */
+        GeoPoint( const GeoPoint& to_copy );
+        
+        /**
+         * Creates a new 2D georeferenced point.
+         * @param input
+         *      2D point data
+         * @param srs
+         *      Spatial reference system.
+         */
+        GeoPoint( const osg::Vec2d& input, const SpatialReference* srs );
+        
+        /**
+         * Create a new 3D georeferenced point.
+         * @param input
+         *      3D point data
+         * @param srs
+         *      Spatial reference system.
+         */
+        GeoPoint( const osg::Vec3d& input, const SpatialReference* srs );
+
+        /**
+         * Creates a new 2D georeferenced point.
+         * @param x, y
+         *      2D point data
+         * @param srs
+         *      Spatial reference system.
+         */
+        GeoPoint( double x, double y, const SpatialReference* srs );
+
+        /**
+         * Create a new 3D georeferenced point.
+         * @param x, y, z
+         *      3D point data
+         * @param srs
+         *      Spatial reference system.
+         */
+        GeoPoint( double x, double y, double z, const SpatialReference* srs );
+
+        /**
+         * Returns true if the point contains valid data.
+         */
+        bool isValid() const;
+
+        /**
+         * Returns the dimensionality of the point (2 or 3)
+         */
+        unsigned int getDim() const;
+
+        /**
+         * Returns the spatial reference system relative to which the point
+         * data is expressed.
+         */
+        const SpatialReference* getSRS() const;
+
+        /**
+         * Returns the spatial reference system relative to which the point
+         * data is expressed.
+         */
+        SpatialReference* getSRS();
+
+        /**
+         * Gets a copy of the point that is transformed out of its SRS'
+         * reference frame, if applicable.
+         */
+        GeoPoint getAbsolute() const;
+        
+        /**
+         * Gets a readable representation of the point
+         */
+        std::string toString() const;
+        
+        /**
+         * Returns true if this point is mathematically equivalent to another.
+         */
+        bool operator == ( const GeoPoint& rhs ) const;
+
+    public:
+        /**
+         * Creates an invalid point.
+         */
+        static GeoPoint invalid();
+
+        virtual ~GeoPoint();
+
+    private:
+        unsigned int dim;
+        osg::ref_ptr<SpatialReference> spatial_ref;
+        
+        friend class SpatialReference;
+        void setSpatialReference( const SpatialReference* sr );
+    };
+
+    typedef std::vector<GeoPoint> GeoPointList;
+
+    class GeoPointVisitor
+    {
+    public:
+        GeoPointVisitor() {}
+        virtual ~GeoPointVisitor() { }
+        virtual bool visitPoint( GeoPoint& point ) { return true; }
+        virtual bool visitPoint( const GeoPoint& point ) { return true; }
+    };
+
+
+    //class OSGGIS_EXPORT GeoPoint // : public osg::Referenced
+    //{
+    //public:
+    //    GeoPoint();
+    //    
+    //    GeoPoint( const GeoPoint& to_copy );
+    //    
+    //	GeoPoint( double x, double y, SpatialReference* spatial_ref );
+    //	
+    //	GeoPoint( double x, double y, double z, SpatialReference* spatial_ref );
+
+    //	virtual ~GeoPoint();
+    //	
+    //	bool isValid() const;
+    //	
+    //	double getX() const;
+    //	
+    //	double getY() const;
+    //	
+    //	double getZ() const;
+    //	
+    //	unsigned int getDim() const;
+    //	
+    //	SpatialReference* getSRS() const;
+    //	
+    //private:
+    //	
+    //	bool   is_valid;
+    //	double x, y, z;
+    //	unsigned int dim;
+    //	osg::ref_ptr<SpatialReference> spatial_ref;	
+    //};
+
+    //   typedef std::vector<GeoPoint> GeoPointList;
+}
+
+#endif// _OSGGIS_GEOPOINT
