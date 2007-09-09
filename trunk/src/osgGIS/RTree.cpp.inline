@@ -123,7 +123,7 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
 {
     RtNode<DATA>* LL = new RtNode<DATA>();
     LL->is_leaf = L->is_leaf;
-    LL->parent_id = L->parent_id; // not for long
+    LL->parent_id = L->parent_id;
     LL->id = ++node_id_gen;
     node_table[LL->id] = LL;
 
@@ -147,12 +147,12 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
     {
         if ( i != first && i != second )
         {
-            if ( first_group.size() == CONST_M )
+            if ( first_group.size() >= CONST_M/2 )
             {
                 second_group.push_back( *i );
                 second_ext = computeExtent( second_group );
             }
-            else if ( second_group.size() == CONST_M )
+            else if ( second_group.size() >= CONST_M/2 )
             {
                 first_group.push_back( *i );
                 first_ext = computeExtent( first_group );
@@ -183,6 +183,16 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
     
     L->entries = first_group;    
     LL->entries = second_group;
+    
+    // if LL has subnodes, inform them of their new parent.
+    if ( !LL->isLeaf() )
+    {
+        for( RtEntryList<DATA>::iterator i = LL->entries.begin(); i != LL->entries.end(); i++ )
+        {
+            RtNode<DATA>* child_node = node_table[i->child_id].get();
+            child_node->parent_id = LL->id;
+        }
+    }
 
     return LL;
 }
@@ -233,6 +243,8 @@ RTree<DATA>::adjustTree( RtNode<DATA>* N, RtNode<DATA>* NN )
         // AT4
         if ( NN )
         {
+            NN->parent_id = P->id;
+            
             RtEntry<DATA> E_NN;
             E_NN.child_id = NN->id;
             E_NN.extent = computeExtent( NN->entries );
