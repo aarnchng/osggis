@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/GeoShape>
+#include <osgGIS/Attribute>
 #include <vector>
 #include <list>
 
@@ -65,11 +66,27 @@ namespace osgGIS
          * the feature's geodata.
          */
 		virtual const GeoExtent& getExtent() const =0;
+
+        /**
+         * Gets the attribute associated with a key string (read-only).
+         * @param key
+         *      Name of the attribute to return
+         */
+        virtual Attribute getAttribute( const std::string& key ) const =0;
+
+
+        virtual void setAttribute( const std::string& key, const std::string& value ) =0;
+
+        virtual void setAttribute( const std::string& key, int value ) =0;
+
+        virtual void setAttribute( const std::string& key, double value ) =0;
 	};
 	
+
 	/** A list of reference-counted features. */
 	typedef std::vector< osg::ref_ptr<Feature> > FeatureList;
 	
+
     /** A list of feautre OIDs. */
 	typedef std::vector< FeatureOID > FeatureOIDList;
 	

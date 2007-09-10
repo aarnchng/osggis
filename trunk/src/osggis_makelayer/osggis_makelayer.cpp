@@ -85,6 +85,8 @@ double extrude_height = -1;
 bool extrude_range = false;
 double extrude_min_height = -1;
 double extrude_max_height = -1;
+std::string extrude_height_attr;
+double extrude_height_scale = 1.0;
 
 
 
@@ -122,6 +124,8 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --polygons                 - Treat the vector data as polygons" << ENDL;
     NOUT << "    --extrude-height <num>     - Extrude shapes to this height above the terrain" << ENDL;
     NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
+    NOUT << "    --extrude-attr <name>      - Attribute whose value holds the extrusion height" << ENDL;
+    NOUT << "    --extrude-scale <num>      - Multiply extrusion height by this scale factor" << ENDL;
     NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --far-lod <num>            - Far LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
@@ -211,6 +215,14 @@ parseCommandLine( int argc, char** argv )
         sscanf( str.c_str(), "%lf,%lf", &extrude_min_height, &extrude_max_height );
     }
 
+    while( arguments.read( "--extrude-attr", extrude_height_attr ) ) {
+        extrude = true;
+        extrude_range = false;
+    }
+
+    while( arguments.read( "--extrude-scale", str ) )
+        sscanf( str.c_str(), "%lf", &extrude_height_scale );
+
     while( arguments.read( "--include-grid" ) )
         include_grid = true;
 
@@ -276,10 +288,13 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
         osgGIS::ExtrudeGeomFilter* gf = new osgGIS::ExtrudeGeomFilter();
         gf->setColor( color );
         gf->setRandomizedColors( color.a() == 0 );
-        if ( extrude_range )
+        if ( extrude_height_attr.length() > 0 )
+            gf->setHeightAttribute( extrude_height_attr );
+        else if ( extrude_range )
             gf->setHeightRange( extrude_min_height, extrude_max_height );
         else
             gf->setHeight( extrude_height );
+        gf->setHeightScale( extrude_height_scale );
         script->appendFilter( gf );
     }
     else
@@ -320,8 +335,6 @@ main(int argc, char* argv[])
     osg::ref_ptr<osgGIS::FeatureLayer> layer = registry->createFeatureLayer( input_file );
     if ( !layer.valid() )
         return die( "Failed to create feature layer." );
-
-    layer->setSpatialIndex(NULL);
 
     osgGIS::FeatureStore* store = layer->getFeatureStore();
     NOUT << "Connected to feature store: " << ENDL;

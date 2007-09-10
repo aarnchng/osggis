@@ -20,20 +20,21 @@
 #include <osgGIS/OGR_Feature>
 #include <ogr_api.h>
 #include <osg/notify>
+#include <algorithm>
 
 using namespace osgGIS;
 
 OGR_Feature::OGR_Feature( void* _handle, SpatialReference* _sr )
 {
-	//handle = _handle;
+    handle = _handle;
 	spatial_ref = _sr;
     load( _handle );
-    OGR_F_Destroy( _handle );
 }
 
 
 OGR_Feature::~OGR_Feature()
 {
+    OGR_F_Destroy( handle );
 }
 
 
@@ -184,3 +185,54 @@ OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_
     return shape;
 }
 
+
+Attribute
+OGR_Feature::getAttribute( const std::string& key ) const
+{
+    AttributeTable::const_iterator i = user_attrs.find( key );
+    if ( i != user_attrs.end() )
+    {
+        return i->second;
+    }
+    else
+    {
+        int index = OGR_F_GetFieldIndex( handle, key.c_str() );
+        if ( index > 0 )
+        {
+            void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, index );
+            OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
+            switch( ft ) {
+                case OFTInteger:
+                    return Attribute( key, OGR_F_GetFieldAsInteger( handle, index ) );
+                    break;
+                case OFTReal:
+                    return Attribute( key, OGR_F_GetFieldAsDouble( handle, index ) );
+                    break;
+                case OFTString:
+                    return Attribute( key, OGR_F_GetFieldAsString( handle, index ) );
+                    break;
+            }
+        }
+    }  
+
+    return invalid_attr;
+}
+
+
+void 
+OGR_Feature::setAttribute( const std::string& key, const std::string& value )
+{
+    //TODO
+}
+
+void 
+OGR_Feature::setAttribute( const std::string& key, int value )
+{
+    //TODO
+}
+
+void 
+OGR_Feature::setAttribute( const std::string& key, double value )
+{
+    //TODO
+}

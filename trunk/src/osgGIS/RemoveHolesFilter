@@ -24,6 +24,10 @@
 
 namespace osgGIS
 {
+    /**
+     * Removes "holes" (i.e. counter-wound parts) from polygon feature
+     * data. This can be useful as an optimization step for far LODs.
+     */
     class OSGGIS_EXPORT RemoveHolesFilter : public FeatureFilter
     {
     public:
