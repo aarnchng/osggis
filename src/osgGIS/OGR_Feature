@@ -64,16 +64,28 @@ namespace osgGIS
          * Gets the spatial bounds of this feature.
          */
         const GeoExtent& getExtent() const;
+
+
+        Attribute getAttribute( const std::string& key ) const;
+
+        void setAttribute( const std::string& key, const std::string& value );
+
+        void setAttribute( const std::string& key, int value );
+
+        void setAttribute( const std::string& key, double value );
         
     public:
         
 		virtual ~OGR_Feature();
 
 	private:
+        void*                          handle;
 		FeatureOID                     oid;
 		GeoShapeList                   shapes;
 		GeoExtent                      extent;
 		osg::ref_ptr<SpatialReference> spatial_ref;
+        AttributeTable                 user_attrs;
+        Attribute                      invalid_attr;
 		
 	private:
 	    void load( void* );

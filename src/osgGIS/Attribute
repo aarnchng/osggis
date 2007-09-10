@@ -1,0 +1,64 @@
+#ifndef _OSGGIS_ATTRIBUTE_H_
+#define _OSGGIS_ATTRIBUTE_H_ 1
+
+#include <osgGIS/Common>
+#include <string>
+#include <map>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT Attribute
+    {
+    public:
+        enum Type {
+            TYPE_UNSPECIFIED,
+            TYPE_STRING,
+            TYPE_INT,
+            TYPE_DOUBLE,
+            TYPE_BOOL
+        };
+
+    public:
+        Attribute();
+
+        Attribute( const std::string& key, const std::string& value );
+        
+        Attribute( const std::string& key, const char* value );
+
+        Attribute( const std::string& key, int value );
+
+        Attribute( const std::string& key, double value );
+        
+        Attribute( const std::string& key, bool value );
+        
+        bool isValid() const;
+
+        const Type& getType() const;
+
+        const std::string& asString();
+
+        int asInt();
+         
+        double asDouble();
+        
+        bool asBool();
+        
+    public:
+        static Attribute invalid();
+
+    public:
+        virtual ~Attribute();
+
+    private:
+        bool        valid;
+        std::string key;
+        Type        type;
+        std::string string_value;
+        int         int_value;
+        double      double_value;
+    };
+
+    typedef std::map<std::string,Attribute> AttributeTable;
+}
+
+#endif // _OSGGIS_ATTRIBUTE_H_

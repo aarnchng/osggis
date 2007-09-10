@@ -52,6 +52,10 @@ namespace osgGIS
         void setHeight( double height );
 
         void setHeightRange( double min_height, double max_height );
+        
+        void setHeightAttribute( const std::string& attr_name );
+        
+        void setHeightScale( double scale_factor );
 
         void setHeightFunctor( FeatureFunctor<double>* functor );        
 
@@ -62,6 +66,8 @@ namespace osgGIS
         double overall_height;
         double min_height;
         double max_height;
+        std::string height_attr;
+        double height_scale;
         osg::ref_ptr< FeatureFunctor<double> > height_functor;
     };
 }

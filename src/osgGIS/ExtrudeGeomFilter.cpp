@@ -87,6 +87,20 @@ ExtrudeGeomFilter::setHeightRange( double _min, double _max )
 
 
 void
+ExtrudeGeomFilter::setHeightAttribute( const std::string& _attr )
+{
+    height_attr = _attr;
+}
+
+
+void
+ExtrudeGeomFilter::setHeightScale( double _scale )
+{
+    height_scale = _scale;
+}
+
+
+void
 ExtrudeGeomFilter::setHeightFunctor( FeatureFunctor<double>* _functor )
 {
     height_functor = _functor;
@@ -229,7 +243,12 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         {
             const GeoShape& shape = *j;
 
-            double height = height_functor.valid()? height_functor->get( f ) : overall_height;
+            double height = 
+                height_attr.length() > 0? f->getAttribute( height_attr ).asDouble() :
+                height_functor.valid()? height_functor->get( f ) : 
+                overall_height;
+
+            height *= height_scale;
 
             osg::Geometry* walls = new osg::Geometry();
             osg::Geometry* rooflines = NULL;

@@ -473,6 +473,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Attribute"
+			>
+		</File>
+		<File
+			RelativePath=".\Attribute.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Ellipsoid"
 			>
 		</File>
