@@ -48,7 +48,7 @@ namespace osgGIS
          *
          * @return The scene graph containing the compiled feature layer.
          */
-        osg::Group* compile();
+        virtual osg::Group* compile();
         
         /**
          * Compiles the feature layer.
@@ -63,11 +63,16 @@ namespace osgGIS
          * @return
          *      Scene graph containing the compiled feature layer
          */
-        osg::Group* compile( FilterEnv* env );
+        virtual osg::Group* compile( FilterEnv* env );
 
 
     public:
         virtual ~Compiler();
+
+    protected:
+        FeatureLayer* getFeatureLayer();
+
+        Script* getScript();
         
     private:
         osg::ref_ptr<FeatureLayer> layer;

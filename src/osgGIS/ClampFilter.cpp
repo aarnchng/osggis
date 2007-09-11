@@ -230,6 +230,23 @@ clampPolyPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* s
 }
 
 
+// removes coincident points.
+void
+cleansePart( GeoPointList& part )
+{
+    for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
+    {
+        if ( i != part.begin() )
+        {
+            if ( *i == *(i-1) )
+            {
+                i = part.erase( i );
+                i--;
+            }
+        }
+    }
+}
+
 
 FeatureList
 ClampFilter::process( Feature* input, FilterEnv* env )
@@ -263,6 +280,8 @@ ClampFilter::process( Feature* input, FilterEnv* env )
                 clampPolyPart( part, terrain, env->getInputSRS() );
                 break;
             }
+
+            cleansePart( part );
         }
 
         if ( new_parts.size() > 0 )

@@ -27,6 +27,7 @@
 #include <osg/ClusterCullingCallback>
 #include <osg/CullSettings>
 #include <osg/PolygonOffset>
+#include <osgUtil/Optimizer>
 
 using namespace osgGIS;
 
@@ -34,17 +35,33 @@ using namespace osgGIS;
 BuildNodesFilter::BuildNodesFilter()
 {
     options = (Options)0;
+    optimizer_options = osgUtil::Optimizer::ALL_OPTIMIZATIONS;
 }
 
 
 BuildNodesFilter::BuildNodesFilter( int _options )
 {
     options = _options;
+    optimizer_options = osgUtil::Optimizer::ALL_OPTIMIZATIONS;
 }
 
 
 BuildNodesFilter::~BuildNodesFilter()
 {
+}
+
+
+void
+BuildNodesFilter::setOptimizerOptions( int _value )
+{
+    optimizer_options = _value;
+}
+
+
+int
+BuildNodesFilter::getOptimizerOptions() const
+{
+    return optimizer_options;
 }
 
 
@@ -110,6 +127,12 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         geode->getOrCreateStateSet()->setMode(
             GL_LIGHTING,
             osg::StateAttribute::OFF );
+    }
+
+    if ( options & OPTIMIZE )
+    {
+        osgUtil::Optimizer opt;
+        opt.optimize( result, optimizer_options );
     }
 
     osg::NodeList output;

@@ -33,7 +33,8 @@ namespace osgGIS
         {
             CULL_BACKFACES        = 0x01,
             DISABLE_LIGHTING      = 0x02,
-            APPLY_CLUSTER_CULLING = 0x04
+            APPLY_CLUSTER_CULLING = 0x04,
+            OPTIMIZE              = 0x08
         };
 
     public:
@@ -42,6 +43,10 @@ namespace osgGIS
         BuildNodesFilter( int options /*Options*/);
 
         BuildNodesFilter( osg::StateSet* state_set );
+        
+        void setOptimizerOptions( int optimizer_options );
+        
+        int getOptimizerOptions() const;
 
         virtual ~BuildNodesFilter();
 
@@ -50,6 +55,7 @@ namespace osgGIS
 
     private:
         int options;
+        int optimizer_options;
         osg::ref_ptr<osg::StateSet> state_set;
     };
 }

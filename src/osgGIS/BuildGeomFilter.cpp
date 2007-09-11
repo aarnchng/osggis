@@ -193,7 +193,7 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
     }
 
     // finally, combine all the geometries:
-    mergeDrawables( output );
+    //mergeDrawables( output );
 
     return output;
 }

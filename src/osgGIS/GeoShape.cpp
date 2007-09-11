@@ -24,6 +24,7 @@ using namespace osgGIS;
 
 GeoShape::GeoShape()
 {
+    extent_cache  = GeoExtent::invalid();
 }
 
 
@@ -33,7 +34,6 @@ GeoShape::GeoShape( const GeoShape& rhs )
     parts         = rhs.parts;
     extent_cache  = rhs.extent_cache;
     srs           = rhs.srs.get();
-    extent_cache  = GeoExtent::invalid();
 }
 
 

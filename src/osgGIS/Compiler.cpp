@@ -40,6 +40,20 @@ Compiler::~Compiler()
 }
 
 
+FeatureLayer*
+Compiler::getFeatureLayer() 
+{
+    return layer.get();
+}
+
+
+Script*
+Compiler::getScript()
+{
+    return script.get();
+}
+
+
 osg::Group*
 Compiler::compile()
 {

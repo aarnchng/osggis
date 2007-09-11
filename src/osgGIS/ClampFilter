@@ -40,6 +40,13 @@ namespace osgGIS
     class OSGGIS_EXPORT ClampFilter : public FeatureFilter
     {
     public:
+        enum Technique
+        {
+            TECHNIQUE_SIMPLE,
+            TECHNIQUE_CONFORMING
+        };
+
+    public:
         /**
          * Constucts a new clamp filter.
          */

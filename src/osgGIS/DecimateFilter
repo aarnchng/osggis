@@ -1,0 +1,26 @@
+#ifndef _OSGGIS_DECIMATE_FILTER_H_
+#define _OSGGIS_DECIMATE_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT DecimateFilter : public FeatureFilter
+    {
+    public:
+        DecimateFilter();
+
+        DecimateFilter( double threshold );
+
+        ~DecimateFilter();
+
+    public:
+        FeatureList process( Feature* input, FilterEnv* env );
+
+    protected:
+        double threshold;
+    };
+}
+
+#endif // _OSGGIS_DECIMATE_FILTER_H_
