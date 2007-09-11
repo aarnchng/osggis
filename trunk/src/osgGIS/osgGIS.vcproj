@@ -304,6 +304,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DecimateFilter"
+				>
+			</File>
+			<File
+				RelativePath=".\DecimateFilter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DensifyFilter"
 				>
 			</File>

@@ -107,13 +107,15 @@ ExtrudeGeomFilter::setHeightFunctor( FeatureFunctor<double>* _functor )
 }
 
 
-void
+bool
 extrudeWallsUp(const GeoShape&         shape, 
                const SpatialReference* srs, 
                double                  height, 
                osg::Geometry*          walls,
                osg::Geometry*          rooflines )
 {
+    bool made_geom = true;
+
     int point_count = shape.getTotalPointCount();
     int num_verts = 2 * point_count;
     if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
@@ -224,6 +226,8 @@ extrudeWallsUp(const GeoShape&         shape,
             }
         }
     }
+
+    return made_geom;
 }
 
 
@@ -242,7 +246,6 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         for( GeoShapeList::const_iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
         {
             const GeoShape& shape = *j;
-
             double height = 
                 height_attr.length() > 0? f->getAttribute( height_attr ).asDouble() :
                 height_functor.valid()? height_functor->get( f ) : 
@@ -250,43 +253,44 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 
             height *= height_scale;
 
-            osg::Geometry* walls = new osg::Geometry();
-            osg::Geometry* rooflines = NULL;
+            osg::ref_ptr<osg::Geometry> walls = new osg::Geometry();
+            osg::ref_ptr<osg::Geometry> rooflines = NULL;
             
             if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
             {
                 rooflines = new osg::Geometry();
             }
 
-            extrudeWallsUp( shape, env->getInputSRS(), height, walls, rooflines );
-            
-            walls->setColorArray( colors.get() );
-            walls->setColorBinding( osg::Geometry::BIND_OVERALL );
-            
-            // generate per-vertex normals:
-            osgUtil::SmoothingVisitor smoother;
-            smoother.smooth( *walls );            
-            output.push_back( walls );
-
-            // tessellate and add the roofs if necessary:
-            if ( rooflines )
+            if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get() ) )
             {
-                osgUtil::Tessellator tess;
-                tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
-                tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
-                tess.retessellatePolygons( *rooflines );                
-                smoother.smooth( *rooflines );
+                walls->setColorArray( colors.get() );
+                walls->setColorBinding( osg::Geometry::BIND_OVERALL );
                 
-                rooflines->setColorArray( colors.get() );
-                rooflines->setColorBinding( osg::Geometry::BIND_OVERALL );
+                // generate per-vertex normals:
+                osgUtil::SmoothingVisitor smoother;
+                smoother.smooth( *(walls.get()) );            
+                output.push_back( walls.get() );
 
-                output.push_back( rooflines );
+                // tessellate and add the roofs if necessary:
+                if ( rooflines.valid() )
+                {
+                    osgUtil::Tessellator tess;
+                    tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+                    tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+                    tess.retessellatePolygons( *(rooflines.get()) );
+                    smoother.smooth( *(rooflines.get()) );
+                    
+                    rooflines->setColorArray( colors.get() );
+                    rooflines->setColorBinding( osg::Geometry::BIND_OVERALL );
+
+                    output.push_back( rooflines.get() );
+                }
             }
         }
     }
 
     // consolidate the geometries as necessary:
-    mergeDrawables( output );
+    //mergeDrawables( output );
 
     return output;
 }

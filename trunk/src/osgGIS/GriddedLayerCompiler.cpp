@@ -29,9 +29,8 @@ GriddedLayerCompiler::GriddedLayerCompiler(FeatureLayer* _layer,
                                            Script*       _script,
                                            unsigned int  _num_cols,
                                            unsigned int  _num_rows )
+: Compiler( _layer, _script )                                           
 {
-    layer = _layer;
-    script = _script;
     num_cols = _num_cols > 1? _num_cols : 1;
     num_rows = _num_rows > 1? _num_rows : 1;
 }
@@ -43,27 +42,20 @@ GriddedLayerCompiler::~GriddedLayerCompiler()
 }
 
 
-osg::Node*
-GriddedLayerCompiler::compile()
-{
-    osg::ref_ptr<FilterEnv> env = new FilterEnv();
-    return compile( env.get() );
-}
-
-
-osg::Node*
+osg::Group*
 GriddedLayerCompiler::compile( FilterEnv* _env )
 {
-    osg::ref_ptr<FilterEnv> env = _env? _env->clone() : new FilterEnv();
     osg::Group* output = new osg::Group();
+
+    osg::ref_ptr<FilterEnv> env = _env? _env->clone() : new FilterEnv();
 
     GeoExtent extent = env->getExtent();
     if ( extent.isInfinite() || !extent.isValid() )
     {
-        extent = layer->getExtent();
+        extent = getFeatureLayer()->getExtent();
         if ( extent.isInfinite() || !extent.isValid() )
         {
-            const SpatialReference* srs = layer->getSRS()->getBasisSRS();
+            const SpatialReference* srs = getFeatureLayer()->getSRS()->getBasisSRS();
 
             extent = GeoExtent(
                 GeoPoint( -180.0, -90.0, srs ),
@@ -80,8 +72,6 @@ GriddedLayerCompiler::compile( FilterEnv* _env )
         double dx = (ne.x() - sw.x()) / num_cols;
         double dy = (ne.y() - sw.y()) / num_rows;
 
-        Compiler compiler( layer.get(), script.get() );
-
         for( unsigned int col = 0; col < num_cols; col++ )
         {
             for( unsigned int row = 0; row < num_rows; row++ )
@@ -92,7 +82,7 @@ GriddedLayerCompiler::compile( FilterEnv* _env )
                     
                 env->setExtent( sub_extent );
                 
-                osg::Node* sub_node = compiler.compile( env.get() );
+                osg::Node* sub_node = Compiler::compile( env.get() );
                 if ( sub_node )
                 {
                     std::stringstream s;
@@ -100,8 +90,8 @@ GriddedLayerCompiler::compile( FilterEnv* _env )
                     sub_node->setName( s.str() );
                     output->addChild( sub_node );
 
-                    osg::notify( osg::ALWAYS )
-                        << s.str() << sub_extent.toString() << std::endl;
+                    //osg::notify( osg::ALWAYS )
+                    //    << s.str() << sub_extent.toString() << std::endl;
                 }
             }
         }

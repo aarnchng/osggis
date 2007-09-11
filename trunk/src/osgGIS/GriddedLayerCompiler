@@ -21,6 +21,7 @@
 #define _OSGGIS_GRIDDED_LAYER_COMPILER_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/Compiler>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/Script>
 #include <osgGIS/FilterEnv>
@@ -32,7 +33,7 @@ namespace osgGIS
      * Compiles a feature layer by breaking it down into a grid of rows
      * and columns and running the script against each tile.
      */
-    class OSGGIS_EXPORT GriddedLayerCompiler
+    class OSGGIS_EXPORT GriddedLayerCompiler : public Compiler
     {
     public:
         /**
@@ -54,23 +55,15 @@ namespace osgGIS
             unsigned int     num_rows );
 
         /**
-         * Compiles the layer with default settings.
-         * @return The compiles geometry.
-         */
-        osg::Node* compile();
-
-        /**
          * Compiles the layer with user-provided environment settings.
          * @return The compiled geometry.
          */
-        osg::Node* compile( FilterEnv* env );
+        virtual osg::Group* compile( FilterEnv* env );
 
     public:
         virtual ~GriddedLayerCompiler();
 
     private:
-        osg::ref_ptr<FeatureLayer> layer;
-        osg::ref_ptr<Script> script;
         unsigned int num_cols, num_rows;
     };
 }

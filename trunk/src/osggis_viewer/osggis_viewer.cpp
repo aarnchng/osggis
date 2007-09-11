@@ -67,18 +67,21 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    [terrain file] [feature file...]  - Files to view (put terrain first for polygon offset)" << ENDL;
     NOUT << ENDL;
     NOUT << "Optional:"<< ENDL;
-    NOUT << "    --point-size <num>                - Sets the point size (default = 1)" << ENDL;
+    NOUT << "    --point-size <num>         - Sets the point size (default = 1)" << ENDL;
     NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
     NOUT << "    --pre-compile              - Sets pre-compilation ON for the database pager (default = off)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
+    NOUT << "" << ENDL;
+    NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
 
 
 int
 main(int argc, char* argv[])
 {
-    osgViewer::Viewer viewer;
     osg::ArgumentParser args( &argc, argv );
+
+    osgViewer::Viewer viewer( args );
 
     osg::ref_ptr<osg::Group> group = new osg::Group();
     std::string str;
@@ -115,6 +118,8 @@ main(int argc, char* argv[])
             new osg::LineWidth( line_width ), osg::StateAttribute::ON );
     }
 
+    bool pre_compile = args.read( "--pre-compile" );
+
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
     for( int i=1; i<argc; i++ )
     {
@@ -143,8 +148,7 @@ main(int argc, char* argv[])
     viewer.addEventHandler( new osgGA::StateSetManipulator(
         viewer.getCamera()->getOrCreateStateSet()) );
 
-    viewer.getScene()->getDatabasePager()->setDoPreCompile(
-        args.read( "--pre-compile" ) );
+    viewer.getScene()->getDatabasePager()->setDoPreCompile( pre_compile );
 
     viewer.run();
 

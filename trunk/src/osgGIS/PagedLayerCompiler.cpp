@@ -156,9 +156,8 @@ getSubExtent(const GeoExtent& extent,
 
 // Calcuates all the extents of a parent's subtiles after subdivision.
 void
-calculateSubExtents( const GeoExtent& extent, osg::Group* parent, std::vector<GeoExtent>& out )
+calculateSubExtents( const GeoExtent& extent, unsigned int num_children, std::vector<GeoExtent>& out )
 {
-    unsigned int num_children = parent->getNumChildren();
     for( unsigned int i=0; i<num_children; i++ )
         out.push_back( getSubExtent( extent, num_children, i ) );
 }
@@ -208,15 +207,15 @@ compileTileFile(int                level,
 
     osg::Group* source_group = source_tile->asGroup();
 
-
     if ( source_group )
     {
         // precalculate the subdivisions that lie under this tile:
         std::vector<GeoExtent> sub_extents;
-        calculateSubExtents( extent, source_group, sub_extents );
+        unsigned int num_children = source_group->getNumChildren();
+        calculateSubExtents( extent, num_children, sub_extents );
         std::vector<GeoExtent>::iterator exi = sub_extents.begin();
 
-        for( unsigned int i=0; i<source_group->getNumChildren(); i++ )
+        for( unsigned int i=0; i<num_children; i++ )
         {
             GeoExtent sub_extent = *exi++;
 

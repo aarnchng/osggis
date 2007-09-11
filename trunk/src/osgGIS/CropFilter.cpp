@@ -324,7 +324,7 @@ cropNonConvexPolygonPart( const GeoPointList& initial_input, const GeoExtent& wi
                 continue;
             }
             
-            // trivially accept is the window contains the entire extent of the part:
+            // trivially accept if the window contains the entire extent of the part:
             GeoExtent input_extent;
             input_extent.expandToInclude( input );
 
@@ -499,6 +499,13 @@ cropNonConvexPolygonPart( const GeoPointList& initial_input, const GeoExtent& wi
         // set up for next iteration
         outputs.swap( inputs );
     }
+
+    // go through and make sure no polys are "closed" (probably unnecessary).
+    //for( GeoPartList::iterator k = inputs.begin(); k != inputs.end(); k++ )
+    //{
+    //    while ( k->size() > 3 && k->front() == k->back() )
+    //        k->erase( k->end()-1 );
+    //}
 
     final_outputs.swap( inputs );
     return true;

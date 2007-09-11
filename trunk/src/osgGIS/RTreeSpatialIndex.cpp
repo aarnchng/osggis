@@ -62,7 +62,11 @@ RTreeSpatialIndex::buildIndex()
     while( cursor->hasNext() )
     {
         Feature* f = cursor->next();
-        rtree->insert( f->getExtent(), f->getOID() );
+        const GeoExtent& extent = f->getExtent();
+        if ( extent.isValid() && extent.getArea() > 0 )
+        {
+            rtree->insert( f->getExtent(), f->getOID() );
+        }
     }
     return true;
 }

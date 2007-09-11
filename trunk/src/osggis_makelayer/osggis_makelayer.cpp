@@ -36,6 +36,7 @@
 #include <osgGIS/CropFilter>
 #include <osgGIS/TransformFilter>
 #include <osgGIS/ChangeShapeTypeFilter>
+#include <osgGIS/DecimateFilter>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/ExtrudeGeomFilter>
 #include <osgGIS/BuildNodesFilter>
@@ -87,6 +88,7 @@ double extrude_min_height = -1;
 double extrude_max_height = -1;
 std::string extrude_height_attr;
 double extrude_height_scale = 1.0;
+double decimate_threshold = 0.0;
 
 
 
@@ -126,6 +128,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
     NOUT << "    --extrude-attr <name>      - Attribute whose value holds the extrusion height" << ENDL;
     NOUT << "    --extrude-scale <num>      - Multiply extrusion height by this scale factor" << ENDL;
+    NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --far-lod <num>            - Far LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
@@ -223,6 +226,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--extrude-scale", str ) )
         sscanf( str.c_str(), "%lf", &extrude_height_scale );
 
+    while( arguments.read( "--decimate", str ) )
+        sscanf( str.c_str(), "%lf", &decimate_threshold );
+
     while( arguments.read( "--include-grid" ) )
         include_grid = true;
 
@@ -273,14 +279,17 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
         terrain_srs,
         osgGIS::TransformFilter::LOCALIZE ) );
 
+    // Decimate shapes to a point-to-point-distance threshold. Doing this
+    // after the transform means we're dealing in meters.
+    if ( decimate_threshold > 0.0 )
+    {
+        script->appendFilter( new osgGIS::DecimateFilter( 
+            decimate_threshold ) );
+    }
+
     // Adjust the spatial data so that it conforms to the reference
     // terrain skin:
     script->appendFilter( new osgGIS::ClampFilter() );
-
-    // At this point, batch the features into groups. This is an 
-    // optimization; it has the effect of grouping features into
-    // drawables.
-    script->appendFilter( new osgGIS::CollectionFilter( 25 ) );
 
     // Construct osg::Drawable's from the incoming feature batches:
     if ( extrude )
@@ -311,9 +320,12 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
 
     // Construct a Node that contains the drawables and adjust its
     // state set.
-    script->appendFilter( new osgGIS::BuildNodesFilter( 
+    osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter(
         osgGIS::BuildNodesFilter::CULL_BACKFACES |
-        (!lighting? osgGIS::BuildNodesFilter::DISABLE_LIGHTING : 0) ) );
+        osgGIS::BuildNodesFilter::OPTIMIZE |
+        (!lighting? osgGIS::BuildNodesFilter::DISABLE_LIGHTING : 0) );
+
+    script->appendFilter( bnf );
 
     return script;
 }

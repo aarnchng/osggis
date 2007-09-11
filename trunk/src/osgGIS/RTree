@@ -39,7 +39,7 @@ namespace osgGIS
     template<class DATA> class RtEntry
     {
     public:
-        inline RtEntry() { }        
+        inline RtEntry() : child_id(0) { }        
         GeoExtent extent;
         union {
             RtNodeId child_id;
@@ -54,6 +54,7 @@ namespace osgGIS
     template<class DATA> class RtNode : public osg::Referenced
     {
     public:
+        inline RtNode() : id(0), parent_id(0), is_leaf(true) { }
         inline bool isLeaf() { return is_leaf; }
         inline bool isRoot() { return parent_id == 0; }
         
