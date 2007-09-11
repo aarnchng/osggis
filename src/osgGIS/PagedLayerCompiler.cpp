@@ -193,6 +193,7 @@ compileTileFile(int                level,
                 const GeoExtent&   extent,
                 int                min_level,
                 int                max_level,
+                float              priority_offset,
                 FeatureLayer*      layer,
                 Script*            script,
                 const std::string& output_dir )
@@ -226,7 +227,9 @@ compileTileFile(int                level,
 
                 // compile the geometry under child 0: //TODO: check for more
                 osg::Node* geometry;
-                if ( level > min_level )
+                osg::Object::DataVariance dv;
+
+                if ( level >= min_level )
                 {
                     osg::Node* terrain = plod->getChild( 0 );
                     geometry = compileGeometry(
@@ -234,10 +237,12 @@ compileTileFile(int                level,
                         terrain,
                         layer,
                         script );
+                    dv = osg::Object::STATIC;
                 }
                 else
                 {
                     geometry = new osg::Group();
+                    dv = osg::Object::DYNAMIC;
                 }
                 new_plod->setRangeList( plod->getRangeList() );
                 new_plod->setChild( 0, geometry );
@@ -255,11 +260,11 @@ compileTileFile(int                level,
 
                 // bump the priority so that vectors page in before terrain tiles, to
                 // avoid a flashing effect
-                new_plod->setPriorityOffset( 1, 1.0f );
+                new_plod->setPriorityOffset( 1, priority_offset );
 
                 // this will prevent the optimizer from blowing away the PLOD when we have a
                 // stub geometry
-                new_plod->setDataVariance( osg::Object::DYNAMIC );            
+                new_plod->setDataVariance( dv ); //osg::Object::DYNAMIC );            
 
                 top->addChild( new_plod );
                 
@@ -280,6 +285,7 @@ compileTileFile(int                level,
                     sub_extent,
                     min_level,
                     max_level,
+                    priority_offset,
                     layer,
                     script,
                     output_dir );     
@@ -326,6 +332,7 @@ compileAll(osg::Node*                 terrain_root,
            const GeoExtent&           extent,
            int                        min_level,
            int                        max_level,
+           float                      priority_offset,
            FeatureLayer*              layer,
            Script*                    script,
            const std::string&         output_dir )
@@ -342,6 +349,7 @@ compileAll(osg::Node*                 terrain_root,
         extent,
         min_level,
         max_level,
+        priority_offset,
         layer,
         script,
         output_dir );
@@ -364,6 +372,7 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
                             const GeoExtent&   ref_terrain_extent,
                             int                min_level,
                             int                max_level,
+                            float              priority_offset,
                             const std::string& output_file )
 {
     bool is_geocentric = false;
@@ -404,6 +413,7 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
         full_extent,
         min_level,
         max_level,
+        priority_offset,
         layer,
         script,
         output_dir );
