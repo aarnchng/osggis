@@ -89,6 +89,7 @@ double extrude_max_height = -1;
 std::string extrude_height_attr;
 double extrude_height_scale = 1.0;
 double decimate_threshold = 0.0;
+float priority_offset = 0.0;
 
 
 
@@ -131,6 +132,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --far-lod <num>            - Far LOD range for output geometry (not yet implemented)" << ENDL;
+    NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (default = 0)" << ENDL;
     NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
     NOUT << "    --random-colors            - Randomly assign feature colors" << ENDL;
     NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure" << ENDL;
@@ -189,6 +191,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--max-level", str ) )
         sscanf( str.c_str(), "%d", &max_level );
+
+    while( arguments.read( "--priority-offset", str ) )
+        sscanf( str.c_str(), "%f", &priority_offset );
 
     double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
     while( arguments.read( "--terrain-extent", str ) )
@@ -400,6 +405,7 @@ main(int argc, char* argv[])
         terrain_extent,
         min_level,
         max_level,
+        priority_offset,
         output_file );
 
     if ( !output.valid() )

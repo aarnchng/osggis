@@ -60,6 +60,10 @@ namespace osgGIS
          *      Minimum (farthest) PagedLOD level for which to generate geometry
          * @param max_level 
          *      Maximum (nearest) PagedLOD level for which to generate geometry
+         * @param prioirity_offset
+         *      Sets the PagedLOD priority offset value for vectors, so as to 
+         *      force them to page in just before or just after the corresponding
+         *      terrain tile
          * @param output_file
          *      File to which to write root level output node. All other subtile
          *      nodes will be written to the same directory.
@@ -71,6 +75,7 @@ namespace osgGIS
             const GeoExtent&   terrain_extent,
             int                min_level,
             int                max_level,
+            float              priority_offset,
             const std::string& output_file );
 
     public:
