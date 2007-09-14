@@ -9,17 +9,29 @@ namespace osgGIS
     class OSGGIS_EXPORT DecimateFilter : public FeatureFilter
     {
     public:
+        virtual std::string getFilterType() { return "DecimateFilter"; }
+
+    public:
         DecimateFilter();
 
-        DecimateFilter( double threshold );
+        DecimateFilter( double distance_threshold );
 
         ~DecimateFilter();
+
+    public: // properties
+
+        void setDistanceThreshold( double value );
+
+        double getDistanceThreshold() const;
 
     public:
         FeatureList process( Feature* input, FilterEnv* env );
 
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
     protected:
-        double threshold;
+        double distance_threshold;
     };
 }
 

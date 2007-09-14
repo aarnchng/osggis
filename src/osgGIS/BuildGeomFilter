@@ -35,6 +35,9 @@ namespace osgGIS
         {
             RANDOMIZE_COLORS = 0x01
         };
+        
+    public:
+        virtual std::string getFilterType() { return "BuildGeomFilter"; }
 
     public:
         /**
@@ -56,18 +59,28 @@ namespace osgGIS
          */
         BuildGeomFilter( const int& options );
 
+    public: //properties
         /**
          * Sets the overall color to assign to generated drawables.
          * @param color
          *      A Vec4 color
          */
         void setColor( const osg::Vec4f& color );
+        
+        const osg::Vec4f& getColor() const;
 
         /**
          * Sets whether to assign random colors to the geometry generated
          * from feature data.
          */
-        void setRandomizedColors( bool enabled );
+        void setRandomizeColors( bool enabled );
+        
+        bool getRandomizeColors() const;
+        
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
 
     protected:
         virtual DrawableList process( FeatureList& input, FilterEnv* env );

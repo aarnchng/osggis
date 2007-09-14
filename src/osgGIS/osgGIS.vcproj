@@ -181,86 +181,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="compiler framework"
-			>
-			<File
-				RelativePath=".\CollectionFilter"
-				>
-			</File>
-			<File
-				RelativePath=".\CollectionFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Compiler"
-				>
-			</File>
-			<File
-				RelativePath=".\Compiler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\DrawableFilter"
-				>
-			</File>
-			<File
-				RelativePath=".\DrawableFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureFilter"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Filter"
-				>
-			</File>
-			<File
-				RelativePath=".\Filter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FilterEnv"
-				>
-			</File>
-			<File
-				RelativePath=".\FilterEnv.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\NodeFilter"
-				>
-			</File>
-			<File
-				RelativePath=".\NodeFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Script"
-				>
-			</File>
-			<File
-				RelativePath=".\Script.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ScriptContext"
-				>
-			</File>
-			<File
-				RelativePath=".\ScriptContext.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SuperFeature"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="stock filters"
 			>
 			<File
@@ -325,14 +245,6 @@
 			</File>
 			<File
 				RelativePath=".\ExtrudeGeomFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LocalizeNodesFilter"
-				>
-			</File>
-			<File
-				RelativePath=".\LocalizeNodesFilter.cpp"
 				>
 			</File>
 			<File
@@ -477,6 +389,114 @@
 			</File>
 			<File
 				RelativePath=".\SpatialReferenceBase"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="serialization"
+			>
+			<File
+				RelativePath=".\Document"
+				>
+			</File>
+			<File
+				RelativePath=".\Document.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Serializer"
+				>
+			</File>
+			<File
+				RelativePath=".\Serializer.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="compiler framework"
+			>
+			<File
+				RelativePath=".\CollectionFilter"
+				>
+			</File>
+			<File
+				RelativePath=".\CollectionFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Compiler"
+				>
+			</File>
+			<File
+				RelativePath=".\Compiler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DrawableFilter"
+				>
+			</File>
+			<File
+				RelativePath=".\DrawableFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureFilter"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Filter"
+				>
+			</File>
+			<File
+				RelativePath=".\Filter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FilterEnv"
+				>
+			</File>
+			<File
+				RelativePath=".\FilterEnv.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NodeFilter"
+				>
+			</File>
+			<File
+				RelativePath=".\NodeFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Property"
+				>
+			</File>
+			<File
+				RelativePath=".\Property.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Script"
+				>
+			</File>
+			<File
+				RelativePath=".\Script.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptContext"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptContext.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SuperFeature"
 				>
 			</File>
 		</Filter>

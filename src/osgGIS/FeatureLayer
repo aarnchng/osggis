@@ -67,7 +67,15 @@ namespace osgGIS
          * Gets the spatial reference system relative to which all the geodata
          * in this layer is expressed.
          */
-		SpatialReference* getSRS();
+		const SpatialReference* getSRS() const;
+
+        /**
+         * Sets a spatial reference for the data in this feature layer.
+         * This method DOES NOT reproject the data in the layer. It only assigns
+         * a spatial reference to use (in the case where the feature store does
+         * not provide one).
+         */
+        void setSRS( const SpatialReference* srs );
 		
         /**
          * Gets the spatial bounds of all the feature data within this layer.
@@ -81,8 +89,6 @@ namespace osgGIS
          *      Primary key (unique uidentifier) of the feature to get.
          */
 		Feature* getFeature( const FeatureOID& oid );
-		
-		//void activateSpatialIndex();
 		
         /**
          * Gets a spatial index that allows for fast spatial queries against
@@ -124,6 +130,7 @@ namespace osgGIS
         std::string name;
 		osg::ref_ptr<FeatureStore> store;
 		osg::ref_ptr<SpatialIndex> index;
+        osg::ref_ptr<SpatialReference> assigned_srs;
 	};
 }
 

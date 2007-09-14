@@ -27,19 +27,36 @@ using namespace osgGIS;
 
 CollectionFilter::CollectionFilter()
 {
-    metering = 0;
+    setMetering( 0 );
 }
 
 
-CollectionFilter::CollectionFilter( unsigned int _metering )
+CollectionFilter::CollectionFilter( int _metering )
 {
-    metering = _metering;
+    setMetering( _metering );
 }
 
 
 CollectionFilter::~CollectionFilter()
 {
     //NOP
+}
+
+
+void 
+CollectionFilter::setProperty( const Property& prop )
+{
+    if ( prop.getName() == "metering" )
+        setMetering( prop.getIntValue( 0 ) );
+    Filter::setProperty( prop );
+}
+
+Properties
+CollectionFilter::getProperties() const
+{
+    Properties p = Filter::getProperties();
+    p.push_back( Property( "metering", getMetering() ) );
+    return p;
 }
 
 

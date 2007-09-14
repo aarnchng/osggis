@@ -301,13 +301,18 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
     {
         osgGIS::ExtrudeGeomFilter* gf = new osgGIS::ExtrudeGeomFilter();
         gf->setColor( color );
-        gf->setRandomizedColors( color.a() == 0 );
-        if ( extrude_height_attr.length() > 0 )
+        gf->setRandomizeColors( color.a() == 0 );
+        if ( extrude_height_attr.length() > 0 ) {
             gf->setHeightAttribute( extrude_height_attr );
-        else if ( extrude_range )
-            gf->setHeightRange( extrude_min_height, extrude_max_height );
-        else
+        }
+        else if ( extrude_range ) {
+            gf->setMinHeight( extrude_min_height );
+            gf->setMaxHeight( extrude_max_height );
+            gf->setRandomizeHeights( true );
+        }
+        else {
             gf->setHeight( extrude_height );
+        }
         gf->setHeightScale( extrude_height_scale );
         script->appendFilter( gf );
     }
@@ -315,7 +320,7 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
     {
         osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
         gf->setColor( color );
-        gf->setRandomizedColors( color.a() == 0 );
+        gf->setRandomizeColors( color.a() == 0 );
         script->appendFilter( gf );
     }
 

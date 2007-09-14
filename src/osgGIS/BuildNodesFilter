@@ -36,27 +36,50 @@ namespace osgGIS
             APPLY_CLUSTER_CULLING = 0x04,
             OPTIMIZE              = 0x08
         };
+        
+    public:
+        virtual std::string getFilterType() { return "BuildNodesFilter"; }
 
     public:
         BuildNodesFilter();
 
         BuildNodesFilter( int options /*Options*/);
 
-        BuildNodesFilter( osg::StateSet* state_set );
+        virtual ~BuildNodesFilter();
+        
+    public:   // properties   
+    
+        void setDisableLighting( bool value );
+        
+        bool getDisableLighting() const;  
+        
+        void setCullBackfaces( bool value );
+        
+        bool getCullBackfaces() const;
+        
+        void setApplyClusterCulling( bool value );
+        
+        bool getApplyClusterCulling() const;  
+        
+        void setOptimize( bool value );
+        
+        bool getOptimize() const;      
         
         void setOptimizerOptions( int optimizer_options );
         
         int getOptimizerOptions() const;
-
-        virtual ~BuildNodesFilter();
-
+                
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+        
     protected:
         virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
 
     private:
         int options;
         int optimizer_options;
-        osg::ref_ptr<osg::StateSet> state_set;
     };
 }
 

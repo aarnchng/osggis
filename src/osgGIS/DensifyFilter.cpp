@@ -40,6 +40,37 @@ DensifyFilter::~DensifyFilter()
 }
 
 
+void
+DensifyFilter::setThreshold( double value )
+{
+    threshold = value;
+}
+
+
+double
+DensifyFilter::getThreshold() const
+{
+    return threshold;
+}
+
+
+void
+DensifyFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "threshold" )
+        setThreshold( p.getDoubleValue( getThreshold() ) );
+    FeatureFilter::setProperty( p );
+}
+
+
+Properties
+DensifyFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "threshold", getThreshold() ) );
+    return p;
+}
+
 FeatureList
 DensifyFilter::process( Feature* input, FilterEnv* env )
 {

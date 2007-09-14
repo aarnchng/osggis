@@ -57,6 +57,7 @@ namespace osgGIS
 		void* layer_handle;
 		osg::ref_ptr<SpatialReference> spatial_ref;
 		GeoExtent extent;
+        bool supports_random_access;
 	};
 }
 

@@ -1,0 +1,15 @@
+#ifndef _OSGGIS_SERIALIZED_DOCUMENT_H_
+#define _OSGGIS_SERIALIZED_DOCUMENT_H_ 1
+
+#include <osgGIS/Common>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT Document : public osg::Referenced
+    {
+    public:
+        Document();
+    };
+}
+
+#endif // _OSGGIS_SERIALIZED_DOCUMENT_H_

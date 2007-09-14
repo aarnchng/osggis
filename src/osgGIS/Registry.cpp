@@ -20,6 +20,9 @@
 #include <osgGIS/Registry>
 #include <osgGIS/DefaultFeatureStoreFactory>
 #include <osgGIS/OGR_SpatialReferenceFactory>
+#include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
+#include <fstream>
 
 using namespace osgGIS;
 
@@ -62,6 +65,32 @@ Registry::createFeatureLayer( const std::string& uri )
         if ( store.valid() && store->isReady() )
         {
             result = new FeatureLayer( store.get() );
+
+            // if the store doesn't provide a spatial reference, try to load one from
+            // a PRJ file:
+            if ( result && result->getSRS() == NULL )
+            {
+                if ( osgDB::fileExists( uri ) ) // make sure it's a file:
+                {            
+                    std::string prj_file = osgDB::getNameLessExtension( uri ) + ".prj";
+                    std::fstream is;
+                    is.open( prj_file.c_str() );
+                    if ( is.is_open() )
+                    {
+                        is.seekg (0, std::ios::end);
+                        int length = is.tellg();
+                        is.seekg (0, std::ios::beg);
+                        char* buf = new char[length];
+                        is.read( buf, length );
+                        is.close();
+                        std::string prj = buf;
+                        delete[] buf;
+                        const SpatialReference* prj_srs = 
+                            Registry::instance()->getSRSFactory()->createSRSfromWKT( prj );
+                        result->setSRS( prj_srs );
+                    }
+                }
+            }
         }
     }
     return result;
@@ -93,4 +122,19 @@ void
 Registry::setFeatureStoreFactory( FeatureStoreFactory* _factory )
 {
 	feature_store_factory = _factory;
+}
+
+
+Filter* 
+Registry::createFilterByType( const std::string& type )
+{
+    FilterFactoryMap::const_iterator i = filter_factories.find( type );
+    return i != filter_factories.end()? i->second->createFilter() : NULL;
+}
+
+
+void 
+Registry::addFilterType( const std::string& type, FilterFactory* factory )
+{
+    filter_factories[type] = factory;
 }

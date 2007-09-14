@@ -20,6 +20,7 @@
 #include <osgGIS/DefaultFeatureStoreFactory>
 #include <osgGIS/OGR_FeatureStore>
 #include <osgGIS/OGR_Utils>
+#include <osgGIS/Registry>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osg/notify>
@@ -42,11 +43,13 @@ DefaultFeatureStoreFactory::connectToFeatureStore( const std::string& uri )
 {
 	FeatureStore* result = NULL;
 
-	// ESRI shapefile:
-	if ( osgDB::fileExists( uri ) && osgDB::getLowerCaseFileExtension( uri ) == "shp" )
-	{
-		result = new OGR_FeatureStore( uri );		
-	}
+	//// ESRI shapefile:
+	//if ( osgDB::fileExists( uri ) && osgDB::getLowerCaseFileExtension( uri ) == "shp" )
+	//{
+	//	result = new OGR_FeatureStore( uri );		
+	//}
+
+    result = new OGR_FeatureStore( uri );
 
 	if ( !result )
 	{

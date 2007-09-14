@@ -123,10 +123,7 @@ namespace osgGIS
                 
     private:        
         FeatureList in_features;
-        DrawableList in_drawables;
-        //osg::ref_ptr<Feature> in_feature;
-        //osg::ref_ptr<osg::Drawable> in_drawable;
-        
+        DrawableList in_drawables;        
     };
 }
 

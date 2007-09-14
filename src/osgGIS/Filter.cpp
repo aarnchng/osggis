@@ -30,6 +30,17 @@ Filter::~Filter()
 {
 }
 
+void
+Filter::setProperty( const Property& p )
+{
+    //NOP
+}
+
+Properties
+Filter::getProperties() const
+{
+    return Properties();
+}
 
 void
 Filter::reset( ScriptContext* _context )

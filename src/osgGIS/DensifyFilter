@@ -32,6 +32,9 @@ namespace osgGIS
     class OSGGIS_EXPORT DensifyFilter : public FeatureFilter
     {
     public:
+        virtual std::string getFilterType() { return "DensifyFilter"; }
+
+    public:
         /**
          * Constructs a new densification filter.
          */
@@ -45,10 +48,19 @@ namespace osgGIS
          */
         DensifyFilter( double threshold );
 
+    public: // properties
+
+        void setThreshold( double value );
+
+        double getThreshold() const;
+
     public:
         virtual FeatureList process( Feature* input, FilterEnv* env );
 
         virtual ~DensifyFilter();
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
 
     private:
         double threshold;

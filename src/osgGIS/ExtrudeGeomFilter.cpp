@@ -63,26 +63,86 @@ ExtrudeGeomFilter::setHeight( double height )
 {
     overall_height = height;
     height_functor = NULL;
-    options &= ~RANDOMIZE_HEIGHTS;
+//    options &= ~RANDOMIZE_HEIGHTS;
 }
 
+double 
+ExtrudeGeomFilter::getHeight() const
+{
+    return overall_height;
+}
+
+//void
+//ExtrudeGeomFilter::setHeightRange( double _min, double _max )
+//{
+//    min_height = _min;
+//    max_height = _max;
+//    options |= RANDOMIZE_HEIGHTS;
+//   
+//    struct RandomHeightFunctor : FeatureFunctor<double> {
+//        RandomHeightFunctor( double _min, double _max ) : min(_min), max(_max) { }
+//        double get( Feature* f ) {
+//            return min + FRAND * (max-min);
+//        }
+//        double min, max;
+//    };
+//
+//    height_functor = new RandomHeightFunctor( _min, _max );
+//}
 
 void
-ExtrudeGeomFilter::setHeightRange( double _min, double _max )
+ExtrudeGeomFilter::setRandomizeHeights( bool value )
 {
-    min_height = _min;
-    max_height = _max;
-    options |= RANDOMIZE_HEIGHTS;
-   
-    struct RandomHeightFunctor : FeatureFunctor<double> {
-        RandomHeightFunctor( double _min, double _max ) : min(_min), max(_max) { }
-        double get( Feature* f ) {
-            return min + FRAND * (max-min);
-        }
-        double min, max;
-    };
+    options = value?
+        options | RANDOMIZE_HEIGHTS :
+        options & ~RANDOMIZE_HEIGHTS;
 
-    height_functor = new RandomHeightFunctor( _min, _max );
+    if ( value )
+    { 
+        struct RandomHeightFunctor : FeatureFunctor<double> {
+            RandomHeightFunctor( ExtrudeGeomFilter* _e ) : e( _e ) { }
+            double get( Feature* f ) {
+                return e->getMinHeight() + FRAND * ( e->getMaxHeight() - e->getMinHeight() );
+            }
+            ExtrudeGeomFilter* e;
+        };
+
+        height_functor = new RandomHeightFunctor( this );
+    }
+    else
+    {
+        height_functor = NULL;
+    }
+}
+
+bool
+ExtrudeGeomFilter::getRandomizeHeights() const
+{
+    return ( options & RANDOMIZE_HEIGHTS ) != 0;
+}
+
+void
+ExtrudeGeomFilter::setMinHeight( double value )
+{
+    min_height = value;
+}
+
+double
+ExtrudeGeomFilter::getMinHeight() const
+{
+    return min_height;
+}
+
+void
+ExtrudeGeomFilter::setMaxHeight( double value )
+{
+    max_height = value;
+}
+
+double
+ExtrudeGeomFilter::getMaxHeight() const
+{
+    return max_height;
 }
 
 
@@ -92,6 +152,12 @@ ExtrudeGeomFilter::setHeightAttribute( const std::string& _attr )
     height_attr = _attr;
 }
 
+const std::string&
+ExtrudeGeomFilter::getHeightAttribute() const
+{
+    return height_attr;
+}
+
 
 void
 ExtrudeGeomFilter::setHeightScale( double _scale )
@@ -99,12 +165,49 @@ ExtrudeGeomFilter::setHeightScale( double _scale )
     height_scale = _scale;
 }
 
+double
+ExtrudeGeomFilter::getHeightScale() const
+{
+    return height_scale;
+}
+
 
 void
-ExtrudeGeomFilter::setHeightFunctor( FeatureFunctor<double>* _functor )
+ExtrudeGeomFilter::setProperty( const Property& p )
 {
-    height_functor = _functor;
+    if ( p.getName() == "height" )
+        setHeight( p.getDoubleValue( getHeight() ) );
+    else if ( p.getName() == "min_height" )
+        setMinHeight( p.getDoubleValue( getMinHeight() ) );
+    else if ( p.getName() == "max_height" )
+        setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
+    else if ( p.getName() == "randomize_heights" )
+        setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
+    else if ( p.getName() == "height_attribute" )
+        setHeightAttribute( p.getValue() );
+    DrawableFilter::setProperty( p );
 }
+
+
+Properties
+ExtrudeGeomFilter::getProperties() const
+{
+    Properties p = DrawableFilter::getProperties();
+    p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
+    p.push_back( Property( "height", getHeight() ) );
+    p.push_back( Property( "min_height", getMinHeight() ) );
+    p.push_back( Property( "max_height", getMaxHeight() ) );
+    p.push_back( Property( "height_attribute", getHeightAttribute() ) );
+    p.push_back( Property( "height_scale", getHeightScale() ) );
+    return p;
+}
+
+
+//void
+//ExtrudeGeomFilter::setHeightFunctor( FeatureFunctor<double>* _functor )
+//{
+//    height_functor = _functor;
+//}
 
 
 bool
@@ -288,9 +391,6 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
             }
         }
     }
-
-    // consolidate the geometries as necessary:
-    //mergeDrawables( output );
 
     return output;
 }

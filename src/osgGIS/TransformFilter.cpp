@@ -103,6 +103,31 @@ TransformFilter::getSRS() const
 }
 
 
+void
+TransformFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "localize" )
+        setLocalize( p.getBoolValue( getLocalize() ) );
+    else if ( p.getName() == "matrix" )
+        setMatrix( p.getMatrixValue() );
+    else if ( p.getName() == "srs" )
+        setSRS( Registry::instance()->getSRSFactory()->createSRSfromWKT( p.getValue() ) );
+    FeatureFilter::setProperty( p );
+}
+
+
+Properties
+TransformFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "localize", getLocalize() ) );
+    p.push_back( Property( "matrix", getMatrix() ) );
+    if ( getSRS() )
+        p.push_back( Property( "srs", getSRS()->getWKT() ) );
+    return p;
+}
+
+
 FeatureList
 TransformFilter::process( Feature* input, FilterEnv* env )
 {
