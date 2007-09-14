@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<script name = "World Political Boundaries">
+    <filter type = "ChangeShapeTypeFilter">
+        <property name = "new_shape_type" value = "line"/>
+    </filter>
+    <filter type = "CropFilter"/>
+    <filter type = "TransformFilter">
+		<property name = "use_terrain_srs" value = "true" />
+        <property name = "localize" value = "true"/>
+    </filter>
+    <filter type = "ClampFilter"/>
+    <filter type = "BuildGeomFilter">
+        <property name = "randomize_colors" value = "true"/>
+    </filter>
+    <filter type = "CollectionFilter"/>
+    <filter type = "BuildNodesFilter">
+        <property name = "optimize" value = "true"/>
+        <property name = "disable_lighting" value = "true"/>
+    </filter>
+</script>

@@ -32,14 +32,14 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
 {
     uri = abs_path;
 	bool for_update = false;
-    supports_random_access = false;
+    supports_random_read = false;
 	ds_handle = OGROpenShared( abs_path.c_str(), (for_update? 1 : 0), NULL );
 	if ( ds_handle )
 	{
 		layer_handle = OGR_DS_GetLayer( ds_handle, 0 ); // default to layer 0 for now
         if ( layer_handle )
         {
-            supports_random_access = OGR_L_TestCapability( layer_handle, OLCRandomRead ) == TRUE;
+            supports_random_read = OGR_L_TestCapability( layer_handle, OLCRandomRead ) == TRUE;
         }
 	}
 }
@@ -58,6 +58,13 @@ OGR_FeatureStore::~OGR_FeatureStore()
 		OGRReleaseDataSource( ds_handle );
 		ds_handle = NULL;
 	}
+}
+
+
+bool
+OGR_FeatureStore::supportsRandomRead() const
+{
+    return supports_random_read;
 }
 
 
@@ -96,7 +103,7 @@ Feature*
 OGR_FeatureStore::getFeature( const FeatureOID& oid )
 {
 	Feature* result = NULL;
-    if ( supports_random_access )
+    if ( supports_random_read )
     {
 	    void* feature_handle = OGR_L_GetFeature( layer_handle, oid );
 	    if ( feature_handle )

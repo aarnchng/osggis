@@ -393,26 +393,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="serialization"
-			>
-			<File
-				RelativePath=".\Document"
-				>
-			</File>
-			<File
-				RelativePath=".\Document.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Serializer"
-				>
-			</File>
-			<File
-				RelativePath=".\Serializer.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="compiler framework"
 			>
 			<File

@@ -113,6 +113,16 @@ namespace osgGIS
          */
         osg::Node* getTerrainNode();
 
+        /**
+         * Gets the spatial reference system of the terrain.
+         */
+        SpatialReference* getTerrainSRS() const;
+
+        /**
+         * Sets the spatial reference system of the terrain.
+         */
+        void setTerrainSRS( const SpatialReference* srs );
+
     public:
                 
         virtual ~FilterEnv();
@@ -121,7 +131,8 @@ namespace osgGIS
         GeoExtent extent;
         osg::ref_ptr<SpatialReference> in_srs;
         osg::ref_ptr<SpatialReference> out_srs;
-        osg::ref_ptr<osg::Node> terrain_node;
+        osg::ref_ptr<SpatialReference> terrain_srs;
+        osg::ref_ptr<osg::Node>        terrain_node;
     };
 }
 

@@ -33,6 +33,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     in_srs = rhs.in_srs.get();
     out_srs = rhs.out_srs.get();
     terrain_node = rhs.terrain_node.get();
+    terrain_srs = rhs.terrain_srs.get();
 }
 
 
@@ -113,4 +114,18 @@ osg::Node*
 FilterEnv::getTerrainNode()
 {
     return terrain_node.get();
+}
+
+
+SpatialReference*
+FilterEnv::getTerrainSRS() const
+{
+    return terrain_srs.get();
+}
+
+
+void 
+FilterEnv::setTerrainSRS( const SpatialReference* srs )
+{
+    terrain_srs = (SpatialReference*)srs;
 }

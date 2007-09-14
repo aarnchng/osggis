@@ -1,19 +1,23 @@
-#ifndef _OSGGIS_SCRIPT_SERIALIZER_H_
-#define _OSGGIS_SCRIPT_SERIALIZER_H_ 1
+#ifndef _OSGGISPROJECTS_SERIALIZER_H_
+#define _OSGGISPROJECTS_SERIALIZER_H_ 1
 
-#include <osgGIS/Common>
-#include <osgGIS/Document>
+#include <osgGISProjects/Common>
+#include <osgGISProjects/Document>
 #include <osgGIS/Script>
 #include <iostream>
 
-namespace osgGIS
+using namespace osgGIS;
+
+namespace osgGISProjects
 {
-    class OSGGIS_EXPORT Serializer
+    class OSGGISPROJECTS_EXPORT Serializer
     {
     public:
         Serializer();
         
         virtual Document* load( std::istream& in ) =0;
+        
+        virtual Document* load( const std::string& uri ) =0;
         
         virtual void store( Document* doc, std::ostream& out ) =0;
         
@@ -23,4 +27,4 @@ namespace osgGIS
     };
 }
 
-#endif // _OSGGIS_SCRIPT_SERIALIZER_H_
+#endif // _OSGGISPROJECTS_SERIALIZER_H_

@@ -1,0 +1,34 @@
+#ifndef _OSGGISPROJECTS_XML_SERIALIZER_H_
+#define _OSGGISPROJECTS_XML_SERIALIZER_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/Serializer>
+#include <iostream>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    class OSGGISPROJECTS_EXPORT XmlSerializer : public Serializer
+    {
+    public:
+        XmlSerializer();
+
+        virtual ~XmlSerializer();
+        
+    public:
+        
+        virtual Document* load( std::istream& in );
+        
+        virtual Document* load( const std::string& uri );
+        
+        virtual void store( Document* doc, std::ostream& out );
+        
+        
+        virtual Script* readScript( Document* doc );
+
+        virtual Document* writeScript( Script* script );
+    };
+}
+
+#endif // _OSGGISPROJECTS_XML_SCRIPT_SERIALIZER_H_
