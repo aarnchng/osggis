@@ -36,7 +36,8 @@ namespace osgGIS
     {
     public:
         enum Options {
-            LOCALIZE = 0x01 // make a local origin at the centroid of the working extent
+            LOCALIZE = 0x01,        // make a local origin at the centroid of the working extent
+            USE_TERRAIN_SRS = 0x02  // reproject to the terrain's SRS
         };
 
     public:
@@ -111,6 +112,18 @@ namespace osgGIS
         const SpatialReference* getSRS() const;
 
         /**
+         * Indicates whether the filter should transform features into the terrain's
+         * SRS as exposed in the FilterEnv* at process time.
+         */
+        void setUseTerrainSRS( bool value );
+
+        /**
+         * Gets whether the filter should use the terrain SRS (as shown in the 
+         * FilterEnv).
+         */
+        bool getUseTerrainSRS() const;
+
+        /**
          * Sets whether to localize the feature geodata by transforming it so it is
          * relative to the centroid of the script's working extent
          *
@@ -138,7 +151,7 @@ namespace osgGIS
     private:
         osg::ref_ptr<SpatialReference> srs;
         osg::Matrix                    xform_matrix;
-        int                            options;
+        int                            options;        
     };
 }
 

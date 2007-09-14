@@ -67,7 +67,7 @@ namespace osgGIS
          * Gets the spatial reference system relative to which all the geodata
          * in this layer is expressed.
          */
-		const SpatialReference* getSRS() const;
+		SpatialReference* getSRS() const;
 
         /**
          * Sets a spatial reference for the data in this feature layer.

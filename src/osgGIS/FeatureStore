@@ -82,6 +82,14 @@ namespace osgGIS
          * the backing store.
          */
 		virtual FeatureCursor* createCursor() =0;
+
+    public:
+
+        /**
+         * Returns true if the feature store supports random access to
+         * feature data (i.e. whether you can call getFeature(oid)).
+         */
+        virtual bool supportsRandomRead() const =0;
 	};
 }
 

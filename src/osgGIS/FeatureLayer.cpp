@@ -81,7 +81,7 @@ FeatureLayer::setSpatialIndex( SpatialIndex* _index )
 }
 
 
-const SpatialReference* 
+SpatialReference* 
 FeatureLayer::getSRS() const
 {
     return 

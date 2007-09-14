@@ -47,6 +47,8 @@ namespace osgGIS
 		int getFeatureCount() const;
 		
 		const GeoExtent getExtent();
+
+        bool supportsRandomRead() const;
 		
 	public:
 		virtual ~OGR_FeatureStore();
@@ -57,7 +59,7 @@ namespace osgGIS
 		void* layer_handle;
 		osg::ref_ptr<SpatialReference> spatial_ref;
 		GeoExtent extent;
-        bool supports_random_access;
+        bool supports_random_read;
 	};
 }
 

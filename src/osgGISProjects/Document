@@ -1,0 +1,15 @@
+#ifndef _OSGGISPROJECTS_DOCUMENT_H_
+#define _OSGGISPROJECTS_DOCUMENT_H_ 1
+
+#include <osgGISProjects/Common>
+
+namespace osgGISProjects
+{
+    class OSGGISPROJECTS_EXPORT Document : public osg::Referenced
+    {
+    public:
+        Document();
+    };
+}
+
+#endif // _OSGGISPROJECTS_DOCUMENT_H_

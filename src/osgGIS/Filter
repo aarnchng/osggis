@@ -96,6 +96,9 @@ namespace osgGIS
          */
         virtual void setProperty( const Property& prop );
 
+        /**
+         * Gets a collection of all this filter's properties.
+         */
         virtual Properties getProperties() const;
 
     protected:

@@ -90,6 +90,22 @@ TransformFilter::getLocalize() const
 
 
 void
+TransformFilter::setUseTerrainSRS( bool value )
+{
+    options = value? 
+        options | USE_TERRAIN_SRS :
+        options & ~USE_TERRAIN_SRS;
+}
+
+
+bool
+TransformFilter::getUseTerrainSRS() const
+{
+    return ( options & USE_TERRAIN_SRS ) != 0;
+}
+
+
+void
 TransformFilter::setSRS( const SpatialReference* _srs )
 {
     srs = (SpatialReference*)_srs;
@@ -110,6 +126,8 @@ TransformFilter::setProperty( const Property& p )
         setLocalize( p.getBoolValue( getLocalize() ) );
     else if ( p.getName() == "matrix" )
         setMatrix( p.getMatrixValue() );
+    else if ( p.getName() == "use_terrain_srs" )
+        setUseTerrainSRS( p.getBoolValue( getUseTerrainSRS() ) );
     else if ( p.getName() == "srs" )
         setSRS( Registry::instance()->getSRSFactory()->createSRSfromWKT( p.getValue() ) );
     FeatureFilter::setProperty( p );
@@ -122,6 +140,8 @@ TransformFilter::getProperties() const
     Properties p = FeatureFilter::getProperties();
     p.push_back( Property( "localize", getLocalize() ) );
     p.push_back( Property( "matrix", getMatrix() ) );
+    if ( getUseTerrainSRS() )
+        p.push_back( Property( "use_terrain_srs", getUseTerrainSRS() ) );
     if ( getSRS() )
         p.push_back( Property( "srs", getSRS()->getWKT() ) );
     return p;
@@ -133,7 +153,10 @@ TransformFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
     
-    osg::ref_ptr<SpatialReference> out_srs = srs.get();
+    osg::ref_ptr<SpatialReference> out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
+    if ( !out_srs.valid() )
+        out_srs = srs.get();
+
     if ( out_srs.valid() )
     {
         // LOCALIZE points around a local origin (the working extent's centroid)
