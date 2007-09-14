@@ -76,9 +76,15 @@ BuildGeomFilter::setColor( const osg::Vec4f& _color )
     overall_color = _color;
 }
 
+const osg::Vec4f&
+BuildGeomFilter::getColor() const
+{
+    return overall_color;
+}
+
 
 void
-BuildGeomFilter::setRandomizedColors( bool on_off )
+BuildGeomFilter::setRandomizeColors( bool on_off )
 {
     if ( on_off )
         options |= RANDOMIZE_COLORS;
@@ -86,6 +92,33 @@ BuildGeomFilter::setRandomizedColors( bool on_off )
         options &= ~RANDOMIZE_COLORS;
 }
 
+bool
+BuildGeomFilter::getRandomizeColors() const
+{
+    return options & RANDOMIZE_COLORS;
+}
+
+
+void
+BuildGeomFilter::setProperty( const Property& prop )
+{
+    if ( prop.getName() == "color" )
+        setColor( prop.getVec4fValue() );
+    if ( prop.getName() == "randomize_colors" )
+        setRandomizeColors( prop.getBoolValue( getRandomizeColors() ) );
+
+    DrawableFilter::setProperty( prop );
+}
+
+
+Properties
+BuildGeomFilter::getProperties() const
+{
+    Properties p = DrawableFilter::getProperties();
+    p.push_back( Property( "color", getColor() ) );
+    p.push_back( Property( "randomize_colors", getRandomizeColors() ) );
+    return p;
+}
 
 DrawableList
 BuildGeomFilter::process( FeatureList& input, FilterEnv* env )

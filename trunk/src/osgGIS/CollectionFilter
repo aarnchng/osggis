@@ -52,6 +52,9 @@ namespace osgGIS
     class OSGGIS_EXPORT CollectionFilter : public Filter
     {
     public:
+        virtual std::string getFilterType() { return "CollectionFilter"; }
+
+    public:
         /**
          * Constructs a new collection filter with no metering limit;
          * i.e. it will collect all incoming elements into a single batch.
@@ -65,7 +68,14 @@ namespace osgGIS
          *      The filter will collect elements and then pass them on in
          *      batches no larger than this number of elements.
          */
-        CollectionFilter( unsigned int metering );
+        CollectionFilter( int metering );
+
+
+    public: // properties
+
+        void setMetering( int value ) { metering = value; }
+
+        int getMetering() const { return metering; }
 
 
     public: // Functions used internally by the script engine.
@@ -92,13 +102,16 @@ namespace osgGIS
         bool traverse( FilterEnv* env );
         void reset( ScriptContext* context );
 
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
     public:
 
         virtual ~CollectionFilter();
 
     private:
 
-        unsigned int  metering;
+        int           metering;
         FeatureList   in_features;
         DrawableList  in_drawables;
         osg::NodeList in_nodes;

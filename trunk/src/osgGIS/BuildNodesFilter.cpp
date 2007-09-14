@@ -48,20 +48,105 @@ BuildNodesFilter::BuildNodesFilter( int _options )
 
 BuildNodesFilter::~BuildNodesFilter()
 {
+}  
+
+void 
+BuildNodesFilter::setCullBackfaces( bool value )
+{
+    options = value?
+        options | CULL_BACKFACES :
+        options & ~CULL_BACKFACES;
+}
+
+bool
+BuildNodesFilter::getCullBackfaces() const
+{
+    return ( options & CULL_BACKFACES ) != 0;
+}
+
+void 
+BuildNodesFilter::setApplyClusterCulling( bool value )
+{
+    options = value?
+        options | APPLY_CLUSTER_CULLING :
+        options & ~APPLY_CLUSTER_CULLING;
+}
+
+bool
+BuildNodesFilter::getApplyClusterCulling() const
+{
+    return ( options & APPLY_CLUSTER_CULLING ) != 0;
+} 
+
+void
+BuildNodesFilter::setDisableLighting( bool value )
+{
+    options = value?
+        options | DISABLE_LIGHTING :
+        options & ~DISABLE_LIGHTING;
+}
+
+bool
+BuildNodesFilter::getDisableLighting() const
+{
+    return ( options & DISABLE_LIGHTING ) != 0;
+}
+
+void
+BuildNodesFilter::setOptimize( bool value )
+{
+    options = value?
+        options | OPTIMIZE :
+        options & ~OPTIMIZE;
+}
+
+bool 
+BuildNodesFilter::getOptimize() const
+{
+    return ( options & OPTIMIZE ) != 0;
+}      
+
+void
+BuildNodesFilter::setOptimizerOptions( int value )
+{
+    optimizer_options = value;
+}
+
+int 
+BuildNodesFilter::getOptimizerOptions() const
+{
+    return optimizer_options;
 }
 
 
 void
-BuildNodesFilter::setOptimizerOptions( int _value )
+BuildNodesFilter::setProperty( const Property& p )
 {
-    optimizer_options = _value;
+    if ( p.getName() == "optimize" )
+        setOptimize( p.getBoolValue( getOptimize() ) );
+    else if ( p.getName() == "cull_backfaces" )
+        setCullBackfaces( p.getBoolValue( getCullBackfaces() ) );
+    else if ( p.getName() == "apply_cluster_culling" )
+        setApplyClusterCulling( p.getBoolValue( getApplyClusterCulling() ) );
+    else if ( p.getName() == "disable_lighting" )
+        setDisableLighting( p.getBoolValue( getDisableLighting() ) );
+    else if ( p.getName() == "optimizer_options" )
+        setOptimizerOptions( p.getIntValue( getOptimizerOptions() ) );
+
+    NodeFilter::setProperty( p );
 }
 
 
-int
-BuildNodesFilter::getOptimizerOptions() const
+Properties
+BuildNodesFilter::getProperties() const
 {
-    return optimizer_options;
+    Properties p = NodeFilter::getProperties();
+    p.push_back( Property( "optimize", getOptimize() ) );
+    p.push_back( Property( "cull_backfaces", getCullBackfaces() ) );
+    p.push_back( Property( "apply_cluster_culling", getApplyClusterCulling() ) );
+    p.push_back( Property( "disable_lighting", getDisableLighting() ) );
+    p.push_back( Property( "optimizer_options", getOptimizerOptions() ) );
+    return p;
 }
 
 
@@ -110,29 +195,24 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         result = xform;
     }
 
-    if ( state_set.valid() )
-    {
-        geode->setStateSet( state_set.get() );
-    }
-
-    if ( options & CULL_BACKFACES )
+    if ( getCullBackfaces() )
     {
         geode->getOrCreateStateSet()->setAttributeAndModes(
             new osg::CullFace(),
             osg::StateAttribute::ON );
     }
 
-    if ( options & DISABLE_LIGHTING )
+    if ( getDisableLighting() )
     {
         geode->getOrCreateStateSet()->setMode(
             GL_LIGHTING,
             osg::StateAttribute::OFF );
     }
 
-    if ( options & OPTIMIZE )
+    if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
-        opt.optimize( result, optimizer_options );
+        opt.optimize( result, getOptimizerOptions() );
     }
 
     osg::NodeList output;

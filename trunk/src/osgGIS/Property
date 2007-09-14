@@ -1,0 +1,46 @@
+#ifndef _OSGGIS_PROPERTY_H_
+#define _OSGGIS_PROPERTY_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/Vec2>
+#include <osg/Vec3>
+#include <osg/Vec4>
+#include <osg/Matrix>
+#include <vector>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT Property
+    {
+    public:
+        Property();
+        Property( const std::string& name, const std::string& value );
+        Property( const std::string& name, int value );
+        Property( const std::string& name, float value );
+        Property( const std::string& name, double value );
+        Property( const std::string& name, bool value );
+        Property( const std::string& name, const osg::Vec2f& value );
+        Property( const std::string& name, const osg::Vec3f& value );
+        Property( const std::string& name, const osg::Vec4f& value );
+        Property( const std::string& name, const osg::Matrix& value );
+
+        const std::string& getName() const;
+        const std::string& getValue() const;
+        int getIntValue( int def ) const;
+        float getFloatValue( float def ) const;
+        double getDoubleValue( double def ) const;
+        bool getBoolValue( bool def ) const;
+        osg::Vec2f getVec2fValue() const;
+        osg::Vec3f getVec3fValue() const;
+        osg::Vec4f getVec4fValue() const;
+        osg::Matrix getMatrixValue() const;
+
+    private:
+        std::string name;
+        std::string value;
+    };
+
+    typedef std::vector<Property> Properties;
+}
+
+#endif //_OSGGIS_PROPERTY_H_

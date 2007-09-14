@@ -5,19 +5,48 @@ using namespace osgGIS;
 
 DecimateFilter::DecimateFilter()
 {
-    threshold = 0.0;
+    distance_threshold = 0.0;
 }
 
 
-DecimateFilter::DecimateFilter( double _threshold )
+DecimateFilter::DecimateFilter( double _dist_threshold )
 {
-    threshold = _threshold;
+    distance_threshold = _dist_threshold;
 }
 
 
 DecimateFilter::~DecimateFilter()
 {
     //NOP
+}
+
+void
+DecimateFilter::setDistanceThreshold( double value )
+{
+    distance_threshold = value;
+}
+
+double
+DecimateFilter::getDistanceThreshold() const
+{
+    return distance_threshold;
+}
+
+
+void
+DecimateFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "distance_threshold" )
+        setDistanceThreshold( p.getDoubleValue( getDistanceThreshold() ) );
+    FeatureFilter::setProperty( p );
+}
+
+Properties
+DecimateFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "distance_threshold", getDistanceThreshold() ) );
+    return p;
 }
 
 
@@ -61,7 +90,7 @@ DecimateFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
 
-    if ( threshold > 0.0 )
+    if ( distance_threshold > 0.0 )
     {
         GeoShapeList new_shapes;
 
@@ -76,7 +105,7 @@ DecimateFilter::process( Feature* input, FilterEnv* env )
 
             for( GeoPartList::iterator j = i->getParts().begin(); j != i->getParts().end(); j++ )
             {
-                decimatePart( *j, threshold, min_points, new_parts );
+                decimatePart( *j, distance_threshold, min_points, new_parts );
             }
 
             i->getParts().swap( new_parts );

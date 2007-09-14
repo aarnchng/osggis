@@ -31,6 +31,9 @@ namespace osgGIS
     class OSGGIS_EXPORT RemoveHolesFilter : public FeatureFilter
     {
     public:
+        virtual std::string getFilterType() { return "RemoveHolesFilter"; }
+
+    public:
         RemoveHolesFilter();
         
         virtual ~RemoveHolesFilter();

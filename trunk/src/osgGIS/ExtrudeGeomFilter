@@ -39,6 +39,10 @@ namespace osgGIS
             HEIGHT_IS_RELATIVE_TO_SEA_LEVEL = 0x04,
             HEIGHT_IS_RELATIVE_TO_TERRAIN   = 0x08,
         };
+        
+    public:
+        virtual std::string getFilterType() { return "ExtrudeGeomFilter"; }
+
 
     public:
         ExtrudeGeomFilter();
@@ -49,18 +53,39 @@ namespace osgGIS
 
         virtual ~ExtrudeGeomFilter();
         
+    public: //properties
+        
         void setHeight( double height );
+        
+        double getHeight() const;
 
-        void setHeightRange( double min_height, double max_height );
+        void setMinHeight( double value );
+        
+        double getMinHeight() const;
+        
+        void setMaxHeight( double value );
+        
+        double getMaxHeight() const;
+        
+        void setRandomizeHeights( bool value );
+        
+        bool getRandomizeHeights() const;
         
         void setHeightAttribute( const std::string& attr_name );
         
+        const std::string& getHeightAttribute() const;
+        
         void setHeightScale( double scale_factor );
+        
+        double getHeightScale() const;
 
-        void setHeightFunctor( FeatureFunctor<double>* functor );        
+        //void setHeightFunctor( FeatureFunctor<double>* functor );        
 
     protected:
         virtual DrawableList process( FeatureList& input, FilterEnv* env );
+        
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
         
     private:
         double overall_height;

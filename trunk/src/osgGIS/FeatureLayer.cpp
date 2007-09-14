@@ -62,13 +62,6 @@ FeatureLayer::getFeature( const FeatureOID& oid )
 }
 
 
-//void
-//FeatureLayer::activateSpatialIndex()
-//{
-//    index = new RTreeSpatialIndex( store.get() );
-//}
-
-
 
 SpatialIndex*
 FeatureLayer::getSpatialIndex()
@@ -88,10 +81,20 @@ FeatureLayer::setSpatialIndex( SpatialIndex* _index )
 }
 
 
-SpatialReference* 
-FeatureLayer::getSRS()
+const SpatialReference* 
+FeatureLayer::getSRS() const
 {
-    return store.valid()? store->getSRS() : NULL;
+    return 
+        assigned_srs.valid()? assigned_srs.get() :
+        store.valid()? store->getSRS() :
+        NULL;
+}
+
+
+void
+FeatureLayer::setSRS( const SpatialReference* _srs )
+{
+    assigned_srs = (SpatialReference*)_srs;
 }
 
 

@@ -40,6 +40,9 @@ namespace osgGIS
         };
 
     public:
+        virtual std::string getFilterType() { return "CropFilter"; }
+
+    public:
         /**
          * Constructs a new cropping filter.
          */
@@ -50,10 +53,19 @@ namespace osgGIS
          */
         CropFilter( int options );
 
+    public: // properties
+
+        void setShowCropLines( bool value );
+
+        bool getShowCropLines() const;
+
     public:
         FeatureList process( Feature* input, FilterEnv* env );
-
+        
         virtual ~CropFilter();
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
 
     private:
         int options;

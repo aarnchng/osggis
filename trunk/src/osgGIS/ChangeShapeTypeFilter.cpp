@@ -48,6 +48,32 @@ ChangeShapeTypeFilter::getNewShapeType() const
     return new_type;
 }
 
+void
+ChangeShapeTypeFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "new_shape_type" )
+    {
+        setNewShapeType(
+            p.getValue() == "point"? GeoShape::TYPE_POINT :
+            p.getValue() == "line"? GeoShape::TYPE_LINE :
+            p.getValue() == "polygon"? GeoShape::TYPE_POINT :
+            GeoShape::TYPE_UNSPECIFIED );
+    }
+    FeatureFilter::setProperty( p );
+}
+
+Properties
+ChangeShapeTypeFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "new_shape_type", 
+        getNewShapeType() == GeoShape::TYPE_POINT? "point" :
+        getNewShapeType() == GeoShape::TYPE_LINE? "line" :
+        getNewShapeType() == GeoShape::TYPE_POLYGON? "polygon" :
+        std::string("unspecified") ) );
+    return p;
+}
+
 FeatureList
 ChangeShapeTypeFilter::process( Feature* input, FilterEnv* env )
 {

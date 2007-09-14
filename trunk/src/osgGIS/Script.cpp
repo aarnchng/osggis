@@ -146,3 +146,9 @@ Script::getOutput( bool reset )
     return result;
 }
 
+
+Filter*
+Script::getFirstFilter()
+{
+    return first_filter.get();
+}

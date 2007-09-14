@@ -49,6 +49,38 @@ CropFilter::~CropFilter()
 }
 
 
+void
+CropFilter::setShowCropLines( bool value )
+{
+    options = value?
+        options | SHOW_CROP_LINES :
+        options & ~SHOW_CROP_LINES;
+}
+
+
+bool
+CropFilter::getShowCropLines() const
+{
+    return options & SHOW_CROP_LINES;
+}
+
+
+void
+CropFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "show_crop_lines" )
+        setShowCropLines( p.getBoolValue( getShowCropLines() ) );
+    FeatureFilter::setProperty( p );
+}
+
+Properties
+CropFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "show_crop_lines", getShowCropLines() ) );
+    return p;
+}
+
 bool
 findIsectSegmentAndPoint(const GeoPoint& p1,
                          const GeoPoint& p2,

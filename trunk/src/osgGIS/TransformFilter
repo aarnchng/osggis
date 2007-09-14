@@ -40,6 +40,9 @@ namespace osgGIS
         };
 
     public:
+        virtual std::string getFilterType() { return "TransformFilter"; }
+
+    public:
         /**
          * Constructs a new transform filter.
          */
@@ -70,6 +73,9 @@ namespace osgGIS
          *      Matrix to use to transform feature data.
          */
         TransformFilter( const osg::Matrix& matrix );
+
+
+    public: //properties
 
         /**
          * Sets a transform matrix to use to transform feature geodata.
@@ -125,6 +131,9 @@ namespace osgGIS
         virtual FeatureList process( Feature* input, FilterEnv* env );
         
         virtual ~TransformFilter();
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
 
     private:
         osg::ref_ptr<SpatialReference> srs;

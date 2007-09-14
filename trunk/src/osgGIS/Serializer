@@ -1,0 +1,26 @@
+#ifndef _OSGGIS_SCRIPT_SERIALIZER_H_
+#define _OSGGIS_SCRIPT_SERIALIZER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Document>
+#include <osgGIS/Script>
+#include <iostream>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT Serializer
+    {
+    public:
+        Serializer();
+        
+        virtual Document* load( std::istream& in ) =0;
+        
+        virtual void store( Document* doc, std::ostream& out ) =0;
+        
+        virtual Script* readScript( Document* doc ) =0;
+
+        virtual Document* writeScript( Script* script ) =0;
+    };
+}
+
+#endif // _OSGGIS_SCRIPT_SERIALIZER_H_

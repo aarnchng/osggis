@@ -29,5 +29,4 @@
 
 #define OSGGIS_INTERFACE class
 
-
 #endif // OSGGIS_COMMON

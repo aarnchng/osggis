@@ -134,7 +134,7 @@ createScript()
     // Construct osg::Drawable's from the incoming feature batches:
     osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
     gf->setColor( color );
-    gf->setRandomizedColors( color.a() == 0 );
+    gf->setRandomizeColors( color.a() == 0 );
     script->appendFilter( gf );
 
     // Bring all the drawables into a single collection so that they

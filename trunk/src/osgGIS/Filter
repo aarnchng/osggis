@@ -22,8 +22,11 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/ScriptContext>
+#include <osgGIS/Property>
 #include <osg/Drawable>
 #include <vector>
+#include <map>
+#include <string>
 
 namespace osgGIS
 {
@@ -43,6 +46,9 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT Filter : public osg::Referenced
     {
+    public:
+        virtual std::string getFilterType() =0;
+
     public:
         virtual ~Filter();
         
@@ -76,13 +82,25 @@ namespace osgGIS
          *      Script-level context information
          */
         virtual void reset( ScriptContext* context );
+        
+        
+        /**
+         * Gets the filter attached to the output of this filter.
+         */
+        Filter* getNextFilter();
 
+    public:
+
+        /**
+         * Sets one of the filter's properties by name.
+         */
+        virtual void setProperty( const Property& prop );
+
+        virtual Properties getProperties() const;
 
     protected:
 
         Filter();
-        
-        Filter* getNextFilter();
         
     private:
         osg::ref_ptr<Filter> next_filter;
@@ -96,6 +114,13 @@ namespace osgGIS
     typedef std::vector< osg::ref_ptr<Filter> > FilterList;
 
     typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
+
+    class FilterFactory : public osg::Referenced {
+    public:
+        virtual Filter* createFilter() =0;
+    };
+
+    typedef std::map<std::string,osg::ref_ptr<FilterFactory> > FilterFactoryMap;
 }
 
 #endif // _OSGGIS_FILTER_H_

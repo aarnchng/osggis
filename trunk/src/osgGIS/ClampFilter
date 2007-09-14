@@ -43,8 +43,12 @@ namespace osgGIS
         enum Technique
         {
             TECHNIQUE_SIMPLE,
-            TECHNIQUE_CONFORMING
+            TECHNIQUE_CONFORM
         };
+
+    public:
+        virtual std::string getFilterType() { return "ClampFilter"; }
+
 
     public:
         /**
@@ -52,26 +56,18 @@ namespace osgGIS
          */
         ClampFilter();
 
-        /**
-         * Constucts a new clamp filter.
-         * @param target
-         *      Terrain to which to clamp feature data.
-         */
-        ClampFilter( osg::Node* target );
 
-        /**
-         * Sets the terrain to which to clamp feature data
-         * @param target
-         *      Terrain skin
-         */
-        void setTarget( osg::Node* target );
+    public: // properties
 
-        /**
-         * Gets the terrain to which this filter clamps data
-         * @return an OSG graph
-         */
-        osg::Node* getTarget();
+        void setTechnique( const Technique& value );
 
+        const Technique& getTechnique() const;
+
+
+    public:
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
 
     public:
         virtual FeatureList process( Feature* input, FilterEnv* env );
@@ -79,7 +75,7 @@ namespace osgGIS
         virtual ~ClampFilter();
 
     private:
-        osg::ref_ptr<osg::Node> target;
+        Technique technique;
     };
 };
 

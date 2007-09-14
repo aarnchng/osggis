@@ -29,26 +29,44 @@ ClampFilter::ClampFilter()
 {
 }
 
-ClampFilter::ClampFilter( osg::Node* _target )
-{
-    target = _target;
-}
-
 ClampFilter::~ClampFilter()
 {
     //NOP
 }
 
 void
-ClampFilter::setTarget( osg::Node* _target )
+ClampFilter::setTechnique( const Technique& value )
 {
-    target = _target;
+    technique = value;
 }
 
-osg::Node*
-ClampFilter::getTarget()
+const ClampFilter::Technique&
+ClampFilter::getTechnique() const
 {
-    return target.get();
+    return technique;
+}
+
+void
+ClampFilter::setProperty( const Property& p )
+{
+    if ( p.getName() == "technique" ) {
+        setTechnique( 
+            p.getValue() == "simple"? TECHNIQUE_SIMPLE :
+            p.getValue() == "conform"? TECHNIQUE_CONFORM :
+            getTechnique() );
+    }
+    FeatureFilter::setProperty( p );
+}
+
+Properties
+ClampFilter::getProperties() const
+{
+    Properties p = FeatureFilter::getProperties();
+    p.push_back( Property( "technique",
+        getTechnique() == TECHNIQUE_SIMPLE? "simple" :
+        getTechnique() == TECHNIQUE_CONFORM? "conform" :
+        std::string() ) );
+    return p;
 }
 
 #define ALTITUDE_EXTENSION 250000
@@ -255,7 +273,7 @@ ClampFilter::process( Feature* input, FilterEnv* env )
 
     //osg::notify( osg::INFO ) << "Clamping feature " << input->getOID() << std::endl;
 
-    osg::Node* terrain = target.valid()? target.get() : env->getTerrainNode();
+    osg::Node* terrain = env->getTerrainNode();
 
     for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
     {
