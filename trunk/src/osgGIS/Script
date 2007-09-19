@@ -25,6 +25,7 @@
 #include <osgGIS/FeatureFilter>
 #include <osgGIS/NodeFilter>
 #include <osgGIS/FilterEnv>
+#include <list>
 
 namespace osgGIS
 {
@@ -49,6 +50,16 @@ namespace osgGIS
          * Construct a new, empty script.
          */
         Script();
+
+        /**
+         * Gets the name of this script.
+         */
+        const std::string& getName() const;
+
+        /**
+         * Sets the name of this script.
+         */
+        void setName( const std::string& name );
 
         /**
          * Appends a filter to the end of the script's filter chain.
@@ -108,10 +119,13 @@ namespace osgGIS
         virtual ~Script();
 
     private:
+        std::string                 name;
         osg::ref_ptr<ScriptContext> context;
         osg::ref_ptr<Filter>        first_filter;
         osg::ref_ptr<NodeFilter>    output_filter;
     };
+
+    typedef std::list<osg::ref_ptr<Script> > ScriptList;
 }
 
 

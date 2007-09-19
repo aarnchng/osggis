@@ -22,6 +22,8 @@
 
 #include <osgGISProjects/Common>
 #include <osgGISProjects/Serializer>
+#include <osgGISProjects/Project>
+#include <osgGISProjects/XmlDOM>
 #include <iostream>
 
 using namespace osgGIS;
@@ -47,6 +49,22 @@ namespace osgGISProjects
         virtual Script* readScript( Document* doc );
 
         virtual Document* writeScript( Script* script );
+        
+        
+        virtual Project* readProject( Document* doc );
+        
+        virtual Document* writeProject( Project* project );
+    
+        
+    protected:
+    
+        Script*  decodeScript( XmlElement* );
+        Source*  decodeSource( XmlElement* );
+        Build*   decodeBuild( XmlElement* );
+        Project* decodeProject( XmlElement* );
+        
+        XmlElement* encodeScript( Script* );
+        XmlElement* encodeProject( Project* );
     };
 }
 

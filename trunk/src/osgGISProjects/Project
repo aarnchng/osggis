@@ -17,40 +17,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_SERIALIZER_H_
-#define _OSGGISPROJECTS_SERIALIZER_H_ 1
+#ifndef _OSGGISPROJECTS_PROJECT_H_
+#define _OSGGISPROJECTS_PROJECT_H_ 1
 
 #include <osgGISProjects/Common>
-#include <osgGISProjects/Document>
-#include <osgGISProjects/Project>
+#include <osgGISProjects/Source>
+#include <osgGISProjects/Build>
 #include <osgGIS/Script>
-#include <iostream>
 
 using namespace osgGIS;
 
 namespace osgGISProjects
 {
-    class OSGGISPROJECTS_EXPORT Serializer
+    class OSGGISPROJECTS_EXPORT Project : public osg::Referenced
     {
     public:
-        Serializer();
-        
-        virtual Document* load( std::istream& in ) =0;
-        
-        virtual Document* load( const std::string& uri ) =0;
-        
-        virtual void store( Document* doc, std::ostream& out ) =0;
+        Project();
+        virtual ~Project();
 
-        
-        virtual Script* readScript( Document* doc ) =0;
+        const std::string& getName() const;
 
-        virtual Document* writeScript( Script* script ) =0;
-        
-        
-        virtual Project* readProject( Document* doc ) =0;
-        
-        virtual Document* writeProject( Project* project ) =0;
+        void setName( const std::string& name );
+
+        const ScriptList& getScripts() const;
+
+        ScriptList& getScripts();
+
+        const SourceList& getSources() const;
+
+        SourceList& getSources();
+
+        const BuildList& getBuilds() const;
+
+        BuildList& getBuilds();
+
+    protected:
+        std::string name;
+        ScriptList scripts;
+        SourceList sources;
+        BuildList  builds;
     };
 }
 
-#endif // _OSGGISPROJECTS_SERIALIZER_H_
+#endif // _OSGGISPROJECTS_PROJECT_H_

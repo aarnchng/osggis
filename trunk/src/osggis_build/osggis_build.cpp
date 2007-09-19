@@ -28,6 +28,7 @@
 #include <osgGIS/PagedLayerCompiler>
 
 #include <osgGISProjects/XmlSerializer>
+#include <osgGISProjects/Project>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -127,19 +128,18 @@ main(int argc, char* argv[])
 
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
-    // loads the project/script file:
+    // loads the project file:
     osgGISProjects::XmlSerializer ser;
     osg::ref_ptr<osgGISProjects::Document> doc = ser.load( project_file );    
-
     if ( !doc.valid() )
         return die( "Cannot load XML project/script file!" );
 
-    osg::ref_ptr<osgGIS::Script> script = ser.readScript( doc.get() );
-    if ( !script.valid() )
-        return die( "XML file does not contain a valid script!" );
+    osg::ref_ptr<osgGISProjects::Project> project = ser.readProject( doc.get() );
+    if ( !project.valid() )
+        return die( "XML file does not contain a valid project!" );
 
     //TODO
-    osg::notify( osg::ALWAYS ) << "Script loaded succesfully. Exiting." << std::endl;
+    osg::notify( osg::ALWAYS ) << "Project loaded succesfully. Exiting." << std::endl;
 
 	return 0;
 }

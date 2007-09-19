@@ -33,6 +33,20 @@ Script::~Script()
 }
 
 
+const std::string&
+Script::getName() const
+{
+    return name;
+}
+
+
+void
+Script::setName( const std::string& value )
+{
+    name = value;
+}
+
+
 bool 
 Script::appendFilter( Filter* filter )
 {

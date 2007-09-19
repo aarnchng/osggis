@@ -17,12 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_COMMON_H_
-#define _OSGGISPROJECTS_COMMON_H_ 1
+#include <osgGISProjects/Build>
 
-#include <osgGISProjects/Export>
-#include <osg/ref_ptr>
-#include <osg/Referenced>
-#include <string>
+using namespace osgGISProjects;
 
-#endif // _OSGGISPROJECTS_COMMON_H_
+Build::Build()
+{
+}
+
+Build::~Build()
+{
+}
+
+const std::string&
+Build::getName() const
+{
+    return name;
+}
+
+void
+Build::setName( const std::string& value )
+{
+    name = value;
+}
