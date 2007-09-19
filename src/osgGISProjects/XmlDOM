@@ -65,9 +65,11 @@ namespace osgGISProjects
         
         const XmlNodeList& getChildren() const;
         
-        XmlElement* getElement( const std::string& name );
+        XmlElement* getElement( const std::string& name ) const;
         
         XmlNodeList getElements( const std::string& name ) const;
+        
+        const std::string& getElementText( const std::string& tag ) const;
 
     public: // XmlNode
         virtual bool isElement() const { return true; }

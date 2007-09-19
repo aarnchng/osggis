@@ -229,11 +229,35 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Build"
+			>
+		</File>
+		<File
+			RelativePath=".\Build.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Common"
 			>
 		</File>
 		<File
 			RelativePath=".\Export"
+			>
+		</File>
+		<File
+			RelativePath=".\Project"
+			>
+		</File>
+		<File
+			RelativePath=".\Project.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Source"
+			>
+		</File>
+		<File
+			RelativePath=".\Source.cpp"
 			>
 		</File>
 	</Files>

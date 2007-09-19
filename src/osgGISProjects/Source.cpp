@@ -17,12 +17,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_COMMON_H_
-#define _OSGGISPROJECTS_COMMON_H_ 1
+#include <osgGISProjects/Source>
 
-#include <osgGISProjects/Export>
-#include <osg/ref_ptr>
-#include <osg/Referenced>
-#include <string>
+using namespace osgGISProjects;
 
-#endif // _OSGGISPROJECTS_COMMON_H_
+Source::Source()
+{
+}
+
+Source::~Source()
+{
+}
+
+void
+Source::setName( const std::string& value )
+{
+    name = value;
+}
+
+const std::string&
+Source::getName() const
+{
+    return name;
+}
+
+void
+Source::setURI( const std::string& value )
+{
+    uri = value;
+}
+
+const std::string&
+Source::getURI() const
+{
+    return uri;
+}
