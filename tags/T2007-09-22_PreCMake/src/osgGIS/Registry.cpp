@@ -1,0 +1,140 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#include <osgGIS/Registry>
+#include <osgGIS/DefaultFeatureStoreFactory>
+#include <osgGIS/OGR_SpatialReferenceFactory>
+#include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
+#include <fstream>
+
+using namespace osgGIS;
+
+osgGIS::Registry* osgGIS::Registry::singleton = NULL;
+
+
+Registry::Registry()
+{
+	setSRSFactory( new OGR_SpatialReferenceFactory() );
+	setFeatureStoreFactory( new DefaultFeatureStoreFactory() );
+}
+
+
+Registry::~Registry()
+{
+	//NOP
+}
+
+
+osgGIS::Registry*
+Registry::instance()
+{
+	if ( singleton == NULL )
+	{
+		singleton = new Registry();
+	}
+	return singleton;
+}
+
+
+FeatureLayer*
+Registry::createFeatureLayer( const std::string& uri )
+{
+    FeatureLayer* result = NULL;
+    if ( getFeatureStoreFactory() )
+    {
+        osg::ref_ptr<FeatureStore> store = 
+            getFeatureStoreFactory()->connectToFeatureStore( uri );
+
+        if ( store.valid() && store->isReady() )
+        {
+            result = new FeatureLayer( store.get() );
+
+            // if the store doesn't provide a spatial reference, try to load one from
+            // a PRJ file:
+            if ( result && result->getSRS() == NULL )
+            {
+                if ( osgDB::fileExists( uri ) ) // make sure it's a file:
+                {            
+                    std::string prj_file = osgDB::getNameLessExtension( uri ) + ".prj";
+                    std::fstream is;
+                    is.open( prj_file.c_str() );
+                    if ( is.is_open() )
+                    {
+                        is.seekg (0, std::ios::end);
+                        int length = is.tellg();
+                        is.seekg (0, std::ios::beg);
+                        char* buf = new char[length];
+                        is.read( buf, length );
+                        is.close();
+                        std::string prj = buf;
+                        delete[] buf;
+                        const SpatialReference* prj_srs = 
+                            Registry::instance()->getSRSFactory()->createSRSfromWKT( prj );
+                        result->setSRS( prj_srs );
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
+SpatialReferenceFactory*
+Registry::getSRSFactory()
+{
+	return spatial_ref_factory.get();
+}
+
+
+void
+Registry::setSRSFactory( SpatialReferenceFactory* _factory )
+{
+	spatial_ref_factory = _factory;
+}
+
+
+FeatureStoreFactory*
+Registry::getFeatureStoreFactory()
+{
+	return feature_store_factory.get();
+}
+
+
+void
+Registry::setFeatureStoreFactory( FeatureStoreFactory* _factory )
+{
+	feature_store_factory = _factory;
+}
+
+
+Filter* 
+Registry::createFilterByType( const std::string& type )
+{
+    FilterFactoryMap::const_iterator i = filter_factories.find( type );
+    return i != filter_factories.end()? i->second->createFilter() : NULL;
+}
+
+
+void 
+Registry::addFilterType( const std::string& type, FilterFactory* factory )
+{
+    filter_factories[type] = factory;
+}

@@ -1,0 +1,102 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUILD_GEOM_FILTER_H_
+#define _OSGGIS_BUILD_GEOM_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/DrawableFilter>
+
+namespace osgGIS
+{
+    /**
+     * Assembles feature data into osg::Drawable instances.
+     */
+    class OSGGIS_EXPORT BuildGeomFilter : public DrawableFilter
+    {
+    public:
+        enum Options
+        {
+            RANDOMIZE_COLORS = 0x01
+        };
+        
+    public:
+        virtual std::string getFilterType() { return "BuildGeomFilter"; }
+
+    public:
+        /**
+         * Constructs a new filter for converting features into geometry.
+         */
+        BuildGeomFilter();
+
+        /**
+         * Constructs a new filter for converting features into geometry.
+         * @param color
+         *      Color to assign to all the geometry
+         */
+        BuildGeomFilter( const osg::Vec4f& color );
+
+        /**
+         * Constructs a new filter for converting features into geometry.
+         * @param options
+         *      Options to apply to the process (see Options enum)
+         */
+        BuildGeomFilter( const int& options );
+
+    public: //properties
+        /**
+         * Sets the overall color to assign to generated drawables.
+         * @param color
+         *      A Vec4 color
+         */
+        void setColor( const osg::Vec4f& color );
+        
+        const osg::Vec4f& getColor() const;
+
+        /**
+         * Sets whether to assign random colors to the geometry generated
+         * from feature data.
+         */
+        void setRandomizeColors( bool enabled );
+        
+        bool getRandomizeColors() const;
+        
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    protected:
+        virtual DrawableList process( FeatureList& input, FilterEnv* env );
+        
+    protected:
+        virtual osg::Vec4 getColorForFeature( Feature* input );
+
+        void mergeDrawables( DrawableList& drawables );
+
+        virtual ~BuildGeomFilter();
+        
+    protected:
+        int        options;
+        osg::Vec4f overall_color;
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_GEOM_FILTER_H_

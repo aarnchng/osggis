@@ -1,0 +1,129 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FILTER_H_
+#define _OSGGIS_FILTER_H_
+
+#include <osgGIS/Common>
+#include <osgGIS/ScriptContext>
+#include <osgGIS/Property>
+#include <osg/Drawable>
+#include <vector>
+#include <map>
+#include <string>
+
+namespace osgGIS
+{
+    /**
+     * A discrete data-processing element in a Script.
+     *
+     * A Filter in a dicrete data processor. It takes input and generates
+     * output data. When chained together in a Script, filters sequentially
+     * process data in discrete steps which together form a complete,
+     * repeatable data compilation procedure.
+     *
+     * A Filter's operation should not depend on any external factors, save
+     * the information conveyed in the FilterEnv data structure to which
+     * every filter has access while it is running. Filters should ideally
+     * be stateless with respect to the data they are processing. This helps
+     * increase maintainability and predictability.
+     */
+    class OSGGIS_EXPORT Filter : public osg::Referenced
+    {
+    public:
+        virtual std::string getFilterType() =0;
+
+    public:
+        virtual ~Filter();
+        
+        /**
+         * Runs the filter logic within the contextual environment, pushing the
+         * filter's output to the next filter in the script chain.
+         *
+         * @param env
+         *      Contextual compilation environment.
+         * @return
+         *      True if traversal succeeded, false upon error.
+         */
+        virtual bool traverse( FilterEnv* env ) =0;
+
+
+        /** 
+         * Notifies this filter that a compilation checkpoint has been reached.
+         * This supports batching/metering of data by CollectionFilters.
+         *
+         * @return
+         *      True if traversal succeeded, false upon error.
+         */
+        virtual bool signalCheckpoint();
+        
+
+        /**
+         * Resets this filter to its initial state, clearing any input or
+         * output buffers.
+         *
+         * @param context
+         *      Script-level context information
+         */
+        virtual void reset( ScriptContext* context );
+        
+        
+        /**
+         * Gets the filter attached to the output of this filter.
+         */
+        Filter* getNextFilter();
+
+    public:
+
+        /**
+         * Sets one of the filter's properties by name.
+         */
+        virtual void setProperty( const Property& prop );
+
+        /**
+         * Gets a collection of all this filter's properties.
+         */
+        virtual Properties getProperties() const;
+
+    protected:
+
+        Filter();
+        
+    private:
+        osg::ref_ptr<Filter> next_filter;
+        osg::ref_ptr<ScriptContext> context;
+        
+        friend class Script;
+        Filter* setNextFilter( Filter* filter );
+        Filter* appendFilter( Filter* filter );
+    };
+    
+    typedef std::vector< osg::ref_ptr<Filter> > FilterList;
+
+    typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
+
+    class FilterFactory : public osg::Referenced {
+    public:
+        virtual Filter* createFilter() =0;
+    };
+
+    typedef std::map<std::string,osg::ref_ptr<FilterFactory> > FilterFactoryMap;
+}
+
+#endif // _OSGGIS_FILTER_H_

@@ -1,0 +1,71 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_XML_SERIALIZER_H_
+#define _OSGGISPROJECTS_XML_SERIALIZER_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/Serializer>
+#include <osgGISProjects/Project>
+#include <osgGISProjects/XmlDOM>
+#include <iostream>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    class OSGGISPROJECTS_EXPORT XmlSerializer : public Serializer
+    {
+    public:
+        XmlSerializer();
+
+        virtual ~XmlSerializer();
+        
+    public:
+        
+        virtual Document* load( std::istream& in );
+        
+        virtual Document* load( const std::string& uri );
+        
+        virtual void store( Document* doc, std::ostream& out );
+        
+        
+        virtual Script* readScript( Document* doc );
+
+        virtual Document* writeScript( Script* script );
+        
+        
+        virtual Project* readProject( Document* doc );
+        
+        virtual Document* writeProject( Project* project );
+    
+        
+    protected:
+    
+        Script*  decodeScript( XmlElement* );
+        Source*  decodeSource( XmlElement* );
+        Build*   decodeBuild( XmlElement* );
+        Project* decodeProject( XmlElement* );
+        
+        XmlElement* encodeScript( Script* );
+        XmlElement* encodeProject( Project* );
+    };
+}
+
+#endif // _OSGGISPROJECTS_XML_SCRIPT_SERIALIZER_H_

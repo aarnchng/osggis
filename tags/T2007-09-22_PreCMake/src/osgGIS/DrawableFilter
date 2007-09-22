@@ -1,0 +1,130 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUILD_FILTER_H_
+#define _OSGGIS_BUILD_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Filter>
+#include <osgGIS/Feature>
+#include <osg/Drawable>
+
+namespace osgGIS
+{    
+    /**
+     * A filter that generates osg::Drawable instances. 
+     *
+     * A DrawableFilter can accept either features or drawables as input (i.e.,
+     * you can append a DrawableFilter, a FeatureFilter, or a CollectionFilter.)
+     *
+     * The subclass implementation should override either one/both of the
+     * feature-based process() methods, or one/both of the drawable-based
+     * process() methods(). The compiler will call the appropriate method based
+     * on the preceding filter in the script.
+     */
+    class OSGGIS_EXPORT DrawableFilter : public Filter
+    {        
+    protected: 
+    
+        /**
+         * Processes a single feature into drawables. Override this method in
+         * your implementation to convert individual features into drawables.         
+         *
+         * @param input
+         *      Input feature
+         * @param env
+         *      Contextual compilation information
+         * @return
+         *      The converted input data. The default implementation of this
+         *      method returns an empty set.
+         */
+        virtual DrawableList process( Feature* input, FilterEnv* env );
+
+
+        /**
+         * Processes a collection of features into drawables. Override this
+         * method in your implementation to convert batches of features into
+         * drawables.
+         *
+         * @param input
+         *      Batch of features to convert into drawables
+         * @param env
+         *      Contextual compilation information
+         * @return
+         *      The converted input data. The default implementation of this
+         *      method returns an empty set.
+         */
+        virtual DrawableList process( FeatureList& input, FilterEnv* env );
+
+
+        /**
+         * Processes a single drawable into drawables. Override this method
+         * in your implementation to process individual drawables into more
+         * drawables.
+         *
+         * @param input
+         *      Single drawable to convert
+         * @param env
+         *      Contextual compilation information
+         * @return
+         *      The converted input data. The default implementation of this
+         *      method returns the input data.
+         */
+        virtual DrawableList process( osg::Drawable* input, FilterEnv* env );
+
+
+        /**
+         * Processes a collection of drawables into drawables. Override this
+         * method in your implementation to process batches of drawables.
+         *
+         * @param input
+         *      Batch of drawables to process
+         * @param env
+         *      Contextual compilation information
+         * @return
+         *      The converted input data. The default implementation of this
+         *      method returns the input data.
+         */
+        virtual DrawableList process( DrawableList& input, FilterEnv* env );
+        
+
+    public: // Filter overrides (internal)
+
+        bool traverse( FilterEnv* );
+        virtual void reset( ScriptContext* );
+
+    public: // Methods internal to the scripting engine        
+
+        void push( Feature* input );
+        void push( FeatureList& input );
+        void push( osg::Drawable* input );
+        void push( DrawableList& input );
+
+    protected:        
+
+        DrawableFilter();
+        virtual ~DrawableFilter();
+                
+    private:        
+        FeatureList in_features;
+        DrawableList in_drawables;        
+    };
+}
+
+#endif // _OSGGIS_BUILD_FILTER_H_
