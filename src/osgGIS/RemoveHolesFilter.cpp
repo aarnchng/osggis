@@ -33,7 +33,7 @@ RemoveHolesFilter::~RemoveHolesFilter()
 }
 
 
-bool
+static bool
 isPartCW( GeoPointList& points )
 {
     // find the ymin point:

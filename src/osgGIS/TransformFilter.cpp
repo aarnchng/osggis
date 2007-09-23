@@ -190,7 +190,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
         env->setOutputSRS( out_srs.get() );
     }
 
-    for( GeoShapeList::iterator& shape = input->getShapes().begin(); 
+    for( GeoShapeList::iterator shape = input->getShapes().begin(); 
          shape!= input->getShapes().end();
          shape++ )
     {
