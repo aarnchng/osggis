@@ -181,7 +181,7 @@ OGR_FeatureStore::getExtent()
 			{
 				Feature* feature = cursor->next();
                 const GeoShapeList& shapes = feature->getShapes();
-                for( GeoShapeList::const_iterator& i = shapes.begin(); i != shapes.end(); i++ )
+                for( GeoShapeList::const_iterator i = shapes.begin(); i != shapes.end(); i++ )
                 {
                     const GeoExtent& feature_extent = i->getExtent();
 				    extent.expandToInclude( feature_extent );

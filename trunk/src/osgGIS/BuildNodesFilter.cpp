@@ -156,7 +156,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
     osg::Node* result = NULL;
 
     osg::Geode* geode = new osg::Geode();
-    for( DrawableList::iterator& i = input.begin(); i != input.end(); i++ )
+    for( DrawableList::iterator i = input.begin(); i != input.end(); i++ )
     {
         geode->addDrawable( i->get() );
     }

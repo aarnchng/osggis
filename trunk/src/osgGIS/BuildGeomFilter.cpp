@@ -175,7 +175,7 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
             color = getColorForFeature( f );
         }
 
-        for( GeoShapeList::const_iterator& s = shapes.begin(); s != shapes.end(); s++ )
+        for( GeoShapeList::const_iterator s = shapes.begin(); s != shapes.end(); s++ )
         {
             const GeoShape& shape = *s;
 
