@@ -108,7 +108,7 @@ clampPointPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* 
         terrain->accept( iv );
         if ( isector->containsIntersections() )
         {
-            osgUtil::LineSegmentIntersector::Intersection& isect = isector->getFirstIntersection();
+            osgUtil::LineSegmentIntersector::Intersection isect = isector->getFirstIntersection();
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
             osg::Vec3d offset_point = new_point + clamp_vec * OFFSET_EXTENSION;
             p.set( offset_point * srs->getReferenceFrame() );

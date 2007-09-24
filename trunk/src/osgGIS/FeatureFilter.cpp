@@ -43,7 +43,7 @@ FeatureFilter::push( Feature* input )
 
 
 void
-FeatureFilter::push( FeatureList& input )
+FeatureFilter::push( const FeatureList& input )
 {
     in_features.insert( in_features.end(), input.begin(), input.end() );
 }
@@ -92,20 +92,22 @@ FeatureFilter::traverse( FilterEnv* in_env )
         Filter* next = getNextFilter();
         if ( next )
         {
+            FeatureList output = process( in_features, env.get() );
+
             if ( dynamic_cast<FeatureFilter*>( next ) )
             {
                 FeatureFilter* filter = static_cast<FeatureFilter*>( next );
-                filter->push( process( in_features, env.get() ) );
+                filter->push( output );
             }
             else if ( dynamic_cast<DrawableFilter*>( next ) )
             {
                 DrawableFilter* filter = static_cast<DrawableFilter*>( next );
-                filter->push( process( in_features, env.get() ) );
+                filter->push( output );
             }
             else if ( dynamic_cast<CollectionFilter*>( next ) )
             {
                 CollectionFilter* filter = static_cast<CollectionFilter*>( next );
-                filter->push( process( in_features, env.get() ) );
+                filter->push( output );
             }
 
             ok = next->traverse( env.get() );

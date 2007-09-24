@@ -41,7 +41,7 @@ DrawableFilter::push( Feature* input )
 }
 
 void
-DrawableFilter::push( FeatureList& input )
+DrawableFilter::push( const FeatureList& input )
 {
     in_features.insert( in_features.end(), input.begin(), input.end() );
 }
@@ -53,7 +53,7 @@ DrawableFilter::push( osg::Drawable* input )
 }
 
 void
-DrawableFilter::push( DrawableList& input )
+DrawableFilter::push( const DrawableList& input )
 {
     in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
 }
