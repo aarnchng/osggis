@@ -83,17 +83,17 @@ namespace osgGIS
         /**
          * Pushes a list of features onto the filter's input data queue.
          */
-        void push( FeatureList& features );
+        void push( const FeatureList& features );
 
         /**
          * Pushes a list of drawables onto the filter's input data queue.
          */
-        void push( DrawableList& drawables );
+        void push( const DrawableList& drawables );
 
         /**
          * Pushes a list of nodes onto the filter's input data queue.
          */
-        void push( osg::NodeList& nodes );
+        void push( const osg::NodeList& nodes );
 
 
     public: // Filter overrides

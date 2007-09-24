@@ -71,21 +71,21 @@ CollectionFilter::reset( osgGIS::ScriptContext* context )
 
 
 void 
-CollectionFilter::push( FeatureList& input )
+CollectionFilter::push( const FeatureList& input )
 {
     in_features.insert( in_features.end(), input.begin(), input.end() );
 }
 
 
 void 
-CollectionFilter::push( DrawableList& input )
+CollectionFilter::push( const DrawableList& input )
 {
     in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
 }
 
 
 void 
-CollectionFilter::push( osg::NodeList& input )
+CollectionFilter::push( const osg::NodeList& input )
 {
     in_nodes.insert( in_nodes.begin(), input.begin(), input.end() );
 }

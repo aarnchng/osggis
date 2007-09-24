@@ -68,7 +68,7 @@ namespace osgGIS
     public: // Internal compilation methods
 
         void push( Feature* input );
-        void push( FeatureList& input );
+        void push( const FeatureList& input );
         bool traverse( FilterEnv* env );
         
         virtual void reset( ScriptContext* );

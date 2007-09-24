@@ -112,9 +112,9 @@ namespace osgGIS
     public: // Methods internal to the scripting engine        
 
         void push( Feature* input );
-        void push( FeatureList& input );
+        void push( const FeatureList& input );
         void push( osg::Drawable* input );
-        void push( DrawableList& input );
+        void push( const DrawableList& input );
 
     protected:        
 
