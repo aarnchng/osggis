@@ -18,7 +18,7 @@
  */
 
 #include <osgGISProjects/XmlDOM>
-#include <osg/notify>
+#include <osg/Notify>
 #include <expat.h>
 #include <algorithm>
 

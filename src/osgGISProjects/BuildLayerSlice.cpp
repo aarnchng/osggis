@@ -17,37 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_SOURCE_H_
-#define _OSGGISPROJECTS_SOURCE_H_ 1
+#include <osgGISProjects/BuildLayerSlice>
 
-#include <osgGISProjects/Common>
-#include <list>
+using namespace osgGISProjects;
+using namespace osgGIS;
 
-namespace osgGISProjects
+BuildLayerSlice::BuildLayerSlice()
 {
-    class OSGGISPROJECTS_EXPORT Source : public osg::Referenced
-    {
-    public:
-        Source();
-        
-        Source( const std::string& uri );
-
-        virtual ~Source();
-
-        const std::string& getName() const;
-        
-        void setName( const std::string& value );
-
-        const std::string& getURI() const;
-
-        void setURI( const std::string& uri );
-
-    private:
-        std::string name;
-        std::string uri;
-    };
-
-    typedef std::list<osg::ref_ptr<Source> > SourceList;
+    //NOP
 }
 
-#endif // _OSGGISPROJECTS_SOURCE_H_
+Script*
+BuildLayerSlice::getScript()
+{
+    return script.get();
+}
+
+void
+BuildLayerSlice::setScript( Script* _script )
+{
+    script = _script;
+}
+
+

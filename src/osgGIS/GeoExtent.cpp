@@ -18,7 +18,7 @@
  */
 
 #include <osgGIS/GeoExtent>
-#include <osg/notify>
+#include <osg/Notify>
 #include <sstream>
 
 using namespace osgGIS;

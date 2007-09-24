@@ -21,6 +21,7 @@
 #include <osg/Geometry>
 #include <osgUtil/SmoothingVisitor>
 #include <osgUtil/Tessellator>
+#include <float.h>
 
 using namespace osgGIS;
 

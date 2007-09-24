@@ -19,7 +19,7 @@
 
 #include <osgGIS/OGR_Feature>
 #include <ogr_api.h>
-#include <osg/notify>
+#include <osg/Notify>
 #include <algorithm>
 
 using namespace osgGIS;

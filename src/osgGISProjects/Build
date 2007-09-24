@@ -21,6 +21,7 @@
 #define _OSGGISPROJECTS_BUILD_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGISProjects/BuildLayer>
 #include <list>
 
 namespace osgGISProjects
@@ -36,8 +37,13 @@ namespace osgGISProjects
 
         void setName( const std::string& value );
 
+        const BuildLayerList& getLayers() const;
+
+        BuildLayerList& getLayers();
+
     private:
         std::string name;
+        BuildLayerList layers;
     };
 
     typedef std::list<osg::ref_ptr<Build> > BuildList;

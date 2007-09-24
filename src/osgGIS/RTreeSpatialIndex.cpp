@@ -19,7 +19,7 @@
 
 #include <osgGIS/RTreeSpatialIndex>
 #include <osgGIS/FeatureCursorImpl>
-#include <osg/notify>
+#include <osg/Notify>
 #include <algorithm>
 
 using namespace osgGIS;

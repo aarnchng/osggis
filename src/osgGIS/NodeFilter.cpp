@@ -19,7 +19,7 @@
 
 #include <osgGIS/NodeFilter>
 #include <osgGIS/CollectionFilter>
-#include <osg/notify>
+#include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>
 

@@ -24,7 +24,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <expat.h>
-#include <osg/notify>
+#include <osg/Notify>
 #include <string>
 #include <algorithm>
 #include <fstream>
@@ -39,6 +39,20 @@ XmlSerializer::XmlSerializer()
 
 XmlSerializer::~XmlSerializer()
 {
+}
+
+
+static bool
+isRef( const std::string& word )
+{
+    return word.length() > 1 && word.at(0) == '%';
+}
+
+
+static std::string
+getRef( const std::string& word )
+{
+    return word.substr( 1 );
 }
 
 
@@ -76,7 +90,7 @@ XmlSerializer::store( Document* doc, std::ostream& out )
 
 
 Script*
-XmlSerializer::decodeScript( XmlElement* e )
+XmlSerializer::decodeScript( XmlElement* e, Project* proj )
 {
     Script* script = NULL;
     if ( e )
@@ -135,7 +149,7 @@ XmlSerializer::readScript( Document* doc )
     if ( doc )
     {
         XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeScript( xml_doc->getElement( "script" ) );
+        result = decodeScript( xml_doc->getElement( "script" ), NULL );
     }
     return result;
 }
@@ -157,7 +171,7 @@ XmlSerializer::writeScript( Script* script )
 
 
 Source*
-XmlSerializer::decodeSource( XmlElement* e )
+XmlSerializer::decodeSource( XmlElement* e, Project* proj )
 {
     Source* source = NULL;
     if ( e )
@@ -170,14 +184,82 @@ XmlSerializer::decodeSource( XmlElement* e )
 }
 
 
+Terrain*
+XmlSerializer::decodeTerrain( XmlElement* e, Project* proj )
+{
+    Terrain* terrain = NULL;
+    if ( e )
+    {
+        terrain = new Terrain();
+        terrain->setName( e->getAttr( "name" ) );
+        terrain->setURI( e->getElementText( "uri" ) );
+    }
+    return terrain;
+}
+
+
+BuildLayerSlice*
+XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
+{
+    BuildLayerSlice* slice = NULL;
+    if ( e )
+    {
+        slice = new BuildLayerSlice();
+
+        std::string script = e->getAttr( "script" );
+        slice->setScript( proj->getScript( script ) ); //TODO: warning?
+    }
+    return slice;
+}
+
+
+BuildLayer*
+XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
+{
+    BuildLayer* layer = NULL;
+    if ( e )
+    {
+        layer = new BuildLayer();
+        layer->setName( e->getAttr( "name" ) );   
+        
+        std::string source = e->getAttr( "source" );
+        layer->setSource( proj->getSource( source ) != NULL?
+            proj->getSource( source ) : 
+            new Source( source ) );    
+
+        std::string terrain = e->getAttr( "terrain" );
+        layer->setTerrain( proj->getTerrain( terrain ) != NULL?
+            proj->getTerrain( terrain ) :
+            new Terrain( terrain ) );
+
+        XmlNodeList slices = e->getElements( "slice" );
+        for( XmlNodeList::const_iterator i = slices.begin(); i != slices.end(); i++ )
+        {
+            BuildLayerSlice* slice = decodeSlice( static_cast<XmlElement*>( i->get() ), proj );
+            if ( slice )
+                layer->getSlices().push_back( slice );
+        }
+    }
+    return layer;
+}
+
+
 Build*
-XmlSerializer::decodeBuild( XmlElement* e )
+XmlSerializer::decodeBuild( XmlElement* e, Project* proj )
 {
     Build* build = NULL;
     if ( e )
     {
         build = new Build();
         build->setName( e->getAttr( "name" ) );
+
+        XmlNodeList layers = e->getElements( "layer" );
+        for( XmlNodeList::const_iterator i = layers.begin(); i != layers.end(); i++ )
+        {
+            BuildLayer* layer = decodeLayer( static_cast<XmlElement*>( i->get() ), proj );
+            if ( layer )
+                build->getLayers().push_back( layer );
+        }
     }
     return build;
 }
@@ -192,45 +274,39 @@ XmlSerializer::decodeProject( XmlElement* e )
         project = new Project();
 
         // scripts
-        XmlNodeList scripts_nodes = e->getElements( "scripts" );
-        for( XmlNodeList::const_iterator i = scripts_nodes.begin(); i != scripts_nodes.end(); i++ )
+        XmlNodeList scripts = e->getElements( "script" );
+        for( XmlNodeList::const_iterator j = scripts.begin(); j != scripts.end(); j++ )
         {
-            XmlElement* scripts_root = static_cast<XmlElement*>( i->get() );
-            XmlNodeList script_nodes = scripts_root->getElements( "script" );
-            for( XmlNodeList::const_iterator j = script_nodes.begin(); j != script_nodes.end(); j++ )
-            {
-                Script* script = decodeScript( static_cast<XmlElement*>( j->get() ) );
-                if ( script )
-                    project->getScripts().push_back( script );
-            }
+            Script* script = decodeScript( static_cast<XmlElement*>( j->get() ), project );
+            if ( script )
+                project->getScripts().push_back( script );
+        }
+
+        // terrains
+        XmlNodeList terrains = e->getElements( "terrain" );
+        for( XmlNodeList::const_iterator j = terrains.begin(); j != terrains.end(); j++ )
+        {
+            Terrain* terrain = decodeTerrain( static_cast<XmlElement*>( j->get() ), project );
+            if ( terrain )
+                project->getTerrains().push_back( terrain );
         }
 
         // sources
-        XmlNodeList sources_nodes = e->getElements( "sources" );
-        for( XmlNodeList::const_iterator i = sources_nodes.begin(); i != sources_nodes.end(); i++ )
+        XmlNodeList sources = e->getElements( "source" );
+        for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
         {
-            XmlElement* sources_root = static_cast<XmlElement*>( i->get() );
-            XmlNodeList source_nodes = sources_root->getElements( "source" );
-            for( XmlNodeList::const_iterator j = source_nodes.begin(); j != source_nodes.end(); j++ )
-            {
-                Source* source = decodeSource( static_cast<XmlElement*>( j->get() ) );
-                if ( source )
-                    project->getSources().push_back( source );
-            }
+            Source* source = decodeSource( static_cast<XmlElement*>( j->get() ), project );
+            if ( source )
+                project->getSources().push_back( source );
         }
 
         // builds
-        XmlNodeList builds_nodes = e->getElements( "builds" );
-        for( XmlNodeList::const_iterator i = builds_nodes.begin(); i != builds_nodes.end(); i++ )
+        XmlNodeList builds = e->getElements( "build" );
+        for( XmlNodeList::const_iterator j = builds.begin(); j != builds.end(); j++ )
         {
-            XmlElement* builds_root = static_cast<XmlElement*>( i->get() );
-            XmlNodeList build_nodes = builds_root->getElements( "build" );
-            for( XmlNodeList::const_iterator j = build_nodes.begin(); j != build_nodes.end(); j++ )
-            {
-                Build* build = decodeBuild( static_cast<XmlElement*>( j->get() ) );
-                if ( build )
-                    project->getBuilds().push_back( build );
-            }
+            Build* build = decodeBuild( static_cast<XmlElement*>( j->get() ), project );
+            if ( build )
+                project->getBuilds().push_back( build );
         }
     }
     return project;

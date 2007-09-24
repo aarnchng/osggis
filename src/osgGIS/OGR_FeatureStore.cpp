@@ -22,7 +22,7 @@
 #include <osgGIS/OGR_SpatialReference>
 #include <osgGIS/FeatureCursorImpl>
 #include <ogr_api.h>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

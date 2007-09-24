@@ -18,7 +18,7 @@
  */
 
 #include <osgGIS/GeoShape>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

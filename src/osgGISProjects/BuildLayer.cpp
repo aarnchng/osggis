@@ -17,38 +17,76 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGISProjects/Build>
+#include <osgGISProjects/BuildLayer>
 
 using namespace osgGISProjects;
 
-Build::Build()
+BuildLayer::BuildLayer()
 {
+    //NOP
 }
 
-Build::~Build()
+BuildLayer::BuildLayer( const std::string& _name )
 {
+    setName( _name );
 }
 
 const std::string&
-Build::getName() const
+BuildLayer::getName() const
 {
     return name;
 }
 
 void
-Build::setName( const std::string& value )
+BuildLayer::setName( const std::string& _name )
 {
-    name = value;
+    name = _name;
 }
 
-const BuildLayerList&
-Build::getLayers() const
+Source*
+BuildLayer::getSource()
 {
-    return layers;
+    return source.get();
 }
 
-BuildLayerList&
-Build::getLayers()
+void
+BuildLayer::setSource( Source* _source )
 {
-    return layers;
+    source = _source;
+}
+
+Terrain*
+BuildLayer::getTerrain()
+{
+    return terrain.get();
+}
+
+void
+BuildLayer::setTerrain( Terrain* _terrain )
+{
+    terrain = _terrain;
+}
+
+const std::string&
+BuildLayer::getTarget() const
+{
+    return target;
+}
+
+void
+BuildLayer::setTarget( const std::string& _target )
+{
+    target = _target;
+}
+
+const BuildLayerSliceList&
+BuildLayer::getSlices() const
+{
+    return slices;
+}
+
+BuildLayerSliceList&
+BuildLayer::getSlices()
+{
+    return slices;
 }

@@ -20,7 +20,7 @@
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/SimpleSpatialIndex>
 #include <osgGIS/RTreeSpatialIndex>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 
