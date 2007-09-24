@@ -17,58 +17,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_PROJECT_H_
-#define _OSGGISPROJECTS_PROJECT_H_ 1
+#ifndef _OSGGISPROJECTS_BUILD_LAYER_H_
+#define _OSGGISPROJECTS_BUILD_LAYER_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGISProjects/BuildLayerSlice>
 #include <osgGISProjects/Source>
-#include <osgGISProjects/Build>
 #include <osgGISProjects/Terrain>
-#include <osgGIS/Script>
-
-using namespace osgGIS;
+#include <list>
 
 namespace osgGISProjects
 {
-    class OSGGISPROJECTS_EXPORT Project : public osg::Referenced
+    class OSGGISPROJECTS_EXPORT BuildLayer : public osg::Referenced
     {
     public:
-        Project();
-        virtual ~Project();
+        BuildLayer();
+
+        BuildLayer( const std::string& name );
 
         const std::string& getName() const;
 
         void setName( const std::string& name );
+        
+        Source* getSource();
+        
+        void setSource( Source* source );
+        
+        Terrain* getTerrain();
+        
+        void setTerrain( Terrain* terrain );
+        
+        const std::string& getTarget() const;
+        
+        void setTarget( const std::string& uri );
 
-        const ScriptList& getScripts() const;
+        const BuildLayerSliceList& getSlices() const;
 
-        ScriptList& getScripts();
+        BuildLayerSliceList& getSlices();
 
-        Script* getScript( const std::string& name );
-
-        const SourceList& getSources() const;
-
-        SourceList& getSources();
-
-        Source* getSource( const std::string& name );
-
-        const TerrainList& getTerrains() const;
-
-        TerrainList& getTerrains();
-
-        Terrain* getTerrain( const std::string& name );
-
-        const BuildList& getBuilds() const;
-
-        BuildList& getBuilds();
-
-    protected:
+    private:
         std::string name;
-        ScriptList scripts;
-        SourceList sources;
-        TerrainList terrains;
-        BuildList  builds;
+        BuildLayerSliceList slices;
+        osg::ref_ptr<Source> source;
+        osg::ref_ptr<Terrain> terrain;
+        std::string target;
     };
+    
+    typedef std::list<osg::ref_ptr<BuildLayer> > BuildLayerList;
 }
 
-#endif // _OSGGISPROJECTS_PROJECT_H_
+#endif // _OSGGISPROJECTS_BUILD_LAYER_H_

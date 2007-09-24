@@ -31,7 +31,7 @@
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
-#include <osg/notify>
+#include <osg/Notify>
 #include <osg/Group>
 #include <osg/PolygonOffset>
 #include <osg/Point>

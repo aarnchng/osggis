@@ -58,9 +58,12 @@ namespace osgGISProjects
         
     protected:
     
-        Script*  decodeScript( XmlElement* );
-        Source*  decodeSource( XmlElement* );
-        Build*   decodeBuild( XmlElement* );
+        Script* decodeScript( XmlElement*, Project* );
+        Source* decodeSource( XmlElement*, Project* );
+        Terrain* decodeTerrain( XmlElement*, Project* );
+        Build* decodeBuild( XmlElement*, Project* );
+        BuildLayer* decodeLayer( XmlElement*, Project* );
+        BuildLayerSlice* decodeSlice( XmlElement*, Project* );
         Project* decodeProject( XmlElement* );
         
         XmlElement* encodeScript( Script* );

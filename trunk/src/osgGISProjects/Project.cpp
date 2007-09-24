@@ -18,6 +18,7 @@
  */
 
 #include <osgGISProjects/Project>
+#include <algorithm>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
@@ -56,6 +57,17 @@ Project::getScripts()
     return scripts;
 }
 
+Script*
+Project::getScript( const std::string& key )
+{
+    for( ScriptList::const_iterator i = scripts.begin(); i != scripts.end(); i++ )
+    {
+        if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
+}
+
 const SourceList&
 Project::getSources() const
 {
@@ -66,6 +78,40 @@ SourceList&
 Project::getSources()
 {
     return sources;
+}
+
+Source*
+Project::getSource( const std::string& key )
+{
+    for( SourceList::const_iterator i = sources.begin(); i != sources.end(); i++ )
+    {
+        if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
+}
+
+const TerrainList&
+Project::getTerrains() const
+{
+    return terrains;
+}
+
+TerrainList&
+Project::getTerrains()
+{
+    return terrains;
+}
+
+Terrain*
+Project::getTerrain( const std::string& key )
+{
+    for( TerrainList::const_iterator i = terrains.begin(); i != terrains.end(); i++ )
+    {
+        if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
 }
 
 const BuildList&

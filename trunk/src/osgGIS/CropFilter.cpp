@@ -18,7 +18,7 @@
  */
 
 #include <osgGIS/CropFilter>
-#include <osg/notify>
+#include <osg/Notify>
 #include <stack>
 //#include <algorithm>
 

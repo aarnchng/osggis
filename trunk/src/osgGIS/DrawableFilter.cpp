@@ -20,7 +20,7 @@
 #include <osgGIS/DrawableFilter>
 #include <osgGIS/NodeFilter>
 #include <osgGIS/CollectionFilter>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

@@ -21,7 +21,7 @@
 #include <osgGIS/FeatureFilter>
 #include <osgGIS/DrawableFilter>
 #include <osgGIS/NodeFilter>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

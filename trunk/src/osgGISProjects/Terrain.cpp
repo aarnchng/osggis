@@ -17,37 +17,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_SOURCE_H_
-#define _OSGGISPROJECTS_SOURCE_H_ 1
+#include <osgGISProjects/Terrain>
 
-#include <osgGISProjects/Common>
-#include <list>
+using namespace osgGISProjects;
 
-namespace osgGISProjects
+Terrain::Terrain()
 {
-    class OSGGISPROJECTS_EXPORT Source : public osg::Referenced
-    {
-    public:
-        Source();
-        
-        Source( const std::string& uri );
-
-        virtual ~Source();
-
-        const std::string& getName() const;
-        
-        void setName( const std::string& value );
-
-        const std::string& getURI() const;
-
-        void setURI( const std::string& uri );
-
-    private:
-        std::string name;
-        std::string uri;
-    };
-
-    typedef std::list<osg::ref_ptr<Source> > SourceList;
+    //NOP
 }
 
-#endif // _OSGGISPROJECTS_SOURCE_H_
+Terrain::Terrain( const std::string& _uri )
+{
+    setURI( _uri );
+}
+
+void
+Terrain::setName( const std::string& value )
+{
+    name = value;
+}
+
+const std::string&
+Terrain::getName() const
+{
+    return name;
+}
+
+void
+Terrain::setURI( const std::string& value )
+{
+    uri = value;
+}
+
+const std::string&
+Terrain::getURI() const
+{
+    return uri;
+}

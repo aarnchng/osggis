@@ -23,10 +23,17 @@ using namespace osgGISProjects;
 
 Source::Source()
 {
+    //NOP
+}
+
+Source::Source( const std::string& _uri )
+{
+    setURI( _uri );
 }
 
 Source::~Source()
 {
+    //NOP
 }
 
 void

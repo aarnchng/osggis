@@ -33,7 +33,7 @@
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
-#include <osg/notify>
+#include <osg/Notify>
 #include <osg/Group>
 #include <osgDB/WriteFile>
 #include <osgViewer/Viewer>

@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/RemoveHolesFilter>
+#include <float.h>
 
 using namespace osgGIS;
 

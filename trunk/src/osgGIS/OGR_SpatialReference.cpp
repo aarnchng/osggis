@@ -21,7 +21,7 @@
 #include <osgGIS/Registry>
 #include <ogr_api.h>
 #include <ogr_spatialref.h>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

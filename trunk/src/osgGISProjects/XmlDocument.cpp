@@ -18,7 +18,7 @@
  */
 
 #include <osgGISProjects/XmlDocument>
-#include <osg/notify>
+#include <osg/Notify>
 #include <expat.h>
 #include <algorithm>
 

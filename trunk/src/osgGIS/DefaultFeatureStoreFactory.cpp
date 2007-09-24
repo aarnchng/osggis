@@ -23,7 +23,7 @@
 #include <osgGIS/Registry>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
-#include <osg/notify>
+#include <osg/Notify>
 
 using namespace osgGIS;
 

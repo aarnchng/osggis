@@ -18,7 +18,7 @@
  */
 
 #include <osgGIS/Script>
-#include <osg/notify>
+#include <osg/Notify>
 #include <osg/Timer>
 
 using namespace osgGIS;
