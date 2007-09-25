@@ -19,6 +19,7 @@
 
 #include <osgGIS/ConvexHullFilter>
 #include <osgGIS/SimpleFeature>
+#include <osg/Notify>
 #include <algorithm>
 
 using namespace osgGIS;
@@ -35,9 +36,9 @@ ConvexHullFilter::~ConvexHullFilter()
 }
 
 
-// returns TRUE is a part is would clockwise (i.e. is not a hole)
+// returns TRUE is a part is  not a hole)
 static bool
-isPartCW( GeoPointList& points )
+isNotHole( GeoPointList& points )
 {
     // find the ymin point:
     double ymin = DBL_MAX;
@@ -76,7 +77,7 @@ collectPoints( FeatureList& input, GeoPointList& output )
             GeoPartList& parts = j->getParts();
             for( GeoPartList::iterator k = parts.begin(); k != parts.end(); k++ )
             {
-                if ( k->size() > 2 && isPartCW( *k ) )
+                if ( k->size() > 2 ) //&& isNotHole( *k ) )
                 {
                     output.insert( output.end(), k->begin(), k->end() );
                 }
@@ -86,11 +87,17 @@ collectPoints( FeatureList& input, GeoPointList& output )
 }
 
 
-struct AscendingAngleSort {
-    AscendingAngleSort( GeoPoint& _p ) : p(_p) { }
+struct LesserAngleWithP {
+    LesserAngleWithP( GeoPoint& _p ) : p(_p) { }
     const GeoPoint& p;
-    bool operator()( const GeoPoint& one, const GeoPoint& two ) const {
-        return (p ^ one) < (p ^ two);
+    bool operator()( const GeoPoint& v0, const GeoPoint& v1 ) const {
+        osg::Vec3d k0 = v0 - p, k1 = v1 - p;  
+        return 
+            k0.x() > 0 && k1.x() < 0? true :
+            k1.x() > 0 && k0.x() < 0? false :
+            k0.x() > 0 && k1.x() > 0? (k0.y()/k0.x() < k1.y()/k1.x()) :
+            k0.x() < 0 && k1.x() < 0? (k0.y()/-k0.x() > k1.y()/-k1.x()) :
+            false;
     }
 };
 
@@ -119,19 +126,59 @@ sortPoints( GeoPointList& input )
     input.erase( i );
 
     // b) sort the remaining elements by their angle to P.
-    std::sort( input.begin(), input.end(), AscendingAngleSort(P) );
+    std::sort( input.begin(), input.end(), LesserAngleWithP(P) );
 
-    // c) re-insert P at the beginning of the list.
+    // c) re-insert P at the beginning AND the end of the list.
     input.insert( input.begin(), P );
+    input.push_back( P );
 }
 
 
 // traverses the sorted point list, building a new list representing
 // the convex hull of in the input list
 void
-buildHull( GeoPointList& input, GeoPointList& output )
+buildHull( GeoPointList& input )
 {
-    //TODO
+    if ( input.size() >= 3 )
+    {
+        for( GeoPointList::iterator i = input.begin()+2; i != input.end(); i++ )
+        {
+            if ( i >= input.begin()+2 )
+            {
+                const GeoPoint& p2 = *i;
+                const GeoPoint& p1 = *(i-1);
+                const GeoPoint& p0 = *(i-2);
+
+                double cross2d =
+                    (p1.x()-p0.x())*(p2.y()-p0.y()) - (p1.y()-p0.y())*(p2.x()-p0.x());
+
+                bool is_left_turn = cross2d > 0;
+
+                if ( !is_left_turn )
+                {
+                    i = input.erase( i-1 );
+                    i--;
+                }
+            }
+        }
+
+        input.erase( input.end()-1 );
+    }
+}
+
+
+GeoShape::ShapeType
+deriveType( FeatureList& input )
+{
+    if ( input.size() > 0 )
+    {
+        Feature* f = input.front().get();
+        if ( f->getShapes().size() > 0 )
+        {
+            return f->getShapes().front().getShapeType();
+        }
+    }
+    return GeoShape::TYPE_POLYGON;
 }
 
 
@@ -139,21 +186,25 @@ FeatureList
 ConvexHullFilter::process( FeatureList& input, FilterEnv* env )
 {
     FeatureList output;
+
+    // Contruct a convex hull from the feature set
+    // Graham Scan algorithm:
+    // http://en.wikipedia.org/wiki/Graham_scan
     
     // a) collect all points into a single array, discarding holes
-    GeoPointList all_points;
-    collectPoints( input, all_points );
+    GeoPointList working_set;
+    collectPoints( input, working_set );
 
     // c) sort remaining points by angle to P
-    sortPoints( all_points );
+    sortPoints( working_set );
 
     // d) traverse to build convex hull points
-    GeoPointList hull_points;
-    buildHull( all_points, hull_points );
+    buildHull( working_set );
 
     // e) build new single convex hull feature.
-    GeoShape hull_shape( GeoShape::TYPE_POLYGON, env->getInputSRS() );
-    hull_shape.addPart( hull_points );
+    GeoShape::ShapeType type = deriveType( input );
+    GeoShape hull_shape( type, env->getInputSRS() );
+    hull_shape.addPart( working_set );
     Feature* hull_feature = new SimpleFeature();
     hull_feature->getShapes().push_back( hull_shape );
     
