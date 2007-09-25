@@ -23,6 +23,7 @@
 #include <osgGISProjects/Common>
 #include <osgGISProjects/XmlDOM>
 #include <osgGISProjects/Document>
+#include <iostream>
 
 namespace osgGISProjects
 {
