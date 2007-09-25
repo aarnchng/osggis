@@ -86,7 +86,15 @@ collectPoints( FeatureList& input, GeoPointList& output )
 }
 
 
-// finds the y-min point and then sorts the remaining points by their 
+struct AscendingAngleSort {
+    AscendingAngleSort( GeoPoint& _p ) : p(_p) { }
+    const GeoPoint& p;
+    bool operator()( const GeoPoint& one, const GeoPoint& two ) const {
+        return (p ^ one) < (p ^ two);
+    }
+};
+
+// finds the y-min point and then sorts the remaining points by their
 // angle to the y-min point
 void
 sortPoints( GeoPointList& input )
@@ -111,14 +119,6 @@ sortPoints( GeoPointList& input )
     input.erase( i );
 
     // b) sort the remaining elements by their angle to P.
-    struct AscendingAngleSort {
-        AscendingAngleSort( GeoPoint& _p ) : p(_p) { }
-        GeoPoint& p;
-        bool operator()( const GeoPoint& one, const GeoPoint& two ) const {
-            return (p ^ one) < (p ^ two);
-        }
-    };
-
     std::sort( input.begin(), input.end(), AscendingAngleSort(P) );
 
     // c) re-insert P at the beginning of the list.
