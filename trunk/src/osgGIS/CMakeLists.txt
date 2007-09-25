@@ -16,6 +16,7 @@ SET(LIB_PUBLIC_HEADERS
     ClampFilter
     CollectionFilter
     Common
+    ConvexHullFilter
     Compiler
     CropFilter
     DecimateFilter
@@ -53,6 +54,7 @@ SET(LIB_PUBLIC_HEADERS
     RTreeSpatialIndex
     Script
     ScriptContext
+    SimpleFeature
     SimpleSpatialIndex
     SpatialIndex
     SpatialReference
@@ -73,6 +75,7 @@ ADD_LIBRARY(${LIB_NAME}
     ClampFilter.cpp
     CollectionFilter.cpp
     Compiler.cpp
+    ConvexHullFilter.cpp
     CropFilter.cpp
     DecimateFilter.cpp
     DefaultFeatureStoreFactory.cpp
@@ -104,6 +107,7 @@ ADD_LIBRARY(${LIB_NAME}
     RTreeSpatialIndex.cpp
     Script.cpp
     ScriptContext.cpp
+    SimpleFeature.cpp
     SimpleSpatialIndex.cpp
     SpatialReference.cpp
     TransformFilter.cpp

@@ -24,6 +24,12 @@
 
 using namespace osgGIS;
 
+Attribute
+Attribute::invalid()
+{
+    return Attribute();
+}
+
 Attribute::Attribute()
 {
     valid = false;
