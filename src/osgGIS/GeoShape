@@ -141,7 +141,7 @@ namespace osgGIS
         /**
          * Visits each point in the shape with a user-provided visitor.
          */
-        bool accept( GeoPointVisitor& visitor ) const;
+        bool accept( const GeoPointVisitor& visitor ) const;
 
         /**
          * Gets the spatial reference system of the shape geodata.

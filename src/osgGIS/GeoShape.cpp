@@ -202,7 +202,7 @@ GeoShape::accept( GeoPointVisitor& visitor )
 
 
 bool
-GeoShape::accept( GeoPointVisitor& visitor ) const
+GeoShape::accept( const GeoPointVisitor& visitor ) const
 {
     for( unsigned int pi = 0; pi < getPartCount(); pi++ )
     {
