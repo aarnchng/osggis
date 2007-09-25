@@ -52,9 +52,9 @@ RTree<DATA>::chooseLeaf( const RtNodeId& node_id, const GeoExtent& extent )
     {
         double extent_area = extent.getArea();
         double smallest_area_diff = DBL_MAX;
-        RtEntryList<DATA>::iterator best_i = node->entries.begin();
+        typename RtEntryList<DATA>::iterator best_i = node->entries.begin();
 
-        for( RtEntryList<DATA>::iterator i = node->entries.begin(); i != node->entries.end(); i++ )
+        for( typename RtEntryList<DATA>::iterator i = node->entries.begin(); i != node->entries.end(); i++ )
         {
             RtEntry<DATA>& entry = *i;
             GeoExtent future_extent = entry.extent;
@@ -84,10 +84,10 @@ RTree<DATA>::pickSeedsQ(RtEntryList<DATA>& list,
 {
     double largest_d = 0.0;
 
-    for( RtEntryList<DATA>::iterator i = list.begin(); i != list.end(); i++ )
+    for( typename RtEntryList<DATA>::iterator i = list.begin(); i != list.end(); i++ )
     {
         RtEntry<DATA>& one = *i;
-        for( RtEntryList<DATA>::iterator j = i+1; j != list.end(); j++ )
+        for( typename RtEntryList<DATA>::iterator j = i+1; j != list.end(); j++ )
         {
             RtEntry<DATA>& two = *j;
             GeoExtent combined = one.extent;
@@ -109,7 +109,7 @@ GeoExtent
 computeExtent( RtEntryList<DATA>& list )
 {
     GeoExtent extent;
-    for( RtEntryList<DATA>::iterator i = list.begin(); i != list.end(); i++ )
+    for( typename RtEntryList<DATA>::iterator i = list.begin(); i != list.end(); i++ )
     {
         extent.expandToInclude( i->extent );
     }
@@ -134,8 +134,8 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
     int second_index = 1;
     
     pickSeedsQ( L->entries, /*out*/first_index, /*out*/second_index );
-    RtEntryList<DATA>::iterator first = L->entries.begin() + first_index;
-    RtEntryList<DATA>::iterator second = L->entries.begin() + second_index;
+    typename RtEntryList<DATA>::iterator first = L->entries.begin() + first_index;
+    typename RtEntryList<DATA>::iterator second = L->entries.begin() + second_index;
     
     first_group.push_back( *first );
     second_group.push_back( *second );
@@ -143,7 +143,7 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
     GeoExtent first_ext = computeExtent( first_group );
     GeoExtent second_ext = computeExtent( second_group );
 
-    for( RtEntryList<DATA>::iterator i = L->entries.begin(); i != L->entries.end(); i++ )
+    for( typename RtEntryList<DATA>::iterator i = L->entries.begin(); i != L->entries.end(); i++ )
     {
         if ( i != first && i != second )
         {
@@ -187,7 +187,7 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
     // if LL has subnodes, inform them of their new parent.
     if ( !LL->isLeaf() )
     {
-        for( RtEntryList<DATA>::iterator i = LL->entries.begin(); i != LL->entries.end(); i++ )
+        for( typename RtEntryList<DATA>::iterator i = LL->entries.begin(); i != LL->entries.end(); i++ )
         {
             RtNode<DATA>* child_node = node_table[i->child_id].get();
             child_node->parent_id = LL->id;
@@ -231,7 +231,7 @@ RTree<DATA>::adjustTree( RtNode<DATA>* N, RtNode<DATA>* NN )
         RtNode<DATA>* PP = NULL;
 
         // AT3
-        for( RtEntryList<DATA>::iterator i = P->entries.begin(); i != P->entries.end(); i++ )
+        for( typename RtEntryList<DATA>::iterator i = P->entries.begin(); i != P->entries.end(); i++ )
         {
             if ( i->child_id == N->id )
             {
@@ -290,7 +290,7 @@ void
 RTree<DATA>::find( const RtNodeId& node_id, const GeoExtent& extent, std::list<DATA>& results )
 {
     RtNode<DATA>* node = node_table[node_id].get();
-    for( RtEntryList<DATA>::iterator i = node->entries.begin(); i != node->entries.end(); i++ )
+    for( typename RtEntryList<DATA>::iterator i = node->entries.begin(); i != node->entries.end(); i++ )
     {
         if ( i->extent.intersects( extent ) )
         {
