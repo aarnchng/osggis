@@ -119,7 +119,8 @@ sortPoints( GeoPointList& input )
         }
     };
 
-    std::sort( input.begin(), input.end(), AscendingAngleSort(P) );
+    AscendingAngleSort comp(P);
+    std::sort( input.begin(), input.end(), comp );
 
     // c) re-insert P at the beginning of the list.
     input.insert( input.begin(), P );
