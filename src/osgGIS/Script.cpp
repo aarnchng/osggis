@@ -52,8 +52,6 @@ Script::appendFilter( Filter* filter )
 {
     if ( !first_filter.valid() )
     {
-        FeatureFilter* feature_filter = dynamic_cast<FeatureFilter*>( filter );
-        DrawableFilter* drawable_filter = dynamic_cast<DrawableFilter*>( filter );
         if (dynamic_cast<FeatureFilter*>( filter ) ||
             dynamic_cast<DrawableFilter*>( filter ) ||
             dynamic_cast<CollectionFilter*>( filter ) )
@@ -124,6 +122,20 @@ Script::run( FeatureCursor* cursor, FilterEnv* env )
         else if ( dynamic_cast<DrawableFilter*>( first_filter.get() ) )
         {
             DrawableFilter* filter = static_cast<DrawableFilter*>( first_filter.get() );
+            while( ok && cursor->hasNext() )
+            {
+                filter->push( cursor->next() );
+                ok = filter->traverse( env );
+                count++;           
+            }
+            if ( ok )
+            {
+                ok = filter->signalCheckpoint();
+            }
+        }
+        else if ( dynamic_cast<CollectionFilter*>( first_filter.get() ) )
+        {
+            CollectionFilter* filter = static_cast<CollectionFilter*>( first_filter.get() );
             while( ok && cursor->hasNext() )
             {
                 filter->push( cursor->next() );

@@ -77,10 +77,24 @@ CollectionFilter::push( const FeatureList& input )
 }
 
 
+void
+CollectionFilter::push( Feature* input )
+{
+    in_features.push_back( input );
+}
+
+
 void 
 CollectionFilter::push( const DrawableList& input )
 {
     in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
+}
+
+
+void
+CollectionFilter::push( osg::Drawable* input )
+{
+    in_drawables.push_back( input );
 }
 
 
@@ -91,6 +105,11 @@ CollectionFilter::push( const osg::NodeList& input )
 }
 
 
+void
+CollectionFilter::push( osg::Node* input )
+{
+    in_nodes.push_back( input );
+}
 
 
 bool 
@@ -107,7 +126,7 @@ meterData( A source, B filter, unsigned int metering, FilterEnv* env )
 {
     bool ok = true;
 
-    //osg::notify( osg::ALWAYS ) << "Metering " << source.size() << " units." << std::endl;
+    osg::notify( osg::ALWAYS ) << "Metering " << source.size() << " units." << std::endl;
 
     if ( metering == 0 )
     {
@@ -126,9 +145,9 @@ meterData( A source, B filter, unsigned int metering, FilterEnv* env )
             filter->push( partial );
             ok = filter->traverse( env );
 
-            //osg::notify( osg::ALWAYS )
-            //    << "Metered: " << i-source.begin() << "/" << source.end()-source.begin()
-            //    << std::endl;
+            osg::notify( osg::ALWAYS )
+                << "Metered: " << i-source.begin() << "/" << source.end()-source.begin()
+                << std::endl;
         }
     }
     return ok;
