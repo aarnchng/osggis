@@ -101,7 +101,7 @@ CollectionFilter::traverse( FilterEnv* env )
     return true;
 }
 
-template<class A, class B>
+template<typename A, typename B>
 bool
 meterData( A source, B filter, unsigned int metering, FilterEnv* env )
 {
@@ -117,7 +117,7 @@ meterData( A source, B filter, unsigned int metering, FilterEnv* env )
     else
     {
         unsigned int batch_size = 0;
-        for( A::iterator i = source.begin(); i < source.end() && ok; i += batch_size )
+        for( typename A::iterator i = source.begin(); i < source.end() && ok; i += batch_size )
         {
             unsigned int remaining = source.end()-i;
             batch_size = std::min( remaining, metering );
