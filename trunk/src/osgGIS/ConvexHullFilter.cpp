@@ -114,13 +114,12 @@ sortPoints( GeoPointList& input )
     struct AscendingAngleSort {
         AscendingAngleSort( GeoPoint& _p ) : p(_p) { }
         GeoPoint& p;
-        bool operator()( GeoPoint& one, GeoPoint& two ) {
+        bool operator()( const GeoPoint& one, const GeoPoint& two ) const {
             return (p ^ one) < (p ^ two);
         }
     };
 
-    AscendingAngleSort comp(P);
-    std::sort( input.begin(), input.end(), comp );
+    std::sort( input.begin(), input.end(), AscendingAngleSort(P) );
 
     // c) re-insert P at the beginning of the list.
     input.insert( input.begin(), P );
