@@ -179,7 +179,8 @@ GeocentricSpatialReference::transformInPlace( GeoShape& input ) const
         }
     };
 
-    if ( input.accept( XformVisitor( this, ellipsoid ) ) )
+    XformVisitor visitor( this, ellipsoid );
+    if ( input.accept( visitor ) )
     {
         applyTo( input );
         return true;
