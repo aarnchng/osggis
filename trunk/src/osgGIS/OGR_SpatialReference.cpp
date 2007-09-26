@@ -190,7 +190,8 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
 
     bool result = false;
 
-    if ( input.accept( XformVisitor( xform_handle ) ) )
+    XformVisitor visitor( xform_handle );
+    if ( input.accept( visitor ) )
     {
         applyTo( input );
         result = true;
