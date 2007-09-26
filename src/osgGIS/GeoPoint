@@ -141,8 +141,10 @@ namespace osgGIS
     public:
         GeoPointVisitor() {}
         virtual ~GeoPointVisitor() { }
-        virtual bool visitPoint( GeoPoint& point ) { return true; }
-        virtual bool visitPoint( const GeoPoint& point ) const { return true; }
+        virtual bool visitPoint( GeoPoint& point ) { 
+            return true; }
+        virtual bool visitPoint( const GeoPoint& point ) {
+            return visitPoint( (GeoPoint&)point ); }
     };
 }
 

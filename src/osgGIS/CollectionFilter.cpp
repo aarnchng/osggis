@@ -126,7 +126,7 @@ meterData( A source, B filter, unsigned int metering, FilterEnv* env )
 {
     bool ok = true;
 
-    osg::notify( osg::ALWAYS ) << "Metering " << source.size() << " units." << std::endl;
+    //osg::notify( osg::ALWAYS ) << "Metering " << source.size() << " units." << std::endl;
 
     if ( metering == 0 )
     {
@@ -145,9 +145,9 @@ meterData( A source, B filter, unsigned int metering, FilterEnv* env )
             filter->push( partial );
             ok = filter->traverse( env );
 
-            osg::notify( osg::ALWAYS )
-                << "Metered: " << i-source.begin() << "/" << source.end()-source.begin()
-                << std::endl;
+            //osg::notify( osg::ALWAYS )
+            //    << "Metered: " << i-source.begin() << "/" << source.end()-source.begin()
+            //    << std::endl;
         }
     }
     return ok;
