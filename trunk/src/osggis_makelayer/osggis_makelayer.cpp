@@ -42,6 +42,7 @@
 #include <osgGIS/BuildNodesFilter>
 #include <osgGIS/RemoveHolesFilter>
 #include <osgGIS/CollectionFilter>
+#include <osgGIS/ConvexHullFilter>
 #include <osgGIS/ClampFilter>
 #include <osgGIS/PagedLayerCompiler>
 
@@ -90,6 +91,7 @@ std::string extrude_height_attr;
 double extrude_height_scale = 1.0;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
+bool convex_hull = false;
 
 
 
@@ -130,6 +132,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --extrude-attr <name>      - Attribute whose value holds the extrusion height" << ENDL;
     NOUT << "    --extrude-scale <num>      - Multiply extrusion height by this scale factor" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
+    NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
     NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --far-lod <num>            - Far LOD range for output geometry (not yet implemented)" << ENDL;
     NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (default = 0)" << ENDL;
@@ -194,6 +197,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--priority-offset", str ) )
         sscanf( str.c_str(), "%f", &priority_offset );
+
+    while( arguments.read( "--convex-hull" ) )
+        convex_hull = true;
 
     double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
     while( arguments.read( "--terrain-extent", str ) )
@@ -273,6 +279,13 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
 
     // Remove holes in polygons as an optimization
     //script->appendFilter( new osgGIS::RemoveHolesFilter() );
+
+    // Replace features with convex hull
+    if ( convex_hull )
+    {
+        script->appendFilter( new osgGIS::CollectionFilter() );
+        script->appendFilter( new osgGIS::ConvexHullFilter() );
+    }
 
     // Crop the feature data to the compiler environment's working extent:
     script->appendFilter( new osgGIS::CropFilter( 
@@ -386,6 +399,8 @@ main(int argc, char* argv[])
     // Go earth-centered if necessary:
     if ( geocentric )
         terrain_srs = registry->getSRSFactory()->createGeocentricSRS( terrain_srs.get() );
+
+    NOUT << "  terrain SRS = " << terrain_srs->getName() << std::endl;
 
     // Next we create a script that the compiler will use to build the geometry:
     NOUT << "Compiling..." << ENDL;

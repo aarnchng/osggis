@@ -22,7 +22,7 @@
 #define CONST_m (CONST_M/2)
 
 
-template<class DATA>
+template<typename DATA>
 RTree<DATA>::RTree()
 {
     node_id_gen = 0;
@@ -35,7 +35,7 @@ RTree<DATA>::RTree()
 }
 
 
-template<class DATA>
+template<typename DATA>
 void
 RTree<DATA>::insert( const GeoExtent& extent, const DATA& data )
 {
@@ -43,7 +43,7 @@ RTree<DATA>::insert( const GeoExtent& extent, const DATA& data )
 }
 
 
-template<class DATA>
+template<typename DATA>
 RtNode<DATA>*
 RTree<DATA>::chooseLeaf( const RtNodeId& node_id, const GeoExtent& extent )
 {
@@ -76,7 +76,7 @@ RTree<DATA>::chooseLeaf( const RtNodeId& node_id, const GeoExtent& extent )
 }
 
 
-template<class DATA>
+template<typename DATA>
 void
 RTree<DATA>::pickSeedsQ(RtEntryList<DATA>& list,
                         int& out_first_index,
@@ -104,7 +104,7 @@ RTree<DATA>::pickSeedsQ(RtEntryList<DATA>& list,
 }
 
 
-template<class DATA>
+template<typename DATA>
 GeoExtent
 computeExtent( RtEntryList<DATA>& list )
 {
@@ -117,7 +117,7 @@ computeExtent( RtEntryList<DATA>& list )
 }
 
 
-template<class DATA>
+template<typename DATA>
 RtNode<DATA>*
 RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
 {
@@ -198,7 +198,7 @@ RTree<DATA>::splitNodeQ( RtNode<DATA>* L )
 }
 
 
-template<class DATA>
+template<typename DATA>
 void
 RTree<DATA>::adjustTree( RtNode<DATA>* N, RtNode<DATA>* NN )
 {
@@ -261,7 +261,7 @@ RTree<DATA>::adjustTree( RtNode<DATA>* N, RtNode<DATA>* NN )
 }
 
 
-template<class DATA>
+template<typename DATA>
 void
 RTree<DATA>::insert( const RtNodeId& node_id, const GeoExtent& extent, const DATA& data )
 {
@@ -285,7 +285,7 @@ RTree<DATA>::insert( const RtNodeId& node_id, const GeoExtent& extent, const DAT
 }
 
 
-template<class DATA>
+template<typename DATA>
 void
 RTree<DATA>::find( const RtNodeId& node_id, const GeoExtent& extent, std::list<DATA>& results )
 {
@@ -307,7 +307,7 @@ RTree<DATA>::find( const RtNodeId& node_id, const GeoExtent& extent, std::list<D
 }
 
 
-template<class DATA>
+template<typename DATA>
 std::list<DATA>
 RTree<DATA>::find( const GeoExtent& extent )
 {
