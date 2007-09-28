@@ -31,6 +31,11 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( LocalizeNodesFilter );
+
+
+
 
 LocalizeNodesFilter::LocalizeNodesFilter()
 {

@@ -54,6 +54,8 @@ namespace osgGIS
          *      Script to use to compile each tile
          * @param terrain 
          *      Reference terrain against which to compile geometry
+         * @param terrain_srs
+         *      Spatial reference system of reference terrain data
          * @param terrain_extent 
          *      Spatial extent of reference terrain
          * @param min_level 
@@ -69,14 +71,15 @@ namespace osgGIS
          *      nodes will be written to the same directory.
          */
         osg::Node* compile( 
-            FeatureLayer*      layer,
-            Script*            script,
-            osg::Node*         terrain,
-            const GeoExtent&   terrain_extent,
-            int                min_level,
-            int                max_level,
-            float              priority_offset,
-            const std::string& output_file );
+            FeatureLayer*           layer,
+            Script*                 script,
+            osg::Node*              terrain,
+            const SpatialReference* terrain_srs,
+            const GeoExtent&        terrain_extent,
+            int                     min_level,
+            int                     max_level,
+            float                   priority_offset,
+            const std::string&      output_file );
 
     public:
         virtual ~PagedLayerCompiler();

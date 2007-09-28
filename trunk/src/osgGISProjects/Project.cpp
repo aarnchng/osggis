@@ -126,3 +126,14 @@ Project::getBuilds()
     return builds;
 }
 
+Build*
+Project::getBuild( const std::string& key )
+{
+    for( BuildList::const_iterator i = builds.begin(); i != builds.end(); i++ )
+    {
+        if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
+}
+

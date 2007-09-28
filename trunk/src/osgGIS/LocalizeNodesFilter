@@ -30,8 +30,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT LocalizeNodesFilter : public NodeFilter
     {
-    public:
-        virtual std::string getFilterType() { return "LocalizeNodesFilter"; }
+        OSGGIS_META_FILTER( LocalizeNodesFilter );  
 
     public:
         LocalizeNodesFilter();

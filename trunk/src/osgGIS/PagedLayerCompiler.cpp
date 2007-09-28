@@ -165,16 +165,18 @@ calculateSubExtents( const GeoExtent& extent, unsigned int num_children, std::ve
 
 // Runs an osgGIS script to compile vector data against a terrain tile.
 osg::Node*
-compileGeometry(const GeoExtent& extent,
-                osg::Node*       terrain,
-                FeatureLayer*    layer,
-                Script*          script )
+compileGeometry(const GeoExtent&        extent,
+                osg::Node*              terrain,
+                const SpatialReference* terrain_srs,
+                FeatureLayer*           layer,
+                Script*                 script )
 {
     osg::notify( osg::NOTICE ) 
         << " ...compiling geom: " << extent.toString() << std::endl;
 
     osg::ref_ptr<FilterEnv> env = new FilterEnv();
     env->setTerrainNode( terrain );
+    env->setTerrainSRS( terrain_srs );
     env->setExtent( extent );
     Compiler compiler( layer, script );
     osg::Node* out = compiler.compile( env.get() );
@@ -185,18 +187,19 @@ compileGeometry(const GeoExtent& extent,
 // Traverses a terrain tile and compiles vector data against that tile; then
 // recurses down into a PagedLOD graph and repeats.
 osg::Group*
-compileTileFile(int                level,
-                osg::Node*         source_tile,
-                bool               is_geocentric,
-                const std::string& output_prefix,
-                const std::string& output_extension,
-                const GeoExtent&   extent,
-                int                min_level,
-                int                max_level,
-                float              priority_offset,
-                FeatureLayer*      layer,
-                Script*            script,
-                const std::string& output_dir )
+compileTileFile(int                     level,
+                osg::Node*              terrain_tile,
+                const SpatialReference* terrain_srs,
+                bool                    is_geocentric,
+                const std::string&      output_prefix,
+                const std::string&      output_extension,
+                const GeoExtent&        extent,
+                int                     min_level,
+                int                     max_level,
+                float                   priority_offset,
+                FeatureLayer*           layer,
+                Script*                 script,
+                const std::string&      output_dir )
 {
     osg::notify( osg::NOTICE ) 
         << "L" << level << ": Compiling tile: " << extent.toString() << std::endl;
@@ -206,7 +209,7 @@ compileTileFile(int                level,
     if ( level > max_level+1 && max_level >= 0 )
         return top;
 
-    osg::Group* source_group = source_tile->asGroup();
+    osg::Group* source_group = terrain_tile->asGroup();
 
     if ( source_group )
     {
@@ -235,6 +238,7 @@ compileTileFile(int                level,
                     geometry = compileGeometry(
                         sub_extent,
                         terrain,
+                        terrain_srs,
                         layer,
                         script );
                     dv = osg::Object::STATIC;
@@ -279,6 +283,7 @@ compileTileFile(int                level,
                 osg::ref_ptr<osg::Group> new_subtile = compileTileFile( 
                     level+1,
                     subtile.get(),
+                    terrain_srs,
                     is_geocentric,
                     output_prefix,
                     output_extension,
@@ -302,6 +307,7 @@ compileTileFile(int                level,
                 osg::Node* geometry = compileGeometry( 
                     sub_extent,
                     terrain,
+                    terrain_srs,
                     layer,
                     script );
 
@@ -313,7 +319,8 @@ compileTileFile(int                level,
     {
         osg::Node* geometry = compileGeometry( 
             extent,
-            source_tile,
+            terrain_tile,
+            terrain_srs,
             layer,
             script );
 
@@ -326,6 +333,7 @@ compileTileFile(int                level,
 
 osg::Node*
 compileAll(osg::Node*                 terrain_root,
+           const SpatialReference*    terrain_srs,
            bool                       is_geocentric,
            const std::string&         output_prefix,
            const std::string&         output_extension,
@@ -343,6 +351,7 @@ compileAll(osg::Node*                 terrain_root,
     osg::Node* out = compileTileFile(
         0,
         terrain_root,
+        terrain_srs,
         is_geocentric,
         output_prefix,
         output_extension,
@@ -366,14 +375,15 @@ compileAll(osg::Node*                 terrain_root,
 
 
 osg::Node*
-PagedLayerCompiler::compile(FeatureLayer*      layer,
-                            Script*            script,
-                            osg::Node*         ref_terrain,
-                            const GeoExtent&   ref_terrain_extent,
-                            int                min_level,
-                            int                max_level,
-                            float              priority_offset,
-                            const std::string& output_file )
+PagedLayerCompiler::compile(FeatureLayer*           layer,
+                            Script*                 script,
+                            osg::Node*              ref_terrain,
+                            const SpatialReference* ref_terrain_srs,
+                            const GeoExtent&        ref_terrain_extent,
+                            int                     min_level,
+                            int                     max_level,
+                            float                   priority_offset,
+                            const std::string&      output_file )
 {
     bool is_geocentric = false;
 
@@ -407,6 +417,7 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
 
     osg::Node* result = compileAll(
         ref_terrain,
+        ref_terrain_srs,
         is_geocentric,
         output_prefix,
         output_extension,

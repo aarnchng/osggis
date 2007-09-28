@@ -25,6 +25,9 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( CollectionFilter );
+
 CollectionFilter::CollectionFilter()
 {
     setMetering( 0 );

@@ -29,6 +29,9 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( BuildGeomFilter );
+
 
 // pseudo-random color table
 std::vector<osg::Vec4d> color_table;

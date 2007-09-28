@@ -37,8 +37,18 @@ namespace osgGISProjects
         
         void setScript( Script* script );
 
+        int getMinResolutionLevel() const;
+
+        void setMinResolutionLevel( int value );
+
+        int getMaxResoltuionLevel() const;
+
+        void setMaxResolutionLevel( int value );
+
     private:
         osg::ref_ptr<Script> script;
+        int min_res_level;
+        int max_res_level;
     };
 
     typedef std::list<osg::ref_ptr<BuildLayerSlice> > BuildLayerSliceList;

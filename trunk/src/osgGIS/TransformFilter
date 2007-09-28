@@ -34,20 +34,27 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT TransformFilter : public FeatureFilter
     {
-    public:
-        enum Options {
-            LOCALIZE = 0x01,        // make a local origin at the centroid of the working extent
-            USE_TERRAIN_SRS = 0x02  // reproject to the terrain's SRS
-        };
+        OSGGIS_META_FILTER( TransformFilter );  
 
     public:
-        virtual std::string getFilterType() { return "TransformFilter"; }
+        enum Options {
+            LOCALIZE        = 0x01, // make a local origin at the centroid of the working extent
+            USE_TERRAIN_SRS = 0x02  // reproject to the terrain's SRS
+        };
 
     public:
         /**
          * Constructs a new transform filter.
          */
         TransformFilter();
+
+        /**
+         * Constructs a new transform filter.
+         *
+         * @param options
+         *      Mask of filter options (see enum Options)
+         */
+        TransformFilter( const int& options );
         
         /**
          * Constructs a new transform filter.

@@ -51,8 +51,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT CollectionFilter : public Filter
     {
-    public:
-        virtual std::string getFilterType() { return "CollectionFilter"; }
+        OSGGIS_META_FILTER( CollectionFilter );  
 
     public:
         /**

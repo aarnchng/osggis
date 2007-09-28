@@ -22,6 +22,11 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( RemoveHolesFilter );
+
+
+
 RemoveHolesFilter::RemoveHolesFilter()
 {
     //NOP

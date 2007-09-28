@@ -21,6 +21,11 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( DensifyFilter );
+
+
+
 
 DensifyFilter::DensifyFilter()
 {

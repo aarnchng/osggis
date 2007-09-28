@@ -20,14 +20,24 @@
 #include <osgGIS/TransformFilter>
 #include <osg/CoordinateSystemNode>
 #include <osgGIS/Ellipsoid>
-#include <osgGIS/Registry>
 
 using namespace osgGIS;
+
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( TransformFilter );
+
 
 TransformFilter::TransformFilter()
 {
     xform_matrix = osg::Matrix::identity();
     options = (Options)0;
+}
+
+
+TransformFilter::TransformFilter( const int& _options )
+{
+    xform_matrix = osg::Matrix::identity();
+    options = _options;
 }
 
 

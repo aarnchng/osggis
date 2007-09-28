@@ -29,6 +29,7 @@
 
 #include <osgGISProjects/XmlSerializer>
 #include <osgGISProjects/Project>
+#include <osgGISProjects/Builder>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -45,10 +46,6 @@
 
 // Variables that are set by command line arguments:
 std::string project_file;
-std::string input_file;
-std::string terrain_file;
-std::string output_file;
-
 
 int
 die( const std::string& msg )
@@ -66,15 +63,10 @@ static void usage( const char* prog, const char* msg )
     NOUT << prog << " Builds OSG geometry based on information in an XML project file." << ENDL;
     NOUT << ENDL;
     NOUT << "Usage:" << ENDL;
-    NOUT << "    " << prog << " --project xml_file" << ENDL;
+    NOUT << "    " << prog << " xml_file" << ENDL;
     NOUT << ENDL;
     NOUT << "Required:" << ENDL;
-    NOUT << "    --project <filename>   - XML script definition" << ENDL;
-    NOUT << ENDL;
-    NOUT << "Optional: (these may be specified in the XML project file)" << ENDL;
-    NOUT << "    --terrain <filename>   - Terrain against which to build" << ENDL;
-    NOUT << "    --input <filename>     - Vector geometry to build" << ENDL;
-    NOUT << "    --output <filename>    - Output geometry file" << ENDL;
+    NOUT << "    <filename>   - XML project definition" << ENDL;
 
 }
 
@@ -96,19 +88,8 @@ parseCommandLine( int argc, char** argv )
         exit(-1);
     }
 
-    std::string str;
-
-    // the project file holding the spec:
-    while( arguments.read( "--project", project_file ) );
-
-    // output file for vector geometry:
-    while( arguments.read( "--output", output_file ) );
-
-    // the input vector file that we will compile:
-    while( arguments.read( "--input", input_file ) );
-
-    // terrain file for clamping
-    while( arguments.read( "--terrain", terrain_file ) );
+    if ( argc > 1 )
+        project_file = argv[1];
 
     // validate arguments:
     if ( project_file.length() == 0 )
@@ -138,9 +119,13 @@ main(int argc, char* argv[])
     if ( !project.valid() )
         return die( "XML file does not contain a valid project!" );
 
-    //TODO
-    osg::notify( osg::ALWAYS ) << "Project loaded succesfully. Exiting." << std::endl;
+    osg::notify( osg::ALWAYS ) << "Project loaded." << std::endl;
 
+    std::string base_uri = osgDB::getFilePath( project_file );
+    osgGISProjects::Builder builder( project.get(), base_uri );
+    builder.build();
+
+    osg::notify( osg::ALWAYS ) << "Done." << std::endl;
 	return 0;
 }
 
