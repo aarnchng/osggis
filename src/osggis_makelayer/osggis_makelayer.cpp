@@ -262,7 +262,7 @@ parseCommandLine( int argc, char** argv )
 
 
 osgGIS::Script*
-createScript(const osgGIS::SpatialReference* terrain_srs )
+createScript() //const osgGIS::SpatialReference* terrain_srs )
 {
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
@@ -293,9 +293,11 @@ createScript(const osgGIS::SpatialReference* terrain_srs )
 
     // Transform the features to the target spatial reference system,
     // localizing them to a local origin:
-    script->appendFilter( new osgGIS::TransformFilter( 
-        terrain_srs,
+    script->appendFilter( new osgGIS::TransformFilter(
+        osgGIS::TransformFilter::USE_TERRAIN_SRS |
         osgGIS::TransformFilter::LOCALIZE ) );
+        //terrain_srs,
+        //osgGIS::TransformFilter::LOCALIZE ) );
 
     // Decimate shapes to a point-to-point-distance threshold. Doing this
     // after the transform means we're dealing in meters.
@@ -404,11 +406,12 @@ main(int argc, char* argv[])
 
     // Next we create a script that the compiler will use to build the geometry:
     NOUT << "Compiling..." << ENDL;
-    osg::ref_ptr<osgGIS::Script> script = createScript( terrain_srs.get() );
+    osg::ref_ptr<osgGIS::Script> script = createScript(); // terrain_srs.get() );
 
-    // Set a reference terrain in the compilation environment:
-    osg::ref_ptr<osgGIS::FilterEnv> env = new osgGIS::FilterEnv();
-    env->setTerrainNode( terrain.get() );
+    //// Set a reference terrain in the compilation environment:
+    //osg::ref_ptr<osgGIS::FilterEnv> env = new osgGIS::FilterEnv();
+    //env->setTerrainNode( terrain.get() );
+    //env->setTerrainSRS(
 
     // Create the output folder if necessary:
     if ( !osgDB::makeDirectoryForFile( output_file ) )
@@ -422,6 +425,7 @@ main(int argc, char* argv[])
         layer.get(),
         script.get(),
         terrain.get(),
+        terrain_srs.get(),
         terrain_extent,
         min_level,
         max_level,

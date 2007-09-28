@@ -22,6 +22,10 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( DecimateFilter );
+
+
 DecimateFilter::DecimateFilter()
 {
     distance_threshold = 0.0;

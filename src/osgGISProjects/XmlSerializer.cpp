@@ -89,37 +89,6 @@ XmlSerializer::store( Document* doc, std::ostream& out )
 }
 
 
-Script*
-XmlSerializer::decodeScript( XmlElement* e, Project* proj )
-{
-    Script* script = NULL;
-    if ( e )
-    {
-        script = new Script();
-        XmlNodeList filter_els = e->getElements( "filter" );
-        for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
-        {
-            XmlElement* f_e = (XmlElement*)i->get();
-            std::string type = f_e->getAttr( "type" );
-            Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
-            if ( f )
-            {
-                XmlNodeList prop_els = f_e->getElements( "property" );
-                for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
-                {
-                    XmlElement* k_e = (XmlElement*)k->get();
-                    std::string name = k_e->getAttr( "name" );
-                    std::string value = k_e->getAttr( "value" );
-                    f->setProperty( Property( name, value ) );
-                }
-                script->appendFilter( f );
-            }
-        }
-    }
-    return script;
-}
-
-
 XmlElement*
 XmlSerializer::encodeScript( Script* script )
 {
@@ -170,6 +139,39 @@ XmlSerializer::writeScript( Script* script )
 }
 
 
+Script*
+XmlSerializer::decodeScript( XmlElement* e, Project* proj )
+{
+    Script* script = NULL;
+    if ( e )
+    {
+        script = new Script();
+        script->setName( e->getAttr( "name" ) );
+
+        XmlNodeList filter_els = e->getElements( "filter" );
+        for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
+        {
+            XmlElement* f_e = (XmlElement*)i->get();
+            std::string type = f_e->getAttr( "type" );
+            Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
+            if ( f )
+            {
+                XmlNodeList prop_els = f_e->getElements( "property" );
+                for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
+                {
+                    XmlElement* k_e = (XmlElement*)k->get();
+                    std::string name = k_e->getAttr( "name" );
+                    std::string value = k_e->getAttr( "value" );
+                    f->setProperty( Property( name, value ) );
+                }
+                script->appendFilter( f );
+            }
+        }
+    }
+    return script;
+}
+
+
 Source*
 XmlSerializer::decodeSource( XmlElement* e, Project* proj )
 {
@@ -206,6 +208,9 @@ XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
     {
         slice = new BuildLayerSlice();
 
+        slice->setMinResolutionLevel( atoi( e->getAttr( "min" ).c_str() ) );
+        slice->setMaxResolutionLevel( atoi( e->getAttr( "max" ).c_str() ) );
+
         std::string script = e->getAttr( "script" );
         slice->setScript( proj->getScript( script ) ); //TODO: warning?
     }
@@ -231,6 +236,8 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
         layer->setTerrain( proj->getTerrain( terrain ) != NULL?
             proj->getTerrain( terrain ) :
             new Terrain( terrain ) );
+
+        layer->setTarget( e->getAttr( "target" ) );
 
         XmlNodeList slices = e->getElements( "slice" );
         for( XmlNodeList::const_iterator i = slices.begin(); i != slices.end(); i++ )
@@ -272,6 +279,7 @@ XmlSerializer::decodeProject( XmlElement* e )
     if ( e )
     {
         project = new Project();
+        project->setName( e->getAttr( "name" ) );
 
         // scripts
         XmlNodeList scripts = e->getElements( "script" );

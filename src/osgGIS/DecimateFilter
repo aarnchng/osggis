@@ -27,8 +27,7 @@ namespace osgGIS
 {
     class OSGGIS_EXPORT DecimateFilter : public FeatureFilter
     {
-    public:
-        virtual std::string getFilterType() { return "DecimateFilter"; }
+        OSGGIS_META_FILTER( DecimateFilter );  
 
     public:
         DecimateFilter();

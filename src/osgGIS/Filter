@@ -118,12 +118,23 @@ namespace osgGIS
 
     typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
 
-    class FilterFactory : public osg::Referenced {
-    public:
+    struct FilterFactory : public osg::Referenced {
         virtual Filter* createFilter() =0;
     };
+    template<typename T> struct FilterFactoryImpl : public FilterFactory {
+        Filter* createFilter() { return new T(); }
+    };    
 
     typedef std::map<std::string,osg::ref_ptr<FilterFactory> > FilterFactoryMap;
+
+#define OSGGIS_META_FILTER(name) \
+    public: \
+        virtual std::string getFilterType() { return getStaticFilterType(); } \
+        static std::string getStaticFilterType() { return #name; } \
+        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }
+
+#define OSGGIS_DEFINE_FILTER(name) \
+    static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name##::getStaticFilterType(), name##::getFilterFactory() )
 }
 
 #endif // _OSGGIS_FILTER_H_

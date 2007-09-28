@@ -62,6 +62,8 @@ namespace osgGISProjects
 
         BuildList& getBuilds();
 
+        Build* getBuild( const std::string& name );
+
     protected:
         std::string name;
         ScriptList scripts;

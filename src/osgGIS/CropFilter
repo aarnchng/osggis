@@ -30,7 +30,9 @@ namespace osgGIS
      * result in a feature shape being broken up into multiple parts.
      */
     class OSGGIS_EXPORT CropFilter : public FeatureFilter
-    {
+    {        
+        OSGGIS_META_FILTER( CropFilter );  
+
     public:
         enum Options
         {
@@ -38,9 +40,6 @@ namespace osgGIS
                 extent to which the features were cropped. */
             SHOW_CROP_LINES = 0x01
         };
-
-    public:
-        virtual std::string getFilterType() { return "CropFilter"; }
 
     public:
         /**

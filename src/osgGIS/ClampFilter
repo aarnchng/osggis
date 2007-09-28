@@ -39,15 +39,14 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT ClampFilter : public FeatureFilter
     {
+        OSGGIS_META_FILTER( ClampFilter );  
+
     public:
         enum Technique
         {
             TECHNIQUE_SIMPLE,
             TECHNIQUE_CONFORM
         };
-
-    public:
-        virtual std::string getFilterType() { return "ClampFilter"; }
 
 
     public:

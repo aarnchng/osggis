@@ -51,7 +51,7 @@ getAttributes( const char** attrs )
 
 
 static void XMLCALL
-startElement( void* user_data, const char* c_tag, const char** c_attrs )
+startElement( void* user_data, const XML_Char* c_tag, const XML_Char** c_attrs )
 {
     XmlElementNoRefStack& stack = *(XmlElementNoRefStack*)user_data;
     XmlElement* top = stack.top();
@@ -66,12 +66,24 @@ startElement( void* user_data, const char* c_tag, const char** c_attrs )
 }
 
 static void XMLCALL
-endElement( void* user_data, const char* c_tag )
+endElement( void* user_data, const XML_Char* c_tag )
 {
     XmlElementNoRefStack& stack = *(XmlElementNoRefStack*)user_data;
     XmlElement* top = stack.top();
     stack.pop();
 } 
+
+static void XMLCALL
+handleCharData( void* user_data, const XML_Char* c_data, int len )
+{
+    if ( len > 0 )
+    {
+        XmlElementNoRefStack& stack = *(XmlElementNoRefStack*)user_data;
+        XmlElement* top = stack.top();
+        std::string data( c_data, len );
+        top->getChildren().push_back( new XmlText( data ) );
+    }
+}
 
 XmlDocument*
 XmlDocument::load( std::istream& in )
@@ -87,6 +99,7 @@ XmlDocument::load( std::istream& in )
     bool done = false;
     XML_SetUserData( parser, &tree );
     XML_SetElementHandler( parser, startElement, endElement );
+    XML_SetCharacterDataHandler( parser, (XML_CharacterDataHandler)handleCharData );
     while( !in.eof() )
     {
         in.read( buf, BUFSIZE );
@@ -135,7 +148,7 @@ storeNode( XmlNode* node, int depth, std::ostream& out )
     else if ( node->isText() )
     {
         XmlText* t = (XmlText*)node;
-        out << t->getValue() << std::endl;
+        //out << t->getValue() << std::endl;
     }
 }
 

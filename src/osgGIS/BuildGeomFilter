@@ -30,14 +30,13 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT BuildGeomFilter : public DrawableFilter
     {
+        OSGGIS_META_FILTER( BuildGeomFilter );
+
     public:
         enum Options
         {
             RANDOMIZE_COLORS = 0x01
         };
-        
-    public:
-        virtual std::string getFilterType() { return "BuildGeomFilter"; }
 
     public:
         /**

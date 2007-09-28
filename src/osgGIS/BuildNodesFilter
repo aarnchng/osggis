@@ -28,6 +28,8 @@ namespace osgGIS
 {
     class OSGGIS_EXPORT BuildNodesFilter : public NodeFilter
     {
+        OSGGIS_META_FILTER( BuildNodesFilter );
+
     public:
         enum Options
         {
@@ -36,9 +38,6 @@ namespace osgGIS
             APPLY_CLUSTER_CULLING = 0x04,
             OPTIMIZE              = 0x08
         };
-        
-    public:
-        virtual std::string getFilterType() { return "BuildNodesFilter"; }
 
     public:
         BuildNodesFilter();

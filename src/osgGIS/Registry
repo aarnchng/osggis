@@ -86,7 +86,7 @@ namespace osgGIS
     public:
         Filter* createFilterByType( const std::string& type );
 
-        void addFilterType( const std::string& type, FilterFactory* factory );
+        bool addFilterType( const std::string& type, FilterFactory* factory );
 
 	private:
 		Registry();

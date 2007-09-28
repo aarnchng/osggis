@@ -24,7 +24,8 @@ using namespace osgGIS;
 
 BuildLayerSlice::BuildLayerSlice()
 {
-    //NOP
+    min_res_level = -1;
+    max_res_level = -1;
 }
 
 Script*
@@ -39,4 +40,28 @@ BuildLayerSlice::setScript( Script* _script )
     script = _script;
 }
 
+
+int
+BuildLayerSlice::getMinResolutionLevel() const
+{
+    return min_res_level;
+}
+
+void
+BuildLayerSlice::setMinResolutionLevel( int value )
+{
+    min_res_level = value;
+}
+
+int
+BuildLayerSlice::getMaxResoltuionLevel() const
+{
+    return max_res_level;
+}
+
+void
+BuildLayerSlice::setMaxResolutionLevel( int value )
+{
+    max_res_level = value;
+}
 

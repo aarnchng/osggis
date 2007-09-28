@@ -22,12 +22,12 @@
 #include <osgGIS/OGR_SpatialReferenceFactory>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
+#include <osg/Notify>
 #include <fstream>
 
 using namespace osgGIS;
 
 osgGIS::Registry* osgGIS::Registry::singleton = NULL;
-
 
 Registry::Registry()
 {
@@ -133,8 +133,10 @@ Registry::createFilterByType( const std::string& type )
 }
 
 
-void 
+bool 
 Registry::addFilterType( const std::string& type, FilterFactory* factory )
 {
     filter_factories[type] = factory;
+    osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered filter type " << type << std::endl;
+    return true;
 }

@@ -25,6 +25,11 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
+
+
+
 #define FRAND (((double)(rand()%100))/100.0)
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()

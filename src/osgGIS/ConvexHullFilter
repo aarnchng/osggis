@@ -31,8 +31,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT ConvexHullFilter : public FeatureFilter
     {
-    public:
-        virtual std::string getFilterType() { return "ConvexHullFilter"; }
+        OSGGIS_META_FILTER( ConvexHullFilter );
 
     public:
         ConvexHullFilter();

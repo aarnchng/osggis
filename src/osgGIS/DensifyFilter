@@ -31,8 +31,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT DensifyFilter : public FeatureFilter
     {
-    public:
-        virtual std::string getFilterType() { return "DensifyFilter"; }
+        OSGGIS_META_FILTER( DensifyFilter );  
 
     public:
         /**

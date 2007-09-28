@@ -31,9 +31,8 @@ namespace osgGIS
      * are just interested in the polygon outlines.
      */
     class OSGGIS_EXPORT ChangeShapeTypeFilter : public FeatureFilter
-    {        
-    public:
-        virtual std::string getFilterType() { return "ChangeShapeTypeFilter"; }
+    {  
+        OSGGIS_META_FILTER( ChangeShapeTypeFilter );   
 
     public:
         ChangeShapeTypeFilter();
