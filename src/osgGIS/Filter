@@ -134,7 +134,7 @@ namespace osgGIS
         static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }
 
 #define OSGGIS_DEFINE_FILTER(name) \
-    static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name##::getFilterFactory() )
+    static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )
 }
 
 #endif // _OSGGIS_FILTER_H_
