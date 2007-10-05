@@ -35,12 +35,16 @@
 #include <osg/Group>
 #include <osg/PolygonOffset>
 #include <osg/Point>
+#include <osg/Timer>
+#include <osg/GLExtensions>
+#include <osg/GraphicsThread>
 #include <osg/LineWidth>
 #include <osgDB/ReadFile>
 #include <osgViewer/Viewer>
 #include <osgGA/TerrainManipulator>
 #include <osgGA/StateSetManipulator>
 #include <osgViewer/ViewerEventHandlers>
+#include <OpenThreads/Thread>
 #include <iostream>
 
 #define NOUT osg::notify(osg::NOTICE)
@@ -71,9 +75,24 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
     NOUT << "    --pre-compile              - Sets pre-compilation ON for the database pager (default = off)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
+    NOUT << "    --frame-rate <fps>         - Sets the target frame rate (default = 60)" << ENDL;
     NOUT << "" << ENDL;
     NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
+
+
+typedef bool (APIENTRY *VSYNCFUNC)(int);
+struct ToggleVsyncOperation : public osg::Operation
+{
+    ToggleVsyncOperation( bool _enable ) : osg::Operation( "ToggleVsync", true ), enable(_enable) { }
+    bool enable;
+    void operator()( osg::Object* gc ) {
+        if ( osg::isGLExtensionSupported( 0, "WGL_EXT_swap_control" ) ) {
+            VSYNCFUNC fp = (VSYNCFUNC)osg::getGLExtensionFuncPtr( "wglSwapIntervalEXT" );
+            if ( fp ) fp( enable? 1 : 0 );
+        }
+    }
+};
 
 
 int
@@ -118,6 +137,14 @@ main(int argc, char* argv[])
             new osg::LineWidth( line_width ), osg::StateAttribute::ON );
     }
 
+    double fps = 0.0;
+    while( args.read( "--frame-rate", str ) )
+    {
+        sscanf( str.c_str(), "%lf", &fps );        
+    }
+    osg::Timer_t min_frame_time = (osg::Timer_t)
+        ((1.0/fps)/(double)osg::Timer::instance()->getSecondsPerTick());
+
     bool pre_compile = args.read( "--pre-compile" );
 
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
@@ -150,7 +177,26 @@ main(int argc, char* argv[])
 
     viewer.getScene()->getDatabasePager()->setDoPreCompile( pre_compile );
 
-    viewer.run();
+    if ( fps > 0.0 )
+        viewer.setRealizeOperation( new ToggleVsyncOperation( false ) );
+
+    viewer.realize();
+    
+    while( !viewer.done() )
+    {
+        osg::Timer_t t0 = osg::Timer::instance()->tick();
+
+        viewer.frame();
+
+        if ( fps > 0.0 )
+        {
+            osg::Timer_t t1 = osg::Timer::instance()->tick();
+            osg::Timer_t frame_time = t1 - t0;
+            int gap_us = osg::Timer::instance()->delta_u( frame_time, min_frame_time );
+            if ( gap_us > 0 )
+                OpenThreads::Thread::CurrentThread()->microSleep( gap_us );
+        }
+    }
 
 	return 0;
 }

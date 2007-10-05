@@ -140,7 +140,7 @@ sortPoints( GeoPointList& input )
 // traverses the sorted point list, building a new list representing
 // the convex hull of in the input list
 void
-buildHull( GeoPointList& input )
+buildHull( GeoPointList& input, bool close_loop )
 {
     if ( input.size() >= 3 )
     {
@@ -165,7 +165,10 @@ buildHull( GeoPointList& input )
             }
         }
 
-        input.erase( input.end()-1 );
+        if ( !close_loop )
+        {
+            input.erase( input.end()-1 );
+        }
     }
 }
 
@@ -202,10 +205,10 @@ ConvexHullFilter::process( FeatureList& input, FilterEnv* env )
     sortPoints( working_set );
 
     // d) traverse to build convex hull points
-    buildHull( working_set );
+    GeoShape::ShapeType type = deriveType( input );
+    buildHull( working_set, type == GeoShape::TYPE_LINE );
 
     // e) build new single convex hull feature.
-    GeoShape::ShapeType type = deriveType( input );
     GeoShape hull_shape( type, env->getInputSRS() );
     hull_shape.addPart( working_set );
     Feature* hull_feature = new SimpleFeature();
