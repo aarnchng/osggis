@@ -92,6 +92,7 @@ double extrude_height_scale = 1.0;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
 bool convex_hull = false;
+bool remove_holes = false;
 
 
 
@@ -131,6 +132,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
     NOUT << "    --extrude-attr <name>      - Attribute whose value holds the extrusion height" << ENDL;
     NOUT << "    --extrude-scale <num>      - Multiply extrusion height by this scale factor" << ENDL;
+    NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
     NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
@@ -200,6 +202,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--convex-hull" ) )
         convex_hull = true;
+
+    while( arguments.read( "--remove-holes" ) )
+        remove_holes = true;
 
     double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
     while( arguments.read( "--terrain-extent", str ) )
@@ -278,7 +283,10 @@ createScript() //const osgGIS::SpatialReference* terrain_srs )
     }
 
     // Remove holes in polygons as an optimization
-    //script->appendFilter( new osgGIS::RemoveHolesFilter() );
+    if ( remove_holes )
+    {
+        script->appendFilter( new osgGIS::RemoveHolesFilter() );
+    }
 
     // Replace features with convex hull
     if ( convex_hull )
