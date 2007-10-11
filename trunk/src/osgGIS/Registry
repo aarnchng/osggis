@@ -38,6 +38,11 @@ namespace osgGIS
          * Gets the singleton registry instance.
          */
 		static Registry* instance();
+
+        /**
+         * Gets the default SRS facotry.
+         */
+        static SpatialReferenceFactory* SRSFactory();
 				
 	public:
 		

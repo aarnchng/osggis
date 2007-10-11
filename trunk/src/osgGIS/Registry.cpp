@@ -53,6 +53,13 @@ Registry::instance()
 }
 
 
+osgGIS::SpatialReferenceFactory*
+Registry::SRSFactory()
+{
+    return Registry::instance()->getSRSFactory();
+}
+
+
 FeatureLayer*
 Registry::createFeatureLayer( const std::string& uri )
 {
