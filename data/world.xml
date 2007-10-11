@@ -31,7 +31,9 @@
 
     <build name="build0">
         <layer name="countries" source="countries" terrain="default" target="out/countries/out.ive">
-            <slice min="0" max="99" script="outlines"/>
+            <slice min_range="0"       max_range="120000"  script="outlines"/>
+            <slice min_range="120000"  max_range="1000000" script="outlines"/>
+            <slice min_range="1000000" max_range="-1"      script="outlines"/>
         </layer>
     </build>
     

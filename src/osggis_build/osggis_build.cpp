@@ -25,7 +25,6 @@
 
 #include <osgGIS/Registry>
 #include <osgGIS/Script>
-#include <osgGIS/PagedLayerCompiler>
 
 #include <osgGISProjects/XmlSerializer>
 #include <osgGISProjects/Project>

@@ -20,7 +20,7 @@
 #include <osgGISProjects/Builder>
 #include <osgGISProjects/Build>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/PagedLayerCompiler>
+#include <osgGIS/PagedLayerCompiler2>
 #include <osgGIS/Registry>
 #include <osgGIS/Script>
 #include <osg/Notify>
@@ -146,28 +146,21 @@ Builder::build( Build* b )
             continue;
         }
 
-        // for now we just support the single slice:
-        if ( layer->getSlices().size() > 0 )
+        PagedLayerCompiler2 compiler;
+
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        //compiler.setPriorityOffset( priority_offset );
+        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
-            BuildLayerSlice* slice = layer->getSlices().front().get();
-            Script* script = slice->getScript();
-
-            int min_res_level = slice->getMinResolutionLevel();
-            int max_res_level = slice->getMaxResoltuionLevel();
-            float priority_offset = 1.0f;
-
-            PagedLayerCompiler compiler;
-            osg::ref_ptr<osg::Node> output = compiler.compile(
-                feature_layer.get(),
-                script,
-                terrain_node.get(),
-                terrain_srs.get(),
-                terrain_extent,
-                min_res_level,
-                max_res_level,
-                priority_offset,
-                output_file );
+            compiler.addScript(
+                i->get()->getMinRange(),
+                i->get()->getMaxRange(),
+                i->get()->getScript() );
         }
+
+        osg::ref_ptr<osg::Node> output = compiler.compile(
+            feature_layer.get(),
+            output_file );
     }
 
     return true;

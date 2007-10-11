@@ -208,8 +208,11 @@ XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
     {
         slice = new BuildLayerSlice();
 
-        slice->setMinResolutionLevel( atoi( e->getAttr( "min" ).c_str() ) );
-        slice->setMaxResolutionLevel( atoi( e->getAttr( "max" ).c_str() ) );
+        slice->setMinRange( atof( e->getAttr( "min_range" ).c_str() ) );
+        slice->setMaxRange( atof( e->getAttr( "max_range" ).c_str() ) );
+
+        slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
+        slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
 
         std::string script = e->getAttr( "script" );
         slice->setScript( proj->getScript( script ) ); //TODO: warning?
