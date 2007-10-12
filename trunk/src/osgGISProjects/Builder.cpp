@@ -158,7 +158,7 @@ Builder::build( Build* b )
                 i->get()->getScript() );
         }
 
-        osg::ref_ptr<osg::Node> output = compiler.compile(
+        compiler.compile(
             feature_layer.get(),
             output_file );
     }
