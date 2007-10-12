@@ -265,6 +265,7 @@ BuildGeomFilter::getColorForFeature( Feature* f )
             buildColorMap( 123, 1.0f ); // TODO: make this user-provided
 
         unsigned int index = ((int)f->getOID())%color_table.size();
+        //return osg::Vec4(RANDCOL,RANDCOL,RANDCOL,1);
         return color_table[index];
     }
     else
