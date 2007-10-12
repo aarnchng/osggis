@@ -1,0 +1,86 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_MAKE_NODE_FILTER_H_
+#define _OSGGIS_MAKE_NODE_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/NodeFilter>
+#include <osg/StateSet>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT BuildNodesFilter : public NodeFilter
+    {
+        OSGGIS_META_FILTER( BuildNodesFilter );
+
+    public:
+        enum Options
+        {
+            CULL_BACKFACES        = 0x01,
+            DISABLE_LIGHTING      = 0x02,
+            APPLY_CLUSTER_CULLING = 0x04,
+            OPTIMIZE              = 0x08
+        };
+
+    public:
+        BuildNodesFilter();
+
+        BuildNodesFilter( int options /*Options*/);
+
+        virtual ~BuildNodesFilter();
+        
+    public:   // properties   
+    
+        void setDisableLighting( bool value );
+        
+        bool getDisableLighting() const;  
+        
+        void setCullBackfaces( bool value );
+        
+        bool getCullBackfaces() const;
+        
+        void setApplyClusterCulling( bool value );
+        
+        bool getApplyClusterCulling() const;  
+        
+        void setOptimize( bool value );
+        
+        bool getOptimize() const;      
+        
+        void setOptimizerOptions( int optimizer_options );
+        
+        int getOptimizerOptions() const;
+                
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+        
+    protected:
+        virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
+
+    private:
+        int options;
+        int optimizer_options;
+    };
+}
+
+
+#endif // _OSGGIS_MAKE_NODE_FILTER_H_

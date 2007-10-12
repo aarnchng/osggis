@@ -1,0 +1,137 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FEATURELAYER_H_
+#define _OSGGIS_FEATURELAYER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureStore>
+#include <osgGIS/SpatialReference>
+#include <osgGIS/GeoExtent>
+#include <osgGIS/Feature>
+#include <osgGIS/SpatialIndex>
+
+namespace osgGIS
+{
+    /**
+     * A Feature Layer is a grouping of features that together comprise a
+     * meaningful dataset. All the features in a layer share a commmon spatial
+     * reference (SRS), a common attribute table schema, and (usually) a
+     * common shape type.
+     *
+     * Examples of feature layers would be "buildings" or "streets" or "political
+     * "boundaries". It usually makes sense in the application to treat a feature
+     * layer as a cohesive unit.
+     *
+     * A FeatureLayer sits atop a FeatureStore (which provides access to the actual
+     * GIS backing store) and adds useful functionality like spatial indexing and
+     * layer-level attribution.
+     *
+     * The osgGIS compiler framework operates on the FeatureLayer level. You 
+     * generally create a compiler and tell it to generate geometry for some subset
+     * of a FeatureLayer.
+     */
+	class OSGGIS_EXPORT FeatureLayer : public osg::Referenced
+	{
+	public:
+        /**
+         * Constructs a new FeatureLayer and builds a spatial index.
+         *
+         * @param store
+         *      Feature store from which this layer accesses feature data.
+         */
+		FeatureLayer( FeatureStore* store );
+
+        /**
+         * Gets the name of the feature layer.
+         */
+        const std::string& getName() const;
+		
+        /**
+         * Gets the spatial reference system relative to which all the geodata
+         * in this layer is expressed.
+         */
+		SpatialReference* getSRS() const;
+
+        /**
+         * Sets a spatial reference for the data in this feature layer.
+         * This method DOES NOT reproject the data in the layer. It only assigns
+         * a spatial reference to use (in the case where the feature store does
+         * not provide one).
+         */
+        void setSRS( const SpatialReference* srs );
+		
+        /**
+         * Gets the spatial bounds of all the feature data within this layer.
+         */
+		const GeoExtent getExtent() const;
+		
+        /**
+         * Retrieves a feature given its primary key.
+         *
+         * @param oid
+         *      Primary key (unique uidentifier) of the feature to get.
+         */
+		Feature* getFeature( const FeatureOID& oid );
+		
+        /**
+         * Gets a spatial index that allows for fast spatial queries against
+         * this layer.
+         */
+		SpatialIndex* getSpatialIndex();
+		
+        /**
+         * Sets a spatial index that the layer should expose to support spatial
+         * queries against this layer. You can set the spatial index to NULL but
+         * this will slow down spatial search operations (a lot).
+         */
+		void setSpatialIndex( SpatialIndex* index );
+		
+        /**
+         * Gets the feature store that is backing this feature layer.
+         */
+		FeatureStore* getFeatureStore();
+		
+        /**
+         * Gets a cursor that will iterate over ALL the features in the layer.
+         */
+		FeatureCursor* createCursor();
+		
+        /**
+         * Gets a cursor that will iterator over all the features that intersect
+         * a spatial area of interest.
+         * 
+         * @param extent
+         *      Spatial area of interest to query
+         */
+		FeatureCursor* createCursor( const GeoExtent& extent );
+		
+    public:
+		
+		virtual ~FeatureLayer();
+
+	private:
+        std::string name;
+		osg::ref_ptr<FeatureStore> store;
+		osg::ref_ptr<SpatialIndex> index;
+        osg::ref_ptr<SpatialReference> assigned_srs;
+	};
+}
+
+#endif // _OSGGIS_FEATURELAYER_H_

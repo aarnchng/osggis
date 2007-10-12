@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<project name="world">
+    
+    <source name="borders">
+        <uri>world.shp</uri>
+    </source>
+    
+    <terrain name="default">
+        <uri>terrain/out.ive</uri>
+    </terrain>
+
+    <script name="outlines">
+        <filter type="ChangeShapeTypeFilter">
+            <property name="new_shape_type" value="line"/>
+        </filter>
+        <filter type="CropFilter"/>
+        <filter type="TransformFilter">
+            <property name="use_terrain_srs" value="true" />
+            <property name="localize" value="true"/>
+        </filter>
+        <filter type="ClampFilter"/>
+        <filter type="BuildGeomFilter">
+            <property name="randomize_colors" value="true"/>
+        </filter>
+        <filter type="CollectionFilter"/>
+        <filter type="BuildNodesFilter">
+            <property name="optimize" value="true"/>
+            <property name="disable_lighting" value="true"/>
+        </filter>
+    </script>
+
+    <layer name="borders" source="borders" terrain="default" target="out/borders/out.ive">
+        <slice min_range="0" max_range="1e+10" script="outlines"/>
+    </layer>
+
+    <target name="all">
+        <depends-on-layer>borders</depends-on-layer>
+    </target>
+
+</project>

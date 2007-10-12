@@ -1,0 +1,139 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FILTER_ENV_H_
+#define _OSGGIS_FILTER_ENV_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoExtent>
+#include <osgGIS/SpatialReference>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /**
+     * Contains the context under which a filter processes data.
+     *
+     * Filters are meant to be generic with respect to the spatial environment.
+     * By passing that environment information to a filter in this class, the
+     * filter can modify its operation based on this contextual data.
+     */
+    class OSGGIS_EXPORT FilterEnv : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new, default filter environment.
+         */
+        FilterEnv();
+        
+        /**
+         * Copy constructor.
+         */
+        FilterEnv( const FilterEnv& to_copy );
+
+        /**
+         * Gets an exact copy of this instance.
+         */
+        FilterEnv* clone() const;
+        
+        /**
+         * Gets a copy of the instance, copying output data to the input slots.
+         * Specifically advance() will make a copy and move the source's output
+         * spatial reference to be the new object's input spatial reference.
+         */
+        FilterEnv* advance() const;
+        
+        /**
+         * Sets the spatial bounds that a filter should consider relevant under
+         * this environment.
+         */
+        void setExtent( const GeoExtent& extent );
+
+        /**
+         * Gets the spatial bounds that a filter should consider relevant.
+         */
+        const GeoExtent& getExtent() const;
+        
+        /**
+         * Sets the spatial reference system in which the filter's input geodata
+         * is expressed.
+         */
+        void setInputSRS( const SpatialReference* srs );
+        
+        /**
+         * Gets the spatial reference system in which the filter's input geodata
+         * is expressed.
+         */
+        const SpatialReference* getInputSRS() const;
+        
+        /**
+         * Sets the spatial reference system in which the filter's output geodata
+         * is expressed. The filter itself would call this to inform the next filter
+         * that it had changed the spatial reference of the data stream. 
+         *
+         * For example, if you implement a transformation filter that reprojects the
+         * incoming data, you must call setOutputSRS() so that the next filter knows
+         * about the transformation.
+         */
+        void setOutputSRS( const SpatialReference* srs );
+        
+        /**
+         * Gets the spatial reference system in which the filter's output geodata
+         * is expressed.
+         */
+        const SpatialReference* getOutputSRS() const;
+
+        /**
+         * Sets a terrain scene graph that the filter should consider relevant to 
+         * its operation. This only applies to filters that need to know about a
+         * reference terrain (e.g., for conforming data to a terrain).
+         */
+        void setTerrainNode( osg::Node* node );
+
+        /**
+         * Gets a terrain scene graph that the filter should consider relevant.
+         * The filter would call this method to fetch a terrain if it needs one to
+         * do its processing.
+         */
+        osg::Node* getTerrainNode();
+
+        /**
+         * Gets the spatial reference system of the terrain.
+         */
+        SpatialReference* getTerrainSRS() const;
+
+        /**
+         * Sets the spatial reference system of the terrain.
+         */
+        void setTerrainSRS( const SpatialReference* srs );
+
+    public:
+                
+        virtual ~FilterEnv();
+        
+    private:
+        GeoExtent extent;
+        osg::ref_ptr<SpatialReference> in_srs;
+        osg::ref_ptr<SpatialReference> out_srs;
+        osg::ref_ptr<SpatialReference> terrain_srs;
+        osg::ref_ptr<osg::Node>        terrain_node;
+    };
+}
+
+#endif // _OSGGIS_FILTER_ENV_H_
