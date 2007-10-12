@@ -114,22 +114,45 @@ Project::getTerrain( const std::string& key )
     return NULL;
 }
 
-const BuildList&
-Project::getBuilds() const
+const BuildLayerList&
+Project::getLayers() const
 {
-    return builds;
+    return layers;
 }
 
-BuildList&
-Project::getBuilds()
+BuildLayerList&
+Project::getLayers()
 {
-    return builds;
+    return layers;
 }
 
-Build*
-Project::getBuild( const std::string& key )
+BuildLayer*
+Project::getLayer( const std::string& key )
 {
-    for( BuildList::const_iterator i = builds.begin(); i != builds.end(); i++ )
+    for( BuildLayerList::const_iterator i = layers.begin(); i != layers.end(); i++ )
+    {
+        if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
+}
+
+const BuildTargetList&
+Project::getTargets() const
+{
+    return targets;
+}
+
+BuildTargetList&
+Project::getTargets()
+{
+    return targets;
+}
+
+BuildTarget*
+Project::getTarget( const std::string& key )
+{
+    for( BuildTargetList::const_iterator i = targets.begin(); i != targets.end(); i++ )
     {
         if ( i->get()->getName() == key )
             return i->get();

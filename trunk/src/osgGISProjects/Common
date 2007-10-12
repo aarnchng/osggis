@@ -25,4 +25,6 @@
 #include <osg/Referenced>
 #include <string>
 
+#define VERBOSE_OUT osg::notify(osg::NOTICE)
+
 #endif // _OSGGISPROJECTS_COMMON_H_

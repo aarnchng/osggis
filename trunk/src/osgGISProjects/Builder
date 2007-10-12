@@ -32,10 +32,11 @@ namespace osgGISProjects
 
         bool build();
 
-        bool build( const std::string& build_name );
+        bool build( const std::string& target_name );
 
     protected:
-        bool build( Build* build );
+        bool build( BuildTarget* target );
+        bool build( BuildLayer* layer );
 
     private:
         std::string base_uri;

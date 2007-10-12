@@ -22,7 +22,8 @@
 
 #include <osgGISProjects/Common>
 #include <osgGISProjects/Source>
-#include <osgGISProjects/Build>
+#include <osgGISProjects/BuildLayer>
+#include <osgGISProjects/BuildTarget>
 #include <osgGISProjects/Terrain>
 #include <osgGIS/Script>
 
@@ -40,11 +41,13 @@ namespace osgGISProjects
 
         void setName( const std::string& name );
 
+
         const ScriptList& getScripts() const;
 
         ScriptList& getScripts();
 
         Script* getScript( const std::string& name );
+
 
         const SourceList& getSources() const;
 
@@ -52,24 +55,34 @@ namespace osgGISProjects
 
         Source* getSource( const std::string& name );
 
+
         const TerrainList& getTerrains() const;
 
         TerrainList& getTerrains();
 
         Terrain* getTerrain( const std::string& name );
 
-        const BuildList& getBuilds() const;
 
-        BuildList& getBuilds();
+        const BuildLayerList& getLayers() const;
 
-        Build* getBuild( const std::string& name );
+        BuildLayerList& getLayers();
+
+        BuildLayer* getLayer( const std::string& name );
+
+
+        const BuildTargetList& getTargets() const;
+
+        BuildTargetList& getTargets();
+
+        BuildTarget* getTarget( const std::string& name );
 
     protected:
-        std::string name;
-        ScriptList scripts;
-        SourceList sources;
-        TerrainList terrains;
-        BuildList  builds;
+        std::string     name;
+        ScriptList      scripts;
+        SourceList      sources;
+        TerrainList     terrains;
+        BuildLayerList  layers;
+        BuildTargetList targets;
     };
 }
 
