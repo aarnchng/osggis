@@ -13,6 +13,7 @@ SET(LIB_PUBLIC_HEADERS
     Builder
     BuildLayer
     BuildLayerSlice
+    BuildTarget
     Common
     Document
     Export
@@ -32,6 +33,7 @@ ADD_LIBRARY(${LIB_NAME}
     Builder.cpp
     BuildLayer.cpp
     BuildLayerSlice.cpp
+    BuildTarget.cpp
     Document.cpp
     Project.cpp
     Serializer.cpp

@@ -61,7 +61,7 @@ namespace osgGISProjects
         Script* decodeScript( XmlElement*, Project* );
         Source* decodeSource( XmlElement*, Project* );
         Terrain* decodeTerrain( XmlElement*, Project* );
-        Build* decodeBuild( XmlElement*, Project* );
+        BuildTarget* decodeTarget( XmlElement*, Project* );
         BuildLayer* decodeLayer( XmlElement*, Project* );
         BuildLayerSlice* decodeSlice( XmlElement*, Project* );
         Project* decodeProject( XmlElement* );

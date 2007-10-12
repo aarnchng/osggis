@@ -118,7 +118,7 @@ XmlSerializer::readScript( Document* doc )
     if ( doc )
     {
         XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeScript( xml_doc->getElement( "script" ), NULL );
+        result = decodeScript( xml_doc->getSubElement( "script" ), NULL );
     }
     return result;
 }
@@ -148,7 +148,7 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
         script = new Script();
         script->setName( e->getAttr( "name" ) );
 
-        XmlNodeList filter_els = e->getElements( "filter" );
+        XmlNodeList filter_els = e->getSubElements( "filter" );
         for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
         {
             XmlElement* f_e = (XmlElement*)i->get();
@@ -156,7 +156,7 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
             Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
             if ( f )
             {
-                XmlNodeList prop_els = f_e->getElements( "property" );
+                XmlNodeList prop_els = f_e->getSubElements( "property" );
                 for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
                 {
                     XmlElement* k_e = (XmlElement*)k->get();
@@ -180,7 +180,7 @@ XmlSerializer::decodeSource( XmlElement* e, Project* proj )
     {
         source = new Source();
         source->setName( e->getAttr( "name" ) );
-        source->setURI( e->getElementText( "uri" ) );
+        source->setURI( e->getSubElementText( "uri" ) );
     }
     return source;
 }
@@ -194,7 +194,7 @@ XmlSerializer::decodeTerrain( XmlElement* e, Project* proj )
     {
         terrain = new Terrain();
         terrain->setName( e->getAttr( "name" ) );
-        terrain->setURI( e->getElementText( "uri" ) );
+        terrain->setURI( e->getSubElementText( "uri" ) );
     }
     return terrain;
 }
@@ -242,7 +242,7 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
 
         layer->setTarget( e->getAttr( "target" ) );
 
-        XmlNodeList slices = e->getElements( "slice" );
+        XmlNodeList slices = e->getSubElements( "slice" );
         for( XmlNodeList::const_iterator i = slices.begin(); i != slices.end(); i++ )
         {
             BuildLayerSlice* slice = decodeSlice( static_cast<XmlElement*>( i->get() ), proj );
@@ -254,24 +254,29 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
 }
 
 
-Build*
-XmlSerializer::decodeBuild( XmlElement* e, Project* proj )
+BuildTarget*
+XmlSerializer::decodeTarget( XmlElement* e, Project* proj )
 {
-    Build* build = NULL;
+    BuildTarget* target = NULL;
     if ( e )
     {
-        build = new Build();
-        build->setName( e->getAttr( "name" ) );
+        target = new BuildTarget();
+        target->setName( e->getAttr( "name" ) );
 
-        XmlNodeList layers = e->getElements( "layer" );
+        XmlNodeList layers = e->getSubElements( "depends-on-layer" );
         for( XmlNodeList::const_iterator i = layers.begin(); i != layers.end(); i++ )
         {
-            BuildLayer* layer = decodeLayer( static_cast<XmlElement*>( i->get() ), proj );
-            if ( layer )
-                build->getLayers().push_back( layer );
+            XmlElement* e = static_cast<XmlElement*>( i->get() );
+            std::string layer_name = e->getText();
+            if ( layer_name.length() > 0 )
+            {
+                BuildLayer* layer = proj->getLayer( layer_name );
+                if ( layer )
+                    target->addLayer( layer );
+            }
         }
     }
-    return build;
+    return target;
 }
 
 
@@ -285,7 +290,7 @@ XmlSerializer::decodeProject( XmlElement* e )
         project->setName( e->getAttr( "name" ) );
 
         // scripts
-        XmlNodeList scripts = e->getElements( "script" );
+        XmlNodeList scripts = e->getSubElements( "script" );
         for( XmlNodeList::const_iterator j = scripts.begin(); j != scripts.end(); j++ )
         {
             Script* script = decodeScript( static_cast<XmlElement*>( j->get() ), project );
@@ -294,7 +299,7 @@ XmlSerializer::decodeProject( XmlElement* e )
         }
 
         // terrains
-        XmlNodeList terrains = e->getElements( "terrain" );
+        XmlNodeList terrains = e->getSubElements( "terrain" );
         for( XmlNodeList::const_iterator j = terrains.begin(); j != terrains.end(); j++ )
         {
             Terrain* terrain = decodeTerrain( static_cast<XmlElement*>( j->get() ), project );
@@ -303,7 +308,7 @@ XmlSerializer::decodeProject( XmlElement* e )
         }
 
         // sources
-        XmlNodeList sources = e->getElements( "source" );
+        XmlNodeList sources = e->getSubElements( "source" );
         for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
         {
             Source* source = decodeSource( static_cast<XmlElement*>( j->get() ), project );
@@ -311,13 +316,29 @@ XmlSerializer::decodeProject( XmlElement* e )
                 project->getSources().push_back( source );
         }
 
-        // builds
-        XmlNodeList builds = e->getElements( "build" );
-        for( XmlNodeList::const_iterator j = builds.begin(); j != builds.end(); j++ )
+        // layers
+        XmlNodeList layers = e->getSubElements( "layer" );
+        for( XmlNodeList::const_iterator j = layers.begin(); j != layers.end(); j++ )
         {
-            Build* build = decodeBuild( static_cast<XmlElement*>( j->get() ), project );
-            if ( build )
-                project->getBuilds().push_back( build );
+            BuildLayer* layer = decodeLayer( static_cast<XmlElement*>( j->get() ), project );
+            if ( layer )
+            {
+                project->getLayers().push_back( layer );
+
+                // automatically add a target for this layer alone:
+                BuildTarget* layer_target = new BuildTarget();
+                layer_target->setName( layer->getName() );
+                layer_target->addLayer( layer );
+            }
+        }
+
+        // targets
+        XmlNodeList targets = e->getSubElements( "target" );
+        for( XmlNodeList::const_iterator j = targets.begin(); j != targets.end(); j++ )
+        {
+            BuildTarget* target = decodeTarget( static_cast<XmlElement*>( j->get() ), project );
+            if ( target )
+                project->getTargets().push_back( target );
         }
     }
     return project;
@@ -331,7 +352,7 @@ XmlSerializer::readProject( Document* doc )
     if ( doc )
     {
         XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeProject( xml_doc->getElement( "project" ) );
+        result = decodeProject( xml_doc->getSubElement( "project" ) );
     }
     return result;
 }

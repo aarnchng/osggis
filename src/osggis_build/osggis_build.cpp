@@ -44,7 +44,8 @@
 
 
 // Variables that are set by command line arguments:
-std::string project_file;
+std::string project_file = "project.xml";
+std::string target_name = "";
 
 int
 die( const std::string& msg )
@@ -62,10 +63,11 @@ static void usage( const char* prog, const char* msg )
     NOUT << prog << " Builds OSG geometry based on information in an XML project file." << ENDL;
     NOUT << ENDL;
     NOUT << "Usage:" << ENDL;
-    NOUT << "    " << prog << " xml_file" << ENDL;
+    NOUT << "    " << prog << " [--project-file|-f xml_project_file] [target]" << ENDL;
     NOUT << ENDL;
     NOUT << "Required:" << ENDL;
-    NOUT << "    <filename>   - XML project definition" << ENDL;
+    NOUT << "    <xml_project_file>   - XML project definition" << ENDL;
+    NOUT << "    <target>             - build target in project file" << ENDL;
 
 }
 
@@ -87,16 +89,16 @@ parseCommandLine( int argc, char** argv )
         exit(-1);
     }
 
-    if ( argc > 1 )
-        project_file = argv[1];
+    std::string temp;
 
-    // validate arguments:
-    if ( project_file.length() == 0 )
+    if ( arguments.read( "--project-file", temp ) || arguments.read( "-f", temp ) )
     {
-        arguments.getApplicationUsage()->write(
-            std::cout,
-            osg::ApplicationUsage::COMMAND_LINE_OPTION );
-        exit(-1);
+        project_file = temp;
+    }
+
+    if ( argc > 1 )
+    {
+        target_name = argv[argc-1];
     }
 }
 
@@ -112,19 +114,19 @@ main(int argc, char* argv[])
     osgGISProjects::XmlSerializer ser;
     osg::ref_ptr<osgGISProjects::Document> doc = ser.load( project_file );    
     if ( !doc.valid() )
-        return die( "Cannot load XML project/script file!" );
+        return die( "Cannot load project file " + project_file );
 
     osg::ref_ptr<osgGISProjects::Project> project = ser.readProject( doc.get() );
     if ( !project.valid() )
-        return die( "XML file does not contain a valid project!" );
+        return die( "Project file does not contain a valid project!" );
 
-    osg::notify( osg::ALWAYS ) << "Project loaded." << std::endl;
+    VERBOSE_OUT << "Project \"" << project->getName() << "\" loaded." << std::endl;
 
     std::string base_uri = osgDB::getFilePath( project_file );
     osgGISProjects::Builder builder( project.get(), base_uri );
-    builder.build();
+    builder.build( target_name );
 
-    osg::notify( osg::ALWAYS ) << "Done." << std::endl;
+    VERBOSE_OUT << "Done." << std::endl;
 	return 0;
 }
 

@@ -80,7 +80,7 @@ XmlElement::getChildren() const
 }
         
 XmlElement*
-XmlElement::getElement( const std::string& name ) const
+XmlElement::getSubElement( const std::string& name ) const
 {
     std::string name_lower = name;
     std::transform( name_lower.begin(), name_lower.end(), name_lower.begin(), tolower );
@@ -101,25 +101,29 @@ XmlElement::getElement( const std::string& name ) const
 
 
 const std::string&
-XmlElement::getElementText( const std::string& name ) const
+XmlElement::getText() const
 {
-    XmlElement* e = getElement( name );
-    if ( e )
+    for( XmlNodeList::const_iterator i = getChildren().begin(); i != getChildren().end(); i++ )
     {
-        for( XmlNodeList::const_iterator i = e->getChildren().begin(); i != e->getChildren().end(); i++ )
+        if ( i->get()->isText() )
         {
-            if ( i->get()->isText() )
-            {
-                return ( static_cast<XmlText*>( i->get() ) )->getValue();
-            }
+            return ( static_cast<XmlText*>( i->get() ) )->getValue();
         }
     }
     return EMPTY_VALUE;
 }
 
 
+const std::string&
+XmlElement::getSubElementText( const std::string& name ) const
+{
+    XmlElement* e = getSubElement( name );
+    return e? e->getText() : EMPTY_VALUE;
+}
+
+
 XmlNodeList 
-XmlElement::getElements( const std::string& name ) const
+XmlElement::getSubElements( const std::string& name ) const
 {
     XmlNodeList results;
 

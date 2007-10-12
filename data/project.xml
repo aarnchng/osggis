@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <project name="world">
     
-    <source name="countries">
-        <uri>gis/world/world.shp</uri>
+    <source name="borders">
+        <uri>world.shp</uri>
     </source>
     
     <terrain name="default">
@@ -29,12 +29,12 @@
         </filter>
     </script>
 
-    <build name="build0">
-        <layer name="countries" source="countries" terrain="default" target="out/countries/out.ive">
-            <slice min_range="0"       max_range="120000"  script="outlines"/>
-            <slice min_range="120000"  max_range="1000000" script="outlines"/>
-            <slice min_range="1000000" max_range="-1"      script="outlines"/>
-        </layer>
-    </build>
-    
+    <layer name="borders" source="borders" terrain="default" target="out/borders/out.ive">
+        <slice min_range="0" max_range="1e+10" script="outlines"/>
+    </layer>
+
+    <target name="all">
+        <depends-on-layer>borders</depends-on-layer>
+    </target>
+
 </project>

@@ -31,7 +31,6 @@
 using namespace osgGISProjects;
 using namespace osgGIS;
 
-
 Builder::Builder( Project* _project, const std::string& _base_uri )
 {
     project = _project;
@@ -67,101 +66,148 @@ Builder::build()
     if ( !project.valid() )
         return false;
 
-    return project->getBuilds().size() > 0?
-        build( project->getBuilds().front().get() ) :
-        false;
+    VERBOSE_OUT <<
+        "No targets specified; building all layers." << std::endl;
+
+    bool ok = true;
+
+    for( BuildLayerList::iterator i = project->getLayers().begin(); i != project->getLayers().end() && ok; i++ )
+    {
+        ok = build( i->get() );
+    }
+
+    return ok;
 }
 
 
 bool
-Builder::build( const std::string& build_name )
+Builder::build( const std::string& target_name )
 {
     if ( !project.valid() )
         return false;
 
-    Build* b = project->getBuild( build_name );
-    return b? build( b ) : false;
+    if ( target_name.length() > 0 )
+    {
+        BuildTarget* target = project->getTarget( target_name );
+        return target? build( target ) : false;
+    }
+    else
+    {
+        return build();
+    }
 }
 
 
 bool
-Builder::build( Build* b )
+Builder::build( BuildTarget* target )
 {
-    if ( !project.valid() || !b )
+    if ( !project.valid() || !target )
         return false;
 
-    for( BuildLayerList::iterator i = b->getLayers().begin(); i != b->getLayers().end(); i++ )
+    VERBOSE_OUT <<
+        "Building target \"" << target->getName() << "\"." << std::endl;
+
+    bool ok = true;
+
+    for( BuildLayerList::const_iterator i = target->getLayers().begin(); i != target->getLayers().end() && ok; i++ )
     {
-        BuildLayer* layer = i->get();
-        
-        Source* source = layer->getSource();
-        if ( !source )
-        {
-            //TODO: log error
-            osg::notify( osg::WARN ) << "No source for build " << b->getName() << std::endl;
-            continue;
-        }
-
-        osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
-            resolveURI( source->getURI() ) );
-        if ( !feature_layer.valid() )
-        {
-            //TODO: log error
-            osg::notify( osg::WARN ) << "Cannot create feature layer for build " << b->getName() << std::endl;
-            continue;
-        }
-
-        // The reference terrain:
-        osg::ref_ptr<osg::Node>        terrain_node;
-        osg::ref_ptr<SpatialReference> terrain_srs;
-
-        Terrain* terrain = layer->getTerrain();
-
-        if ( terrain && terrain->getURI().length() > 0 )
-        {
-            std::string terrain_uri = resolveURI( terrain->getURI() );
-            terrain_node = osgDB::readNodeFile( terrain_uri );
-            if ( terrain_node.valid() )
-            {
-                terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( terrain_node.get() );
-            }
-            else
-            {
-                osg::notify( osg::WARN ) << "Unable to load terrain node from " << terrain_uri << std::endl;
-                continue;
-            }
-        }
-        
-        //TODO: parameterize this..
-        GeoExtent terrain_extent( 
-            -180, -90, 180, 90, 
-            Registry::instance()->getSRSFactory()->createWGS84() );
-
-        // output file:
-        const std::string& output_file = resolveURI( layer->getTarget() );
-        osgDB::makeDirectoryForFile( output_file );
-        if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
-        {
-            osg::notify( osg::WARN ) << "Unable to establish target location for output: " << output_file << std::endl;
-            continue;
-        }
-
-        PagedLayerCompiler2 compiler;
-
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        //compiler.setPriorityOffset( priority_offset );
-        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {
-            compiler.addScript(
-                i->get()->getMinRange(),
-                i->get()->getMaxRange(),
-                i->get()->getScript() );
-        }
-
-        compiler.compile(
-            feature_layer.get(),
-            output_file );
+        ok = build( i->get() );
     }
+    
+    if ( ok )
+    {
+        VERBOSE_OUT <<
+            "Done building target \"" << target->getName() << "\"." << std::endl;
+    }
+    return ok;
+}
+
+
+bool
+Builder::build( BuildLayer* layer )
+{        
+    VERBOSE_OUT <<
+        "Building layer \"" << layer->getName() << "\"." << std::endl;
+
+    Source* source = layer->getSource();
+    if ( !source )
+    {
+        //TODO: log error
+        osg::notify( osg::WARN ) 
+            << "No source specified for layer \"" << layer->getName() << "\"." << std::endl;
+        return false;
+    }
+
+    osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
+        resolveURI( source->getURI() ) );
+    if ( !feature_layer.valid() )
+    {
+        //TODO: log error
+        osg::notify( osg::WARN ) 
+            << "Cannot access source \"" << source->getName() 
+            << "\" for layer \"" << layer->getName() << "\"." << std::endl;
+        return false;
+    }
+
+    // The reference terrain:
+    osg::ref_ptr<osg::Node>        terrain_node;
+    osg::ref_ptr<SpatialReference> terrain_srs;
+
+    Terrain* terrain = layer->getTerrain();
+
+    if ( terrain && terrain->getURI().length() > 0 )
+    {
+        std::string terrain_uri = resolveURI( terrain->getURI() );
+        terrain_node = osgDB::readNodeFile( terrain_uri );
+        if ( terrain_node.valid() )
+        {
+            terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( terrain_node.get() );
+        }
+        else
+        {
+            osg::notify( osg::WARN )
+                << "Unable to load data for terrain \""
+                << terrain->getName() << "\"." 
+                << std::endl;
+            return false;
+        }
+    }
+    
+    //TODO: parameterize this..
+    GeoExtent terrain_extent( 
+        -180, -90, 180, 90, 
+        Registry::instance()->getSRSFactory()->createWGS84() );
+
+    // output file:
+    const std::string& output_file = resolveURI( layer->getTarget() );
+    osgDB::makeDirectoryForFile( output_file );
+    if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
+    {
+        osg::notify( osg::WARN ) 
+            << "Unable to establish target location for layer \""
+            << layer->getName() << "\" at \"" << output_file << "\"." 
+            << std::endl;
+        return false;
+    }
+
+    PagedLayerCompiler2 compiler;
+
+    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+    
+    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+    {
+        compiler.addScript(
+            i->get()->getMinRange(),
+            i->get()->getMaxRange(),
+            i->get()->getScript() );
+    }
+
+    compiler.compile(
+        feature_layer.get(),
+        output_file );
+
+    VERBOSE_OUT <<
+        "Done building layer \"" << layer->getName() << "\"." << std::endl;
 
     return true;
 }
