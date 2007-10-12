@@ -1,0 +1,6 @@
+distribution : 
+	@sh $(MAKEDIST) OpenSceneGraph Make/rpm.header Make/rpm.files
+
+
+cleandist:
+	@$(MAKECLEANDIST)

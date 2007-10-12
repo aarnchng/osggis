@@ -1,0 +1,47 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_DEFAULTFEATURESTOREFACTORY_H_
+#define _OSGGIS_DEFAULTFEATURESTOREFACTORY_H_ 1
+
+#include <osgGIS/FeatureStoreFactory>
+
+namespace osgGIS
+{
+    /**
+     * The object that creates new feature store connections by default. At
+     * the very least it will try to return an OGR-based feature store based
+     * on the URI.
+     */
+	class DefaultFeatureStoreFactory : public FeatureStoreFactory
+	{
+	public:
+		DefaultFeatureStoreFactory();
+		
+		virtual ~DefaultFeatureStoreFactory();
+
+
+	public: // FeatureStoreFactory
+
+		FeatureStore* connectToFeatureStore( const std::string& uri );
+	};
+}
+
+
+#endif // _OSGGIS_DEFAULTFEATURESTOREFACTORY_H_

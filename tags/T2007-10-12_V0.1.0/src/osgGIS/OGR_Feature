@@ -1,0 +1,96 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_OGR_FEATURE_H_
+#define _OSGGIS_OGR_FEATURE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Feature>
+#include <osgGIS/SpatialReference>
+
+namespace osgGIS
+{
+    /**
+     * Feature loaded from an GDAL/OGR driver.
+     */
+	class OGR_Feature : public osgGIS::Feature
+	{
+	public:
+        /**
+         * Constructs a new OGR-based feature.
+         *
+         * @param handle
+         *      Handle of feature object
+         * @param spatial_ref
+         *      Spatial reference of layer from which feature was taken
+         */
+		OGR_Feature( void* handle, SpatialReference* spatial_ref );
+
+
+	public: // Feature
+
+        /**
+         * Gets the unique object ID of the feature.
+         */
+		const FeatureOID& getOID() const;
+
+        /**
+         * Gets the geodata associated with this feature.
+         */
+        const GeoShapeList& getShapes() const;
+        
+        /**
+         * Gets the geodata associated with this feature.
+         */
+        GeoShapeList& getShapes();
+        
+        /**
+         * Gets the spatial bounds of this feature.
+         */
+        const GeoExtent& getExtent() const;
+
+
+        Attribute getAttribute( const std::string& key ) const;
+
+        void setAttribute( const std::string& key, const std::string& value );
+
+        void setAttribute( const std::string& key, int value );
+
+        void setAttribute( const std::string& key, double value );
+        
+    public:
+        
+		virtual ~OGR_Feature();
+
+	private:
+        void*                          handle;
+		FeatureOID                     oid;
+		GeoShapeList                   shapes;
+		GeoExtent                      extent;
+		osg::ref_ptr<SpatialReference> spatial_ref;
+        AttributeTable                 user_attrs;
+        Attribute                      invalid_attr;
+		
+	private:
+	    void load( void* );
+		GeoShape decodeShape( void*, int, GeoShape::ShapeType );
+	};
+}
+
+#endif // _OSGGIS_OGR_FEATURE_H_

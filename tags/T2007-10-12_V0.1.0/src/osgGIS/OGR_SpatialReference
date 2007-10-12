@@ -1,0 +1,97 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_OGR_SPATIALREFERENCE
+#define _OSGGIS_OGR_SPATIALREFERENCE 1
+
+#include <osgGIS/Common>
+#include <osgGIS/SpatialReferenceBase>
+#include <osgGIS/Ellipsoid>
+#include <osgGIS/GeoShape>
+#include <string>
+#include <ogr_spatialref.h>
+
+namespace osgGIS
+{	
+	class OGR_SpatialReference : public SpatialReferenceBase
+	{
+	public:
+		OGR_SpatialReference(
+            void* handle,
+            bool  delete_handle,
+            const osg::Matrixd& ref_frame );
+	    
+	public:
+		virtual ~OGR_SpatialReference();
+
+	public:		
+		virtual const std::string& getWKT() const;
+
+		virtual bool isGeographic() const;
+
+		virtual bool isProjected() const;
+		
+		virtual bool isGeocentric() const;
+		
+		virtual const SpatialReference* getBasisSRS() const;
+
+        virtual const Ellipsoid& getBasisEllipsoid() const;
+		
+		virtual std::string getName() const;
+
+        virtual bool equivalentTo( const SpatialReference* rhs ) const;
+
+        virtual const osg::Matrixd& getReferenceFrame() const;
+
+        virtual const osg::Matrixd& getInverseReferenceFrame() const;
+		
+        virtual SpatialReference* cloneWithNewReferenceFrame( const osg::Matrixd& rf ) const;
+
+
+    public:
+		virtual GeoPoint transform( const GeoPoint& input ) const;
+
+        virtual bool transformInPlace( GeoPoint& input ) const;
+		
+		virtual GeoShape transform( const GeoShape& input ) const;
+
+        virtual bool transformInPlace( GeoShape& input ) const;
+
+
+    public:
+        void testEquivalence(
+            const OGR_SpatialReference* rhs,
+            bool& out_crs_equiv,
+            bool& out_ref_frame_equiv ) const;
+		
+		
+	protected:
+		virtual std::string getAttrValue( const std::string& name, int child_num ) const;
+		
+		
+	private:
+		void* handle;	
+		bool  owns_handle;
+		std::string wkt;
+		Ellipsoid ellipsoid;
+        osg::ref_ptr<SpatialReference> basis;
+	};
+}
+
+#endif // OSGGIS_OGR_SPATIALREFERENCE
