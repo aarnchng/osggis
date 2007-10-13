@@ -129,7 +129,7 @@ namespace osgGIS
             int                level,
             osg::Node*         tile_terrain,
             const GeoExtent&   tile_extent,
-            double             tile_min_range,
+            //double             tile_min_range,
             double             tile_max_range,
             const std::string& tile_filename );
             
