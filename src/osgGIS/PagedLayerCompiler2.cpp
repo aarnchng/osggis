@@ -244,19 +244,23 @@ PagedLayerCompiler2::compileGeometry(
     int              level,
     osg::Node*       tile_terrain,
     const GeoExtent& tile_extent,
-    double           min_range,
-    double           max_range )
-{
-    //osg::notify( osg::NOTICE ) << indent[level] << 
-    //    "L" << level << ": geometry " << tile_extent.toString() << std::endl;
+    double           geom_min_range,
+    double           geom_max_range )
 
     // figure out which script to use:
+    //TODO: if the geom range crosses >1 script range, make an LOD with 
+    //      multiple geometries (possible paged).
+
     Script* script = NULL;
-    for( ScriptRangeList::iterator i = script_ranges.begin(); i != script_ranges.end(); i++ )
+    double closest_to_max = DBL_MAX;
+    for( ScriptRangeList::iterator s = script_ranges.begin(); s != script_ranges.end(); s++ )
     {
-        if ( script == NULL || ( i->min_range <= min_range && min_range <= i->max_range ) )
+        double diff = fabs( geom_max_range - s->max_range );
+        if ( script == NULL || 
+             ( geom_max_range <= s->max_range && diff < closest_to_max ) )
         {
-            script = i->script.get();
+            closest_to_max = diff;
+            script = s->script.get();
         }
     }
 
@@ -264,6 +268,9 @@ PagedLayerCompiler2::compileGeometry(
     osg::Node* out = NULL;
     if ( script )
     {
+        osg::notify(osg::NOTICE) << indent[level+2]
+            << "script = " << script->getName() << std::endl;
+
         osg::ref_ptr<FilterEnv> env = new FilterEnv();
         env->setTerrainNode( tile_terrain );
         env->setTerrainSRS( terrain_srs.get() );
@@ -306,17 +313,9 @@ PagedLayerCompiler2::compileAll(
         0,
         terrain.get(),
         extent,
-        0,
-        DBL_MAX,
+        1e+10,
         top_filename );
 
-    //osgDB::writeNodeFile( *out, top_filename );
-
-    // after writing, set the path at the top-level plod(s):
-    //SetDatabasePathVisitor spv( output_dir );
-    //out->accept( spv );
-
-    //return out;
     return output_dir + "/" + top_filename;
 }
 
@@ -327,12 +326,14 @@ PagedLayerCompiler2::compileTile(
     int                     level,
     osg::Node*              tile_terrain,
     const GeoExtent&        tile_extent,
-    double                  tile_min_range,
+    //double                  tile_min_range,
     double                  tile_max_range,
     const std::string&      tile_filename )
 {
-    osg::notify(osg::NOTICE) << indent[level] <<
-        "L" << level << ": compiling " << tile_filename << std::endl;
+    osg::notify(osg::NOTICE) << indent[level]
+        << "L" << level << ": " << tile_filename
+        << " (max = " << tile_max_range << ")"
+        << std::endl;
         
     osg::ref_ptr<osg::Group> top = new osg::Group();
     std::vector<osg::ref_ptr<osg::PagedLOD> > subtile_plods;
@@ -357,6 +358,9 @@ PagedLayerCompiler2::compileTile(
                 // save for later:
                 subtile_plods.push_back( plod );
 
+                // the range at which we need to page in the subtile:
+                double tile_min_range = plod->getRangeList()[0].first;
+
                 // first, compile against this PLOD's geometry (which is in child 0).
                 osg::Node* geometry = compileGeometry(
                     layer,
@@ -367,15 +371,18 @@ PagedLayerCompiler2::compileTile(
                     tile_max_range );
                 
                 // check whether we need to traverse down any further:
-                bool at_min_range = layer_min_range >= tile_min_range && tile_min_range > 0;
+                bool at_min_range = layer_min_range >= tile_min_range;
+                if ( at_min_range )
+                {
+                    //osg::notify(osg::NOTICE) << indent[level]
+                    //    << "at min range (layer min = " << layer_min_range << ", tile min = "
+                    //    << tile_min_range << std::endl;
 
-                //if ( at_min_range ) // done making PLODs
-                //{
-                //    osg::LOD* lod = new osg::LOD();
-                //    lod->addChild( geometry, layer_min_range, 1e+10 );
-                //    top->addChild( lod );
-                //}
-                //else // still need to delve deeper; make another PLOD:
+                    osg::LOD* lod = new osg::LOD();
+                    lod->addChild( geometry, layer_min_range, 1e+10 );
+                    top->addChild( lod );
+                }
+                else // still need to delve deeper; make another PLOD:
                 {
                     osg::PagedLOD* new_plod = static_cast<osg::PagedLOD*>(
                         plod->clone( osg::CopyOp::SHALLOW_COPY ) );
@@ -404,10 +411,20 @@ PagedLayerCompiler2::compileTile(
                     level,
                     tile_terrain_group->getChild( i ),
                     sub_extent,
-                    tile_min_range,
+                    layer_min_range, //tile_min_range,
                     tile_max_range );
 
-                top->addChild( geometry );
+                if ( layer_min_range > 0 )
+                {
+                    // turns the geomtry off at its min lod
+                    osg::LOD* lod = new osg::LOD();
+                    lod->addChild( geometry, layer_min_range, 1e+10 );
+                    top->addChild( lod );
+                }
+                else
+                {
+                    top->addChild( geometry );
+                }
             }
         }
 
@@ -441,183 +458,9 @@ PagedLayerCompiler2::compileTile(
                     level + 1,
                     subtile.get(),
                     sub_extent,
-                    subtile_plod->getRangeList()[1].first,
                     subtile_plod->getRangeList()[1].second,
                     new_plod->getFileName( 1 ) );
             }
         }
     }
 }
-
-
-
-//// Traverses a terrain tile and compiles vector data against that tile; then
-//// recurses down into a PagedLOD graph and repeats.
-//osg::Group*
-//PagedLayerCompiler2::compileTile(
-//    FeatureLayer*           layer,
-//    int                     level,
-//    osg::Node*              tile_terrain,
-//    const GeoExtent&        tile_extent,
-//    double                  tile_min_range,
-//    double                  tile_max_range,
-//    bool&                   out_is_leaf )
-//{
-//    out_is_leaf = false;
-//    osg::Group* top = new osg::Group();
-//    
-//    if ( layer_min_range > tile_max_range )
-//    {
-//        out_is_leaf = true;
-//        return top;
-//    }
-//
-//    osg::Group* source_group = tile_terrain->asGroup();
-//
-//    if ( source_group )
-//    {
-//        // precalculate the subdivisions that lie under this tile:
-//        std::vector<GeoExtent> sub_extents;
-//        unsigned int num_children = source_group->getNumChildren();
-//        calculateSubExtents( tile_extent, num_children, sub_extents );
-//        std::vector<GeoExtent>::iterator exi = sub_extents.begin();
-//
-//        for( unsigned int i=0; i<num_children; i++ )
-//        {
-//            GeoExtent sub_extent = *exi++;
-//
-//            if ( dynamic_cast<osg::PagedLOD*>( source_group->getChild(i) ) )
-//            {
-//                osg::PagedLOD* plod = static_cast<osg::PagedLOD*>( source_group->getChild( i ) );
-//                osg::PagedLOD* new_plod = static_cast<osg::PagedLOD*>( plod->clone( osg::CopyOp::SHALLOW_COPY ) );
-//
-//                // compile the geometry under child 0: //TODO: check for more
-//                osg::Node* geometry;
-//                osg::Object::DataVariance dv;
-//
-//                if ( layer_max_range >= tile_max_range )
-//                {
-//                    osg::Node* sub_terrain = plod->getChild( 0 );
-//                    geometry = compileGeometry(
-//                        layer,
-//                        level,
-//                        sub_terrain,
-//                        sub_extent,
-//                        tile_min_range,
-//                        tile_max_range );
-//                    dv = osg::Object::STATIC;
-//                }
-//                else // make an empty placeholder
-//                {
-//                    geometry = new osg::Group();
-//                    dv = osg::Object::DYNAMIC;
-//                }
-//
-//                new_plod->setChild( 0, geometry );
-//                new_plod->setRangeList( plod->getRangeList() );
-//
-//                //osg::notify( osg::NOTICE ) <<
-//                //    "  GR = " << 
-//                //    plod->getRangeList()[0].first << "=>" <<
-//                //    plod->getRangeList()[0].second <<
-//                //    ", TR= " <<
-//                //    tile_min_range << "=>" <<
-//                //    tile_max_range <<
-//                //    ", LR= " <<
-//                //    layer_min_range << "=>" <<
-//                //    layer_max_range <<
-//                //    std::endl;
-//
-//                double inf = plod->getRangeList()[0].first;
-//
-//                new_plod->setRange(
-//                    0,
-//                    std::max( layer_min_range, inf ),
-//                    plod->getRangeList()[0].second );
-//
-//                // finish building the new subtile
-//                std::string new_filename = 
-//                    output_prefix + "_" + 
-//                    osgDB::getStrippedName( plod->getFileName( 1 ) ) + "." +
-//                    output_extension;
-//
-//                new_plod->setFileName( 1, new_filename );
-//                new_plod->setCullCallback( plod->getCullCallback() );
-//
-//                new_plod->setDatabasePath( "" );
-//
-//                // bump the priority so that vectors page in before terrain tiles, to
-//                // avoid a flashing effect
-//                new_plod->setPriorityOffset( 1, priority_offset );
-//
-//                // this will prevent the optimizer from blowing away the PLOD when we have a
-//                // stub geometry
-//                new_plod->setDataVariance( dv );           
-//
-//                top->addChild( new_plod );
-//                
-//                // Read the next subtile:
-//                osg::ref_ptr<osgDB::ReaderWriter::Options> options = new osgDB::ReaderWriter::Options();
-//                options->setDatabasePath( plod->getDatabasePath() );
-//                osg::ref_ptr<osg::Node> subtile = osgDB::readNodeFile( 
-//                    plod->getFileName( 1 ), 
-//                    options.get() );
-//
-//                bool subtile_is_leaf = false;
-//
-//                // Build the geometry associated with this subtile:
-//                osg::ref_ptr<osg::Group> new_subtile = compileTile( 
-//                    layer,
-//                    level+1,
-//                    subtile.get(),
-//                    sub_extent,
-//                    plod->getRangeList()[1].first,
-//                    plod->getRangeList()[1].second,
-//                    subtile_is_leaf );
-//
-//                if ( subtile_is_leaf )
-//                {
-//                    new_plod->setRange(
-//                        1,
-//                        std::max( layer_min_range, 0.0 ),                    
-//                        plod->getRangeList()[1].second );
-//                }
-//
-//                // Write the new subtile:
-//                std::string new_abs_path = osgDB::concatPaths( output_dir, new_filename );
-//                osg::notify( osg::NOTICE ) << "Writing " << new_filename << std::endl;
-//                osgDB::writeNodeFile( *(new_subtile.get()), new_abs_path );
-//            }
-//            else if ( layer_max_range >= tile_max_range ) // ( level >= min_level )
-//            {
-//                // Compile against the terrain geometry in this tile:
-//                osg::Node* sub_terrain = source_group->getChild( i );
-//                osg::Node* geometry = compileGeometry( 
-//                    layer,
-//                    level,
-//                    sub_terrain,
-//                    sub_extent,
-//                    tile_min_range,
-//                    tile_max_range );
-//
-//                top->addChild( geometry );
-//                out_is_leaf = true;
-//            }
-//        }
-//    }
-//    else if ( layer_max_range >= tile_max_range ) // level >= min_level )
-//    {
-//        osg::Node* geometry = compileGeometry( 
-//            layer,
-//            level,
-//            tile_terrain,
-//            tile_extent,
-//            tile_min_range,
-//            tile_max_range );
-//
-//        top->addChild( geometry );
-//        out_is_leaf = true;
-//    }
-//
-//    return top;
-//}
