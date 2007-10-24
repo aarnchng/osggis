@@ -31,6 +31,20 @@ Filter::~Filter()
 }
 
 void
+Filter::setName( const std::string& value )
+{
+    name = value;
+}
+
+
+const std::string&
+Filter::getName() const
+{
+    return name;
+}
+
+
+void
 Filter::setProperty( const Property& p )
 {
     //NOP

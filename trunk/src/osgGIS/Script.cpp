@@ -82,6 +82,20 @@ Script::appendFilter( Filter* filter )
 }
 
 
+Filter*
+Script::getFilter( const std::string& name )
+{
+    for( Filter* f = getFirstFilter(); f != NULL; f = f->getNextFilter() )
+    {
+        if ( f->getName() == name )
+        {
+            return f;
+        }
+    }
+    return NULL;
+}
+
+
 void 
 Script::resetFilters( ScriptContext* context )
 {

@@ -246,7 +246,7 @@ PagedLayerCompiler2::compileGeometry(
     const GeoExtent& tile_extent,
     double           geom_min_range,
     double           geom_max_range )
-
+{
     // figure out which script to use:
     //TODO: if the geom range crosses >1 script range, make an LOD with 
     //      multiple geometries (possible paged).
