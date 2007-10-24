@@ -114,6 +114,12 @@ namespace osgGIS
          */
         Filter* getFirstFilter();
 
+
+        /**
+         * Finds a filter by its name. 
+         */
+        Filter* getFilter( const std::string& name );
+
     public:
 
         virtual ~Script();

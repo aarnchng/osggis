@@ -145,26 +145,48 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
     Script* script = NULL;
     if ( e )
     {
-        script = new Script();
-        script->setName( e->getAttr( "name" ) );
+        std::string name = e->getAttr( "name" );
+        //TODO: assert name
 
-        XmlNodeList filter_els = e->getSubElements( "filter" );
-        for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
+        std::string parent_name = e->getAttr( "inherits" );
+        if ( parent_name.length() > 0 )
         {
-            XmlElement* f_e = (XmlElement*)i->get();
-            std::string type = f_e->getAttr( "type" );
-            Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
-            if ( f )
+            Script* parent_script = proj->getScript( parent_name );
+            if ( !parent_script )
             {
-                XmlNodeList prop_els = f_e->getSubElements( "property" );
-                for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
+                osg::notify( osg::WARN ) 
+                    << "Parent script \"" << parent_name << "\" not found for script \""
+                    << name << "\"" << std::endl;
+            }
+            else
+            {
+                script = new Script( *parent_script );
+                //TODO...
+            }
+        }
+        else
+        {
+            script = new Script();
+            script->setName( name );
+
+            XmlNodeList filter_els = e->getSubElements( "filter" );
+            for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
+            {
+                XmlElement* f_e = (XmlElement*)i->get();
+                std::string type = f_e->getAttr( "type" );
+                Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
+                if ( f )
                 {
-                    XmlElement* k_e = (XmlElement*)k->get();
-                    std::string name = k_e->getAttr( "name" );
-                    std::string value = k_e->getAttr( "value" );
-                    f->setProperty( Property( name, value ) );
+                    XmlNodeList prop_els = f_e->getSubElements( "property" );
+                    for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
+                    {
+                        XmlElement* k_e = (XmlElement*)k->get();
+                        std::string name = k_e->getAttr( "name" );
+                        std::string value = k_e->getAttr( "value" );
+                        f->setProperty( Property( name, value ) );
+                    }
+                    script->appendFilter( f );
                 }
-                script->appendFilter( f );
             }
         }
     }
