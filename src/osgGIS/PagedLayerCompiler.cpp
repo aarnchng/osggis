@@ -263,8 +263,8 @@ PagedLayerCompiler::compileGeometry(
     for( ScriptRangeList::iterator s = script_ranges.begin(); s != script_ranges.end(); s++ )
     {
         double diff = fabs( geom_max_range - s->max_range );
-        if ( script == NULL || 
-             ( geom_max_range <= s->max_range && diff < closest_to_max ) )
+        //if ( script == NULL || ( geom_max_range <= s->max_range && diff < closest_to_max ) )
+        if ( geom_max_range <= s->max_range && geom_min_range >= s->min_range && diff < closest_to_max )
         {
             closest_to_max = diff;
             script = s->script.get();
