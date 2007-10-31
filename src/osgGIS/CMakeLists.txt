@@ -47,7 +47,6 @@ SET(LIB_PUBLIC_HEADERS
     OGR_SpatialReferenceFactory
     OGR_Utils
     PagedLayerCompiler
-    PagedLayerCompiler2
     Property
     Registry
     RemoveHolesFilter
@@ -102,7 +101,6 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_SpatialReferenceFactory.cpp
     OGR_Utils.cpp
     PagedLayerCompiler.cpp
-    PagedLayerCompiler2.cpp
     Property.cpp
     Registry.cpp
     RemoveHolesFilter.cpp

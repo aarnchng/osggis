@@ -20,7 +20,7 @@
 #include <osgGISProjects/Builder>
 #include <osgGISProjects/Build>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/PagedLayerCompiler2>
+#include <osgGIS/PagedLayerCompiler>
 #include <osgGIS/Registry>
 #include <osgGIS/Script>
 #include <osg/Notify>
@@ -190,21 +190,30 @@ Builder::build( BuildLayer* layer )
         return false;
     }
 
-    PagedLayerCompiler2 compiler;
-
-    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-    
-    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+    // if we have a valid terrain, use the paged layer compiler. otherwise
+    // use a simple compiler.
+    if ( terrain )
     {
-        compiler.addScript(
-            i->get()->getMinRange(),
-            i->get()->getMaxRange(),
-            i->get()->getScript() );
-    }
+        PagedLayerCompiler compiler;
 
-    compiler.compile(
-        feature_layer.get(),
-        output_file );
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        
+        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+        {
+            compiler.addScript(
+                i->get()->getMinRange(),
+                i->get()->getMaxRange(),
+                i->get()->getScript() );
+        }
+
+        compiler.compile(
+            feature_layer.get(),
+            output_file );
+    }
+    else
+    {
+
+    }
 
     VERBOSE_OUT <<
         "Done building layer \"" << layer->getName() << "\"." << std::endl;
