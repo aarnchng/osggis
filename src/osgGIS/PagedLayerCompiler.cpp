@@ -103,6 +103,13 @@ PagedLayerCompiler::setTerrain(osg::Node*              _terrain,
 
 
 void
+PagedLayerCompiler::setPriorityOffset( float value )
+{
+    priority_offset = value;
+}
+
+
+void
 PagedLayerCompiler::setTerrain(osg::Node*              _terrain,
                                const SpatialReference* _terrain_srs )
 {
@@ -326,7 +333,6 @@ PagedLayerCompiler::compileTile(
     int                     level,
     osg::Node*              tile_terrain,
     const GeoExtent&        tile_extent,
-    //double                  tile_min_range,
     double                  tile_max_range,
     const std::string&      tile_filename )
 {

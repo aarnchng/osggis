@@ -82,16 +82,6 @@ namespace osgGIS
          *
          * @param layer
          *      Feature layer to compile
-         * @param terrain 
-         *      Reference terrain against which to compile geometry
-         * @param terrain_srs
-         *      Spatial reference system of reference terrain data
-         * @param terrain_extent 
-         *      Spatial extent of reference terrain
-         * @param prioirity_offset
-         *      Sets the PagedLOD priority offset value for vectors, so as to 
-         *      force them to page in just before or just after the corresponding
-         *      terrain tile
          * @param output_file
          *      File to which to write root level output node. All other subtile
          *      nodes will be written to the same directory.
