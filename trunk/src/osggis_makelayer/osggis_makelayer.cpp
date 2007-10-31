@@ -70,8 +70,8 @@ std::string output_file;
 std::string terrain_file;
 float range_far = -1;
 float range_near = -1;
-int min_level = -1;
-int max_level = -1;
+//int min_level = -1;
+//int max_level = -1;
 bool make_paged_lods = false;
 osg::Vec4f color(1,1,1,1);
 bool include_grid = false;
@@ -123,8 +123,8 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --terrain_extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
     NOUT << "    --geocentric               - Generate geocentric output geometry to match a globe" << ENDL;
-    NOUT << "    --min-level                - Minimum PagedLOD level for which to generate geometry" << ENDL;
-    NOUT << "    --max-level                - Maximum PagedLOD level for which to generate geometry" << ENDL;
+    //NOUT << "    --min-level                - Minimum PagedLOD level for which to generate geometry" << ENDL;
+    //NOUT << "    --max-level                - Maximum PagedLOD level for which to generate geometry" << ENDL;
     NOUT << "    --points                   - Treat the vector data as points" << ENDL;
     NOUT << "    --lines                    - Treat the vector data as lines" << ENDL;
     NOUT << "    --polygons                 - Treat the vector data as polygons" << ENDL;
@@ -135,8 +135,8 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
-    NOUT << "    --near-lod <num>           - Near LOD range for output geometry (not yet implemented)" << ENDL;
-    NOUT << "    --far-lod <num>            - Far LOD range for output geometry (not yet implemented)" << ENDL;
+    NOUT << "    --range-near <num>         - Near LOD range for output geometry (default = 0)" << ENDL;
+    NOUT << "    --range-far <num>          - Far LOD range for output geometry (default = 1e+10)" << ENDL;
     NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (default = 0)" << ENDL;
     NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
     NOUT << "    --random-colors            - Randomly assign feature colors" << ENDL;
@@ -176,10 +176,10 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--geocentric" ) )
         geocentric = true;
 
-    while( arguments.read( "--near-lod", str ) )
+    while( arguments.read( "--range-near", str ) )
         sscanf( str.c_str(), "%f", &range_near );
     
-    while( arguments.read( "--far-lod", str ) )
+    while( arguments.read( "--range-far", str ) )
         sscanf( str.c_str(), "%f", &range_far );
 
     while( arguments.read( "--points" ) )
@@ -191,11 +191,11 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--polygons" ) )
         shape_type = osgGIS::GeoShape::TYPE_POLYGON;
 
-    while( arguments.read( "--min-level", str ) )
-        sscanf( str.c_str(), "%d", &min_level );
+    //while( arguments.read( "--min-level", str ) )
+    //    sscanf( str.c_str(), "%d", &min_level );
 
-    while( arguments.read( "--max-level", str ) )
-        sscanf( str.c_str(), "%d", &max_level );
+    //while( arguments.read( "--max-level", str ) )
+    //    sscanf( str.c_str(), "%d", &max_level );
 
     while( arguments.read( "--priority-offset", str ) )
         sscanf( str.c_str(), "%f", &priority_offset );
@@ -267,7 +267,7 @@ parseCommandLine( int argc, char** argv )
 
 
 osgGIS::Script*
-createScript() //const osgGIS::SpatialReference* terrain_srs )
+createScript()
 {
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
@@ -304,8 +304,6 @@ createScript() //const osgGIS::SpatialReference* terrain_srs )
     script->appendFilter( new osgGIS::TransformFilter(
         osgGIS::TransformFilter::USE_TERRAIN_SRS |
         osgGIS::TransformFilter::LOCALIZE ) );
-        //terrain_srs,
-        //osgGIS::TransformFilter::LOCALIZE ) );
 
     // Decimate shapes to a point-to-point-distance threshold. Doing this
     // after the transform means we're dealing in meters.
@@ -360,6 +358,7 @@ createScript() //const osgGIS::SpatialReference* terrain_srs )
 
     script->appendFilter( bnf );
 
+    script->setName( "Default" );
     return script;
 }
 
@@ -414,12 +413,7 @@ main(int argc, char* argv[])
 
     // Next we create a script that the compiler will use to build the geometry:
     NOUT << "Compiling..." << ENDL;
-    osg::ref_ptr<osgGIS::Script> script = createScript(); // terrain_srs.get() );
-
-    //// Set a reference terrain in the compilation environment:
-    //osg::ref_ptr<osgGIS::FilterEnv> env = new osgGIS::FilterEnv();
-    //env->setTerrainNode( terrain.get() );
-    //env->setTerrainSRS(
+    osg::ref_ptr<osgGIS::Script> script = createScript();
 
     // Create the output folder if necessary:
     if ( !osgDB::makeDirectoryForFile( output_file ) )
@@ -429,20 +423,15 @@ main(int argc, char* argv[])
     // will traverse an entire PagedLOD scene graph and generate a geometry 
     // tile for each terrain tile.
     osgGIS::PagedLayerCompiler compiler;
-    osg::ref_ptr<osg::Node> output = compiler.compile(
+
+    compiler.addScript( range_near, range_far, script.get() );
+    compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+    compiler.setPriorityOffset( priority_offset );
+
+    compiler.compile(
         layer.get(),
-        script.get(),
-        terrain.get(),
-        terrain_srs.get(),
-        terrain_extent,
-        min_level,
-        max_level,
-        priority_offset,
         output_file );
 
-    if ( !output.valid() )
-        return die( "Compilation failed!" );
-
-	return 0;
+    return 0;
 }
 
