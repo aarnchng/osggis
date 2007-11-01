@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/Script>
+#include <osgGIS/LayerCompiler>
 #include <osg/Node>
 #include <string>
 
@@ -31,43 +32,13 @@ namespace osgGIS
     /**
      * Compiles a feature layer against a terrain.
      */
-    class OSGGIS_EXPORT PagedLayerCompiler
+    class OSGGIS_EXPORT PagedLayerCompiler : public LayerCompiler
     {
     public:
         /**
          * Constructs a new paged layer compiler.
          */
         PagedLayerCompiler();
-
-        /**
-         * Adds a script that should be used to build geometry within
-         * the specified visibility range.
-         *
-         * @param min_range
-         *      Minimum visibility range - get any closer and the geometry 
-         *      disappeares.
-         * @param max_range
-         *      Maximum visibility range - get any further and the geometry
-         *      disappears.
-         * @param script
-         *      Compile geometry using this script for the given range.
-         */
-        void addScript( double min_range, double max_range, Script* script );
-        
-        /** 
-         * Sets the reference terrain against which to compile.
-         */
-        void setTerrain(
-            osg::Node*              terrain, 
-            const SpatialReference* terrain_srs,
-            const GeoExtent&        terrain_extent );
-           
-        /** 
-         * Sets the reference terrain against which to compile.
-         */ 
-        void setTerrain(
-            osg::Node*              terrain, 
-            const SpatialReference* terrain_srs );
             
         /**
          * Sets the priority offset of the resulting model's PagedLOD
@@ -91,16 +62,6 @@ namespace osgGIS
             const std::string& output_file );
 
     private:
-        struct ScriptRange {
-            double min_range, max_range;
-            osg::ref_ptr<Script> script;
-        };
-        typedef std::list<ScriptRange> ScriptRangeList;
-
-        ScriptRangeList                script_ranges;
-        osg::ref_ptr<osg::Node>        terrain;
-        osg::ref_ptr<SpatialReference> terrain_srs;
-        GeoExtent                      terrain_extent;
         float                          priority_offset;
         
         bool        is_geocentric;

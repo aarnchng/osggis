@@ -274,40 +274,42 @@ ClampFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
 
-    //osg::notify( osg::INFO ) << "Clamping feature " << input->getOID() << std::endl;
-
     osg::Node* terrain = env->getTerrainNode();
 
-    for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
+    // if no terrain is set, just pass the data through unaffected.
+    if ( terrain )
     {
-        GeoShape& shape = *i;
-        GeoPartList new_parts;
-
-        for( GeoPartList::iterator j = shape.getParts().begin(); j != shape.getParts().end(); j++ )
+        for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
         {
-            GeoPointList& part = *j;
+            GeoShape& shape = *i;
+            GeoPartList new_parts;
 
-            switch( shape.getShapeType() )
+            for( GeoPartList::iterator j = shape.getParts().begin(); j != shape.getParts().end(); j++ )
             {
-            case GeoShape::TYPE_POINT:
-                clampPointPart( part, terrain, env->getInputSRS() );
-                break;
+                GeoPointList& part = *j;
 
-            case GeoShape::TYPE_LINE:
-                clampLinePart( part, terrain, env->getInputSRS(), new_parts );
-                break;
+                switch( shape.getShapeType() )
+                {
+                case GeoShape::TYPE_POINT:
+                    clampPointPart( part, terrain, env->getInputSRS() );
+                    break;
 
-            case GeoShape::TYPE_POLYGON:
-                clampPolyPart( part, terrain, env->getInputSRS() );
-                break;
+                case GeoShape::TYPE_LINE:
+                    clampLinePart( part, terrain, env->getInputSRS(), new_parts );
+                    break;
+
+                case GeoShape::TYPE_POLYGON:
+                    clampPolyPart( part, terrain, env->getInputSRS() );
+                    break;
+                }
+
+                cleansePart( part );
             }
 
-            cleansePart( part );
-        }
-
-        if ( new_parts.size() > 0 )
-        {
-            shape.getParts().swap( new_parts );
+            if ( new_parts.size() > 0 )
+            {
+                shape.getParts().swap( new_parts );
+            }
         }
     }
 

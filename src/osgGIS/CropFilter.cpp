@@ -20,7 +20,6 @@
 #include <osgGIS/CropFilter>
 #include <osg/Notify>
 #include <stack>
-//#include <algorithm>
 
 using namespace osgGIS;
 
@@ -676,7 +675,7 @@ CropFilter::process( Feature* input, FilterEnv* env )
 
     const GeoExtent& crop_extent = env->getExtent();
 
-    if ( crop_extent.contains( input->getExtent() ) )
+    if ( crop_extent.isInfinite() || crop_extent.contains( input->getExtent() ) )
     {
         //NOP
     }

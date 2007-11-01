@@ -163,11 +163,11 @@ TransformFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
     
-    osg::ref_ptr<SpatialReference> out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
-    if ( !out_srs.valid() )
-        out_srs = srs.get();
+    osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
+    if ( !new_out_srs.valid() )
+        new_out_srs = srs.get();
 
-    if ( out_srs.valid() )
+    if ( new_out_srs.valid() )
     {
         // LOCALIZE points around a local origin (the working extent's centroid)
         if ( options & TransformFilter::LOCALIZE && env->getExtent().getArea() > 0.0 )
@@ -179,13 +179,13 @@ TransformFilter::process( Feature* input, FilterEnv* env )
             }
             else
             {
-                GeoPoint centroid = out_srs->transform( env->getExtent().getCentroid() );
+                GeoPoint centroid = new_out_srs->transform( env->getExtent().getCentroid() );
                 osg::Matrixd localizer;
 
                 // For geocentric datasets, we need a special localizer matrix
-                if ( out_srs->isGeocentric() )
+                if ( new_out_srs->isGeocentric() )
                 {                    
-                    localizer = out_srs->getBasisEllipsoid().createGeocentricInvRefFrame(
+                    localizer = new_out_srs->getBasisEllipsoid().createGeocentricInvRefFrame(
                         centroid );
                     localizer = osg::Matrixd::inverse( localizer );
                 }
@@ -193,34 +193,37 @@ TransformFilter::process( Feature* input, FilterEnv* env )
                 {
                     localizer = osg::Matrixd::translate( -centroid );
                 }
-                out_srs = out_srs->cloneWithNewReferenceFrame( localizer );
+                new_out_srs = new_out_srs->cloneWithNewReferenceFrame( localizer );
             }
         }
         
-        env->setOutputSRS( out_srs.get() );
+        env->setOutputSRS( new_out_srs.get() );
     }
 
-    for( GeoShapeList::iterator shape = input->getShapes().begin(); 
-         shape!= input->getShapes().end();
-         shape++ )
+    if ( new_out_srs.valid() || ( xform_matrix.valid() && !xform_matrix.isIdentity() ) )
     {
-        if ( out_srs.valid() )
+        for( GeoShapeList::iterator shape = input->getShapes().begin(); 
+             shape!= input->getShapes().end();
+             shape++ )
         {
-            out_srs->transformInPlace( *shape );
-        }
-        else if ( xform_matrix.valid() )
-        {
-            struct XformVisitor : public GeoPointVisitor {
-                osg::Matrixd mat;
-                bool visitPoint( GeoPoint& p ) {
-                    p.set( p * mat );
-                    return true;
-                }
-            };
+            if ( new_out_srs.valid() )
+            {
+                new_out_srs->transformInPlace( *shape );
+            }
+            else if ( xform_matrix.valid() && !xform_matrix.isIdentity() )
+            {
+                struct XformVisitor : public GeoPointVisitor {
+                    osg::Matrixd mat;
+                    bool visitPoint( GeoPoint& p ) {
+                        p.set( p * mat );
+                        return true;
+                    }
+                };
 
-            XformVisitor visitor;
-            visitor.mat = xform_matrix;
-            shape->accept( visitor );
+                XformVisitor visitor;
+                visitor.mat = xform_matrix;
+                shape->accept( visitor );
+            }
         }
     }
 

@@ -80,40 +80,9 @@ PagedLayerCompiler::PagedLayerCompiler()
 
 
 void
-PagedLayerCompiler::addScript( double min_range, double max_range, Script* script )
-{
-    ScriptRange slice;
-    slice.min_range = min_range;
-    slice.max_range = max_range;
-    slice.script = script;
-
-    script_ranges.push_back( slice );
-}
-
-
-void
-PagedLayerCompiler::setTerrain(osg::Node*              _terrain,
-                               const SpatialReference* _terrain_srs,
-                               const GeoExtent&        _terrain_extent )
-{
-    terrain        = _terrain;
-    terrain_srs    = (SpatialReference*)_terrain_srs;
-    terrain_extent = _terrain_extent;
-}
-
-
-void
 PagedLayerCompiler::setPriorityOffset( float value )
 {
     priority_offset = value;
-}
-
-
-void
-PagedLayerCompiler::setTerrain(osg::Node*              _terrain,
-                               const SpatialReference* _terrain_srs )
-{
-    setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
 }
 
 
@@ -124,14 +93,17 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
     is_geocentric = false;
 
     // first find the CS Node...
-    FindCSNodeVisitor cs_finder;
-    terrain->accept( cs_finder );
-    if ( !cs_finder.cs_node.valid() ) {
-        osg::notify( osg::WARN ) << 
-            "Reference terrain does not contain a CoordinateSystemNode." << std::endl;
-    }
-    else {
-        is_geocentric = true;
+    if ( terrain.get() )
+    {
+        FindCSNodeVisitor cs_finder;
+        terrain->accept( cs_finder );
+        if ( !cs_finder.cs_node.valid() ) {
+            osg::notify( osg::WARN ) << 
+                "Reference terrain does not contain a CoordinateSystemNode." << std::endl;
+        }
+        else {
+            is_geocentric = true;
+        }
     }
 
     // The folder into which to put the output:
@@ -265,6 +237,7 @@ PagedLayerCompiler::compileGeometry(
         double diff = fabs( geom_max_range - s->max_range );
         //if ( script == NULL || ( geom_max_range <= s->max_range && diff < closest_to_max ) )
         if ( geom_max_range <= s->max_range && geom_min_range >= s->min_range && diff < closest_to_max )
+        //if ( geom_max_range <= s->max_range && diff < closest_to_max )
         {
             closest_to_max = diff;
             script = s->script.get();

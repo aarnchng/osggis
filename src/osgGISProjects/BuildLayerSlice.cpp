@@ -24,8 +24,8 @@ using namespace osgGIS;
 
 BuildLayerSlice::BuildLayerSlice()
 {
-    min_range = 0.0;
-    max_range = -1.0;
+    min_range = 0.0f;
+    max_range = -1.0f;
     min_res_level = -1;
     max_res_level = -1;
 }
@@ -67,28 +67,28 @@ BuildLayerSlice::setMaxResolutionLevel( int value )
     max_res_level = value;
 }
 
-double
+float
 BuildLayerSlice::getMinRange() const
 {
     return min_range;
 }
 
 void
-BuildLayerSlice::setMinRange( double value )
+BuildLayerSlice::setMinRange( float value )
 {
     min_range = value;
 }
 
-double
+float
 BuildLayerSlice::getMaxRange() const
 {
     return max_range;
 }
 
 void
-BuildLayerSlice::setMaxRange( double value )
+BuildLayerSlice::setMaxRange( float value )
 {
     max_range = value;
-    if ( max_range < 0 ) max_range = DBL_MAX;
+    if ( max_range < 0 ) max_range = FLT_MAX;
 }
 
