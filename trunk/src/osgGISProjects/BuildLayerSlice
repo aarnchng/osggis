@@ -38,13 +38,13 @@ namespace osgGISProjects
         void setScript( Script* script );
         
         
-        double getMinRange() const;
+        float getMinRange() const;
         
-        void setMinRange( double value );
+        void setMinRange( float value );
         
-        double getMaxRange() const;
+        float getMaxRange() const;
         
-        void setMaxRange( double value );
+        void setMaxRange( float value );
 
 
         int getMinResolutionLevel() const;
@@ -59,8 +59,8 @@ namespace osgGISProjects
         osg::ref_ptr<Script> script;
         int min_res_level;
         int max_res_level;
-        double min_range;
-        double max_range;
+        float min_range;
+        float max_range;
     };
 
     typedef std::list<osg::ref_ptr<BuildLayerSlice> > BuildLayerSliceList;

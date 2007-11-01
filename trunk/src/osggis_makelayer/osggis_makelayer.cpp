@@ -45,6 +45,7 @@
 #include <osgGIS/ConvexHullFilter>
 #include <osgGIS/ClampFilter>
 #include <osgGIS/PagedLayerCompiler>
+#include <osgGIS/SimpleLayerCompiler>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -68,11 +69,9 @@
 std::string input_file;
 std::string output_file;
 std::string terrain_file;
-float range_far = -1;
-float range_near = -1;
-//int min_level = -1;
-//int max_level = -1;
-bool make_paged_lods = false;
+float range_far = 1e10;
+float range_near = 0.0f;
+bool paged = false;
 osg::Vec4f color(1,1,1,1);
 bool include_grid = false;
 bool preview = false;
@@ -112,19 +111,18 @@ static void usage( const char* prog, const char* msg )
     NOUT << prog << " takes a vector file (e.g., a shapefile) and clamps it to a reference terrain that was built with osgdem/VPB." << ENDL;
     NOUT << ENDL;
     NOUT << "Usage:" << ENDL;
-    NOUT << "    " << prog << " --input vector_file --terrain terrain_file --output output_file [options...]" << ENDL;
+    NOUT << "    " << prog << " --input vector_file --output output_file [options...]" << ENDL;
     NOUT << ENDL;
     NOUT << "Required:" << ENDL;
-    NOUT << "    --input <filename>       - Vector data to clamp to the terrain" << ENDL;
-    NOUT << "    --terrain <filename>     - Terrain data file to which to clamp vectors" << ENDL;
-    NOUT << "    --output <filename>      - Where to store clamped geometry" << ENDL;
+    NOUT << "    --input <filename>        - Vector data to clamp to the terrain" << ENDL;
+    NOUT << "    --output <filename>       - Where to store clamped geometry" << ENDL;
     NOUT << ENDL;
     NOUT << "Optional:"<< ENDL;
+    NOUT << "    --terrain <filename>      - Terrain data file to which to clamp vectors" << ENDL;
     NOUT << "    --terrain_extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
-    NOUT << "    --geocentric               - Generate geocentric output geometry to match a globe" << ENDL;
-    //NOUT << "    --min-level                - Minimum PagedLOD level for which to generate geometry" << ENDL;
-    //NOUT << "    --max-level                - Maximum PagedLOD level for which to generate geometry" << ENDL;
+    NOUT << "    --geocentric               - Generate geocentric output geometry to match a PagedLOD globe" << ENDL;
+    NOUT << "    --paged                    - Treat the terrain as a PagedLOD graph, and generate matching PagedLOD output" << ENDL;
     NOUT << "    --points                   - Treat the vector data as points" << ENDL;
     NOUT << "    --lines                    - Treat the vector data as lines" << ENDL;
     NOUT << "    --polygons                 - Treat the vector data as polygons" << ENDL;
@@ -175,6 +173,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--geocentric" ) )
         geocentric = true;
+    
+    while( arguments.read( "--paged" ) )
+        paged = true;
 
     while( arguments.read( "--range-near", str ) )
         sscanf( str.c_str(), "%f", &range_near );
@@ -190,12 +191,6 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--polygons" ) )
         shape_type = osgGIS::GeoShape::TYPE_POLYGON;
-
-    //while( arguments.read( "--min-level", str ) )
-    //    sscanf( str.c_str(), "%d", &min_level );
-
-    //while( arguments.read( "--max-level", str ) )
-    //    sscanf( str.c_str(), "%d", &max_level );
 
     while( arguments.read( "--priority-offset", str ) )
         sscanf( str.c_str(), "%f", &priority_offset );
@@ -254,7 +249,6 @@ parseCommandLine( int argc, char** argv )
 
     // validate required arguments:
     if (input_file.length() == 0 ||
-        terrain_file.length() == 0 ||
         output_file.length() == 0 )
     {
         arguments.getApplicationUsage()->write(
@@ -393,44 +387,70 @@ main(int argc, char* argv[])
 		NOUT << "  WARNING: No spatial reference" << ENDL;
 
     // Next we load the terrain file to which we will clamp the vector data:
-    NOUT << "Loading terrain..." << ENDL;
-    osg::ref_ptr<osg::Node> terrain = osgDB::readNodeFile( terrain_file );
-    if ( !terrain.valid() )
-        return die( "Terrain load failed!" );
+    osg::ref_ptr<osg::Node> terrain;
+    osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 
-    // determine the terrain's SRS:
-    osg::ref_ptr<osgGIS::SpatialReference> terrain_srs =
-        registry->getSRSFactory()->createSRSfromTerrain( terrain.get() );
+    if ( terrain_file.length() > 0 )
+    {
+        NOUT << "Loading terrain..." << ENDL;
+        terrain = osgDB::readNodeFile( terrain_file );
+        if ( !terrain.valid() )
+            return die( "Terrain load failed!" );
 
-    if ( !terrain_srs.valid() )
-        return die( "Unable to determine the spatial reference of the terrain." );
+        // determine the terrain's SRS (required):
+        terrain_srs = registry->getSRSFactory()->createSRSfromTerrain( terrain.get() );
+        if ( !terrain_srs.valid() )
+            return die( "Unable to determine the spatial reference of the terrain." );
+
+        NOUT << "  terrain SRS = " << terrain_srs->getName() << std::endl;
+    }
 
     // Go earth-centered if necessary:
     if ( geocentric )
-        terrain_srs = registry->getSRSFactory()->createGeocentricSRS( terrain_srs.get() );
+    {
+        // will use WGS84 as the basis if terrain_srs is not already set
+        terrain_srs = registry->getSRSFactory()->createGeocentricSRS( 
+            terrain_srs.get() );
+    }
 
-    NOUT << "  terrain SRS = " << terrain_srs->getName() << std::endl;
 
     // Next we create a script that the compiler will use to build the geometry:
     NOUT << "Compiling..." << ENDL;
     osg::ref_ptr<osgGIS::Script> script = createScript();
 
     // Create the output folder if necessary:
-    if ( !osgDB::makeDirectoryForFile( output_file ) )
+    if ( osgDB::getFilePath( output_file ).length() > 0 && !osgDB::makeDirectoryForFile( output_file ) )
         return die( "Unable to create output directory!" );
 
-    // Compile the feature layer into a paged scene graph. This utility class
-    // will traverse an entire PagedLOD scene graph and generate a geometry 
-    // tile for each terrain tile.
-    osgGIS::PagedLayerCompiler compiler;
+    // for a PagedLOD terrain, generating matching PagedLOD geometry.
+    if ( paged )
+    {
+        // Compile the feature layer into a paged scene graph. This utility class
+        // will traverse an entire PagedLOD scene graph and generate a geometry 
+        // tile for each terrain tile.
+        osgGIS::PagedLayerCompiler compiler;
 
-    compiler.addScript( range_near, range_far, script.get() );
-    compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
-    compiler.setPriorityOffset( priority_offset );
+        compiler.addScript( range_near, range_far, script.get() );
+        compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+        compiler.setPriorityOffset( priority_offset );
 
-    compiler.compile(
-        layer.get(),
-        output_file );
+        compiler.compile(
+            layer.get(),
+            output_file );
+    }
+
+    // otherwise, just compile a simple LOD-based graph.
+    else
+    {
+        osgGIS::SimpleLayerCompiler compiler;
+
+        compiler.addScript( range_near, range_far, script.get() );
+        compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+
+        osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
+        if ( node.valid() )
+            osgDB::writeNodeFile( *(node.get()), output_file );
+    }
 
     return 0;
 }

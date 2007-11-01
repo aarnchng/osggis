@@ -160,7 +160,7 @@ OGR_SpatialReferenceFactory::createGeocentricSRS()
 SpatialReference*
 OGR_SpatialReferenceFactory::createGeocentricSRS( const SpatialReference* basis )
 {
-    return new GeocentricSpatialReference( basis );
+    return new GeocentricSpatialReference( basis? basis : createWGS84() );
 }
 
 

@@ -69,7 +69,6 @@ ExtrudeGeomFilter::setHeight( double height )
 {
     overall_height = height;
     height_functor = NULL;
-//    options &= ~RANDOMIZE_HEIGHTS;
 }
 
 double 
@@ -77,24 +76,6 @@ ExtrudeGeomFilter::getHeight() const
 {
     return overall_height;
 }
-
-//void
-//ExtrudeGeomFilter::setHeightRange( double _min, double _max )
-//{
-//    min_height = _min;
-//    max_height = _max;
-//    options |= RANDOMIZE_HEIGHTS;
-//   
-//    struct RandomHeightFunctor : FeatureFunctor<double> {
-//        RandomHeightFunctor( double _min, double _max ) : min(_min), max(_max) { }
-//        double get( Feature* f ) {
-//            return min + FRAND * (max-min);
-//        }
-//        double min, max;
-//    };
-//
-//    height_functor = new RandomHeightFunctor( _min, _max );
-//}
 
 void
 ExtrudeGeomFilter::setRandomizeHeights( bool value )
@@ -209,14 +190,7 @@ ExtrudeGeomFilter::getProperties() const
 }
 
 
-//void
-//ExtrudeGeomFilter::setHeightFunctor( FeatureFunctor<double>* _functor )
-//{
-//    height_functor = _functor;
-//}
-
-
-bool
+static bool
 extrudeWallsUp(const GeoShape&         shape, 
                const SpatialReference* srs, 
                double                  height, 
@@ -261,7 +235,7 @@ extrudeWallsUp(const GeoShape&         shape,
             {
                 if ( pass == 0 )
                 {
-                    if ( srs->isGeocentric() )
+                    if ( srs && srs->isGeocentric() )
                     {
                         osg::Vec3d p_vec = *m * srs->getInverseReferenceFrame();
                         osg::Vec3d e_vec = p_vec;
@@ -283,29 +257,35 @@ extrudeWallsUp(const GeoShape&         shape,
                 {
                     osg::Vec3d extrude_vec;
 
-                    if ( srs->isGeocentric() )
+                    if ( srs )
                     {
-                        osg::Vec3d p_vec = *m * srs->getInverseReferenceFrame();
-                        osg::Vec3d e_vec = p_vec;
-                        e_vec.normalize();
-                        double gap_len = target_len - (p_vec+(e_vec*height)).length();
+                        if ( srs->isGeocentric() )
+                        {
+                            osg::Vec3d p_vec = *m * srs->getInverseReferenceFrame();
+                            osg::Vec3d e_vec = p_vec;
+                            e_vec.normalize();
+                            double gap_len = target_len - (p_vec+(e_vec*height)).length();
 
-                        double p_len = p_vec.length();
-                        double ratio = target_len/p_len;
-                        p_vec *= ratio;
+                            double p_len = p_vec.length();
+                            double ratio = target_len/p_len;
+                            p_vec *= ratio;
 
-                        extrude_vec = p_vec * srs->getReferenceFrame();
+                            extrude_vec = p_vec * srs->getReferenceFrame();
+                        }
+                        else
+                        {
+                            extrude_vec.set( m->x(), m->y(), target_len );
+                            extrude_vec = extrude_vec * srs->getReferenceFrame();
+                        }
                     }
                     else
                     {
-                        extrude_vec.set( 0, 0, target_len );
-                        extrude_vec = extrude_vec * srs->getReferenceFrame();
+                        extrude_vec.set( m->x(), m->y(), target_len );
                     }
 
                     if ( rooflines )
                     {
                         (*roof_verts)[roof_vert_ptr++] = extrude_vec;
-                        //(*roof_verts)[vert_ptr/2] = extrude_vec;
                     }
 
                     (*verts)[wall_vert_ptr++] = extrude_vec;
