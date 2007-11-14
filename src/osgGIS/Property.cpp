@@ -171,3 +171,69 @@ Property::getMatrixValue() const
     for( int i=0; i<16; i++ ) ss >> *p++;
     return m;
 }
+
+
+int 
+Properties::getIntValue( const std::string& key, int def )
+{
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == key )
+        {
+            return i->getIntValue( def );
+        }
+    }
+    return def;
+}
+
+float 
+Properties::getFloatValue( const std::string& key, float def )
+{
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == key )
+        {
+            return i->getFloatValue( def );
+        }
+    }
+    return def;
+}
+
+double 
+Properties::getDoubleValue( const std::string& key, double def )
+{
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == key )
+        {
+            return i->getDoubleValue( def );
+        }
+    }
+    return def;
+}
+
+bool 
+Properties::getBoolValue( const std::string& key, bool def )
+{
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == key )
+        {
+            return i->getBoolValue( def );
+        }
+    }
+    return def;
+}
+
+std::string 
+Properties::getValue( const std::string& key, std::string def )
+{
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == key )
+        {
+            return i->getValue();
+        }
+    }
+    return def;
+}

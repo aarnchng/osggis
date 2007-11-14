@@ -172,14 +172,16 @@ ExtrudeGeomFilter::setProperty( const Property& p )
         setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
     else if ( p.getName() == "height_attribute" )
         setHeightAttribute( p.getValue() );
-    DrawableFilter::setProperty( p );
+    else if ( p.getName() == "height_scale" )
+        setHeightScale( p.getDoubleValue( getHeightScale() ) );
+    BuildGeomFilter::setProperty( p );
 }
 
 
 Properties
 ExtrudeGeomFilter::getProperties() const
 {
-    Properties p = DrawableFilter::getProperties();
+    Properties p = BuildGeomFilter::getProperties();
     p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
     p.push_back( Property( "height", getHeight() ) );
     p.push_back( Property( "min_height", getMinHeight() ) );
@@ -330,7 +332,7 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         Feature* f = i->get();
 
         osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array( 1 );
-        (*colors)[0] = getColorForFeature( f ); //color_functor.valid()? color_functor.get( f ) : overall_color;
+        (*colors)[0] = getColorForFeature( f );
 
         for( GeoShapeList::const_iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
         {

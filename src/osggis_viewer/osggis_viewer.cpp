@@ -163,6 +163,10 @@ main(int argc, char* argv[])
                     new osg::PolygonOffset( po_factor, po_units ),
                     osg::StateAttribute::ON );
             }
+            else
+            {
+
+            }
         }
     }
 
@@ -177,8 +181,11 @@ main(int argc, char* argv[])
 
     viewer.getScene()->getDatabasePager()->setDoPreCompile( pre_compile );
 
+    // for a target frame rate, disable VSYNC if possible
     if ( fps > 0.0 )
+    {
         viewer.setRealizeOperation( new ToggleVsyncOperation( false ) );
+    }
 
     viewer.realize();
     

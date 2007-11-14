@@ -23,7 +23,9 @@
 #include <osgGIS/Common>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/Script>
+#include <osgGIS/SmartReadCallback>
 #include <osg/Node>
+#include <osgUtil/IntersectionVisitor>
 #include <string>
 
 namespace osgGIS
@@ -76,11 +78,12 @@ namespace osgGIS
             float min_range, max_range;
             osg::ref_ptr<Script> script;
         };
-        typedef std::list<ScriptRange> ScriptRangeList;
-        ScriptRangeList                script_ranges;
-        osg::ref_ptr<osg::Node>        terrain;
-        osg::ref_ptr<SpatialReference> terrain_srs;
-        GeoExtent                      terrain_extent;
+        typedef std::list<ScriptRange>  ScriptRangeList;
+        ScriptRangeList                 script_ranges;
+        osg::ref_ptr<osg::Node>         terrain;
+        osg::ref_ptr<SpatialReference>  terrain_srs;
+        GeoExtent                       terrain_extent;            
+        osg::ref_ptr<SmartReadCallback> read_cb;
 
     };
 }

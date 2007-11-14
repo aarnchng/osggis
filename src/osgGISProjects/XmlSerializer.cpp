@@ -250,7 +250,13 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
     if ( e )
     {
         layer = new BuildLayer();
-        layer->setName( e->getAttr( "name" ) );   
+        layer->setName( e->getAttr( "name" ) ); 
+
+        std::string type = e->getAttr( "type" );
+        if ( type == "correlated" )
+            layer->setType( BuildLayer::TYPE_CORRELATED );
+        else if ( type == "gridded" )
+            layer->setType( BuildLayer::TYPE_GRIDDED );
         
         std::string source = e->getAttr( "source" );
         layer->setSource( proj->getSource( source ) != NULL?
@@ -270,6 +276,15 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
             BuildLayerSlice* slice = decodeSlice( static_cast<XmlElement*>( i->get() ), proj );
             if ( slice )
                 layer->getSlices().push_back( slice );
+        }
+
+        XmlNodeList props = e->getSubElements( "property" );
+        for( XmlNodeList::const_iterator i = props.begin(); i != props.end(); i++ )
+        {
+            XmlElement* k_e = (XmlElement*)i->get();
+            std::string name = k_e->getAttr( "name" );
+            std::string value = k_e->getAttr( "value" );
+            layer->getProperties().push_back( Property( name, value ) );
         }
     }
     return layer;
@@ -351,6 +366,7 @@ XmlSerializer::decodeProject( XmlElement* e )
                 BuildTarget* layer_target = new BuildTarget();
                 layer_target->setName( layer->getName() );
                 layer_target->addLayer( layer );
+                project->getTargets().push_back( layer_target );
             }
         }
 

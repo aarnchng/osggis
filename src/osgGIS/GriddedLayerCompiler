@@ -21,10 +21,8 @@
 #define _OSGGIS_GRIDDED_LAYER_COMPILER_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/Compiler>
+#include <osgGIS/LayerCompiler>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/Script>
-#include <osgGIS/FilterEnv>
 #include <osg/Node>
 
 namespace osgGIS
@@ -33,38 +31,38 @@ namespace osgGIS
      * Compiles a feature layer by breaking it down into a grid of rows
      * and columns and running the script against each tile.
      */
-    class OSGGIS_EXPORT GriddedLayerCompiler : public Compiler
+    class OSGGIS_EXPORT GriddedLayerCompiler : public LayerCompiler
     {
     public:
-        /**
-         * Constructs a new gridded layer compiler.
-         *
-         * @param layer
-         *      Feature layer to compile
-         * @param script
-         *      Script to use to compile the features
-         * @param num_cols
-         *      Number of columns in the grid
-         * @param num_rows
-         *      Number of rows in the grid
-         */
-        GriddedLayerCompiler(
-            FeatureLayer*    layer,
-            Script*          script,
-            unsigned int     num_cols,
-            unsigned int     num_rows );
+        GriddedLayerCompiler();
 
-        /**
-         * Compiles the layer with user-provided environment settings.
-         * @return The compiled geometry.
-         */
-        virtual osg::Group* compile( FilterEnv* env );
+        void setNumRows( int value );
+
+        int getNumRows() const;
+
+        void setNumColumns( int value );
+
+        int getNumColumns() const;
+
+        void setPaged( bool value );
+
+        bool getPaged() const;
+
+        osg::Node* compile( FeatureLayer* layer );
+
+        osg::Node* compile( FeatureLayer* layer, const std::string& output_file );
 
     public:
         virtual ~GriddedLayerCompiler();
 
     private:
-        unsigned int num_cols, num_rows;
+        int num_rows, num_cols;
+        bool paged;
+
+        osg::Node* compileLOD(
+            FeatureLayer*    layer,
+            Script*          script,
+            const GeoExtent& extent );
     };
 }
 

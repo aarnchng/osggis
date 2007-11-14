@@ -23,12 +23,13 @@ using namespace osgGISProjects;
 
 BuildLayer::BuildLayer()
 {
-    //NOP
+    type = TYPE_SIMPLE;
 }
 
 BuildLayer::BuildLayer( const std::string& _name )
 {
     setName( _name );
+    type = TYPE_SIMPLE;
 }
 
 const std::string&
@@ -89,4 +90,28 @@ BuildLayerSliceList&
 BuildLayer::getSlices()
 {
     return slices;
+}
+
+void
+BuildLayer::setType( BuildLayer::LayerType value )
+{
+    type = value;
+}
+
+BuildLayer::LayerType
+BuildLayer::getType() const
+{
+    return type;
+}
+
+const Properties&
+BuildLayer::getProperties() const
+{
+    return properties;
+}
+
+Properties&
+BuildLayer::getProperties()
+{
+    return properties;
 }

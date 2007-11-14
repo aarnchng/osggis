@@ -18,12 +18,20 @@
  */
 
 #include <osgGIS/LayerCompiler>
+#include <osgSim/LineOfSight>
+#include <osgDB/ReadFile>
+#include <map>
+#include <string>
+#include <queue>
 
 using namespace osgGIS;
 
+
+
+
 LayerCompiler::LayerCompiler()
 {
-    //NOP
+    read_cb = new SmartReadCallback();
 }
 
 

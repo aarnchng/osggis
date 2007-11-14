@@ -1,0 +1,46 @@
+#ifndef _OSGGIS_SMART_READ_CALLBACK_H_
+#define _OSGGIS_SMART_READ_CALLBACK_H_ 1
+
+#include <osgUtil/IntersectionVisitor>
+#include <osg/BoundingSphere>
+
+namespace osgGIS
+{
+    class SmartReadCallback : public osgUtil::IntersectionVisitor::ReadCallback
+    {
+    public:
+        SmartReadCallback();
+
+        osg::Node* getMruNode();
+        
+        void setMruNode( osg::Node* );
+        
+        osg::Node* getMruNodeIfContains( 
+            const osg::Vec3& p,
+            osg::Node*       fallback );
+            
+        osg::Node* getMruNodeIfContains( 
+            const osg::Vec3& p1,
+            const osg::Vec3& p2,
+            osg::Node*       fallback );
+        
+        float getMruHitRatio() const;
+    
+    public: // ReadCallback
+
+        virtual osg::Node* readNodeFile( const std::string& filename );
+
+    private:
+        typedef std::map<std::string, osg::ref_ptr<osg::Node> > FileNameSceneMap;
+
+        unsigned int max_cache_size;
+        //OpenThreads::Mutex  _mutex;
+        FileNameSceneMap    cache;
+        osg::ref_ptr<osg::Node> mru_node;
+        osg::BoundingSphere mru_world_bs;
+        int mru_tries, mru_hits;
+    };
+}
+
+
+#endif // _OSGGIS_SMART_READ_CALLBACK_H_
