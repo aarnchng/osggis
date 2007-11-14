@@ -34,6 +34,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     out_srs = rhs.out_srs.get();
     terrain_node = rhs.terrain_node.get();
     terrain_srs = rhs.terrain_srs.get();
+    terrain_read_cb = rhs.terrain_read_cb.get();
 }
 
 
@@ -128,4 +129,18 @@ void
 FilterEnv::setTerrainSRS( const SpatialReference* srs )
 {
     terrain_srs = (SpatialReference*)srs;
+}
+
+
+void
+FilterEnv::setTerrainReadCallback( SmartReadCallback* value )
+{
+    terrain_read_cb = value;
+}
+
+
+SmartReadCallback*
+FilterEnv::getTerrainReadCallback()
+{
+    return terrain_read_cb.get();
 }

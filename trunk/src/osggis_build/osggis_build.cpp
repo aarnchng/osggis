@@ -46,6 +46,7 @@
 // Variables that are set by command line arguments:
 std::string project_file = "project.xml";
 std::string target_name = "";
+bool list_targets = false;
 
 int
 die( const std::string& msg )
@@ -68,6 +69,9 @@ static void usage( const char* prog, const char* msg )
     NOUT << "Required:" << ENDL;
     NOUT << "    <xml_project_file>   - XML project definition" << ENDL;
     NOUT << "    <target>             - build target in project file" << ENDL;
+    NOUT << ENDL;
+    NOUT << "Optional:" << ENDL;
+    NOUT << "    --list-targets       - show all available targets in project" << ENDL;
 
 }
 
@@ -96,6 +100,11 @@ parseCommandLine( int argc, char** argv )
         project_file = temp;
     }
 
+    if ( arguments.read( "--list-targets" ) )
+    {
+        list_targets = true;
+    }
+
     if ( argc > 1 )
     {
         target_name = argv[argc-1];
@@ -122,11 +131,22 @@ main(int argc, char* argv[])
 
     VERBOSE_OUT << "Project \"" << project->getName() << "\" loaded." << std::endl;
 
-    std::string base_uri = osgDB::getFilePath( project_file );
-    osgGISProjects::Builder builder( project.get(), base_uri );
-    builder.build( target_name );
+    if ( list_targets ) // just show available targets
+    {
+        for( osgGISProjects::BuildTargetList::iterator i = project->getTargets().begin(); i != project->getTargets().end(); i++ )
+        {
+            std::cout << "Target: " << i->get()->getName() << std::endl;
+        }
+    }
 
-    VERBOSE_OUT << "Done." << std::endl;
+    else // build the requested target.
+    {
+        std::string base_uri = osgDB::getFilePath( project_file );
+        osgGISProjects::Builder builder( project.get(), base_uri );
+        builder.build( target_name );
+        VERBOSE_OUT << "Done." << std::endl;
+    }
+
 	return 0;
 }
 

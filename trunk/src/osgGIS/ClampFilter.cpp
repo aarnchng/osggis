@@ -18,8 +18,9 @@
  */
 
 #include <osgGIS/ClampFilter>
+#include <osgGIS/SmartReadCallback>
+#include <osgGIS/LineSegmentIntersector2>
 #include <osgUtil/IntersectionVisitor>
-#include <osgUtil/LineSegmentIntersector>
 #include <osgUtil/PlaneIntersector>
 
 using namespace osgGIS;
@@ -76,9 +77,14 @@ ClampFilter::getProperties() const
 #define OFFSET_EXTENSION 1
 
 void
-clampPointPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* srs )
+clampPointPart(GeoPointList&           part,
+               osg::Node*              terrain,
+               const SpatialReference* srs,
+               SmartReadCallback*      read_cache )
 {
     osgUtil::IntersectionVisitor iv;
+
+    iv.setReadCallback( read_cache );
 
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
     {
@@ -87,14 +93,13 @@ clampPointPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* 
         osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
         osg::Vec3d clamp_vec;
 
-        osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
+        osg::ref_ptr<LineSegmentIntersector2> isector;
 
         if ( srs->isGeocentric() )
         {
             clamp_vec = p_world;
             clamp_vec.normalize();
-            isector = new osgUtil::LineSegmentIntersector(
-                //p_world + clamp_vec * ALTITUDE_EXTENSION,
+            isector = new LineSegmentIntersector2(
                 clamp_vec * srs->getBasisEllipsoid().getSemiMajorAxis() * 1.2,
                 osg::Vec3d( 0, 0, 0 ) );
         }
@@ -102,24 +107,28 @@ clampPointPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* 
         {
             clamp_vec = osg::Vec3d( 0, 0, 1 );
             osg::Vec3d ext_vec = clamp_vec * ALTITUDE_EXTENSION;
-            isector = new osgUtil::LineSegmentIntersector(
+            isector = new LineSegmentIntersector2(
                 p_world + ext_vec,
                 p_world - ext_vec );
         }
 
         iv.setIntersector( isector.get() );
-        terrain->accept( iv );
+
+        // try the read cache's MRU node if it intersects out point:
+        osg::Node* target = read_cache->getMruNodeIfContains( p_world, terrain );
+
+        // First try the MRU target; then fall back on the whole terrain.
+        target->accept( iv );
+        if ( !isector->containsIntersections() && target != terrain )
+            terrain->accept( iv );
+
         if ( isector->containsIntersections() )
         {
-            osgUtil::LineSegmentIntersector::Intersection isect = isector->getFirstIntersection();
+            LineSegmentIntersector2::Intersection isect = isector->getFirstIntersection();
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
             osg::Vec3d offset_point = new_point + clamp_vec * OFFSET_EXTENSION;
             p.set( offset_point * srs->getReferenceFrame() );
-        }
-        else
-        {
-            osg::notify( osg::INFO )
-                << "uh oh no isect.." << std::endl;
+            read_cache->setMruNode( isect.nodePath.back().get() );
         }
     }
 }
@@ -129,9 +138,12 @@ void
 clampLinePart(GeoPointList&           in_part,
               osg::Node*              terrain, 
               const SpatialReference* srs,
+              SmartReadCallback*      read_cache,
               GeoPartList&            out_parts )
 {
     osgUtil::IntersectionVisitor iv;
+
+    iv.setReadCallback( read_cache );
 
     for( GeoPointList::iterator i = in_part.begin(); i != in_part.end()-1; i++ )
     {
@@ -161,7 +173,6 @@ clampLinePart(GeoPointList&           in_part,
             planes[2] = osg::Plane(
                 midpoint_normal,
                 osg::Vec3d(0,0,0) );
-                //midpoint - midpoint_normal * ALTITUDE_EXTENSION );
 
             osg::Vec3d normal1 = p1_world;
             normal1.normalize();
@@ -172,7 +183,6 @@ clampLinePart(GeoPointList&           in_part,
                 p0_world,
                 p1_world,
                 osg::Vec3d(0,0,0) );
-                //p1_world + normal1 * ALTITUDE_EXTENSION );
 
             isector = new osgUtil::PlaneIntersector( plane, polytope );
         }
@@ -201,7 +211,12 @@ clampLinePart(GeoPointList&           in_part,
         osg::setNotifyLevel( osg::WARN );
 
         iv.setIntersector( isector.get() );
-        terrain->accept( iv );
+        
+        // try the read cache's MRU node if it intersects out point:
+        osg::Node* target = read_cache->getMruNodeIfContains( p0_world, p1_world, terrain );
+        target->accept( iv );
+        if ( !isector->containsIntersections() && target != terrain )
+            terrain->accept( iv );
 
         osg::setNotifyLevel( sev );
 
@@ -220,12 +235,12 @@ clampLinePart(GeoPointList&           in_part,
                      j++ )
                 {
                     osg::Vec3d ip_world = (*j) * *(isect.matrix.get());
-                    //osg::Vec3d offset = ip_world;
-                    //offset.normalize();
-                    //ip_world += offset * OFFSET_EXTENSION;
                     ip_world = ip_world * srs->getReferenceFrame();
                     new_part.push_back( GeoPoint( ip_world, srs ) );
                 }
+                
+                //TODO: i guess we really need a MRU queue instead..?
+                read_cache->setMruNode( isect.nodePath.back() );
             }
 
             out_parts.push_back( new_part );
@@ -234,20 +249,19 @@ clampLinePart(GeoPointList&           in_part,
         {
             osg::notify( osg::INFO )
                 << "uh oh no isect.." << std::endl;
-
-            //out_parts.clear();
-            //out_parts.push_back( in_part );
-            //break;
         }
     }
 }
 
 
 void
-clampPolyPart( GeoPointList& part, osg::Node* terrain, const SpatialReference* srs )
+clampPolyPart(GeoPointList&           part,
+              osg::Node*              terrain,
+              const SpatialReference* srs,
+              SmartReadCallback*      read_cache )
 {
     //TODO
-    clampPointPart( part, terrain, srs );
+    clampPointPart( part, terrain, srs, read_cache );
 }
 
 
@@ -291,15 +305,15 @@ ClampFilter::process( Feature* input, FilterEnv* env )
                 switch( shape.getShapeType() )
                 {
                 case GeoShape::TYPE_POINT:
-                    clampPointPart( part, terrain, env->getInputSRS() );
+                    clampPointPart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback() );
                     break;
 
                 case GeoShape::TYPE_LINE:
-                    clampLinePart( part, terrain, env->getInputSRS(), new_parts );
+                    clampLinePart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback(), new_parts );
                     break;
 
                 case GeoShape::TYPE_POLYGON:
-                    clampPolyPart( part, terrain, env->getInputSRS() );
+                    clampPolyPart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback() );
                     break;
                 }
 

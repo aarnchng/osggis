@@ -24,6 +24,7 @@
 #include <osg/Group>
 #include <osg/LOD>
 #include <osg/Notify>
+#include <osgSim/LineOfSight> // for the DatabaseCacheReadCallback
 
 using namespace osgGIS;
 
@@ -39,6 +40,7 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, Script* script )
     osg::ref_ptr<FilterEnv> env = new FilterEnv();
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
+    env->setTerrainReadCallback( read_cb.get() );
     Compiler compiler( layer, script );
     return compiler.compile( env.get() );
 }

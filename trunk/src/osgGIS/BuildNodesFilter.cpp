@@ -27,6 +27,10 @@
 #include <osg/ClusterCullingCallback>
 #include <osg/CullSettings>
 #include <osg/PolygonOffset>
+#include <osg/LineWidth>
+#include <osg/Point>
+#include <osg/Geometry>
+#include <osg/TriangleFunctor>
 #include <osgUtil/Optimizer>
 
 using namespace osgGIS;
@@ -37,15 +41,24 @@ OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 
 BuildNodesFilter::BuildNodesFilter()
 {
-    options = (Options)0;
-    optimizer_options = osgUtil::Optimizer::ALL_OPTIMIZATIONS;
+    init( 0 );
 }
 
 
 BuildNodesFilter::BuildNodesFilter( int _options )
 {
+    init( _options );
+}
+
+
+void
+BuildNodesFilter::init( int _options )
+{
     options = _options;
     optimizer_options = osgUtil::Optimizer::ALL_OPTIMIZATIONS;
+    line_width = 0.0f;
+    point_size = 0.0f;
+    draw_cluster_culling_normals = false;
 }
 
 
@@ -121,6 +134,41 @@ BuildNodesFilter::getOptimizerOptions() const
     return optimizer_options;
 }
 
+void
+BuildNodesFilter::setLineWidth( float value )
+{
+    line_width = value;
+}
+
+float 
+BuildNodesFilter::getLineWidth() const
+{
+    return line_width;
+}
+
+void
+BuildNodesFilter::setPointSize( float value )
+{
+    point_size = value;
+}
+
+float
+BuildNodesFilter::getPointSize() const
+{
+    return point_size;
+}
+
+void
+BuildNodesFilter::setDrawClusterCullingNormals( bool value )
+{
+    draw_cluster_culling_normals = value;
+}
+
+bool
+BuildNodesFilter::getDrawClusterCullingNormals() const
+{
+    return draw_cluster_culling_normals;
+}
 
 void
 BuildNodesFilter::setProperty( const Property& p )
@@ -135,6 +183,12 @@ BuildNodesFilter::setProperty( const Property& p )
         setDisableLighting( p.getBoolValue( getDisableLighting() ) );
     else if ( p.getName() == "optimizer_options" )
         setOptimizerOptions( p.getIntValue( getOptimizerOptions() ) );
+    else if ( p.getName() == "line_width" )
+        setLineWidth( p.getFloatValue( getLineWidth() ) );
+    else if ( p.getName() == "point_size" )
+        setPointSize( p.getFloatValue( getPointSize() ) );
+    else if ( p.getName() == "draw_cluster_culling_normals" )
+        setDrawClusterCullingNormals( p.getBoolValue( getDrawClusterCullingNormals() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -149,6 +203,9 @@ BuildNodesFilter::getProperties() const
     p.push_back( Property( "apply_cluster_culling", getApplyClusterCulling() ) );
     p.push_back( Property( "disable_lighting", getDisableLighting() ) );
     p.push_back( Property( "optimizer_options", getOptimizerOptions() ) );
+    p.push_back( Property( "line_width", getLineWidth() ) );
+    p.push_back( Property( "point_size", getPointSize() ) );
+    p.push_back( Property( "draw_cluster_culling_normals", getDrawClusterCullingNormals() ) );
     return p;
 }
 
@@ -178,24 +235,45 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         osg::Vec3d centroid_abs = centroid * irf;
         osg::MatrixTransform* xform = new osg::MatrixTransform( irf );
         xform->addChild( geode );
+        result = xform;
 
         if ( options & APPLY_CLUSTER_CULLING )
-        {
-            // add a cluster culler:
-            double deviation = -0.65;
-            osg::Vec3 normal = centroid_abs;
+        {    
+            osg::Vec3d control_point = centroid_abs;
+            osg::Vec3d normal = centroid_abs;
             normal.normalize();
+            osg::BoundingSphere bs = geode->computeBound(); // force it
+            float radius = bs.radius();
+            float deviation = 
+                (float) -atan( radius / input_srs->getBasisEllipsoid().getSemiMajorAxis() );
 
-            osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback(
-                centroid,
+            osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
+            ccc->set(
+                control_point,
                 normal,
-                deviation );
-            ccc->setRadius( geode->getBound().radius() ); // why is this -1?
+                deviation,
+                radius );            
 
-            xform->setCullCallback( ccc );
+            osg::Group* cull_group = new osg::Group();
+            cull_group->setCullCallback( ccc );
+            cull_group->addChild( xform );
+            result = cull_group;
+
+            if ( getDrawClusterCullingNormals() == true )
+            {
+                //DRAW CLUSTER-CULLING NORMALS
+                osg::Geometry* g = new osg::Geometry();
+                osg::Vec3Array* v = new osg::Vec3Array(2);
+                (*v)[0] = centroid; (*v)[1] = (centroid_abs + (normal*radius)) * input_srs->getReferenceFrame();
+                g->setVertexArray( v );
+                osg::Vec4Array* c = new osg::Vec4Array(1);
+                (*c)[0] = osg::Vec4f( 0,1,0,1 );
+                g->setColorArray( c );
+                g->setColorBinding( osg::Geometry::BIND_OVERALL );
+                g->addPrimitiveSet( new osg::DrawArrays( osg::PrimitiveSet::LINES, 0, 2 ) );
+                geode->addDrawable( g );
+            }
         }
-        
-        result = xform;
     }
 
     if ( getCullBackfaces() )
@@ -210,6 +288,22 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         geode->getOrCreateStateSet()->setMode(
             GL_LIGHTING,
             osg::StateAttribute::OFF );
+    }
+
+    if ( getLineWidth() > 0.0f )
+    {
+        geode->getOrCreateStateSet()->setAttribute(
+            new osg::LineWidth( line_width ),
+            osg::StateAttribute::ON );
+    }
+
+    if ( getPointSize() > 0.0f )
+    {
+        osg::Point* point = new osg::Point();
+        point->setSize( point_size );
+        geode->getOrCreateStateSet()->setAttribute(
+            point,
+            osg::StateAttribute::ON );
     }
 
     if ( getOptimize() )

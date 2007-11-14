@@ -67,6 +67,18 @@ namespace osgGIS
         void setOptimizerOptions( int optimizer_options );
         
         int getOptimizerOptions() const;
+
+        void setLineWidth( float value );
+
+        float getLineWidth() const;
+
+        void setPointSize( float value );
+
+        float getPointSize() const;
+
+        void setDrawClusterCullingNormals( bool value );
+
+        bool getDrawClusterCullingNormals() const;
                 
     public:
     
@@ -77,8 +89,13 @@ namespace osgGIS
         virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
 
     private:
-        int options;
-        int optimizer_options;
+        int   options;
+        int   optimizer_options;
+        float line_width;
+        float point_size;
+        bool  draw_cluster_culling_normals;
+
+        void init( int options );
     };
 }
 

@@ -59,7 +59,17 @@ namespace osgGIS
         std::string value;
     };
 
-    typedef std::vector<Property> Properties;
+    //typedef std::vector<Property> Properties;
+    
+    class OSGGIS_EXPORT Properties : public std::vector<Property>
+    {
+    public:
+        int getIntValue( const std::string& name, int def );
+        float getFloatValue( const std::string& name, float def );
+        double getDoubleValue( const std::string& name, double def );
+        bool getBoolValue( const std::string& name, bool def );
+        std::string getValue( const std::string& name, std::string def );
+    };
 }
 
 #endif //_OSGGIS_PROPERTY_H_

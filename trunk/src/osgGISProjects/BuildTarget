@@ -26,6 +26,10 @@
 
 namespace osgGISProjects
 {
+    /**
+     * A build target is a unit of operation in the build process, from
+     * the "user's" perspective. 
+     */
     class OSGGISPROJECTS_EXPORT BuildTarget : public osg::Referenced
     {
     public:

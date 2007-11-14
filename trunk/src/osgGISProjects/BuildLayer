@@ -31,6 +31,13 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT BuildLayer : public osg::Referenced
     {
     public:
+        enum LayerType {
+          TYPE_SIMPLE,
+          TYPE_GRIDDED,
+          TYPE_CORRELATED
+        };
+        
+    public:
         BuildLayer();
 
         BuildLayer( const std::string& name );
@@ -54,13 +61,29 @@ namespace osgGISProjects
         const BuildLayerSliceList& getSlices() const;
 
         BuildLayerSliceList& getSlices();
-
+        
+        void setType( LayerType value );
+        
+        LayerType getType() const;
+        
+        Properties& getProperties();
+        
+        const Properties& getProperties() const;
+        
+        int getPropertyAsInt( const std::string& name ) const;
+        
+        std::string getPropertyAsString( const std::string& name ) const;
+        
+        double getPropertyAsDouble( const std::string& name ) const;
+        
     private:
         std::string name;
         BuildLayerSliceList slices;
         osg::ref_ptr<Source> source;
         osg::ref_ptr<Terrain> terrain;
         std::string target;
+        LayerType type;
+        Properties properties;
     };
     
     typedef std::list<osg::ref_ptr<BuildLayer> > BuildLayerList;

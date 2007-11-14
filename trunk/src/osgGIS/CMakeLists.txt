@@ -39,6 +39,8 @@ SET(LIB_PUBLIC_HEADERS
     GeoPoint
     GeoShape
     GriddedLayerCompiler
+    LayerCompiler
+    LineSegmentIntersector2
     LocalizeNodesFilter
     NodeFilter
     OGR_Feature
@@ -55,13 +57,16 @@ SET(LIB_PUBLIC_HEADERS
     Script
     ScriptContext
     SimpleFeature
+    SimpleLayerCompiler
     SimpleSpatialIndex
+    SmartReadCallback
     SpatialIndex
     SpatialReference
     SpatialReferenceBase
     SpatialReferenceFactory
     StubSpatialIndex
     SuperFeature
+    TerrainUtils
     TransformFilter
 )
 
@@ -93,6 +98,8 @@ ADD_LIBRARY(${LIB_NAME}
     GeoPoint.cpp
     GeoShape.cpp
     GriddedLayerCompiler.cpp
+    LayerCompiler.cpp
+    LineSegmentIntersector2.cpp
     LocalizeNodesFilter.cpp
     NodeFilter.cpp
     OGR_Feature.cpp
@@ -108,8 +115,11 @@ ADD_LIBRARY(${LIB_NAME}
     Script.cpp
     ScriptContext.cpp
     SimpleFeature.cpp
+    SimpleLayerCompiler.cpp
     SimpleSpatialIndex.cpp
+    SmartReadCallback.cpp
     SpatialReference.cpp
+    TerrainUtils.cpp
     TransformFilter.cpp
 )
 

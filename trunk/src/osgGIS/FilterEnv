@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/GeoExtent>
 #include <osgGIS/SpatialReference>
+#include <osgGIS/SmartReadCallback>
 #include <osg/Node>
 
 namespace osgGIS
@@ -123,16 +124,27 @@ namespace osgGIS
          */
         void setTerrainSRS( const SpatialReference* srs );
 
+        /**
+         * Sets the read callback that terrain intersectors can share.
+         */
+        void setTerrainReadCallback( SmartReadCallback* cb );
+
+        /** 
+         * Gets the read callback that terrain intersections share.
+         */
+        SmartReadCallback* getTerrainReadCallback();
+
     public:
                 
         virtual ~FilterEnv();
         
     private:
         GeoExtent extent;
-        osg::ref_ptr<SpatialReference> in_srs;
-        osg::ref_ptr<SpatialReference> out_srs;
-        osg::ref_ptr<SpatialReference> terrain_srs;
-        osg::ref_ptr<osg::Node>        terrain_node;
+        osg::ref_ptr<SpatialReference>  in_srs;
+        osg::ref_ptr<SpatialReference>  out_srs;
+        osg::ref_ptr<SpatialReference>  terrain_srs;
+        osg::ref_ptr<osg::Node>         terrain_node;
+        osg::ref_ptr<SmartReadCallback> terrain_read_cb;
     };
 }
 

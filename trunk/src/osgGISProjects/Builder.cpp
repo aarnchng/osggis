@@ -20,13 +20,16 @@
 #include <osgGISProjects/Builder>
 #include <osgGISProjects/Build>
 #include <osgGIS/FeatureLayer>
+#include <osgGIS/SimpleLayerCompiler>
 #include <osgGIS/PagedLayerCompiler>
+#include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/Registry>
 #include <osgGIS/Script>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
+#include <osgDB/WriteFile>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
@@ -89,6 +92,8 @@ Builder::build( const std::string& target_name )
     if ( target_name.length() > 0 )
     {
         BuildTarget* target = project->getTarget( target_name );
+        if ( !target )
+            VERBOSE_OUT << "No target " << target_name << " found in the project." << std::endl;
         return target? build( target ) : false;
     }
     else
@@ -192,7 +197,7 @@ Builder::build( BuildLayer* layer )
 
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
-    if ( terrain )
+    if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
     {
         PagedLayerCompiler compiler;
 
@@ -210,9 +215,56 @@ Builder::build( BuildLayer* layer )
             feature_layer.get(),
             output_file );
     }
+    else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
+    {
+        GriddedLayerCompiler compiler;
+
+        compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
+        compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
+        compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
+
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        
+        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+        {
+            compiler.addScript(
+                i->get()->getMinRange(),
+                i->get()->getMaxRange(),
+                i->get()->getScript() );
+        }
+
+        osg::ref_ptr<osg::Node> node = compiler.compile(
+            feature_layer.get(),
+            output_file );
+
+        if ( node.valid() )
+        {
+            osgDB::makeDirectoryForFile( output_file );
+            osgDB::writeNodeFile( *(node.get()), output_file );
+        }        
+    }
     else
     {
+        SimpleLayerCompiler compiler;
 
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        
+        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+        {
+            compiler.addScript(
+                i->get()->getMinRange(),
+                i->get()->getMaxRange(),
+                i->get()->getScript() );
+        }
+
+        osg::ref_ptr<osg::Node> node = compiler.compile(
+            feature_layer.get() );
+
+        if ( node.valid() )
+        {
+            osgDB::makeDirectoryForFile( output_file );
+            osgDB::writeNodeFile( *(node.get()), output_file );
+        }        
     }
 
     VERBOSE_OUT <<
