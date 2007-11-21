@@ -62,6 +62,10 @@ namespace osgGIS
 
         const Technique& getTechnique() const;
 
+        void setIgnoreZ( bool value );
+
+        bool getIgnoreZ() const;
+
 
     public:
 
@@ -75,6 +79,7 @@ namespace osgGIS
 
     private:
         Technique technique;
+        bool ignore_z;
     };
 };
 

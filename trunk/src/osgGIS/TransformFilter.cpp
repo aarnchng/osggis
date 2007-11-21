@@ -136,6 +136,8 @@ TransformFilter::setProperty( const Property& p )
         setLocalize( p.getBoolValue( getLocalize() ) );
     else if ( p.getName() == "matrix" )
         setMatrix( p.getMatrixValue() );
+    else if ( p.getName() == "translate" )
+        setMatrix( osg::Matrix::translate( p.getVec3fValue() ) );
     else if ( p.getName() == "use_terrain_srs" )
         setUseTerrainSRS( p.getBoolValue( getUseTerrainSRS() ) );
     else if ( p.getName() == "srs" )

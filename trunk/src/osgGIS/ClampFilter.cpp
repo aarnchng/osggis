@@ -31,6 +31,8 @@ OSGGIS_DEFINE_FILTER( ClampFilter );
 
 ClampFilter::ClampFilter()
 {
+    technique = ClampFilter::TECHNIQUE_CONFORM;
+    ignore_z = false;
 }
 
 ClampFilter::~ClampFilter()
@@ -51,6 +53,18 @@ ClampFilter::getTechnique() const
 }
 
 void
+ClampFilter::setIgnoreZ( bool value )
+{
+    ignore_z = value;
+}
+
+bool
+ClampFilter::getIgnoreZ() const
+{
+    return ignore_z;
+}
+
+void
 ClampFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "technique" ) {
@@ -59,6 +73,9 @@ ClampFilter::setProperty( const Property& p )
             p.getValue() == "conform"? TECHNIQUE_CONFORM :
             getTechnique() );
     }
+    else if ( p.getName() == "ignore_z" )
+        setIgnoreZ( p.getBoolValue( getIgnoreZ() ) );
+
     FeatureFilter::setProperty( p );
 }
 
@@ -70,16 +87,19 @@ ClampFilter::getProperties() const
         getTechnique() == TECHNIQUE_SIMPLE? "simple" :
         getTechnique() == TECHNIQUE_CONFORM? "conform" :
         std::string() ) );
+    p.push_back( Property( "ignore_z", getIgnoreZ() ) );
+
     return p;
 }
 
 #define ALTITUDE_EXTENSION 250000
-#define OFFSET_EXTENSION 1
+#define DEFAULT_OFFSET_EXTENSION 1
 
 void
 clampPointPart(GeoPointList&           part,
                osg::Node*              terrain,
                const SpatialReference* srs,
+               bool                    ignore_z,
                SmartReadCallback*      read_cache )
 {
     osgUtil::IntersectionVisitor iv;
@@ -92,6 +112,8 @@ clampPointPart(GeoPointList&           part,
 
         osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
         osg::Vec3d clamp_vec;
+
+        double z = (p.getDim() > 2 && !ignore_z)? p.z() : DEFAULT_OFFSET_EXTENSION;
 
         osg::ref_ptr<LineSegmentIntersector2> isector;
 
@@ -126,7 +148,7 @@ clampPointPart(GeoPointList&           part,
         {
             LineSegmentIntersector2::Intersection isect = isector->getFirstIntersection();
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
-            osg::Vec3d offset_point = new_point + clamp_vec * OFFSET_EXTENSION;
+            osg::Vec3d offset_point = new_point + clamp_vec * z;
             p.set( offset_point * srs->getReferenceFrame() );
             read_cache->setMruNode( isect.nodePath.back().get() );
         }
@@ -138,6 +160,7 @@ void
 clampLinePart(GeoPointList&           in_part,
               osg::Node*              terrain, 
               const SpatialReference* srs,
+              bool                    ignore_z,
               SmartReadCallback*      read_cache,
               GeoPartList&            out_parts )
 {
@@ -149,6 +172,8 @@ clampLinePart(GeoPointList&           in_part,
     {
         GeoPoint& p0 = *i;
         GeoPoint& p1 = *(i+1);
+
+        double z = ignore_z? 0.0 : p0.z();
 
         osg::Vec3d p0_world = p0 * srs->getInverseReferenceFrame();
         osg::Vec3d p1_world = p1 * srs->getInverseReferenceFrame();
@@ -235,7 +260,25 @@ clampLinePart(GeoPointList&           in_part,
                      j++ )
                 {
                     osg::Vec3d ip_world = (*j) * *(isect.matrix.get());
+
+                    // reapply the original Z value
+                    // TODO: we should interpolate Z between p0 and p1
+                    if ( z > 0.0 )
+                    {
+                        if ( srs->isGeocentric() )
+                        {
+                            osg::Vec3 z_vec = ip_world;
+                            z_vec.normalize();
+                            ip_world = ip_world + z_vec * z;
+                        }
+                        else
+                        {
+                            ip_world = ip_world + osg::Vec3(0,0,z);
+                        }
+                    }
+
                     ip_world = ip_world * srs->getReferenceFrame();
+
                     new_part.push_back( GeoPoint( ip_world, srs ) );
                 }
                 
@@ -258,10 +301,11 @@ void
 clampPolyPart(GeoPointList&           part,
               osg::Node*              terrain,
               const SpatialReference* srs,
+              bool                    ignore_z,
               SmartReadCallback*      read_cache )
 {
     //TODO
-    clampPointPart( part, terrain, srs, read_cache );
+    clampPointPart( part, terrain, srs, ignore_z, read_cache );
 }
 
 
@@ -305,15 +349,15 @@ ClampFilter::process( Feature* input, FilterEnv* env )
                 switch( shape.getShapeType() )
                 {
                 case GeoShape::TYPE_POINT:
-                    clampPointPart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback() );
+                    clampPointPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback() );
                     break;
 
                 case GeoShape::TYPE_LINE:
-                    clampLinePart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback(), new_parts );
+                    clampLinePart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), new_parts );
                     break;
 
                 case GeoShape::TYPE_POLYGON:
-                    clampPolyPart( part, terrain, env->getInputSRS(), env->getTerrainReadCallback() );
+                    clampPolyPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback() );
                     break;
                 }
 
