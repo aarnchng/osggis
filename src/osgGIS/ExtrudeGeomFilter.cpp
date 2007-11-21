@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/ExtrudeGeomFilter>
+#include <osgGIS/ExpressionEvaluator>
 #include <osg/Geometry>
 #include <osgUtil/SmoothingVisitor>
 #include <osgUtil/Tessellator>
@@ -43,7 +44,7 @@ ExtrudeGeomFilter::ExtrudeGeomFilter()
 ExtrudeGeomFilter::ExtrudeGeomFilter( const int& _options )
 {
     options = _options;
-    setHeight( 1.0 );
+    //setHeight( 1.0 );
 }
 
 
@@ -51,7 +52,7 @@ ExtrudeGeomFilter::ExtrudeGeomFilter(const osg::Vec4f& color,
                                      double height )
 {
     overall_color  = color;
-    overall_height = height;
+    //overall_height = height;
     options        = 0;
     min_height     = 1.0;
     max_height     = 2.0;
@@ -63,19 +64,31 @@ ExtrudeGeomFilter::~ExtrudeGeomFilter()
     //NOP
 }
 
-
 void
-ExtrudeGeomFilter::setHeight( double height )
+ExtrudeGeomFilter::setHeightExpr( const std::string& value )
 {
-    overall_height = height;
+    height_expr = value;
     height_functor = NULL;
 }
 
-double 
-ExtrudeGeomFilter::getHeight() const
+const std::string&
+ExtrudeGeomFilter::getHeightExpr() const
 {
-    return overall_height;
+    return height_expr;
 }
+
+//void
+//ExtrudeGeomFilter::setHeight( double height )
+//{
+//    overall_height = height;
+//    height_functor = NULL;
+//}
+//
+//double 
+//ExtrudeGeomFilter::getHeight() const
+//{
+//    return overall_height;
+//}
 
 void
 ExtrudeGeomFilter::setRandomizeHeights( bool value )
@@ -133,47 +146,49 @@ ExtrudeGeomFilter::getMaxHeight() const
 }
 
 
-void
-ExtrudeGeomFilter::setHeightAttribute( const std::string& _attr )
-{
-    height_attr = _attr;
-}
+//void
+//ExtrudeGeomFilter::setHeightAttribute( const std::string& _attr )
+//{
+//    height_attr = _attr;
+//}
+//
+//const std::string&
+//ExtrudeGeomFilter::getHeightAttribute() const
+//{
+//    return height_attr;
+//}
 
-const std::string&
-ExtrudeGeomFilter::getHeightAttribute() const
-{
-    return height_attr;
-}
 
-
-void
-ExtrudeGeomFilter::setHeightScale( double _scale )
-{
-    height_scale = _scale;
-}
-
-double
-ExtrudeGeomFilter::getHeightScale() const
-{
-    return height_scale;
-}
+//void
+//ExtrudeGeomFilter::setHeightScale( double _scale )
+//{
+//    height_scale = _scale;
+//}
+//
+//double
+//ExtrudeGeomFilter::getHeightScale() const
+//{
+//    return height_scale;
+//}
 
 
 void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
-        setHeight( p.getDoubleValue( getHeight() ) );
+        setHeightExpr( p.getValue() );
+    //if ( p.getName() == "height" )
+    //    setHeight( p.getDoubleValue( getHeight() ) );
     else if ( p.getName() == "min_height" )
         setMinHeight( p.getDoubleValue( getMinHeight() ) );
     else if ( p.getName() == "max_height" )
         setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
     else if ( p.getName() == "randomize_heights" )
         setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
-    else if ( p.getName() == "height_attribute" )
-        setHeightAttribute( p.getValue() );
-    else if ( p.getName() == "height_scale" )
-        setHeightScale( p.getDoubleValue( getHeightScale() ) );
+    //else if ( p.getName() == "height_attribute" )
+    //    setHeightAttribute( p.getValue() );
+    //else if ( p.getName() == "height_scale" )
+    //    setHeightScale( p.getDoubleValue( getHeightScale() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -182,12 +197,12 @@ Properties
 ExtrudeGeomFilter::getProperties() const
 {
     Properties p = BuildGeomFilter::getProperties();
+    p.push_back( Property( "height", getHeightExpr() ) );
     p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
-    p.push_back( Property( "height", getHeight() ) );
     p.push_back( Property( "min_height", getMinHeight() ) );
     p.push_back( Property( "max_height", getMaxHeight() ) );
-    p.push_back( Property( "height_attribute", getHeightAttribute() ) );
-    p.push_back( Property( "height_scale", getHeightScale() ) );
+    //p.push_back( Property( "height_attribute", getHeightAttribute() ) );
+    //p.push_back( Property( "height_scale", getHeightScale() ) );
     return p;
 }
 
@@ -337,12 +352,32 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         for( GeoShapeList::const_iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
         {
             const GeoShape& shape = *j;
-            double height = 
-                height_attr.length() > 0? f->getAttribute( height_attr ).asDouble() :
-                height_functor.valid()? height_functor->get( f ) : 
-                overall_height;
+            
+            //double height = 
+            //    height_attr.length() > 0? f->getAttribute( height_attr ).asDouble() :
+            //    height_functor.valid()? height_functor->get( f ) : 
+            //    overall_height;
 
-            height *= height_scale;
+            //height *= height_scale;
+
+            double height = 0.0;
+            
+            // first try the height expression (takes precedence)
+            if ( height_expr.length() > 0 )
+            {
+                ExpressionEvaluator eval( f );
+                if ( !eval.eval( height_expr, /*out*/height ) )
+                {
+                    osg::notify(osg::WARN) 
+                        << "Warning, expression " << height_expr << " has an error" << std::endl;
+                }
+            }
+
+            // next try the functor.. this may eventually go away as well..
+            else if ( height_functor.valid() )
+            {
+                height = height_functor->get( f );
+            }
 
             osg::ref_ptr<osg::Geometry> walls = new osg::Geometry();
             osg::ref_ptr<osg::Geometry> rooflines = NULL;

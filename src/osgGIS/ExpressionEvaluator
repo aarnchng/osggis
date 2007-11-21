@@ -21,6 +21,7 @@
 #define _OSGGIS_EXPRESSION_EVALUATOR_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/Feature>
 #include <string>
 
 namespace osgGIS
@@ -29,10 +30,17 @@ namespace osgGIS
     {
     public:
         ExpressionEvaluator();
+        
+        ExpressionEvaluator( Feature* feature );
 
         bool eval( const std::string& expr, int& out_result );
 
         bool eval( const std::string& expr, double& out_result );
+        
+    private:
+        std::string substAttrs( const std::string& expr );
+    
+        osg::ref_ptr<Feature> feature;
     };
 };
 

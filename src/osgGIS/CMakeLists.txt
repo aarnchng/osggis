@@ -25,6 +25,7 @@ SET(LIB_PUBLIC_HEADERS
     DrawableFilter
     Ellipsoid
     Export
+    ExpressionEvaluator
     ExtrudeGeomFilter
     Feature
     FeatureCursorImpl
@@ -87,6 +88,7 @@ ADD_LIBRARY(${LIB_NAME}
     DensifyFilter.cpp
     DrawableFilter.cpp
     Ellipsoid.cpp
+    ExpressionEvaluator.cpp
     ExtrudeGeomFilter.cpp
     FeatureCursorImpl.cpp
     FeatureFilter.cpp

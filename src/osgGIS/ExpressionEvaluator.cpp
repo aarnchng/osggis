@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/ExpressionEvaluator>
+#include <osg/Notify>
 #include <stack>
 
 using namespace osgGIS;
@@ -147,13 +148,15 @@ static const char *operator_idiv  = "\\";
     return tokenLen;
   }
 
-  static int toRPN(std::string exp, std::string &rpn)
+  static int toRPN(std::string exp, std::string &rpn, Feature* feature )
   {
     std::stack<std::string> st;
     std::string token, topToken;
     char token1;
     int  tokenLen, topPrecedence, idx, precedence;
     std::string SEP(" "), EMPTY("");
+    bool in_attr = false;
+    std::string attr_name;
 
     rpn = "";
 
@@ -161,9 +164,36 @@ static const char *operator_idiv  = "\\";
     {
       token1 = exp[i];
 
+      if ( token1 == '[' && feature )
+      {
+          in_attr = true;
+          attr_name = "";
+          continue;
+      }
+
+      else if ( in_attr && token1 != ']' && feature )
+      {
+          attr_name = attr_name + token1;
+          continue;
+      }
+
+      else if ( token1 == ']' && in_attr && feature )
+      {
+          in_attr = false;
+          Attribute attr = feature->getAttribute( attr_name );
+          if ( attr.isValid() )
+          {
+            token = attr.asString();
+            rpn.append( SEP + token );
+          }
+          continue;
+      }
+
       // skip white space
-      if (isspace(token1))
+      else if (isspace(token1))
+      {
         continue;
+      }
 
       // push left parenthesis
       else if (token1 == '(')
@@ -266,6 +296,7 @@ static const char *operator_idiv  = "\\";
         return eval_unbalanced;
       }
     }
+    
     return eval_ok;
   }
 
@@ -368,15 +399,19 @@ static const char *operator_idiv  = "\\";
     return eval_ok;
   }
 
-  template <typename T> static int calculate(std::string expr, T &r)
+  template <typename T> static int calculate(std::string expr, Feature* feature, T &r)
   {
       std::string rpn;
     int err = eval_evalerr; // unexpected error
 
     try
     {
-      if ( (err = toRPN(expr, rpn)) != eval_ok)
+      if ( (err = toRPN(expr, rpn, feature)) != eval_ok)
         return err;
+      
+      //osg::notify(osg::ALWAYS) << "IN => " << expr << " ... OUT => " << rpn << std::endl;
+
+
       err = evaluateRPN(rpn, r);
     }
     catch(...)
@@ -394,14 +429,19 @@ ExpressionEvaluator::ExpressionEvaluator()
     //NOP
 }
 
+ExpressionEvaluator::ExpressionEvaluator( Feature* f )
+{
+    feature = f;
+}
+
 bool
 ExpressionEvaluator::eval( const std::string& expr, int& out_result )
 {
-    return calculate( expr, out_result );
+    return calculate( expr, feature.get(), out_result ) == 0;
 }
 
 bool
 ExpressionEvaluator::eval( const std::string& expr, double& out_result )
 {
-    return calculate( expr, out_result );
+    return calculate( expr, feature.get(), out_result ) == 0;
 }

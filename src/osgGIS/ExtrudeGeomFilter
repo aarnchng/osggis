@@ -53,10 +53,16 @@ namespace osgGIS
         virtual ~ExtrudeGeomFilter();
         
     public: //properties
+
+        void setHeightExpr( const std::string& expr );
+
+        const std::string& getHeightExpr() const;
         
-        void setHeight( double height );
+        // @deprecated - use setHeightExpr
+        //void setHeight( double height ); 
         
-        double getHeight() const;
+        // @deprecated - use getHeightExpr
+        //double getHeight() const;
 
         void setMinHeight( double value );
         
@@ -70,15 +76,17 @@ namespace osgGIS
         
         bool getRandomizeHeights() const;
         
-        void setHeightAttribute( const std::string& attr_name );
+        // @deprecated - use setHeightExpr
+        //void setHeightAttribute( const std::string& attr_name );
         
-        const std::string& getHeightAttribute() const;
+        // @deprecated - use getHeightExpr
+        //const std::string& getHeightAttribute() const;
         
-        void setHeightScale( double scale_factor );
+        // @deprecated - use setHeightExpr
+        //void setHeightScale( double scale_factor );
         
-        double getHeightScale() const;
-
-        //void setHeightFunctor( FeatureFunctor<double>* functor );        
+        // @deprecated - use getHeightExpr
+        //double getHeightScale() const;
 
     protected:
         virtual DrawableList process( FeatureList& input, FilterEnv* env );
@@ -87,11 +95,12 @@ namespace osgGIS
         virtual Properties getProperties() const;
         
     private:
-        double overall_height;
+        std::string height_expr;
+        //double overall_height;
         double min_height;
         double max_height;
-        std::string height_attr;
-        double height_scale;
+        //std::string height_attr;
+        //double height_scale;
         osg::ref_ptr< FeatureFunctor<double> > height_functor;
     };
 }

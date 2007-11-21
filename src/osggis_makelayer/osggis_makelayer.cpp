@@ -45,6 +45,7 @@
 #include <osgGIS/ConvexHullFilter>
 #include <osgGIS/ClampFilter>
 #include <osgGIS/PagedLayerCompiler>
+#include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/SimpleLayerCompiler>
 
 #include <osg/ArgumentParser>
@@ -72,6 +73,10 @@ std::string terrain_file;
 float range_far = 1e10;
 float range_near = 0.0f;
 bool paged = false;
+bool correlated = false;
+bool gridded = false;
+int grid_rows = 1;
+int grid_cols = 1;
 osg::Vec4f color(1,1,1,1);
 bool include_grid = false;
 bool preview = false;
@@ -82,12 +87,13 @@ osgGIS::GeoShape::ShapeType shape_type = osgGIS::GeoShape::TYPE_UNSPECIFIED;
 bool lighting = true;
 bool geocentric = false;
 bool extrude = false;
-double extrude_height = -1;
+std::string extrude_height_expr;
+//double extrude_height = -1;
 bool extrude_range = false;
 double extrude_min_height = -1;
 double extrude_max_height = -1;
-std::string extrude_height_attr;
-double extrude_height_scale = 1.0;
+//std::string extrude_height_attr;
+//double extrude_height_scale = 1.0;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
 bool convex_hull = false;
@@ -122,24 +128,33 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --terrain_extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
     NOUT << "    --geocentric               - Generate geocentric output geometry to match a PagedLOD globe" << ENDL;
-    NOUT << "    --paged                    - Treat the terrain as a PagedLOD graph, and generate matching PagedLOD output" << ENDL;
+    NOUT << ENDL;
+    NOUT << "  Layer options:" << ENDL;
+    NOUT << "    --gridded                  - Generate simple gridded output (optionally combine with --paged)" << ENDL;
+    NOUT << "    --grid-rows                - Number of rows to generate (when used with --gridded)" << ENDL;
+    NOUT << "    --grid-cols                - Number of columns to generate (when used with --gridded)" << ENDL;
+    NOUT << "    --paged                    - Generate PagedLOD output" << ENDL;
+    NOUT << "    --correlated               - Generate PagedLODs that correlate one-to-one with terrain PagedLODs (forces --paged)" << ENDL;
+    NOUT << ENDL;
+    NOUT << "  Geometry options:" << ENDL;
     NOUT << "    --points                   - Treat the vector data as points" << ENDL;
     NOUT << "    --lines                    - Treat the vector data as lines" << ENDL;
     NOUT << "    --polygons                 - Treat the vector data as polygons" << ENDL;
-    NOUT << "    --extrude-height <num>     - Extrude shapes to this height above the terrain" << ENDL;
-    NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
-    NOUT << "    --extrude-attr <name>      - Attribute whose value holds the extrusion height" << ENDL;
-    NOUT << "    --extrude-scale <num>      - Multiply extrusion height by this scale factor" << ENDL;
-    NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
-    NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
-    NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
     NOUT << "    --range-near <num>         - Near LOD range for output geometry (default = 0)" << ENDL;
     NOUT << "    --range-far <num>          - Far LOD range for output geometry (default = 1e+10)" << ENDL;
-    NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (default = 0)" << ENDL;
+    NOUT << "    --no-lighting              - Disables lighting on the output geometry; good for points and lines" << ENDL;
+    NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (when using --paged)" << ENDL;
+    //NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure (when using --paged)" << ENDL;
+    NOUT << ENDL;
+    NOUT << "  Feature options:" << ENDL;
+    NOUT << "    --extrude-height <expr>    - Extrude shapes to this height above the terrain (expression)" << ENDL;
+    NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
+    NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
+    NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
+    //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
     NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
     NOUT << "    --random-colors            - Randomly assign feature colors" << ENDL;
-    NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure" << ENDL;
-    NOUT << "    --no-lighting              - Disables lighting on the output geometry; good for points and lines" << ENDL;
+
 }
 
 
@@ -176,6 +191,18 @@ parseCommandLine( int argc, char** argv )
     
     while( arguments.read( "--paged" ) )
         paged = true;
+
+    while( arguments.read( "--gridded" ) )
+        gridded = true;
+
+    while( arguments.read( "--grid-rows", str ) )
+        sscanf( str.c_str(), "%d", &grid_rows );
+
+    while( arguments.read( "--grid-cols", str ) )
+        sscanf( str.c_str(), "%d", &grid_cols );
+
+    while( arguments.read( "--correlated" ) )
+        correlated = true;
 
     while( arguments.read( "--range-near", str ) )
         sscanf( str.c_str(), "%f", &range_near );
@@ -220,8 +247,13 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--extrude-height", str ) ) {
         extrude = true;
-        sscanf( str.c_str(), "%lf", &extrude_height );
+        extrude_height_expr = str;
     }
+
+    //while( arguments.read( "--extrude-height", str ) ) {
+    //    extrude = true;
+    //    sscanf( str.c_str(), "%lf", &extrude_height );
+    //}
 
     while( arguments.read( "--extrude-range", str ) ) {
         extrude = true;
@@ -229,13 +261,13 @@ parseCommandLine( int argc, char** argv )
         sscanf( str.c_str(), "%lf,%lf", &extrude_min_height, &extrude_max_height );
     }
 
-    while( arguments.read( "--extrude-attr", extrude_height_attr ) ) {
-        extrude = true;
-        extrude_range = false;
-    }
+    //while( arguments.read( "--extrude-attr", extrude_height_attr ) ) {
+    //    extrude = true;
+    //    extrude_range = false;
+    //}
 
-    while( arguments.read( "--extrude-scale", str ) )
-        sscanf( str.c_str(), "%lf", &extrude_height_scale );
+    //while( arguments.read( "--extrude-scale", str ) )
+    //    sscanf( str.c_str(), "%lf", &extrude_height_scale );
 
     while( arguments.read( "--decimate", str ) )
         sscanf( str.c_str(), "%lf", &decimate_threshold );
@@ -248,12 +280,9 @@ parseCommandLine( int argc, char** argv )
 
 
     // validate required arguments:
-    if (input_file.length() == 0 ||
-        output_file.length() == 0 )
+    if (input_file.length() == 0 || output_file.length() == 0 )
     {
-        arguments.getApplicationUsage()->write(
-            std::cout,
-            osg::ApplicationUsage::COMMAND_LINE_OPTION );
+        usage( arguments.getApplicationName().c_str(), 0 );
         exit(-1);
     }
 }
@@ -317,18 +346,21 @@ createScript()
         osgGIS::ExtrudeGeomFilter* gf = new osgGIS::ExtrudeGeomFilter();
         gf->setColor( color );
         gf->setRandomizeColors( color.a() == 0 );
-        if ( extrude_height_attr.length() > 0 ) {
-            gf->setHeightAttribute( extrude_height_attr );
+        if ( extrude_height_expr.length() > 0 ) {
+            gf->setHeightExpr( extrude_height_expr );
         }
+        //if ( extrude_height_attr.length() > 0 ) {
+        //    gf->setHeightAttribute( extrude_height_attr );
+        //}
         else if ( extrude_range ) {
             gf->setMinHeight( extrude_min_height );
             gf->setMaxHeight( extrude_max_height );
             gf->setRandomizeHeights( true );
         }
-        else {
-            gf->setHeight( extrude_height );
-        }
-        gf->setHeightScale( extrude_height_scale );
+        //else {
+        //    gf->setHeight( extrude_height );
+        //}
+        //gf->setHeightScale( extrude_height_scale );
         script->appendFilter( gf );
     }
     else
@@ -423,7 +455,7 @@ main(int argc, char* argv[])
         return die( "Unable to create output directory!" );
 
     // for a PagedLOD terrain, generating matching PagedLOD geometry.
-    if ( paged )
+    if ( correlated )
     {
         // Compile the feature layer into a paged scene graph. This utility class
         // will traverse an entire PagedLOD scene graph and generate a geometry 
@@ -437,6 +469,22 @@ main(int argc, char* argv[])
         compiler.compile(
             layer.get(),
             output_file );
+    }
+
+    else if ( gridded )
+    {
+        osgGIS::GriddedLayerCompiler compiler;
+
+        compiler.setNumRows( grid_rows );
+        compiler.setNumColumns( grid_cols );
+        compiler.setPaged( paged );
+
+        compiler.addScript( range_near, range_far, script.get() );
+        compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+
+        osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
+        if ( node.valid() )
+            osgDB::writeNodeFile( *(node.get()), output_file );
     }
 
     // otherwise, just compile a simple LOD-based graph.
