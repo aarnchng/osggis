@@ -37,6 +37,7 @@
 #include <osg/Group>
 #include <osgDB/WriteFile>
 #include <osgViewer/Viewer>
+
 #include <iostream>
 
 #define NOUT osg::notify(osg::NOTICE)

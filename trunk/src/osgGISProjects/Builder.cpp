@@ -222,6 +222,7 @@ Builder::build( BuildLayer* layer )
         compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
         compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
         compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
+        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         

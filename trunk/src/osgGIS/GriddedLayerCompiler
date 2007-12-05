@@ -48,6 +48,10 @@ namespace osgGIS
 
         bool getPaged() const;
 
+        void setFadeLODs( bool value );
+
+        bool getFadeLODs() const;
+
         osg::Node* compile( FeatureLayer* layer );
 
         osg::Node* compile( FeatureLayer* layer, const std::string& output_file );
@@ -58,6 +62,7 @@ namespace osgGIS
     private:
         int num_rows, num_cols;
         bool paged;
+        bool fade_lods;
 
         osg::Node* compileLOD(
             FeatureLayer*    layer,

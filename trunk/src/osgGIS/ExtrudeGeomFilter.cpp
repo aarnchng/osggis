@@ -146,49 +146,17 @@ ExtrudeGeomFilter::getMaxHeight() const
 }
 
 
-//void
-//ExtrudeGeomFilter::setHeightAttribute( const std::string& _attr )
-//{
-//    height_attr = _attr;
-//}
-//
-//const std::string&
-//ExtrudeGeomFilter::getHeightAttribute() const
-//{
-//    return height_attr;
-//}
-
-
-//void
-//ExtrudeGeomFilter::setHeightScale( double _scale )
-//{
-//    height_scale = _scale;
-//}
-//
-//double
-//ExtrudeGeomFilter::getHeightScale() const
-//{
-//    return height_scale;
-//}
-
-
 void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
         setHeightExpr( p.getValue() );
-    //if ( p.getName() == "height" )
-    //    setHeight( p.getDoubleValue( getHeight() ) );
     else if ( p.getName() == "min_height" )
         setMinHeight( p.getDoubleValue( getMinHeight() ) );
     else if ( p.getName() == "max_height" )
         setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
     else if ( p.getName() == "randomize_heights" )
         setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
-    //else if ( p.getName() == "height_attribute" )
-    //    setHeightAttribute( p.getValue() );
-    //else if ( p.getName() == "height_scale" )
-    //    setHeightScale( p.getDoubleValue( getHeightScale() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -201,8 +169,6 @@ ExtrudeGeomFilter::getProperties() const
     p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
     p.push_back( Property( "min_height", getMinHeight() ) );
     p.push_back( Property( "max_height", getMaxHeight() ) );
-    //p.push_back( Property( "height_attribute", getHeightAttribute() ) );
-    //p.push_back( Property( "height_scale", getHeightScale() ) );
     return p;
 }
 
