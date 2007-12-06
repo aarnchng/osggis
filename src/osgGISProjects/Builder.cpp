@@ -30,6 +30,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
+#include <osgDB/Archive>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
@@ -184,7 +185,7 @@ Builder::build( BuildLayer* layer )
         Registry::instance()->getSRSFactory()->createWGS84() );
 
     // output file:
-    const std::string& output_file = resolveURI( layer->getTarget() );
+    std::string output_file = resolveURI( layer->getTarget() );
     osgDB::makeDirectoryForFile( output_file );
     if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
     {
@@ -195,6 +196,19 @@ Builder::build( BuildLayer* layer )
         return false;
     }
 
+    osg::ref_ptr<osgDB::Archive> archive;
+    std::string archive_file = output_file;
+
+    if ( osgDB::getLowerCaseFileExtension( output_file ) == "osga" )
+    {
+        archive = osgDB::openArchive( output_file, osgDB::Archive::CREATE, 4096 );
+        output_file = "out.ive";
+
+        // since there's no way to set the master file name...fake it out
+        osg::ref_ptr<osg::Group> dummy = new osg::Group();
+        archive->writeNode( *(dummy.get()), output_file );
+    }
+
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
     if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
@@ -202,6 +216,7 @@ Builder::build( BuildLayer* layer )
         PagedLayerCompiler compiler;
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -227,6 +242,7 @@ Builder::build( BuildLayer* layer )
         compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -242,8 +258,10 @@ Builder::build( BuildLayer* layer )
 
         if ( node.valid() )
         {
-            osgDB::makeDirectoryForFile( output_file );
-            osgDB::writeNodeFile( *(node.get()), output_file );
+            if ( archive.valid() )
+                archive->writeNode( *(node.get()), output_file );
+            else
+                osgDB::writeNodeFile( *(node.get()), output_file );
         }        
     }
     else
@@ -254,6 +272,7 @@ Builder::build( BuildLayer* layer )
         compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -268,9 +287,16 @@ Builder::build( BuildLayer* layer )
 
         if ( node.valid() )
         {
-            osgDB::makeDirectoryForFile( output_file );
-            osgDB::writeNodeFile( *(node.get()), output_file );
+            if ( archive.valid() )
+                archive->writeNode( *(node.get()), output_file );
+            else
+                osgDB::writeNodeFile( *(node.get()), output_file );
         }        
+    }
+
+    if ( archive.valid() )
+    {
+        archive->close();
     }
 
     VERBOSE_OUT <<

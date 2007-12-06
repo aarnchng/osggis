@@ -77,19 +77,6 @@ ExtrudeGeomFilter::getHeightExpr() const
     return height_expr;
 }
 
-//void
-//ExtrudeGeomFilter::setHeight( double height )
-//{
-//    overall_height = height;
-//    height_functor = NULL;
-//}
-//
-//double 
-//ExtrudeGeomFilter::getHeight() const
-//{
-//    return overall_height;
-//}
-
 void
 ExtrudeGeomFilter::setRandomizeHeights( bool value )
 {
@@ -178,7 +165,8 @@ extrudeWallsUp(const GeoShape&         shape,
                const SpatialReference* srs, 
                double                  height, 
                osg::Geometry*          walls,
-               osg::Geometry*          rooflines )
+               osg::Geometry*          rooflines,
+               const osg::Vec4&        color )
 {
     bool made_geom = true;
 
@@ -190,11 +178,20 @@ extrudeWallsUp(const GeoShape&         shape,
     osg::Vec3Array* verts = new osg::Vec3Array( num_verts );
     walls->setVertexArray( verts );
 
+    osg::Vec4Array* colors = new osg::Vec4Array( num_verts );
+    walls->setColorArray( colors );
+    walls->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
+
     osg::Vec3Array* roof_verts = NULL;
+    osg::Vec4Array* roof_colors = NULL;
     if ( rooflines )
     {
         roof_verts = new osg::Vec3Array( point_count );
         rooflines->setVertexArray( roof_verts );
+
+        roof_colors = new osg::Vec4Array( point_count );
+        rooflines->setColorArray( roof_colors );
+        rooflines->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
     }
 
     int wall_vert_ptr = 0;
@@ -268,10 +265,13 @@ extrudeWallsUp(const GeoShape&         shape,
 
                     if ( rooflines )
                     {
+                        (*roof_colors)[roof_vert_ptr] = color;
                         (*roof_verts)[roof_vert_ptr++] = extrude_vec;
                     }
 
+                    (*colors)[wall_vert_ptr] = color;
                     (*verts)[wall_vert_ptr++] = extrude_vec;
+                    (*colors)[wall_vert_ptr] = color;
                     (*verts)[wall_vert_ptr++] = *m;
                 }
             }
@@ -281,7 +281,9 @@ extrudeWallsUp(const GeoShape&         shape,
                 // close the wall if it's a poly:
                 if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
                 {
+                    (*colors)[wall_vert_ptr] = color;
                     (*verts)[wall_vert_ptr++] = (*verts)[wall_part_ptr];
+                    (*colors)[wall_vert_ptr] = color;
                     (*verts)[wall_vert_ptr++] = (*verts)[wall_part_ptr+1];
                 }
 
@@ -312,19 +314,11 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
     {
         Feature* f = i->get();
 
-        osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array( 1 );
-        (*colors)[0] = getColorForFeature( f );
+        osg::Vec4 color = getColorForFeature( f );
 
         for( GeoShapeList::const_iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
         {
             const GeoShape& shape = *j;
-            
-            //double height = 
-            //    height_attr.length() > 0? f->getAttribute( height_attr ).asDouble() :
-            //    height_functor.valid()? height_functor->get( f ) : 
-            //    overall_height;
-
-            //height *= height_scale;
 
             double height = 0.0;
             
@@ -353,11 +347,8 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
                 rooflines = new osg::Geometry();
             }
 
-            if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get() ) )
-            {
-                walls->setColorArray( colors.get() );
-                walls->setColorBinding( osg::Geometry::BIND_OVERALL );
-                
+            if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color ) )
+            {                
                 // generate per-vertex normals:
                 osgUtil::SmoothingVisitor smoother;
                 smoother.smooth( *(walls.get()) );            
@@ -371,9 +362,6 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
                     tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
                     tess.retessellatePolygons( *(rooflines.get()) );
                     smoother.smooth( *(rooflines.get()) );
-                    
-                    rooflines->setColorArray( colors.get() );
-                    rooflines->setColorBinding( osg::Geometry::BIND_OVERALL );
 
                     output.push_back( rooflines.get() );
                 }
