@@ -176,8 +176,7 @@ main(int argc, char* argv[])
     viewer.addEventHandler( new osgViewer::ThreadingHandler() );
     viewer.addEventHandler( new osgViewer::WindowSizeHandler() );
     viewer.addEventHandler( new osgViewer::StatsHandler() );
-    viewer.addEventHandler( new osgGA::StateSetManipulator(
-        viewer.getCamera()->getOrCreateStateSet()) );
+    viewer.addEventHandler( new osgGA::StateSetManipulator( viewer.getCamera()->getOrCreateStateSet()) );
 
     viewer.getScene()->getDatabasePager()->setDoPreCompile( pre_compile );
 

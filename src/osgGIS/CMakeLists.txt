@@ -27,6 +27,7 @@ SET(LIB_PUBLIC_HEADERS
     Export
     ExpressionEvaluator
     ExtrudeGeomFilter
+    FadeHelper
     Feature
     FeatureCursorImpl
     FeatureFilter
@@ -90,6 +91,7 @@ ADD_LIBRARY(${LIB_NAME}
     Ellipsoid.cpp
     ExpressionEvaluator.cpp
     ExtrudeGeomFilter.cpp
+    FadeHelper.cpp
     FeatureCursorImpl.cpp
     FeatureFilter.cpp
     FeatureLayer.cpp

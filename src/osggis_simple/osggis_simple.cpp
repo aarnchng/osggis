@@ -29,6 +29,7 @@
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/BuildNodesFilter>
 #include <osgGIS/TransformFilter>
+#include <osgGIS/FadeHelper>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -48,7 +49,7 @@
 std::string input_file;
 std::string output_file;
 osg::Vec4f color(1,1,1,1);
-
+bool fade_lods = false;
 
 int
 die( const std::string& msg )
@@ -75,6 +76,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --output <filename>    - Output geometry file (omit this to launch a viewer)" << ENDL;
     NOUT << "    --color <r,g,b,a>      - Color of output geometry (0->1)" << ENDL;
     NOUT << "    --random-colors        - Randomly assign feature colors" << ENDL;
+    NOUT << "    --fade-lods            - Apply LOD fading" << ENDL;
 }
 
 
@@ -111,6 +113,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--random-colors" ) )
         color.a() = 0.0;
+
+    while( arguments.read( "--fade-lods" ) )
+        fade_lods = true;
 
     // validate arguments:
     if ( input_file.length() == 0 )
@@ -175,6 +180,14 @@ main(int argc, char* argv[])
 
     if ( !output.valid() )
         return die( "Compilation failed!" );
+
+    if ( fade_lods )
+    {
+        float radius = output->getBound().radius();
+        osgGIS::FadeHelper::enableFading( output->getOrCreateStateSet() );
+        osgGIS::FadeHelper::setOuterFadeDistance( radius*3.0f, output->getOrCreateStateSet() );
+        osgGIS::FadeHelper::setInnerFadeDistance( radius*1.0f, output->getOrCreateStateSet() );
+    }
 
     // Launch a viewer to see the results on the reference terrain.
     if ( output_file.length() > 0 )

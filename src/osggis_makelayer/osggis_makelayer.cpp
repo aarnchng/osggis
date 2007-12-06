@@ -88,17 +88,14 @@ bool lighting = true;
 bool geocentric = false;
 bool extrude = false;
 std::string extrude_height_expr;
-//double extrude_height = -1;
 bool extrude_range = false;
 double extrude_min_height = -1;
 double extrude_max_height = -1;
-//std::string extrude_height_attr;
-//double extrude_height_scale = 1.0;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
 bool convex_hull = false;
 bool remove_holes = false;
-
+bool fade_lods = false;
 
 
 int
@@ -144,6 +141,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --range-far <num>          - Far LOD range for output geometry (default = 1e+10)" << ENDL;
     NOUT << "    --no-lighting              - Disables lighting on the output geometry; good for points and lines" << ENDL;
     NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (when using --paged)" << ENDL;
+    NOUT << "    --fade-lods                - Enable fade-in of LOD nodes (lines and points only)" << ENDL;
     //NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure (when using --paged)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Feature options:" << ENDL;
@@ -228,6 +226,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--remove-holes" ) )
         remove_holes = true;
 
+    while( arguments.read( "--fade-lods" ) )
+        fade_lods = true;
+
     double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
     while( arguments.read( "--terrain-extent", str ) )
     {
@@ -250,24 +251,11 @@ parseCommandLine( int argc, char** argv )
         extrude_height_expr = str;
     }
 
-    //while( arguments.read( "--extrude-height", str ) ) {
-    //    extrude = true;
-    //    sscanf( str.c_str(), "%lf", &extrude_height );
-    //}
-
     while( arguments.read( "--extrude-range", str ) ) {
         extrude = true;
         extrude_range = true;
         sscanf( str.c_str(), "%lf,%lf", &extrude_min_height, &extrude_max_height );
     }
-
-    //while( arguments.read( "--extrude-attr", extrude_height_attr ) ) {
-    //    extrude = true;
-    //    extrude_range = false;
-    //}
-
-    //while( arguments.read( "--extrude-scale", str ) )
-    //    sscanf( str.c_str(), "%lf", &extrude_height_scale );
 
     while( arguments.read( "--decimate", str ) )
         sscanf( str.c_str(), "%lf", &decimate_threshold );
@@ -349,18 +337,11 @@ createScript()
         if ( extrude_height_expr.length() > 0 ) {
             gf->setHeightExpr( extrude_height_expr );
         }
-        //if ( extrude_height_attr.length() > 0 ) {
-        //    gf->setHeightAttribute( extrude_height_attr );
-        //}
         else if ( extrude_range ) {
             gf->setMinHeight( extrude_min_height );
             gf->setMaxHeight( extrude_max_height );
             gf->setRandomizeHeights( true );
         }
-        //else {
-        //    gf->setHeight( extrude_height );
-        //}
-        //gf->setHeightScale( extrude_height_scale );
         script->appendFilter( gf );
     }
     else
@@ -465,6 +446,7 @@ main(int argc, char* argv[])
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setPriorityOffset( priority_offset );
+        compiler.setFadeLODs( fade_lods );
 
         compiler.compile(
             layer.get(),
@@ -478,6 +460,7 @@ main(int argc, char* argv[])
         compiler.setNumRows( grid_rows );
         compiler.setNumColumns( grid_cols );
         compiler.setPaged( paged );
+        compiler.setFadeLODs( fade_lods );
 
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
@@ -491,6 +474,8 @@ main(int argc, char* argv[])
     else
     {
         osgGIS::SimpleLayerCompiler compiler;
+        
+        compiler.setFadeLODs( fade_lods );
 
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );

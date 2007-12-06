@@ -20,15 +20,12 @@
 #include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/GeoExtent>
 #include <osgGIS/Compiler>
+#include <osgGIS/FadeHelper>
 #include <osg/Node>
 #include <osg/LOD>
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/Group>
-#include <osg/Program>
-#include <osg/Shader>
-#include <osg/Uniform>
-#include <osg/BlendFunc>
 #include <osgUtil/Optimizer>
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
@@ -42,7 +39,6 @@ GriddedLayerCompiler::GriddedLayerCompiler()
     num_rows = 10;
     num_cols = 10;
     paged = false;
-    fade_lods = false;
 }
 
 
@@ -87,18 +83,6 @@ GriddedLayerCompiler::getPaged() const
     return paged;
 }
 
-void
-GriddedLayerCompiler::setFadeLODs( bool value )
-{
-    fade_lods = value;
-}
-
-bool
-GriddedLayerCompiler::getFadeLODs() const
-{
-    return fade_lods;
-}
-
 
 osg::Node*
 GriddedLayerCompiler::compileLOD( FeatureLayer* layer, Script* script, const GeoExtent& extent )
@@ -118,27 +102,6 @@ GriddedLayerCompiler::compile( FeatureLayer* layer )
 {
     return compile( layer, "" );
 }
-
-static const char *fadelod_vert = {
-    "varying vec3 position;\n"
-    "void main(void)\n"
-    "{\n"
-    "    position = gl_ModelViewMatrix * gl_Vertex;\n"
-    "    gl_Position = ftransform();\n"
-    "    gl_FrontColor = gl_Color;\n"
-    "}\n"
-};
-
-static const char *fadelod_frag = {
-    "varying vec3 position;\n"
-    "uniform float fade_in_dist;\n"
-    "uniform float fade_out_dist;\n"
-    "void main(void)\n"
-    "{\n"
-    "    float fade = 1.0 - smoothstep( fade_in_dist, fade_out_dist, length(position) );\n"
-    "    gl_FragColor = vec4( gl_Color.rgb, gl_Color.a * fade );\n"
-    "}\n"
-};
 
 
 osg::Node*
@@ -161,17 +124,15 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
             GeoPoint(  180.0,  90.0, srs ) );
     }
 
-    if ( fade_lods )
+    if ( getFadeLODs() )
     {
-        osg::Program* fade_program = new osg::Program();
-        fade_program->addShader( new osg::Shader( osg::Shader::VERTEX, fadelod_vert ) );
-        fade_program->addShader( new osg::Shader( osg::Shader::FRAGMENT, fadelod_frag ) );
-        root->getOrCreateStateSet()->setAttributeAndModes( fade_program, osg::StateAttribute::ON );
-    
-        osg::BlendFunc* blend_func = new osg::BlendFunc();
-        blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        root->getOrCreateStateSet()->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
-        root->getOrCreateStateSet()->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+        FadeHelper::enableFading( root->getOrCreateStateSet() );
+    }
+
+    if ( getRenderBinNumber() != INT_MAX )
+    {
+        const std::string& bin_name = root->getOrCreateStateSet()->getBinName();
+        root->getOrCreateStateSet()->setRenderBinDetails( getRenderBinNumber(), bin_name );
     }
     
     if ( extent.isValid() )
@@ -206,14 +167,13 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                         lod->addChild( range, i->min_range, i->max_range );
                         if ( i->min_range < min_range ) min_range = i->min_range;
                         if ( i->max_range > max_range ) max_range = i->max_range;
+
                         //TODO: need to set centroid and cluster culling
                         
-                        if ( fade_lods )
+                        if ( getFadeLODs() )
                         {
-                            osg::Uniform* fade_out = new osg::Uniform( "fade_out_dist", (float)i->max_range );
-                            range->getOrCreateStateSet()->addUniform( fade_out, osg::StateAttribute::ON );
-                            osg::Uniform* fade_in = new osg::Uniform( "fade_in_dist", (float)(i->max_range - .2*(i->max_range - i->min_range)) );
-                            range->getOrCreateStateSet()->addUniform( fade_in, osg::StateAttribute::ON );
+                            FadeHelper::setOuterFadeDistance( i->max_range, range->getOrCreateStateSet() );
+                            FadeHelper::setInnerFadeDistance( (float)(i->max_range - .2*(i->max_range - i->min_range)), range->getOrCreateStateSet() );
                         }
                     }
                 }

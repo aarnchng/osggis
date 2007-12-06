@@ -219,10 +219,12 @@ Builder::build( BuildLayer* layer )
     {
         GriddedLayerCompiler compiler;
 
+        //TODO: replace with LayerCompiler::setProperties
         compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
         compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
         compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
         compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
+        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         
@@ -247,6 +249,9 @@ Builder::build( BuildLayer* layer )
     else
     {
         SimpleLayerCompiler compiler;
+
+        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
+        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         

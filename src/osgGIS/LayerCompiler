@@ -72,6 +72,27 @@ namespace osgGIS
             osg::Node*              terrain, 
             const SpatialReference* terrain_srs );
 
+        /**
+         * Sets whether to apply fading to LOD nodes.
+         */
+        void setFadeLODs( bool value );
+
+        /** 
+         * Gets whether to apply fading to LOD nodes.
+         */
+        bool getFadeLODs() const;
+
+        /**
+         * Sets the render bin number to assign to this layer.
+         * INT_MAX means no render bin
+         */
+        void setRenderBinNumber( int value );
+        
+        /**
+         * Gets the render bin number to assign to this layer.
+         * INT_MAX means no render bin.
+         */
+        int getRenderBinNumber() const;
 
     protected:
         struct ScriptRange {
@@ -84,7 +105,8 @@ namespace osgGIS
         osg::ref_ptr<SpatialReference>  terrain_srs;
         GeoExtent                       terrain_extent;            
         osg::ref_ptr<SmartReadCallback> read_cb;
-
+        int                             render_bin_number;
+        bool                            fade_lods;
     };
 }
 

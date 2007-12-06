@@ -32,6 +32,8 @@ using namespace osgGIS;
 LayerCompiler::LayerCompiler()
 {
     read_cb = new SmartReadCallback();
+    render_bin_number = INT_MAX;
+    fade_lods = false;
 }
 
 
@@ -64,4 +66,30 @@ LayerCompiler::setTerrain(osg::Node*              _terrain,
                           const SpatialReference* _terrain_srs )
 {
     setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
+}
+
+
+void
+LayerCompiler::setRenderBinNumber( int value )
+{
+    render_bin_number = value;
+}
+
+
+int
+LayerCompiler::getRenderBinNumber() const
+{
+    return render_bin_number;
+}
+
+void
+LayerCompiler::setFadeLODs( bool value )
+{
+    fade_lods = value;
+}
+
+bool
+LayerCompiler::getFadeLODs() const
+{
+    return fade_lods;
 }
