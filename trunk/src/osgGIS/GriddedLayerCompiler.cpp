@@ -178,7 +178,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     }
                 }
 
-                if ( paged )
+                if ( getPaged() )
                 {
                     osg::PagedLOD* plod = new osg::PagedLOD();
                     std::stringstream str;
@@ -188,8 +188,16 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     plod->setRange( 0, min_range, max_range );
                     plod->setCenter( lod->getBound().center() );
                     plod->setRadius( lod->getBound().radius() );
-                    std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
-                    osgDB::writeNodeFile( *(lod.get()), tile_path );
+
+                    if ( getArchive() )
+                    {
+                        getArchive()->writeNode( *(lod.get()), tile_filename );
+                    }
+                    else
+                    {
+                        std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
+                        osgDB::writeNodeFile( *(lod.get()), tile_path );
+                    }
                     osg::notify(osg::NOTICE) << tile_filename << "... " << std::flush;
                     root->addChild( plod );
                 }

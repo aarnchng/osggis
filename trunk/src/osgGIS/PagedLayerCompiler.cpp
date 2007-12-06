@@ -410,7 +410,12 @@ PagedLayerCompiler::compileTile(
         // Write the new file before create subtiles.
         std::string new_abs_path = osgDB::concatPaths( output_dir, tile_filename );
         top->setName( tile_filename );
-        osgDB::writeNodeFile( *(top.get()), new_abs_path );
+
+        // TODO: does this work for archives?? abs path?
+        if ( getArchive() )
+            getArchive()->writeNode( *(top.get()), new_abs_path );
+        else
+            osgDB::writeNodeFile( *(top.get()), new_abs_path );
 
         // Finally, walk through any new PLODs we created and compile the subtiles.
         for( int i=0, j=0; i<top->getNumChildren(); i++ )

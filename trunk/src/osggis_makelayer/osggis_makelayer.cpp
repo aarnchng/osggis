@@ -51,6 +51,7 @@
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
+#include <osgDB/Archive>
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/PolygonOffset>
@@ -435,6 +436,18 @@ main(int argc, char* argv[])
     if ( osgDB::getFilePath( output_file ).length() > 0 && !osgDB::makeDirectoryForFile( output_file ) )
         return die( "Unable to create output directory!" );
 
+    // Open an archive if necessary
+    osg::ref_ptr<osgDB::Archive> archive;
+    if ( osgDB::getLowerCaseFileExtension( output_file ) == "osga" )
+    {
+        archive = osgDB::openArchive( output_file, osgDB::Archive::CREATE, 4096 );
+        output_file = "out.ive";
+
+        // since there's no way to set the master file name...fake it out
+        osg::ref_ptr<osg::Group> dummy = new osg::Group();
+        archive->writeNode( *(dummy.get()), output_file );
+    }
+
     // for a PagedLOD terrain, generating matching PagedLOD geometry.
     if ( correlated )
     {
@@ -447,6 +460,7 @@ main(int argc, char* argv[])
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setPriorityOffset( priority_offset );
         compiler.setFadeLODs( fade_lods );
+        compiler.setArchive( archive.get() );
 
         compiler.compile(
             layer.get(),
@@ -464,10 +478,19 @@ main(int argc, char* argv[])
 
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
 
-        osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
+        osg::ref_ptr<osg::Node> node = new osg::Group();
+        
+        node = compiler.compile( layer.get(), output_file );
+
         if ( node.valid() )
-            osgDB::writeNodeFile( *(node.get()), output_file );
+        {
+            if ( archive.valid() )
+                archive->writeNode( *(node.get()), output_file );
+            else
+                osgDB::writeNodeFile( *(node.get()), output_file );
+        }
     }
 
     // otherwise, just compile a simple LOD-based graph.
@@ -475,14 +498,24 @@ main(int argc, char* argv[])
     {
         osgGIS::SimpleLayerCompiler compiler;
         
-        compiler.setFadeLODs( fade_lods );
-
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
+        compiler.setFadeLODs( fade_lods );
 
         osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
         if ( node.valid() )
-            osgDB::writeNodeFile( *(node.get()), output_file );
+        {
+            if ( archive.valid() )
+                archive->writeNode( *(node.get()), output_file );
+            else
+                osgDB::writeNodeFile( *(node.get()), output_file );
+        }
+    }
+
+    if ( archive.valid() )
+    {
+        archive->close();
     }
 
     return 0;

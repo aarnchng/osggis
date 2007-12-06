@@ -70,6 +70,20 @@ LayerCompiler::setTerrain(osg::Node*              _terrain,
 
 
 void
+LayerCompiler::setArchive( osgDB::Archive* _archive )
+{
+    archive = _archive;
+}
+
+
+osgDB::Archive*
+LayerCompiler::getArchive() 
+{
+    return archive.get();
+}
+
+
+void
 LayerCompiler::setRenderBinNumber( int value )
 {
     render_bin_number = value;

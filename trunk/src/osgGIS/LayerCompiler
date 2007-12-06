@@ -25,6 +25,7 @@
 #include <osgGIS/Script>
 #include <osgGIS/SmartReadCallback>
 #include <osg/Node>
+#include <osgDB/Archive>
 #include <osgUtil/IntersectionVisitor>
 #include <string>
 
@@ -71,6 +72,14 @@ namespace osgGIS
         void setTerrain(
             osg::Node*              terrain, 
             const SpatialReference* terrain_srs );
+            
+        /**
+         * Sets the archive to which the compiler should write files,
+         * if applicable.
+         */
+        void setArchive( osgDB::Archive* archive );
+        
+        osgDB::Archive* getArchive();
 
         /**
          * Sets whether to apply fading to LOD nodes.
@@ -107,6 +116,7 @@ namespace osgGIS
         osg::ref_ptr<SmartReadCallback> read_cb;
         int                             render_bin_number;
         bool                            fade_lods;
+        osg::ref_ptr<osgDB::Archive>    archive;
     };
 }
 

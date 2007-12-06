@@ -154,29 +154,16 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
         // but it renders faster.
         osg::Vec4Array* colors = new osg::Vec4Array();
         geom->setColorArray( colors );
+        geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
 
-        if ( options & RANDOMIZE_COLORS )
-        {
-            geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
-        }
-        else
-        {
-            geom->setColorBinding( osg::Geometry::BIND_OVERALL );
-            colors->push_back( overall_color );
-        }
-
-        osg::Vec3Array* normals = new osg::Vec3Array();
-        geom->setNormalArray( normals );
-        geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
-        normals->push_back( osg::Vec3( 0, 0, 1 ) );
+        //osg::Vec3Array* normals = new osg::Vec3Array();
+        //geom->setNormalArray( normals );
+        //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
+        //normals->push_back( osg::Vec3( 0, 0, 1 ) );
 
         const GeoShapeList& shapes = f->getShapes();
 
-        osg::Vec4 color;
-        if ( geom->getColorBinding() != osg::Geometry::BIND_OVERALL )
-        {
-            color = getColorForFeature( f );
-        }
+        osg::Vec4 color = getColorForFeature( f );
 
         for( GeoShapeList::const_iterator s = shapes.begin(); s != shapes.end(); s++ )
         {
@@ -200,11 +187,7 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
                 {
                     verts->push_back( points[vi] );
                     vert_ptr++;
-
-                    if ( geom->getColorBinding() != osg::Geometry::BIND_OVERALL )
-                    {
-                        colors->push_back( color );
-                    }
+                    colors->push_back( color );
                 }
                 geom->addPrimitiveSet( new osg::DrawArrays( prim_type, part_ptr, vert_ptr-part_ptr ) );
             }
@@ -246,7 +229,7 @@ BuildGeomFilter::mergeDrawables( DrawableList& drawables )
             geode->addDrawable( i->get() );
         }
         osgUtil::Optimizer::MergeGeometryVisitor merger;
-        merger.setTargetMaximumNumberOfVertices( INT_MAX );
+        //merger.setTargetMaximumNumberOfVertices( INT_MAX );
         geode->accept( merger );
         drawables.clear();
         drawables.insert( drawables.end(), 

@@ -73,9 +73,9 @@ static void usage( const char* prog, const char* msg )
     NOUT << "Optional:"<< ENDL;
     NOUT << "    --point-size <num>         - Sets the point size (default = 1)" << ENDL;
     NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
-    NOUT << "    --pre-compile              - Sets pre-compilation ON for the database pager (default = off)" << ENDL;
+    NOUT << "    --no-pre-compile           - Disables pre-compilation for the database pager (default = on)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
-    NOUT << "    --frame-rate <fps>         - Sets the target frame rate (default = 60)" << ENDL;
+    NOUT << "    --frame-rate <fps>         - Sets the target frame rate, disabling VSYNC (default = 60)" << ENDL;
     NOUT << "" << ENDL;
     NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
@@ -145,7 +145,7 @@ main(int argc, char* argv[])
     osg::Timer_t min_frame_time = (osg::Timer_t)
         ((1.0/fps)/(double)osg::Timer::instance()->getSecondsPerTick());
 
-    bool pre_compile = args.read( "--pre-compile" );
+    bool no_pre_compile = args.read( "--no-pre-compile" );
 
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
     for( int i=1; i<argc; i++ )
@@ -163,10 +163,6 @@ main(int argc, char* argv[])
                     new osg::PolygonOffset( po_factor, po_units ),
                     osg::StateAttribute::ON );
             }
-            else
-            {
-
-            }
         }
     }
 
@@ -178,7 +174,10 @@ main(int argc, char* argv[])
     viewer.addEventHandler( new osgViewer::StatsHandler() );
     viewer.addEventHandler( new osgGA::StateSetManipulator( viewer.getCamera()->getOrCreateStateSet()) );
 
-    viewer.getScene()->getDatabasePager()->setDoPreCompile( pre_compile );
+    if ( no_pre_compile )
+    {
+        viewer.getScene()->getDatabasePager()->setDoPreCompile( false );
+    }
 
     // for a target frame rate, disable VSYNC if possible
     if ( fps > 0.0 )
