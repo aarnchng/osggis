@@ -313,7 +313,7 @@ PagedLayerCompiler::compileTile(
         << "L" << level << ": " << tile_filename
         << " (max = " << tile_max_range << ")"
         << std::endl;
-        
+
     osg::ref_ptr<osg::Group> top = new osg::Group();
     std::vector<osg::ref_ptr<osg::PagedLOD> > subtile_plods;
 

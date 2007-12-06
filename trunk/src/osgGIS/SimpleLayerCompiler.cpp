@@ -21,6 +21,7 @@
 #include <osgGIS/Script>
 #include <osgGIS/Compiler>
 #include <osgGIS/FilterEnv>
+#include <osgGIS/FadeHelper>
 #include <osg/Group>
 #include <osg/LOD>
 #include <osg/Notify>
@@ -56,12 +57,23 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
     
     osg::LOD* lod = new osg::LOD();
 
+    if ( getFadeLODs() )
+    {
+        FadeHelper::enableFading( lod->getOrCreateStateSet() );
+    }
+
     for( ScriptRangeList::iterator i = script_ranges.begin(); i != script_ranges.end(); i++ )
     {
         osg::Node* range = compileLOD( layer, i->script.get() );
         if ( range )
         {
             lod->addChild( range, i->min_range, i->max_range );
+
+            if ( getFadeLODs() )
+            {
+                FadeHelper::setOuterFadeDistance( i->max_range, range->getOrCreateStateSet() );
+                FadeHelper::setInnerFadeDistance( i->max_range - .2*(i->max_range-i->min_range), range->getOrCreateStateSet() );
+            }
         }
     }
 
