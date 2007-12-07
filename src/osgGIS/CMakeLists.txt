@@ -59,6 +59,7 @@ SET(LIB_PUBLIC_HEADERS
     RTreeSpatialIndex
     Script
     ScriptContext
+    SelectFilter
     SimpleFeature
     SimpleLayerCompiler
     SimpleSpatialIndex
@@ -120,6 +121,7 @@ ADD_LIBRARY(${LIB_NAME}
     RTreeSpatialIndex.cpp
     Script.cpp
     ScriptContext.cpp
+    SelectFilter.cpp
     SimpleFeature.cpp
     SimpleLayerCompiler.cpp
     SimpleSpatialIndex.cpp
