@@ -92,7 +92,7 @@ decimatePart( GeoPointList& input, double threshold, int min_points, GeoPartList
             else
             {
                 double d2 = (*i - last_point).length2();
-                if ( d2 >= t2 )
+                if ( d2 > t2 )
                 {
                     new_part.push_back( *i );
                     last_point = *i;
@@ -113,34 +113,31 @@ DecimateFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
 
-    if ( distance_threshold > 0.0 )
+    GeoShapeList new_shapes;
+
+    for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
     {
-        GeoShapeList new_shapes;
+        int min_points = 
+            i->getShapeType() == GeoShape::TYPE_POLYGON? 3 :
+            i->getShapeType() == GeoShape::TYPE_LINE? 2 :
+            1;
 
-        for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
+        GeoPartList new_parts;
+
+        for( GeoPartList::iterator j = i->getParts().begin(); j != i->getParts().end(); j++ )
         {
-            int min_points = 
-                i->getShapeType() == GeoShape::TYPE_POLYGON? 3 :
-                i->getShapeType() == GeoShape::TYPE_LINE? 2 :
-                1;
-
-            GeoPartList new_parts;
-
-            for( GeoPartList::iterator j = i->getParts().begin(); j != i->getParts().end(); j++ )
-            {
-                decimatePart( *j, distance_threshold, min_points, new_parts );
-            }
-
-            i->getParts().swap( new_parts );
-            
-            if ( new_parts.size() > 0 )
-            {
-                new_shapes.push_back( *i );
-            }
+            decimatePart( *j, distance_threshold, min_points, new_parts );
         }
 
-        input->getShapes().swap( new_shapes );
+        i->getParts().swap( new_parts );
+        
+        if ( new_parts.size() > 0 )
+        {
+            new_shapes.push_back( *i );
+        }
     }
+
+    input->getShapes().swap( new_shapes );
 
     if ( input->getShapes().size() > 0 )
     {

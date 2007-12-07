@@ -17,6 +17,7 @@ SET(LIB_PUBLIC_HEADERS
     CollectionFilter
     Common
     ConvexHullFilter
+    CombineLinesFilter
     Compiler
     CropFilter
     DecimateFilter
@@ -81,6 +82,7 @@ ADD_LIBRARY(${LIB_NAME}
     ChangeShapeTypeFilter.cpp
     ClampFilter.cpp
     CollectionFilter.cpp
+    CombineLinesFilter.cpp
     Compiler.cpp
     ConvexHullFilter.cpp
     CropFilter.cpp

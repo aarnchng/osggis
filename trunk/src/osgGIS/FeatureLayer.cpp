@@ -30,7 +30,11 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
 
     if ( store.valid() )
     {
+        osg::notify(osg::NOTICE) << "Building spatial index..." << std::flush;
+
         index = new RTreeSpatialIndex( store.get() );
+
+        osg::notify(osg::NOTICE) << "done." << std::endl;
     }
 }
 
