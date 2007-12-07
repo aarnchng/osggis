@@ -147,6 +147,7 @@ main(int argc, char* argv[])
 
     bool no_pre_compile = args.read( "--no-pre-compile" );
 
+    osg::Node* terrain_node = NULL;
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
     for( int i=1; i<argc; i++ )
     {
@@ -155,11 +156,12 @@ main(int argc, char* argv[])
         if ( node ) 
         {
             group->addChild( node );
-            if ( i == 1 )
-            {
-                manip->setNode( node );
 
-                node->getOrCreateStateSet()->setAttributeAndModes(
+            if ( !terrain_node )
+            {
+                terrain_node = node;
+                
+                terrain_node->getOrCreateStateSet()->setAttributeAndModes(
                     new osg::PolygonOffset( po_factor, po_units ),
                     osg::StateAttribute::ON );
             }
@@ -185,7 +187,12 @@ main(int argc, char* argv[])
         viewer.setRealizeOperation( new ToggleVsyncOperation( false ) );
     }
 
+
     viewer.realize();
+    
+    viewer.frame();
+    if ( terrain_node )
+        manip->setNode( terrain_node );
     
     while( !viewer.done() )
     {
