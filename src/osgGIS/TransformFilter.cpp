@@ -218,6 +218,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
                     osg::Matrixd mat;
                     bool visitPoint( GeoPoint& p ) {
                         p.set( p * mat );
+                        p.setDim( 3 );
                         return true;
                     }
                 };

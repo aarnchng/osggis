@@ -44,10 +44,6 @@ namespace osgGIS
 
         int getNumColumns() const;
 
-        void setPaged( bool value );
-
-        bool getPaged() const;
-
         osg::Node* compile( FeatureLayer* layer );
 
         osg::Node* compile( FeatureLayer* layer, const std::string& output_file );
@@ -59,10 +55,10 @@ namespace osgGIS
         int num_rows, num_cols;
         bool paged;
 
-        osg::Node* compileLOD(
-            FeatureLayer*    layer,
-            Script*          script,
-            const GeoExtent& extent );
+        //osg::Node* compileLOD(
+        //    FeatureLayer*    layer,
+        //    Script*          script,
+        //    const GeoExtent& extent );
     };
 }
 

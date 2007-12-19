@@ -17,29 +17,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
+#ifndef _OSGGIS_TASK_H
+#define _OSGGIS_TASK_H 1
 
-using namespace osgGIS;
+#include <osgGIS/Common>
+#include <queue>
+#include <list>
+#include <string>
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+namespace osgGIS
 {
-	if ( !is_registered )
-	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-		is_registered = true;
-	}
+    class OSGGIS_EXPORT Task : public osg::Referenced
+    {
+    public:
+        Task();
+        Task( const std::string& name );
+
+        const std::string& getName() const;
+        
+    public:
+        virtual void run() =0;
+        
+    protected:
+        void setName( const std::string& );
+        
+    private:
+        std::string name;
+    };
+
+    typedef std::queue< osg::ref_ptr<Task> > TaskQueue;
+    typedef std::list< osg::ref_ptr<Task> > TaskList;
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}
+#endif // _OSGGIS_TASK_H

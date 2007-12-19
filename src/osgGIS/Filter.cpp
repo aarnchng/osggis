@@ -56,52 +56,54 @@ Filter::getProperties() const
     return Properties();
 }
 
-void
-Filter::reset( ScriptContext* _context )
-{
-    if ( next_filter.valid() )
-    {
-        next_filter->reset( _context );
-    }
-    context = _context;
-}
+//void
+//Filter::reset( ScriptContext* _context )
+//{
+//    if ( next_filter.valid() )
+//    {
+//        next_filter->reset( _context );
+//    }
+//    context = _context;
+//}
 
 
-Filter*
-Filter::setNextFilter( Filter* _next_filter )
-{
-    //TODO: validate the the input filter is valid here
-    next_filter = _next_filter;
-    return next_filter.get();
-}
+//Filter*
+//Filter::setNextFilter( Filter* _next_filter )
+//{
+//    //TODO: validate the the input filter is valid here
+//    next_filter = _next_filter;
+//    return next_filter.get();
+//}
 
 
-Filter*
-Filter::getNextFilter()
-{
-    return next_filter.get();
-}
+//Filter*
+//Filter::getNextFilter()
+//{
+//    return next_filter.get();
+//}
 
 
-Filter*
-Filter::appendFilter( Filter* _last_filter )
-{
-    if ( next_filter.valid() )
-    {
-        next_filter->appendFilter( _last_filter );
-    }
-    else
-    {
-        next_filter = _last_filter;
-    }
+//Filter*
+//Filter::appendFilter( Filter* _last_filter )
+//{
+//    if ( next_filter.valid() )
+//    {
+//        next_filter->appendFilter( _last_filter );
+//    }
+//    else
+//    {
+//        next_filter = _last_filter;
+//    }
+//
+//    return next_filter.get();
+//}
 
-    return next_filter.get();
-}
+
+//bool
+//Filter::signalCheckpoint()
+//{
+//    Filter* next = getNextFilter();
+//    return next? next->signalCheckpoint() : true;
+//}
 
 
-bool
-Filter::signalCheckpoint()
-{
-    Filter* next = getNextFilter();
-    return next? next->signalCheckpoint() : true;
-}

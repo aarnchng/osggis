@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/OGR_SpatialReference>
+#include <osgGIS/OGR_Utils>
 #include <osgGIS/Registry>
 #include <ogr_api.h>
 #include <ogr_spatialref.h>
@@ -36,6 +37,7 @@ OGR_SpatialReference::OGR_SpatialReference(void* _handle,
     getWKT();
 
     // intialize the basis ellipsoid
+    OGR_SCOPE_LOCK();
     int err;
     double semi_major_axis = OSRGetSemiMajor( handle, &err );
     double semi_minor_axis = OSRGetSemiMinor( handle, &err );
@@ -47,6 +49,7 @@ OGR_SpatialReference::~OGR_SpatialReference()
 {
 	if ( handle && owns_handle )
 	{
+      OGR_SCOPE_LOCK();
 		OSRDestroySpatialReference( handle );
 	}
 	handle = NULL;
@@ -56,6 +59,7 @@ OGR_SpatialReference::~OGR_SpatialReference()
 SpatialReference* 
 OGR_SpatialReference::cloneWithNewReferenceFrame( const osg::Matrixd& new_rf ) const
 {
+    OGR_SCOPE_LOCK();
     return new OGR_SpatialReference( handle, false, new_rf );
 }
 
@@ -65,6 +69,7 @@ OGR_SpatialReference::getWKT() const
 {
 	if ( handle && wkt.length() == 0 )
 	{
+        OGR_SCOPE_LOCK();
 		char* buf;
 		if ( OSRExportToWkt( handle, &buf ) == OGRERR_NONE )
 		{
@@ -104,6 +109,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     bool mat_equiv = false;
     testEquivalence( input_sr, /*out*/crs_equiv, /*out*/mat_equiv );
 
+    // pull it out of its source frame:
     if ( !mat_equiv )
     {
         input.set( input * input_sr->inv_ref_frame );
@@ -113,6 +119,8 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
 
     if ( !crs_equiv )
     {
+        OGR_SCOPE_LOCK();
+
 	    void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
             osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl;
@@ -138,6 +146,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
         result = true;
     }
 
+    // put it into the new ref frame:
     if ( !mat_equiv )
     {
         input.set( input * ref_frame );
@@ -170,27 +179,61 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
     }
 
 	OGR_SpatialReference* input_sr = (OGR_SpatialReference*)input.getSRS();
-    if ( SpatialReference::equivalent( this, input_sr ) ) {
-        return true; // same SRS; no action required
-    }
+    //if ( SpatialReference::equivalent( this, input_sr ) ) {
+    //    return true; // same SRS; no action required
+    //}
+    
+    bool crs_equiv = false;
+    bool mat_equiv = false;
+    testEquivalence( input_sr, /*out*/crs_equiv, /*out*/mat_equiv );
+    if ( crs_equiv && mat_equiv )
+        return true;
 
-	void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
-    if ( !xform_handle ) {
-        osg::notify( osg::WARN ) << "OGR_SpatialReference: SRS xform not possible" << std::endl;
-        return false;
+    OGR_SCOPE_LOCK();
+
+	void* xform_handle = NULL;
+    
+    if ( !crs_equiv )
+    {
+        xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
+
+        if ( !xform_handle ) {
+            osg::notify( osg::WARN ) << "OGR_SpatialReference: SRS xform not possible" << std::endl;
+            return false;
+        }
     }
     
     struct XformVisitor : public GeoPointVisitor {
-        XformVisitor( void* _h ) : h( _h ) { }
-        void* h;
-        bool visitPoint( GeoPoint& p ) {
-            return OCTTransform( h, 1, &p.x(), &p.y(), &p.z() ) != 0;
+        XformVisitor( void* _h, const osg::Matrixd& _src_rf, const osg::Matrixd& _to_rf )
+            : handle( _h ), src_rf(_src_rf), to_rf(_to_rf) { }
+        void* handle;
+        osg::Matrixd src_rf, to_rf;
+
+        bool visitPoint( GeoPoint& p )
+        {
+            bool ok = true;
+
+            // pull it out of the source reference frame:
+            p.set( p * src_rf );
+
+            // reproject it:
+            if ( handle )
+                ok = OCTTransform( handle, 1, &p.x(), &p.y(), &p.z() ) != 0;
+
+            // push it into the new reference frame:
+            p.set( p * to_rf );
+
+            return ok;
         }
     };
 
     bool result = false;
 
-    XformVisitor visitor( xform_handle );
+    XformVisitor visitor( 
+        xform_handle, 
+        input_sr->getInverseReferenceFrame(),
+        this->getReferenceFrame() );
+
     if ( input.accept( visitor ) )
     {
         applyTo( input );
@@ -203,7 +246,10 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
             << std::endl;
     }
 
-    OCTDestroyCoordinateTransformation( xform_handle );
+    if ( xform_handle )
+    {
+        OCTDestroyCoordinateTransformation( xform_handle );
+    }
 
     return result;
 }
@@ -212,6 +258,7 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
 bool
 OGR_SpatialReference::isGeographic() const
 {
+    OGR_SCOPE_LOCK();
 	return handle? OSRIsGeographic( handle ) != 0 : false;
 }
 
@@ -219,6 +266,7 @@ OGR_SpatialReference::isGeographic() const
 bool
 OGR_SpatialReference::isProjected() const
 {
+    OGR_SCOPE_LOCK();
 	return handle? OSRIsProjected( handle ) != 0 : false;
 }
 
@@ -240,6 +288,8 @@ OGR_SpatialReference::getBasisSRS() const
         }
 	    else if ( handle )
 	    {
+            OGR_SCOPE_LOCK();
+
 		    void* new_handle = OSRNewSpatialReference( NULL );
 		    int err = OSRCopyGeogCSFrom( new_handle, handle );
 		    if ( err == OGRERR_NONE )
@@ -282,6 +332,7 @@ OGR_SpatialReference::getInverseReferenceFrame() const
 std::string
 OGR_SpatialReference::getAttrValue( const std::string& name, int child_num ) const
 {
+    OGR_SCOPE_LOCK();
 	const char* val = OSRGetAttrValue( handle, name.c_str(), child_num );
 	return val? std::string( val ) : "";
 }

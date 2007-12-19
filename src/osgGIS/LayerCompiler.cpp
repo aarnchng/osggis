@@ -38,6 +38,18 @@ LayerCompiler::LayerCompiler()
 
 
 void
+LayerCompiler::setTaskManager( TaskManager* _manager )
+{
+    task_manager = _manager;
+}
+
+TaskManager*
+LayerCompiler::getTaskManager()
+{
+    return task_manager.get();
+}
+
+void
 LayerCompiler::addScript( float min_range, float max_range, Script* script )
 {
     ScriptRange slice;
@@ -48,7 +60,11 @@ LayerCompiler::addScript( float min_range, float max_range, Script* script )
     script_ranges.push_back( slice );
 }
 
-
+LayerCompiler::ScriptRangeList&
+LayerCompiler::getScripts()
+{
+    return script_ranges;
+}
 
 void
 LayerCompiler::setTerrain(osg::Node*              _terrain,
@@ -68,6 +84,23 @@ LayerCompiler::setTerrain(osg::Node*              _terrain,
     setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
 }
 
+osg::Node*
+LayerCompiler::getTerrainNode()
+{
+    return terrain.get();
+}
+
+SpatialReference* 
+LayerCompiler::getTerrainSRS() 
+{
+    return terrain_srs.get();
+}
+
+const GeoExtent& 
+LayerCompiler::getTerrainExtent() const
+{
+    return terrain_extent;
+}
 
 void
 LayerCompiler::setArchive( osgDB::Archive* _archive )
@@ -106,4 +139,17 @@ bool
 LayerCompiler::getFadeLODs() const
 {
     return fade_lods;
+}
+
+
+void
+LayerCompiler::setPaged( bool value )
+{
+    paged = value;
+}
+
+bool
+LayerCompiler::getPaged() const
+{
+    return paged;
 }

@@ -215,9 +215,10 @@ extrudeWallsUp(const GeoShape&         shape,
             {
                 if ( pass == 0 )
                 {
+                    osg::Vec3d m_world = *m * srs->getInverseReferenceFrame();
                     if ( srs && srs->isGeocentric() )
                     {
-                        osg::Vec3d p_vec = *m * srs->getInverseReferenceFrame();
+                        osg::Vec3d p_vec = m_world; //*m * srs->getInverseReferenceFrame();
                         osg::Vec3d e_vec = p_vec;
                         e_vec.normalize();
                         p_vec = p_vec + (e_vec * height);
@@ -227,10 +228,14 @@ extrudeWallsUp(const GeoShape&         shape,
                     }
                     else
                     {
-                        if ( m->z() + height > target_len )
+                        if ( m_world.z() + height > target_len )
                         {
-                            target_len = m->z() + height;
+                            target_len = m_world.z() + height;
                         }
+                        //if ( m->z() + height > target_len )
+                        //{
+                        //    target_len = m->z() + height;
+                        //}
                     }
                 }
                 else // if ( pass == 1 )
@@ -239,9 +244,10 @@ extrudeWallsUp(const GeoShape&         shape,
 
                     if ( srs )
                     {
+                        osg::Vec3d m_world = *m * srs->getInverseReferenceFrame();
                         if ( srs->isGeocentric() )
                         {
-                            osg::Vec3d p_vec = *m * srs->getInverseReferenceFrame();
+                            osg::Vec3d p_vec = m_world; //*m * srs->getInverseReferenceFrame();
                             osg::Vec3d e_vec = p_vec;
                             e_vec.normalize();
                             double gap_len = target_len - (p_vec+(e_vec*height)).length();
@@ -254,7 +260,7 @@ extrudeWallsUp(const GeoShape&         shape,
                         }
                         else
                         {
-                            extrude_vec.set( m->x(), m->y(), target_len );
+                            extrude_vec.set( m_world.x(), m_world.y(), target_len ); //m->x(), m->y(), target_len );
                             extrude_vec = extrude_vec * srs->getReferenceFrame();
                         }
                     }

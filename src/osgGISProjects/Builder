@@ -29,6 +29,13 @@ namespace osgGISProjects
     {
     public:
         Builder( Project* project, const std::string& base_uri );
+        
+        /** 
+         * Sets the maximum number of parallel threads to use for
+         * building each target. The default value is equal to the
+         * number of LOGICAL processors detected in the system.
+         */
+        void setNumThreads( int num_threads );
 
         bool build();
 
@@ -41,6 +48,7 @@ namespace osgGISProjects
     private:
         std::string base_uri;
         osg::ref_ptr<Project> project;
+        int num_threads;
         
     private:
         std::string resolveURI( const std::string& input );

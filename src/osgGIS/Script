@@ -80,7 +80,7 @@ namespace osgGIS
          * @param context
          *      Script-level context data
          */
-        void resetFilters( ScriptContext* context );
+        //void resetFilters( ScriptContext* context );
         
         /**
          * Executes the script by passing features to the first filter in the
@@ -94,7 +94,7 @@ namespace osgGIS
          * @return
          *      True if the filter chain completed without error; false otherwise.
          */
-        bool run( FeatureCursor* cursor, FilterEnv* env );
+        bool run( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output );
         
         /**
          * After a call to run(), calling this method will return the output
@@ -106,19 +106,23 @@ namespace osgGIS
          *      happens automatically if you call run() again or when the object
          *      is destructed.)
          */
-        osg::NodeList getOutput( bool reset =true );
+        //osg::NodeList getOutput( bool reset =true );
 
 
         /**
          * Gets the first filter in the script's filter chain.
          */
-        Filter* getFirstFilter();
+        //Filter* getFirstFilter();
 
 
         /**
          * Finds a filter by its name. 
          */
         Filter* getFilter( const std::string& name );
+
+        const FilterList& getFilters() const;
+
+        FilterList& getFilters();
 
     public:
 
@@ -127,8 +131,9 @@ namespace osgGIS
     private:
         std::string                 name;
         osg::ref_ptr<ScriptContext> context;
-        osg::ref_ptr<Filter>        first_filter;
-        osg::ref_ptr<NodeFilter>    output_filter;
+        //osg::ref_ptr<Filter>        first_filter;
+        //osg::ref_ptr<NodeFilter>    output_filter;
+        FilterList filters;
     };
 
     typedef std::list<osg::ref_ptr<Script> > ScriptList;

@@ -91,6 +91,11 @@ namespace osgGIS
         unsigned int getDim() const;
 
         /**
+         * Sets the dimensionality of the point (2 or 3)
+         */
+        void setDim( int value );
+
+        /**
          * Returns the spatial reference system relative to which the point
          * data is expressed.
          */

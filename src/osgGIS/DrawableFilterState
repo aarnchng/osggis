@@ -17,29 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
+#ifndef _OSGGIS_DRAWABLE_FILTER_STATE_H_
+#define _OSGGIS_DRAWABLE_FILTER_STATE_H_ 1
 
-using namespace osgGIS;
+#include <osgGIS/Common>
+#include <osgGIS/FilterState>
+#include <osgGIS/DrawableFilter>
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+namespace osgGIS
 {
-	if ( !is_registered )
-	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-		is_registered = true;
-	}
+    class DrawableFilterState : public FilterState
+    {
+    public:
+        DrawableFilterState( DrawableFilter* filter );
+
+        bool traverse( FilterEnv* );
+        virtual void reset( ScriptContext* );
+
+        void push( Feature* input );
+        void push( const FeatureList& input );
+        void push( osg::Drawable* input );
+        void push( const DrawableList& input );
+
+    protected:
+        osg::ref_ptr<DrawableFilter> filter;
+        FeatureList in_features;
+        DrawableList in_drawables;
+    };
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}
+#endif // _OSGGIS_DRAWABLE_FILTER_STATE_H_

@@ -93,8 +93,13 @@ XmlElement*
 XmlSerializer::encodeScript( Script* script )
 {
     XmlElement* script_e = new XmlElement( "script" );
-    for( Filter* f = script->getFirstFilter(); f != NULL; f = f->getNextFilter() )
+
+    for( FilterList::const_iterator i = script->getFilters().begin(); i != script->getFilters().end(); i++ )
     {
+        Filter* f = i->get();
+
+    //for( Filter* f = script->getFirstFilter(); f != NULL; f = f->getNextFilter() )
+    //{
         XmlAttributes attrs;
         attrs[ "type" ] = f->getFilterType();
         XmlElement* filter_e = new XmlElement( "filter", attrs );

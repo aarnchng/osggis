@@ -35,7 +35,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT FeatureFilter : public Filter
     {            
-    protected:    
+    public:    
 
         /**
          * Processes a single feature.
@@ -67,20 +67,22 @@ namespace osgGIS
 
     public: // Internal compilation methods
 
-        void push( Feature* input );
-        void push( const FeatureList& input );
-        bool traverse( FilterEnv* env );
-        
-        virtual void reset( ScriptContext* );
+        virtual FilterState* newState();
+
+        //void push( Feature* input );
+        //void push( const FeatureList& input );
+        //bool traverse( FilterEnv* env );
+        //
+        //virtual void reset( ScriptContext* );
         
     protected:
 
         FeatureFilter();
         virtual ~FeatureFilter();
-                
-    private:        
+    //            
+    //private:        
 
-        FeatureList in_features;
+    //    FeatureList in_features;
     };
 }
 

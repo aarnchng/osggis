@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/ScriptContext>
 #include <osgGIS/Property>
+#include <osgGIS/FilterState>
 #include <osg/Drawable>
 #include <vector>
 #include <map>
@@ -61,8 +62,7 @@ namespace osgGIS
          * @return
          *      True if traversal succeeded, false upon error.
          */
-        virtual bool traverse( FilterEnv* env ) =0;
-
+        //virtual bool traverse( FilterEnv* env ) =0;
 
         /** 
          * Notifies this filter that a compilation checkpoint has been reached.
@@ -71,9 +71,8 @@ namespace osgGIS
          * @return
          *      True if traversal succeeded, false upon error.
          */
-        virtual bool signalCheckpoint();
+        //virtual bool signalCheckpoint();
         
-
         /**
          * Resets this filter to its initial state, clearing any input or
          * output buffers.
@@ -81,25 +80,27 @@ namespace osgGIS
          * @param context
          *      Script-level context information
          */
-        virtual void reset( ScriptContext* context );
-        
-        
+        //virtual void reset( ScriptContext* context );
+                
         /**
          * Gets the filter attached to the output of this filter.
          */
-        Filter* getNextFilter();
-
+        //Filter* getNextFilter();
 
         /**
          * Sets the name of this filter.
          */
         void setName( const std::string& name );
 
-
         /**
          * Gets the name of this filter.
          */
         const std::string& getName() const;
+
+        /**
+         * Creates a new state object that can be used with this filter type.
+         */
+        virtual FilterState* newState() =0;
 
     public:
 
@@ -118,13 +119,13 @@ namespace osgGIS
         Filter();
         
     private:
-        osg::ref_ptr<Filter> next_filter;
+        //osg::ref_ptr<Filter> next_filter;
         osg::ref_ptr<ScriptContext> context;
         std::string name;
         
-        friend class Script;
-        Filter* setNextFilter( Filter* filter );
-        Filter* appendFilter( Filter* filter );
+        //friend class Script;
+        //Filter* setNextFilter( Filter* filter );
+        //Filter* appendFilter( Filter* filter );
     };
     
     typedef std::vector< osg::ref_ptr<Filter> > FilterList;
@@ -144,10 +145,12 @@ namespace osgGIS
     public: \
         virtual std::string getFilterType() { return getStaticFilterType(); } \
         static std::string getStaticFilterType() { return #name; } \
-        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }
+        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }        
 
 #define OSGGIS_DEFINE_FILTER(name) \
     static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )
+
+
 }
 
 #endif // _OSGGIS_FILTER_H_

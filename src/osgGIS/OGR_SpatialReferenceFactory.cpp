@@ -61,6 +61,8 @@ SpatialReference*
 OGR_SpatialReferenceFactory::createSRSfromWKT(const std::string& wkt,
                                               const osg::Matrixd& ref_frame )
 {
+    OGR_SCOPE_LOCK();
+
 	SpatialReference* result = NULL;
 
 	void* handle = OSRNewSpatialReference( NULL );
@@ -93,6 +95,8 @@ SpatialReference*
 OGR_SpatialReferenceFactory::createSRSfromESRI(const std::string& esri,
                                                const osg::Matrixd& ref_frame)
 {
+    OGR_SCOPE_LOCK();
+
 	SpatialReference* result = NULL;
 
 	void* handle = OSRNewSpatialReference( NULL );
