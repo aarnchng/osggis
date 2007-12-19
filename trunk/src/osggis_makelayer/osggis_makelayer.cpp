@@ -47,6 +47,7 @@
 #include <osgGIS/PagedLayerCompiler>
 #include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/SimpleLayerCompiler>
+#include <osgGIS/TaskManager>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -97,7 +98,7 @@ float priority_offset = 0.0;
 bool convex_hull = false;
 bool remove_holes = false;
 bool fade_lods = false;
-
+int num_threads = 0;
 
 int
 die( const std::string& msg )
@@ -126,6 +127,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --terrain_extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
     NOUT << "    --geocentric               - Generate geocentric output geometry to match a PagedLOD globe" << ENDL;
+    NOUT << "    --threads <num>            - Number of parallel compiler threads (default = # of logical procs)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Layer options:" << ENDL;
     NOUT << "    --gridded                  - Generate simple gridded output (optionally combine with --paged)" << ENDL;
@@ -160,6 +162,7 @@ static void usage( const char* prog, const char* msg )
 void
 parseCommandLine( int argc, char** argv )
 {
+    osg::Referenced::setThreadSafeReferenceCounting( true );
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
     osg::ArgumentParser arguments( &argc, argv );
@@ -266,6 +269,9 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--no-lighting" ) )
         lighting = false;
+
+    while( arguments.read( "--threads", str ) )
+        sscanf( str.c_str(), "%d", &num_threads );
 
 
     // validate required arguments:
@@ -448,6 +454,12 @@ main(int argc, char* argv[])
         archive->writeNode( *(dummy.get()), output_file );
     }
 
+    // task manager for parallel build, if necessary:
+    osg::ref_ptr<osgGIS::TaskManager> manager =
+        num_threads > 1? new osgGIS::TaskManager( num_threads ) :
+        num_threads < 1? new osgGIS::TaskManager() :
+        NULL;
+
     // for a PagedLOD terrain, generating matching PagedLOD geometry.
     if ( correlated )
     {
@@ -461,6 +473,7 @@ main(int argc, char* argv[])
         compiler.setPriorityOffset( priority_offset );
         compiler.setFadeLODs( fade_lods );
         compiler.setArchive( archive.get() );
+        compiler.setTaskManager( manager.get() );
 
         compiler.compile(
             layer.get(),
@@ -479,6 +492,7 @@ main(int argc, char* argv[])
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
+        compiler.setTaskManager( manager.get() );
 
         osg::ref_ptr<osg::Node> node = new osg::Group();
         
@@ -502,6 +516,7 @@ main(int argc, char* argv[])
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         compiler.setFadeLODs( fade_lods );
+        compiler.setTaskManager( manager.get() );
 
         osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
         if ( node.valid() )

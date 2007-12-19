@@ -17,29 +17,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
+#ifndef _OSGGIS_FEATURE_FILTER_STATE_H_
+#define _OSGGIS_FEATURE_FILTER_STATE_H_ 1
 
-using namespace osgGIS;
+#include <osgGIS/Common>
+#include <osgGIS/FilterState>
+#include <osgGIS/FeatureFilter>
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+namespace osgGIS
 {
-	if ( !is_registered )
-	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-		is_registered = true;
-	}
+    class FeatureFilterState : public FilterState
+    {
+    public:
+        FeatureFilterState( FeatureFilter* filter );
+
+        void push( Feature* input );
+        void push( const FeatureList& input );
+        bool traverse( FilterEnv* env );
+        virtual void reset( ScriptContext* );
+
+    protected:
+        FeatureList in_features;
+        osg::ref_ptr<FeatureFilter> filter;
+    };
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}
+#endif // _OSGGIS_FEATURE_FILTER_STATE_H_

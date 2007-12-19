@@ -20,6 +20,9 @@
 #ifndef _OSGGIS_OGR_UTILS_H_
 #define _OSGGIS_OGR_UTILS_H_ 1
 
+#include <OpenThreads/ReentrantMutex>
+#include <OpenThreads/ScopedLock>
+
 namespace osgGIS
 {
 	class OGR_Utils
@@ -27,9 +30,15 @@ namespace osgGIS
 	public:
 		static void registerAll();
 
+        static OpenThreads::ReentrantMutex& getMutex();
+
 	private:
 		static bool is_registered;
+        static OpenThreads::ReentrantMutex* ogr_mutex;
 	};
 }
+
+#define OGR_SCOPE_LOCK() \
+    OpenThreads::ScopedLock<OpenThreads::ReentrantMutex> _ogr_mut(OGR_Utils::getMutex())
 
 #endif // _OSGGIS_OGR_UTILS_H_

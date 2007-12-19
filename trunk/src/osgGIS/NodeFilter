@@ -37,7 +37,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT NodeFilter : public Filter
     {
-    protected:
+    public:
         /**
          * Processes a single drawable into a collection of nodes.
          *
@@ -79,45 +79,48 @@ namespace osgGIS
         virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
         
     public:
-        /**
-         * Pushes a drawable onto this filter's input data queue.
-         */
-        void push( osg::Drawable* input );
 
-        /**
-         * Pushes a collection of drawables onto this filter's input data queue.
-         */
-        void push( DrawableList& input );
+        FilterState* newState();
 
-        /**
-         * Pushes a single node onto this filter's input data queue.
-         */
-        void push( osg::Node* input );
+        ///**
+        // * Pushes a drawable onto this filter's input data queue.
+        // */
+        //void push( osg::Drawable* input );
 
-        /**
-         * Pushes a collection of nodes onto this filter's input data queue.
-         */
-        void push( osg::NodeList& input );
+        ///**
+        // * Pushes a collection of drawables onto this filter's input data queue.
+        // */
+        //void push( DrawableList& input );
 
-        bool traverse( FilterEnv* env );
+        ///**
+        // * Pushes a single node onto this filter's input data queue.
+        // */
+        //void push( osg::Node* input );
 
-        virtual void reset( ScriptContext* );
-        
-        /**
-         * Gets the output node collection from this filter. Since a NodeFilter
-         * can be the final node in a script's filter chain, this method allows
-         * the compiler to retrieve the final results.
-         */
-        osg::NodeList& getOutput();
+        ///**
+        // * Pushes a collection of nodes onto this filter's input data queue.
+        // */
+        //void push( osg::NodeList& input );
+
+        //bool traverse( FilterEnv* env );
+
+        //virtual void reset( ScriptContext* );
+        //
+        ///**
+        // * Gets the output node collection from this filter. Since a NodeFilter
+        // * can be the final node in a script's filter chain, this method allows
+        // * the compiler to retrieve the final results.
+        // */
+        //osg::NodeList& getOutput();
         
     protected:
         NodeFilter();
         virtual ~NodeFilter();        
-        
-    private:        
-        DrawableList  in_drawables; 
-        osg::NodeList in_nodes;
-        osg::NodeList out_nodes;  
+    //    
+    //private:        
+    //    DrawableList  in_drawables; 
+    //    osg::NodeList in_nodes;
+    //    osg::NodeList out_nodes;  
     };
 }
 

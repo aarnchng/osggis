@@ -20,6 +20,7 @@
 #include <osgGIS/OGR_FeatureStore>
 #include <osgGIS/OGR_Feature>
 #include <osgGIS/OGR_SpatialReference>
+#include <osgGIS/OGR_Utils>
 #include <osgGIS/FeatureCursorImpl>
 #include <ogr_api.h>
 #include <osg/Notify>
@@ -30,6 +31,7 @@ using namespace osgGIS;
 OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
 : extent( GeoExtent::invalid() )
 {
+    OGR_SCOPE_LOCK();
     uri = abs_path;
 	bool for_update = false;
     supports_random_read = false;
@@ -55,6 +57,7 @@ OGR_FeatureStore::~OGR_FeatureStore()
 
 	if ( ds_handle )
 	{
+        OGR_SCOPE_LOCK();
 		OGRReleaseDataSource( ds_handle );
 		ds_handle = NULL;
 	}
@@ -80,6 +83,7 @@ OGR_FeatureStore::getSRS()
 {
 	if ( !spatial_ref.get() )
 	{
+        OGR_SCOPE_LOCK();
 		SpatialReference* result = NULL;
 		void* sr_handle = OGR_L_GetSpatialRef( layer_handle );
 		if ( sr_handle )
@@ -105,6 +109,7 @@ OGR_FeatureStore::getFeature( const FeatureOID& oid )
 	Feature* result = NULL;
     if ( supports_random_read )
     {
+        OGR_SCOPE_LOCK();
 	    void* feature_handle = OGR_L_GetFeature( layer_handle, oid );
 	    if ( feature_handle )
 	    {
@@ -125,6 +130,7 @@ OGR_FeatureStore::createCursor()
     FeatureCursor* result = NULL;
     if ( layer_handle )
     {
+        OGR_SCOPE_LOCK();
         unsigned int feature_count = OGR_L_GetFeatureCount( layer_handle, 1 );
         FeatureOIDList oids( feature_count );
     
@@ -148,6 +154,7 @@ int
 OGR_FeatureStore::getFeatureCount() const
 {
 	//TODO: cache result
+    OGR_SCOPE_LOCK();
 	return OGR_L_GetFeatureCount( layer_handle, 1 );
 }
 
@@ -157,6 +164,8 @@ OGR_FeatureStore::getExtent()
 {
 	if ( !extent.isValid() )
 	{
+        OGR_SCOPE_LOCK();
+
 		OGREnvelope envelope;
 
 		if ( OGR_L_GetExtent( layer_handle, &envelope, 1 ) == OGRERR_NONE )

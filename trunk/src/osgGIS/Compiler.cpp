@@ -70,7 +70,7 @@ Compiler::compile( FilterEnv* env_template )
     // A context will hold the filter environment stack and other
     // script-scoped information:
     osg::ref_ptr<ScriptContext> context = new ScriptContext();
-    script->resetFilters( context.get() );
+//    script->resetFilters( context.get() );
 
     // Set up the initial filter environment:
     osg::ref_ptr<FilterEnv> env = env_template?
@@ -84,9 +84,11 @@ Compiler::compile( FilterEnv* env_template )
         env->getExtent() );
 
     // Run the script.
-    if ( script->run( cursor.get(), env.get() ) )
+    osg::NodeList output;
+
+    if ( script->run( cursor.get(), env.get(), output ) )
     {
-        osg::NodeList output = script->getOutput();
+        //osg::NodeList output = script->getOutput();
         for( osg::NodeList::iterator i = output.begin(); i != output.end(); i++ )
             result->addChild( i->get() );
     }

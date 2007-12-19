@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/OGR_Feature>
+#include <osgGIS/OGR_Utils>
 #include <ogr_api.h>
 #include <osg/Notify>
 #include <algorithm>
@@ -34,6 +35,7 @@ OGR_Feature::OGR_Feature( void* _handle, SpatialReference* _sr )
 
 OGR_Feature::~OGR_Feature()
 {
+    OGR_SCOPE_LOCK();
     OGR_F_Destroy( handle );
 }
 
@@ -69,6 +71,8 @@ OGR_Feature::getExtent() const
 void
 OGR_Feature::load( void* handle )
 {
+    OGR_SCOPE_LOCK();
+
     oid = (FeatureOID)OGR_F_GetFID( handle );
 
     void* geom_handle = OGR_F_GetGeometryRef( handle );
@@ -143,6 +147,7 @@ OGR_Feature::load( void* handle )
 void
 decodePart( void* handle, GeoShape& shape, int dim )
 {
+    OGR_SCOPE_LOCK();
     int num_points = OGR_G_GetPointCount( handle );
     GeoPointList& part = shape.addPart( num_points );
 
@@ -161,6 +166,7 @@ decodePart( void* handle, GeoShape& shape, int dim )
 GeoShape
 OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_type )
 {
+    OGR_SCOPE_LOCK();
     int num_parts = OGR_G_GetGeometryCount( geom_handle );
 
     GeoShape shape( shape_type, spatial_ref.get() );
@@ -196,6 +202,7 @@ OGR_Feature::getAttribute( const std::string& key ) const
     }
     else
     {
+        OGR_SCOPE_LOCK();
         int index = OGR_F_GetFieldIndex( handle, key.c_str() );
         if ( index > 0 )
         {
@@ -223,16 +230,19 @@ void
 OGR_Feature::setAttribute( const std::string& key, const std::string& value )
 {
     //TODO
+    //don't forget the mutex
 }
 
 void 
 OGR_Feature::setAttribute( const std::string& key, int value )
 {
     //TODO
+    //don't forget the mutex
 }
 
 void 
 OGR_Feature::setAttribute( const std::string& key, double value )
 {
     //TODO
+    //don't forget the mutex
 }

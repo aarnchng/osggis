@@ -39,6 +39,7 @@ Builder::Builder( Project* _project, const std::string& _base_uri )
 {
     project = _project;
     base_uri = _base_uri;
+    num_threads = 0;
 }
 
 
@@ -63,6 +64,11 @@ Builder::resolveURI( const std::string& input )
     }
 }
 
+void
+Builder::setNumThreads( int _num_threads )
+{
+    num_threads = _num_threads;
+}
 
 bool
 Builder::build()
@@ -209,12 +215,19 @@ Builder::build( BuildLayer* layer )
         archive->writeNode( *(dummy.get()), output_file );
     }
 
+    // intialize a task manager if necessary:
+    osg::ref_ptr<TaskManager> manager = 
+        num_threads > 1? new TaskManager( num_threads ) :
+        num_threads < 1? new TaskManager() :
+        NULL;
+
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
     if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
     {
         PagedLayerCompiler compiler;
 
+        compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         
@@ -241,6 +254,7 @@ Builder::build( BuildLayer* layer )
         compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
         compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
+        compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         
@@ -271,6 +285,7 @@ Builder::build( BuildLayer* layer )
         compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
         compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
 
+        compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         

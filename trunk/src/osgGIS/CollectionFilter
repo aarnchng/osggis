@@ -76,36 +76,41 @@ namespace osgGIS
 
         int getMetering() const { return metering; }
 
+    
+    public:
+
+        FilterState* newState();
+
 
     public: // Functions used internally by the script engine.
 
-        /**
-         * Pushes a list of features onto the filter's input data queue.
-         */
-        void push( const FeatureList& features );
+    //    /**
+    //     * Pushes a list of features onto the filter's input data queue.
+    //     */
+    //    void push( const FeatureList& features );
 
-        void push( Feature* );
+    //    void push( Feature* );
 
-        /**
-         * Pushes a list of drawables onto the filter's input data queue.
-         */
-        void push( const DrawableList& drawables );
+    //    /**
+    //     * Pushes a list of drawables onto the filter's input data queue.
+    //     */
+    //    void push( const DrawableList& drawables );
 
-        void push( osg::Drawable* );
+    //    void push( osg::Drawable* );
 
-        /**
-         * Pushes a list of nodes onto the filter's input data queue.
-         */
-        void push( const osg::NodeList& nodes );
+    //    /**
+    //     * Pushes a list of nodes onto the filter's input data queue.
+    //     */
+    //    void push( const osg::NodeList& nodes );
 
-        void push( osg::Node* );
+    //    void push( osg::Node* );
 
 
-    public: // Filter overrides
+    //public: // Filter overrides
 
-        bool signalCheckpoint();
-        bool traverse( FilterEnv* env );
-        void reset( ScriptContext* context );
+    //    bool signalCheckpoint();
+    //    bool traverse( FilterEnv* env );
+    //    void reset( ScriptContext* context );
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;
@@ -117,10 +122,10 @@ namespace osgGIS
     private:
 
         int           metering;
-        FeatureList   in_features;
-        DrawableList  in_drawables;
-        osg::NodeList in_nodes;
-        osg::ref_ptr<FilterEnv> saved_env;
+        //FeatureList   in_features;
+        //DrawableList  in_drawables;
+        //osg::NodeList in_nodes;
+        //osg::ref_ptr<FilterEnv> saved_env;
     };
 }
 

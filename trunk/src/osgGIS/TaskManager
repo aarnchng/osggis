@@ -1,0 +1,108 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_TASK_MANAGER_H
+#define _OSGGIS_TASK_MANAGER_H 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Task>
+#include <osgGIS/AutoResetBlock>
+#include <OpenThreads/Thread>
+#include <OpenThreads/Mutex>
+#include <osg/Timer>
+#include <map>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT TaskManager;
+    
+    class TaskThread : public OpenThreads::Thread
+    {
+    public:
+        enum State {
+            STATE_READY,
+            STATE_RUNNING,
+            STATE_RESULT_READY,
+            STATE_EXIT
+        };
+      
+    public:
+        TaskThread( int id, AutoResetBlock& activity_block );
+
+        int getID();
+
+        State getState();
+        void runTask( Task* task );
+        void dispose();
+
+        double getResultDuration();
+        osg::ref_ptr<Task> getResult();
+      
+    public:
+        void run(); // override
+      
+    private:
+        void setState( State );
+
+    private:
+        int                id;
+        osg::ref_ptr<Task> task;
+        AutoResetBlock&    activity_block;
+        bool               done;
+        AutoResetBlock     run_block;
+        State              state;
+        OpenThreads::Mutex state_mutex;
+        osg::Timer_t       start, end;
+    };
+    
+    typedef std::list<TaskThread*> TaskThreadList;
+    typedef std::map<int,TaskThread*> TaskThreadMap;
+    
+    
+    class OSGGIS_EXPORT TaskManager : public osg::Referenced
+    {
+    public:
+        TaskManager();
+        TaskManager( int max_threads );
+        virtual ~TaskManager();
+
+        void queueTask( Task* task );
+        
+        bool wait();
+        
+        bool hasMoreTasks();
+
+        osg::ref_ptr<Task> getNextCompletedTask();
+
+    private:
+        TaskThreadList threads;
+        TaskQueue      pending_tasks;
+        TaskQueue      completed_tasks;
+        int            num_running_tasks;
+        OpenThreads::Mutex q_mutex;  
+        AutoResetBlock activity_block;
+        friend class TaskThread;
+        
+    private:
+        void init( int num_threads );
+        void update();
+    };
+}
+
+#endif //_OSGGIS_TASK_MANAGER_H

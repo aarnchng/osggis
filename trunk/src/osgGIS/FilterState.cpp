@@ -17,29 +17,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
+#include <osgGIS/FilterState>
 
 using namespace osgGIS;
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+FilterState*
+FilterState::setNextState( FilterState* _next_state )
 {
-	if ( !is_registered )
-	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-		is_registered = true;
-	}
+    //TODO: validate the the input filter is valid here
+    next_state = _next_state;
+    return next_state.get();
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
+FilterState*
+FilterState::getNextState()
 {
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
+    return next_state.get();
+}
+
+FilterState*
+FilterState::appendState( FilterState* _state )
+{
+    if ( next_state.valid() )
+    {
+        next_state->appendState( _state );
+    }
+    else
+    {
+        next_state = _state;
+    }
+
+    return next_state.get();
+}
+
+void
+FilterState::reset( ScriptContext* _context )
+{
+    if ( next_state.valid() )
+    {
+        next_state->reset( _context );
+    }
+    context = _context;
+}
+
+bool
+FilterState::signalCheckpoint()
+{
+    FilterState* next = getNextState();
+    return next? next->signalCheckpoint() : true;
 }

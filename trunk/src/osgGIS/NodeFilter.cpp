@@ -18,7 +18,8 @@
  */
 
 #include <osgGIS/NodeFilter>
-#include <osgGIS/CollectionFilter>
+#include <osgGIS/NodeFilterState>
+//#include <osgGIS/CollectionFilter>
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>
@@ -35,43 +36,49 @@ NodeFilter::~NodeFilter()
 {
 }
 
-
-void
-NodeFilter::reset( ScriptContext* _context )
+FilterState*
+NodeFilter::newState()
 {
-    in_drawables.clear();
-    in_nodes.clear();
-    out_nodes.clear();
-    Filter::reset( _context );
+    return new NodeFilterState( this );
 }
 
 
-void
-NodeFilter::push( osg::Drawable* input )
-{
-    in_drawables.push_back( input );
-}
-
-
-void
-NodeFilter::push( DrawableList& input )
-{
-    in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
-}
-
-
-void
-NodeFilter::push( osg::Node* input )
-{
-    in_nodes.push_back( input );
-}
-
-
-void
-NodeFilter::push( osg::NodeList& input )
-{
-    in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
-}
+//void
+//NodeFilter::reset( ScriptContext* _context )
+//{
+//    in_drawables.clear();
+//    in_nodes.clear();
+//    out_nodes.clear();
+//    Filter::reset( _context );
+//}
+//
+//
+//void
+//NodeFilter::push( osg::Drawable* input )
+//{
+//    in_drawables.push_back( input );
+//}
+//
+//
+//void
+//NodeFilter::push( DrawableList& input )
+//{
+//    in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
+//}
+//
+//
+//void
+//NodeFilter::push( osg::Node* input )
+//{
+//    in_nodes.push_back( input );
+//}
+//
+//
+//void
+//NodeFilter::push( osg::NodeList& input )
+//{
+//    in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
+//}
 
 
 osg::NodeList 
@@ -121,49 +128,49 @@ NodeFilter::process( osg::Node* input, FilterEnv* env )
 
 
 
-bool
-NodeFilter::traverse( FilterEnv* in_env )
-{
-    bool ok = true;
-
-    osg::ref_ptr<FilterEnv> env = in_env->advance();
-
-    if ( in_drawables.size() > 0 )
-    {
-        out_nodes = process( in_drawables, env.get() );
-    }
-    else if ( in_nodes.size() > 0 )
-    {
-        out_nodes = process( in_nodes, env.get() );
-    }
-    
-    Filter* next = getNextFilter();
-    if ( next && out_nodes.size() > 0 )
-    {
-        if ( dynamic_cast<NodeFilter*>( next ) )
-        {
-            NodeFilter* filter = static_cast<NodeFilter*>( next );
-            filter->push( out_nodes );
-        }
-        else if ( dynamic_cast<CollectionFilter*>( next ) )
-        {
-            CollectionFilter* filter = static_cast<CollectionFilter*>( next );
-            filter->push( out_nodes );
-        }
-
-        ok = next->traverse( env.get() );
-    }
-
-    in_drawables.clear();
-    in_nodes.clear();
-
-    return ok;
-}
-
-
-osg::NodeList&
-NodeFilter::getOutput()
-{
-    return out_nodes;
-}
+//bool
+//NodeFilter::traverse( FilterEnv* in_env )
+//{
+//    bool ok = true;
+//
+//    osg::ref_ptr<FilterEnv> env = in_env->advance();
+//
+//    if ( in_drawables.size() > 0 )
+//    {
+//        out_nodes = process( in_drawables, env.get() );
+//    }
+//    else if ( in_nodes.size() > 0 )
+//    {
+//        out_nodes = process( in_nodes, env.get() );
+//    }
+//    
+//    Filter* next = getNextFilter();
+//    if ( next && out_nodes.size() > 0 )
+//    {
+//        if ( dynamic_cast<NodeFilter*>( next ) )
+//        {
+//            NodeFilter* filter = static_cast<NodeFilter*>( next );
+//            filter->push( out_nodes );
+//        }
+//        else if ( dynamic_cast<CollectionFilter*>( next ) )
+//        {
+//            CollectionFilter* filter = static_cast<CollectionFilter*>( next );
+//            filter->push( out_nodes );
+//        }
+//
+//        ok = next->traverse( env.get() );
+//    }
+//
+//    in_drawables.clear();
+//    in_nodes.clear();
+//
+//    return ok;
+//}
+//
+//
+//osg::NodeList&
+//NodeFilter::getOutput()
+//{
+//    return out_nodes;
+//}
 

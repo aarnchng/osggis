@@ -1,0 +1,74 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_NODE_FILTER_STATE_H_
+#define _OSGGIS_NODE_FILTER_STATE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FilterState>
+#include <osgGIS/NodeFilter>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    class NodeFilterState : public FilterState
+    {
+    public:
+        NodeFilterState( NodeFilter* filter );  
+        
+        bool traverse( FilterEnv* env );
+        virtual void reset( ScriptContext* );
+
+        /**
+         * Pushes a drawable onto this filter's input data queue.
+         */
+        void push( osg::Drawable* input );
+
+        /**
+         * Pushes a collection of drawables onto this filter's input data queue.
+         */
+        void push( DrawableList& input );
+
+        /**
+         * Pushes a single node onto this filter's input data queue.
+         */
+        void push( osg::Node* input );
+
+        /**
+         * Pushes a collection of nodes onto this filter's input data queue.
+         */
+        void push( osg::NodeList& input );
+
+        
+        /**
+         * Gets the output node collection from this filter. Since a NodeFilter
+         * can be the final node in a script's filter chain, this method allows
+         * the compiler to retrieve the final results.
+         */
+        osg::NodeList& getOutput();
+
+    protected:
+        osg::ref_ptr<NodeFilter> filter;
+        DrawableList in_drawables;
+        osg::NodeList in_nodes;
+        osg::NodeList out_nodes;
+    };
+}
+
+#endif // _OSGGIS_NODE_FILTER_STATE_H_

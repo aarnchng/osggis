@@ -227,7 +227,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
     const SpatialReference* input_srs = env->getInputSRS();
 
     if ( env->getExtent().getArea() > 0 &&
-         input_srs->isGeocentric() &&
+         //input_srs->isGeocentric() &&
          !input_srs->getReferenceFrame().isIdentity() )
     {
         osg::Vec3d centroid( 0, 0, 0 );
@@ -237,7 +237,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         xform->addChild( geode );
         result = xform;
 
-        if ( options & APPLY_CLUSTER_CULLING )
+        if ( (options & APPLY_CLUSTER_CULLING) && input_srs->isGeocentric() )
         {    
             osg::Vec3d control_point = centroid_abs;
             osg::Vec3d normal = centroid_abs;

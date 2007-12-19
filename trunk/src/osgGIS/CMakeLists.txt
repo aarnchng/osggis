@@ -10,11 +10,13 @@ SET(LIB_NAME osgGIS)
 
 SET(LIB_PUBLIC_HEADERS
     Attribute
+    AutoResetBlock
     BuildGeomFilter
     BuildNodesFilter
     ChangeShapeTypeFilter
     ClampFilter
     CollectionFilter
+    CollectionFilterState
     Common
     ConvexHullFilter
     CombineLinesFilter
@@ -24,6 +26,7 @@ SET(LIB_PUBLIC_HEADERS
     DefaultFeatureStoreFactory
     DensifyFilter
     DrawableFilter
+    DrawableFilterState
     Ellipsoid
     Export
     ExpressionEvaluator
@@ -32,10 +35,12 @@ SET(LIB_PUBLIC_HEADERS
     Feature
     FeatureCursorImpl
     FeatureFilter
+    FeatureFilterState
     FeatureLayer
     FeatureStore
     FeatureStoreFactory
     Filter
+    FilterState
     FilterEnv
     GeocentricSpatialReference
     GeoExtent
@@ -46,6 +51,7 @@ SET(LIB_PUBLIC_HEADERS
     LineSegmentIntersector2
     LocalizeNodesFilter
     NodeFilter
+    NodeFilterState
     OGR_Feature
     OGR_FeatureStore
     OGR_SpatialReference
@@ -70,6 +76,8 @@ SET(LIB_PUBLIC_HEADERS
     SpatialReferenceFactory
     StubSpatialIndex
     SuperFeature
+    Task
+    TaskManager
     TerrainUtils
     TransformFilter
 )
@@ -83,6 +91,7 @@ ADD_LIBRARY(${LIB_NAME}
     ChangeShapeTypeFilter.cpp
     ClampFilter.cpp
     CollectionFilter.cpp
+    CollectionFilterState.cpp
     CombineLinesFilter.cpp
     Compiler.cpp
     ConvexHullFilter.cpp
@@ -91,14 +100,17 @@ ADD_LIBRARY(${LIB_NAME}
     DefaultFeatureStoreFactory.cpp
     DensifyFilter.cpp
     DrawableFilter.cpp
+    DrawableFilterState.cpp
     Ellipsoid.cpp
     ExpressionEvaluator.cpp
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp
     FeatureCursorImpl.cpp
     FeatureFilter.cpp
+    FeatureFilterState.cpp
     FeatureLayer.cpp
     Filter.cpp
+    FilterState.cpp
     FilterEnv.cpp
     GeocentricSpatialReference.cpp
     GeoExtent.cpp
@@ -109,6 +121,7 @@ ADD_LIBRARY(${LIB_NAME}
     LineSegmentIntersector2.cpp
     LocalizeNodesFilter.cpp
     NodeFilter.cpp
+    NodeFilterState.cpp
     OGR_Feature.cpp
     OGR_FeatureStore.cpp
     OGR_SpatialReference.cpp
@@ -127,6 +140,8 @@ ADD_LIBRARY(${LIB_NAME}
     SimpleSpatialIndex.cpp
     SmartReadCallback.cpp
     SpatialReference.cpp
+    Task.cpp
+    TaskManager.cpp
     TerrainUtils.cpp
     TransformFilter.cpp
 )

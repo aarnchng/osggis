@@ -47,6 +47,7 @@
 std::string project_file = "project.xml";
 std::string target_name = "";
 bool list_targets = false;
+int num_threads = 0; // defaults to logical proc count
 
 int
 die( const std::string& msg )
@@ -72,7 +73,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << ENDL;
     NOUT << "Optional:" << ENDL;
     NOUT << "    --list-targets       - show all available targets in project" << ENDL;
-
+    NOUT << "    --threads <num>      - number of parallel build threads to use" << ENDL;
 }
 
 
@@ -105,6 +106,11 @@ parseCommandLine( int argc, char** argv )
         list_targets = true;
     }
 
+    if ( arguments.read( "--threads", temp ) )
+    {
+        sscanf( temp.c_str(), "%d", &num_threads );
+    }
+
     if ( argc > 1 )
     {
         target_name = argv[argc-1];
@@ -116,6 +122,9 @@ int
 main(int argc, char* argv[])
 {
     parseCommandLine( argc, argv );
+
+    // required for parallel build support!
+    osg::Referenced::setThreadSafeReferenceCounting( true );
 
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
@@ -142,9 +151,18 @@ main(int argc, char* argv[])
     else // build the requested target.
     {
         std::string base_uri = osgDB::getFilePath( project_file );
+
         osgGISProjects::Builder builder( project.get(), base_uri );
+        if ( num_threads > 0 )
+            builder.setNumThreads( num_threads );
+
+        osg::Timer_t start = osg::Timer::instance()->tick();
+
         builder.build( target_name );
-        VERBOSE_OUT << "Done." << std::endl;
+
+        osg::Timer_t end = osg::Timer::instance()->tick();
+        VERBOSE_OUT << "Done, total build time = " << osg::Timer::instance()->delta_s( start, end ) 
+            << "s" << std::flush << std::endl;
     }
 
 	return 0;

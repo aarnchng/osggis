@@ -95,16 +95,19 @@ ClampFilter::getProperties() const
 #define ALTITUDE_EXTENSION 250000
 #define DEFAULT_OFFSET_EXTENSION 1
 
-void
+int
 clampPointPart(GeoPointList&           part,
                osg::Node*              terrain,
                const SpatialReference* srs,
                bool                    ignore_z,
                SmartReadCallback*      read_cache )
 {
+    int clamps = 0;
+
     osgUtil::IntersectionVisitor iv;
 
-    iv.setReadCallback( read_cache );
+    if ( read_cache )
+        iv.setReadCallback( read_cache );
 
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
     {
@@ -137,12 +140,20 @@ clampPointPart(GeoPointList&           part,
         iv.setIntersector( isector.get() );
 
         // try the read cache's MRU node if it intersects out point:
-        osg::Node* target = read_cache->getMruNodeIfContains( p_world, terrain );
+        osg::Node* target = terrain;
+        if ( read_cache )
+        {
+            target = read_cache->getMruNodeIfContains( p_world, terrain );
 
-        // First try the MRU target; then fall back on the whole terrain.
-        target->accept( iv );
-        if ( !isector->containsIntersections() && target != terrain )
+            // First try the MRU target; then fall back on the whole terrain.
+            target->accept( iv );
+            if ( !isector->containsIntersections() && target != terrain )
+                terrain->accept( iv );
+        }
+        else
+        {
             terrain->accept( iv );
+        }
 
         if ( isector->containsIntersections() )
         {
@@ -150,9 +161,13 @@ clampPointPart(GeoPointList&           part,
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
             osg::Vec3d offset_point = new_point + clamp_vec * z;
             p.set( offset_point * srs->getReferenceFrame() );
-            read_cache->setMruNode( isect.nodePath.back().get() );
+            clamps++;
+            if ( read_cache )
+                read_cache->setMruNode( isect.nodePath.back().get() );
         }
     }
+
+    return clamps;
 }
 
 
@@ -214,15 +229,25 @@ clampLinePart(GeoPointList&           in_part,
         else
         {
             osg::Vec3d normal( 0, 0, 1 );
-
-            osg::BoundingBox bbox;
-            bbox.expandBy( p0_world + normal * ALTITUDE_EXTENSION );
-            bbox.expandBy( p0_world - normal * ALTITUDE_EXTENSION );
-            bbox.expandBy( p1_world + normal * ALTITUDE_EXTENSION );
-            bbox.expandBy( p1_world - normal * ALTITUDE_EXTENSION );
             
-            osg::Polytope polytope;
-            polytope.setToBoundingBox( bbox );
+            osg::Polytope::PlaneList planes( 2 );
+
+            osg::Vec3d p0_normal = p1_world-p0_world;
+            double seg_length = p0_normal.length();
+            p0_normal.normalize();
+            planes[0] = osg::Plane( p0_normal, p0_world );
+            planes[1] = osg::Plane( -p0_normal, p1_world );
+
+            //osg::BoundingBox bbox;
+            //bbox.expandBy( p0_world + normal * ALTITUDE_EXTENSION );
+            //bbox.expandBy( p0_world - normal * ALTITUDE_EXTENSION );
+            //bbox.expandBy( p1_world + normal * ALTITUDE_EXTENSION );
+            //bbox.expandBy( p1_world - normal * ALTITUDE_EXTENSION );
+            //
+            //osg::Polytope polytope;
+            //polytope.setToBoundingBox( bbox );
+
+            osg::Polytope polytope( planes );
 
             osg::Plane plane(
                 p0_world,
@@ -237,24 +262,35 @@ clampLinePart(GeoPointList&           in_part,
 
         iv.setIntersector( isector.get() );
         
-        // try the read cache's MRU node if it intersects out point:
+        // try the read cache's MRU node if it intersects our points:
         osg::Node* target = read_cache->getMruNodeIfContains( p0_world, p1_world, terrain );
-        target->accept( iv );
-        if ( !isector->containsIntersections() && target != terrain )
-            terrain->accept( iv );
+        if ( target != terrain )
+        {
+            // we're using the cache entry, so we must first ensure that each endpoint
+            // intersects the patch. The getMru method only tests against bounding spheres
+            // and therefore there's a chance one of the points doesn't actually fall
+            // within the cached tile.
+            GeoPointList test( 2 );
+            test[0] = p0;
+            test[1] = p1;
+            if ( clampPointPart( test, target, srs, ignore_z, NULL ) < 2 )
+            {
+                target = terrain;
+            }
+        }
 
-        osg::setNotifyLevel( sev );
+        target->accept( iv );
 
         if ( isector->containsIntersections() )
         {
             GeoPointList new_part;
 
             osgUtil::PlaneIntersector::Intersections& results = isector->getIntersections();
-            for( osgUtil::PlaneIntersector::Intersections::iterator i = results.begin();
-                 i != results.end();
-                 i++ )
+            for( osgUtil::PlaneIntersector::Intersections::iterator k = results.begin();
+                k != results.end();
+                k++ )
             {                
-                osgUtil::PlaneIntersector::Intersection& isect = *i;
+                osgUtil::PlaneIntersector::Intersection& isect = *k;
                 for( osgUtil::PlaneIntersector::Intersection::Polyline::iterator j = isect.polyline.begin();
                      j != isect.polyline.end();
                      j++ )
@@ -293,6 +329,8 @@ clampLinePart(GeoPointList&           in_part,
             osg::notify( osg::INFO )
                 << "uh oh no isect.." << std::endl;
         }
+        
+        osg::setNotifyLevel( sev );
     }
 }
 

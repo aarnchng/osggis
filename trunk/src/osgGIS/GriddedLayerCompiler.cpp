@@ -21,11 +21,14 @@
 #include <osgGIS/GeoExtent>
 #include <osgGIS/Compiler>
 #include <osgGIS/FadeHelper>
+#include <osgGIS/Task>
+#include <osgGIS/TaskManager>
 #include <osg/Node>
 #include <osg/LOD>
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/Group>
+#include <osg/Timer>
 #include <osgUtil/Optimizer>
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
@@ -71,31 +74,6 @@ GriddedLayerCompiler::getNumColumns() const
     return num_cols;
 }
 
-void
-GriddedLayerCompiler::setPaged( bool value )
-{
-    paged = value;
-}
-
-bool
-GriddedLayerCompiler::getPaged() const
-{
-    return paged;
-}
-
-
-osg::Node*
-GriddedLayerCompiler::compileLOD( FeatureLayer* layer, Script* script, const GeoExtent& extent )
-{
-    osg::ref_ptr<FilterEnv> env = new FilterEnv();
-    env->setExtent( extent );
-    env->setTerrainNode( terrain.get() );
-    env->setTerrainSRS( terrain_srs.get() );
-    env->setTerrainReadCallback( read_cb.get() );
-    Compiler compiler( layer, script );
-    return compiler.compile( env.get() );
-}
-
 
 osg::Node*
 GriddedLayerCompiler::compile( FeatureLayer* layer )
@@ -104,12 +82,146 @@ GriddedLayerCompiler::compile( FeatureLayer* layer )
 }
 
 
+static OpenThreads::Mutex report_mutex;
+
+static void
+report( const std::string& str )
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl(report_mutex);
+    osg::notify(osg::NOTICE) << str;
+}
+
+
+class CompileTileTask : public Task
+{
+public:
+    CompileTileTask(int                _row, 
+                    int                _col,
+                    const GeoExtent&   _extent, 
+                    FeatureLayer*      _layer,
+                    const std::string& _output_file,
+                    LayerCompiler&     _compiler ) :
+      row(_row),
+      col(_col),
+      tile_extent( _extent ),
+      layer( _layer ),
+      output_file( _output_file ),
+      compiler( _compiler )
+    {
+        std::stringstream s;
+        s << "Cell x" << col << ",y" << row;
+        setName( s.str() );
+
+        read_cb = new SmartReadCallback();
+    }
+
+    void run()
+    {
+        std::stringstream str;
+
+        std::string output_dir = osgDB::getFilePath( output_file );
+        std::string output_prefix = osgDB::getStrippedName( output_file );
+        std::string output_extension = osgDB::getFileExtension( output_file );
+
+        //str.clear();
+        //str << "Starting row=" << row << " col=" << col << ", extent=" << tile_extent.toString() << "... " << std::endl;
+        //report( str.str() );
+            
+        float min_range = FLT_MAX, max_range = FLT_MIN;
+        osg::ref_ptr<osg::LOD> lod = new osg::LOD();
+        LayerCompiler::ScriptRangeList& scripts = compiler.getScripts();
+
+        for( LayerCompiler::ScriptRangeList::iterator i = scripts.begin(); i != scripts.end(); i++ )
+        {
+            osg::Node* range = compileLOD( i->script.get() );
+            if ( range )
+            {
+                lod->addChild( range, i->min_range, i->max_range );
+                if ( i->min_range < min_range ) min_range = i->min_range;
+                if ( i->max_range > max_range ) max_range = i->max_range;
+
+                //TODO: need to set centroid and cluster culling
+                
+                if ( compiler.getFadeLODs() )
+                {
+                    FadeHelper::setOuterFadeDistance( i->max_range, range->getOrCreateStateSet() );
+                    FadeHelper::setInnerFadeDistance( (float)(i->max_range - .2*(i->max_range - i->min_range)), range->getOrCreateStateSet() );
+                }
+            }
+        }
+
+        if ( compiler.getPaged() )
+        {
+            osg::PagedLOD* plod = new osg::PagedLOD();
+            std::stringstream str;
+            str << output_prefix << "_x" << col << "_y" << row  << "." << output_extension;
+            std::string tile_filename = str.str();
+            plod->setFileName( 0, tile_filename );
+            plod->setRange( 0, min_range, max_range );
+            plod->setCenter( lod->getBound().center() );
+            plod->setRadius( lod->getBound().radius() );
+
+            if ( compiler.getArchive() )
+            {
+                compiler.getArchive()->writeNode( *(lod.get()), tile_filename );
+            }
+            else
+            {
+                std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
+                osgDB::writeNodeFile( *(lod.get()), tile_path );
+            }
+
+            //str.clear();
+            //str << "  Completed row=" << row << " col=" << col << " @ " << tile_filename << std::endl;
+            //report( str.str() );
+
+            result = plod;
+            //root->addChild( plod );
+        }
+        else
+        {
+            //root->addChild( lod.get() );
+            result = lod.get();
+        }
+
+        //str.clear();
+        //str << "  Done; hits = " << read_cb->getMruHitRatio() << std::endl;
+        //report( str.str() );
+    }
+
+public:
+    osg::Node* getResult()
+    {
+        return result.get();
+    }
+
+private:
+    osg::Node* compileLOD( Script* script )
+    {
+        osg::ref_ptr<FilterEnv> env = new FilterEnv();
+        env->setExtent( tile_extent );
+        env->setTerrainNode( compiler.getTerrainNode() );
+        env->setTerrainSRS( compiler.getTerrainSRS() );
+        env->setTerrainReadCallback( read_cb.get() );
+        Compiler compiler( layer.get(), script );
+        return compiler.compile( env.get() );
+    }
+
+private:
+    int row, col;
+    osg::ref_ptr<SmartReadCallback> read_cb;
+    GeoExtent tile_extent;
+    osg::ref_ptr<FeatureLayer> layer;
+    std::string output_file;
+    LayerCompiler& compiler;
+    osg::ref_ptr<osg::Node> result;
+};
+
+
 osg::Node*
 GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_file )
 {
-    std::string output_dir = osgDB::getFilePath( output_file );
-    std::string output_prefix = osgDB::getStrippedName( output_file );
-    std::string output_extension = osgDB::getFileExtension( output_file );
+    osg::Timer_t start = osg::Timer::instance()->tick();
 
     osg::Group* root = new osg::Group();
 
@@ -144,75 +256,64 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         double dx = (ne.x() - sw.x()) / num_cols;
         double dy = (ne.y() - sw.y()) / num_rows;
 
+        // Queue each tile as a parallelized task
         for( unsigned int col = 0; col < num_cols; col++ )
         {
             for( unsigned int row = 0; row < num_rows; row++ )
             {
-                read_cb = new SmartReadCallback();
-
                 GeoExtent sub_extent(
                     GeoPoint( sw.x() + (double)col*dx, sw.y() + (double)row*dy, srs.get() ),
                     GeoPoint( sw.x() + (double)(col+1)*dx, sw.y() + (double)(row+1)*dy, srs.get() ) );
 
-                osg::notify(osg::NOTICE) <<
-                    "Building row=" << row << " col=" << col << ", extent=" << sub_extent.toString() << "... " << std::flush;
-                    
-                float min_range = FLT_MAX, max_range = FLT_MIN;
-                osg::ref_ptr<osg::LOD> lod = new osg::LOD();
-                for( ScriptRangeList::iterator i = script_ranges.begin(); i != script_ranges.end(); i++ )
+                if ( getTaskManager() )
                 {
-                    osg::Node* range = compileLOD( layer, i->script.get(), sub_extent );
-                    if ( range )
-                    {
-                        lod->addChild( range, i->min_range, i->max_range );
-                        if ( i->min_range < min_range ) min_range = i->min_range;
-                        if ( i->max_range > max_range ) max_range = i->max_range;
-
-                        //TODO: need to set centroid and cluster culling
-                        
-                        if ( getFadeLODs() )
-                        {
-                            FadeHelper::setOuterFadeDistance( i->max_range, range->getOrCreateStateSet() );
-                            FadeHelper::setInnerFadeDistance( (float)(i->max_range - .2*(i->max_range - i->min_range)), range->getOrCreateStateSet() );
-                        }
-                    }
-                }
-
-                if ( getPaged() )
-                {
-                    osg::PagedLOD* plod = new osg::PagedLOD();
-                    std::stringstream str;
-                    str << output_prefix << "_r" << row << "_c" << col << "." << output_extension;
-                    std::string tile_filename = str.str();
-                    plod->setFileName( 0, tile_filename );
-                    plod->setRange( 0, min_range, max_range );
-                    plod->setCenter( lod->getBound().center() );
-                    plod->setRadius( lod->getBound().radius() );
-
-                    if ( getArchive() )
-                    {
-                        getArchive()->writeNode( *(lod.get()), tile_filename );
-                    }
-                    else
-                    {
-                        std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
-                        osgDB::writeNodeFile( *(lod.get()), tile_path );
-                    }
-                    osg::notify(osg::NOTICE) << tile_filename << "... " << std::flush;
-                    root->addChild( plod );
+                    getTaskManager()->queueTask( new CompileTileTask( 
+                        row, col, sub_extent, layer, output_file, *this ) );
                 }
                 else
                 {
-                    root->addChild( lod.get() );
+                    osg::ref_ptr<CompileTileTask> task = new CompileTileTask(
+                        row, col, sub_extent, layer, output_file, *this );
+                    osg::notify(osg::NOTICE) << task->getName() << ": building..." << std::flush;
+                    task->run();
+                    if ( task->getResult() )
+                    {
+                        root->addChild( task->getResult() );
+                    }
+                    osg::notify(osg::NOTICE) << "completed" << std::endl;
                 }
+            }
+        }
 
-                osg::notify(osg::NOTICE) << "done; hits = " << read_cb->getMruHitRatio() << std::endl;
+        // block until tasks are completed, and add the resulting nodes to the main graph.
+        if ( getTaskManager() )
+        {
+            while( getTaskManager()->wait() )
+            {
+                osg::ref_ptr<Task> completed_task = getTaskManager()->getNextCompletedTask();
+                if ( completed_task.valid() )
+                {
+                    CompileTileTask* task = dynamic_cast<CompileTileTask*>( completed_task.get() );
+                    osg::Node* node = task->getResult();
+                    if ( node )
+                    {
+                        root->addChild( node );
+                    }
+                }        
             }
         }
     }
 
+    // finally we organize the root graph better
     osgUtil::Optimizer opt;
     opt.optimize( root, osgUtil::Optimizer::SPATIALIZE_GROUPS );
+    
+    osg::Timer_t end = osg::Timer::instance()->tick();
+
+    osg::notify(osg::FATAL) 
+        << "[GriddedLayerCompiler] total time = " 
+        << osg::Timer::instance()->delta_s( start, end )
+        << "s" << std::endl;
 
     return root;
 }

@@ -42,6 +42,7 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
 FeatureLayer::~FeatureLayer()
 {
     //NOP
+    osg::notify(osg::NOTICE) << "dtor" << std::endl;
 }
 
 

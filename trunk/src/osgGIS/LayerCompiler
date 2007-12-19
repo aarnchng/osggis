@@ -24,6 +24,7 @@
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/Script>
 #include <osgGIS/SmartReadCallback>
+#include <osgGIS/TaskManager>
 #include <osg/Node>
 #include <osgDB/Archive>
 #include <osgUtil/IntersectionVisitor>
@@ -43,6 +44,13 @@ namespace osgGIS
         LayerCompiler();
 
     public:
+        struct ScriptRange {
+            float min_range, max_range;
+            osg::ref_ptr<Script> script;
+        };
+        typedef std::list<ScriptRange> ScriptRangeList;
+
+    public:
         /**
          * Adds a script that should be used to build geometry within
          * the specified visibility range.
@@ -57,6 +65,12 @@ namespace osgGIS
          *      Compile geometry using this script for the given range.
          */
         void addScript( float min_range, float max_range, Script* script );
+        
+        /**
+         * Gets the list of scripts and the visibility range associated 
+         * with each one.
+         */
+        ScriptRangeList& getScripts();
         
         /** 
          * Sets the reference terrain against which to compile.
@@ -74,11 +88,29 @@ namespace osgGIS
             const SpatialReference* terrain_srs );
             
         /**
+         * Gets the scene graph holding the reference terrain, if set.
+         */
+        osg::Node* getTerrainNode();
+        
+        /**
+         * Gets the spatial reference system of the reference terrain, if set.
+         */
+        SpatialReference* getTerrainSRS();
+        
+        /**
+         * Gets the geospatial extents of the reference terrain, if set.
+         */
+        const GeoExtent& getTerrainExtent() const;
+            
+        /**
          * Sets the archive to which the compiler should write files,
          * if applicable.
          */
         void setArchive( osgDB::Archive* archive );
         
+        /**
+         * Gets the archive to which the compiler should write files, if set.
+         */
         osgDB::Archive* getArchive();
 
         /**
@@ -103,12 +135,30 @@ namespace osgGIS
          */
         int getRenderBinNumber() const;
 
+        /**
+         * Sets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        void setPaged( bool value );
+
+        /**
+         * Gets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        bool getPaged() const;
+        
+        /**
+         * Assigns a task manager to use to build the layer. This will
+         * enable multi-threaded layer compilation when it's possible.
+         */
+        void setTaskManager( TaskManager* tm );
+        
+        /**
+         * Gets the task manager to use when compiling the layer.
+         */
+        TaskManager* getTaskManager();
+        
     protected:
-        struct ScriptRange {
-            float min_range, max_range;
-            osg::ref_ptr<Script> script;
-        };
-        typedef std::list<ScriptRange>  ScriptRangeList;
         ScriptRangeList                 script_ranges;
         osg::ref_ptr<osg::Node>         terrain;
         osg::ref_ptr<SpatialReference>  terrain_srs;
@@ -116,7 +166,9 @@ namespace osgGIS
         osg::ref_ptr<SmartReadCallback> read_cb;
         int                             render_bin_number;
         bool                            fade_lods;
+        bool                            paged;
         osg::ref_ptr<osgDB::Archive>    archive;
+        osg::ref_ptr<TaskManager>       task_manager;
     };
 }
 

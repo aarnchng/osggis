@@ -40,7 +40,7 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT DrawableFilter : public Filter
     {        
-    protected: 
+    public: 
     
         /**
          * Processes a single feature into drawables. Override this method in
@@ -106,24 +106,26 @@ namespace osgGIS
 
     public: // Filter overrides (internal)
 
-        bool traverse( FilterEnv* );
-        virtual void reset( ScriptContext* );
+        virtual FilterState* newState();
 
-    public: // Methods internal to the scripting engine        
+    //    bool traverse( FilterEnv* );
+    //    virtual void reset( ScriptContext* );
 
-        void push( Feature* input );
-        void push( const FeatureList& input );
-        void push( osg::Drawable* input );
-        void push( const DrawableList& input );
+    //public: // Methods internal to the scripting engine        
+
+    //    void push( Feature* input );
+    //    void push( const FeatureList& input );
+    //    void push( osg::Drawable* input );
+    //    void push( const DrawableList& input );
 
     protected:        
 
         DrawableFilter();
         virtual ~DrawableFilter();
-                
-    private:        
-        FeatureList in_features;
-        DrawableList in_drawables;        
+    //            
+    //private:        
+    //    FeatureList in_features;
+    //    DrawableList in_drawables;        
     };
 }
 

@@ -217,9 +217,9 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
 
     if ( start_count > 0 )
     {
-        osg::notify(osg::NOTICE) << "[Combine] combined " << start_count << " segments into " << output.size()
-            << " features (" << (100-(int)(100.0f*(float)output.size()/(float)start_count)) << "% reduction)"
-            << std::endl;
+        //osg::notify(osg::NOTICE) << "[Combine] combined " << start_count << " segments into " << output.size()
+        //    << " features (" << (100-(int)(100.0f*(float)output.size()/(float)start_count)) << "% reduction)"
+        //    << std::endl;
     }
 
     return output;
