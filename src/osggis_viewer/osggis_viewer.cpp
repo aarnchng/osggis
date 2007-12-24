@@ -39,8 +39,11 @@
 #include <osg/GLExtensions>
 #include <osg/GraphicsThread>
 #include <osg/LineWidth>
+#include <osg/Camera>
+#include <osg/TexEnv>
 #include <osgDB/ReadFile>
 #include <osgViewer/Viewer>
+#include <osgSim/OverlayNode>
 #include <osgGA/TerrainManipulator>
 #include <osgGA/StateSetManipulator>
 #include <osgViewer/ViewerEventHandlers>
@@ -71,9 +74,10 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    [terrain file] [feature file...]  - Files to view (put terrain first for polygon offset)" << ENDL;
     NOUT << ENDL;
     NOUT << "Optional:"<< ENDL;
+    NOUT << "    --overlay <filename>       - Loads a compiled feature layer as a projected overlay" << ENDL;
     NOUT << "    --point-size <num>         - Sets the point size (default = 1)" << ENDL;
     NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
-    NOUT << "    --no-pre-compile           - Disables pre-compilation for the database pager (default = on)" << ENDL;
+//    NOUT << "    --no-pre-compile           - Disables pre-compilation for the database pager (default = on)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
     NOUT << "    --frame-rate <fps>         - Sets the target frame rate, disabling VSYNC (default = 60)" << ENDL;
     NOUT << "" << ENDL;
@@ -93,6 +97,8 @@ struct ToggleVsyncOperation : public osg::Operation
         }
     }
 };
+
+
 
 
 int
@@ -147,6 +153,19 @@ main(int argc, char* argv[])
 
     bool no_pre_compile = args.read( "--no-pre-compile" );
 
+    osg::NodeList overlays;
+    while( args.read( "--overlay", str ) )
+    {
+        osg::Node* o_node = osgDB::readNodeFile( str );
+        if ( o_node )
+        {
+            osgSim::OverlayNode* ov = new osgSim::OverlayNode( osgSim::OverlayNode::VIEW_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
+            ov->setOverlaySubgraph( o_node );
+            ov->setOverlayTextureSizeHint( 2048 );
+            overlays.push_back( ov );
+        }
+    }
+
     osg::Node* terrain_node = NULL;
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
     for( int i=1; i<argc; i++ )
@@ -164,6 +183,24 @@ main(int argc, char* argv[])
                 terrain_node->getOrCreateStateSet()->setAttributeAndModes(
                     new osg::PolygonOffset( po_factor, po_units ),
                     osg::StateAttribute::ON );
+
+                if ( overlays.size() > 0 )
+                {
+                    osg::Group* csn = terrain_node->asGroup();
+                        
+                    for( int i=0; i<csn->getNumChildren(); i++ )
+                    {
+                        for( int j=0; j<overlays.size(); j++ )
+                        {
+                            overlays[i].get()->asGroup()->addChild( csn->getChild( i ) );
+                        }
+                    }
+                    csn->removeChildren( 0, csn->getNumChildren() );
+                    for( int i=0; i<overlays.size(); i++ )
+                    {
+                        csn->addChild( overlays[i].get() );
+                    }
+                }
             }
         }
     }

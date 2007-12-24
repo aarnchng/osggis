@@ -19,7 +19,9 @@
 
 #include <osgGIS/LayerCompiler>
 #include <osgSim/LineOfSight>
+#include <osgSim/OverlayNode>
 #include <osgDB/ReadFile>
+#include <osg/TexEnv>
 #include <map>
 #include <string>
 #include <queue>
@@ -34,8 +36,8 @@ LayerCompiler::LayerCompiler()
     read_cb = new SmartReadCallback();
     render_bin_number = INT_MAX;
     fade_lods = false;
+    overlay = false;
 }
-
 
 void
 LayerCompiler::setTaskManager( TaskManager* _manager )
@@ -152,4 +154,26 @@ bool
 LayerCompiler::getPaged() const
 {
     return paged;
+}
+
+void
+LayerCompiler::setOverlay( bool value )
+{
+    overlay = value;
+}
+
+bool
+LayerCompiler::getOverlay() const
+{
+    return overlay;
+}
+
+osg::Node*
+LayerCompiler::convertToOverlay( osg::Node* input )
+{
+    osgSim::OverlayNode* o_node = new osgSim::OverlayNode();
+    o_node->getOrCreateStateSet()->setTextureAttribute( 1, new osg::TexEnv( osg::TexEnv::DECAL ) );
+    o_node->setOverlaySubgraph( input );
+    o_node->setOverlayTextureSizeHint( 1024 );
+    return o_node;
 }

@@ -99,6 +99,7 @@ bool convex_hull = false;
 bool remove_holes = false;
 bool fade_lods = false;
 int num_threads = 0;
+bool overlay = false;
 
 int
 die( const std::string& msg )
@@ -134,6 +135,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --grid-rows                - Number of rows to generate (when used with --gridded)" << ENDL;
     NOUT << "    --grid-cols                - Number of columns to generate (when used with --gridded)" << ENDL;
     NOUT << "    --paged                    - Generate PagedLOD output" << ENDL;
+    NOUT << "    --overlay                  - Hints that the output will be used in an osgSim::OverlayNode (disables clamping)" << ENDL;
     NOUT << "    --correlated               - Generate PagedLODs that correlate one-to-one with terrain PagedLODs (forces --paged)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Geometry options:" << ENDL;
@@ -273,6 +275,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--threads", str ) )
         sscanf( str.c_str(), "%d", &num_threads );
 
+    while( arguments.read( "--overlay" ) )
+        overlay = true;
+
 
     // validate required arguments:
     if (input_file.length() == 0 || output_file.length() == 0 )
@@ -332,8 +337,11 @@ createScript()
     }
 
     // Adjust the spatial data so that it conforms to the reference
-    // terrain skin:
-    script->appendFilter( new osgGIS::ClampFilter() );
+    // terrain skin (unless we are overlay-ing)
+    if ( !overlay )
+    {
+        script->appendFilter( new osgGIS::ClampFilter() );
+    }
 
     // Construct osg::Drawable's from the incoming feature batches:
     if ( extrude )
@@ -472,6 +480,7 @@ main(int argc, char* argv[])
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setPriorityOffset( priority_offset );
         compiler.setFadeLODs( fade_lods );
+        //compiler.setOverlay( overlay );
         compiler.setArchive( archive.get() );
         compiler.setTaskManager( manager.get() );
 
@@ -488,6 +497,7 @@ main(int argc, char* argv[])
         compiler.setNumColumns( grid_cols );
         compiler.setPaged( paged );
         compiler.setFadeLODs( fade_lods );
+        //compiler.setOverlay( overlay );
 
         compiler.addScript( range_near, range_far, script.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
@@ -516,6 +526,7 @@ main(int argc, char* argv[])
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         compiler.setFadeLODs( fade_lods );
+        //compiler.setOverlay( overlay );
         compiler.setTaskManager( manager.get() );
 
         osg::ref_ptr<osg::Node> node = compiler.compile( layer.get() );
