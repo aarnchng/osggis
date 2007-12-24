@@ -50,9 +50,11 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, Script* script )
 osg::Node*
 SimpleLayerCompiler::compile( FeatureLayer* layer )
 {
+    osg::Node* result = NULL;
+
     if ( !layer ) {
         osg::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
-        return NULL;
+        return result;
     }
     
     osg::LOD* lod = new osg::LOD();
@@ -77,5 +79,12 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
         }
     }
 
-    return lod;
+    result = lod;
+
+    if ( getOverlay() )
+    {
+        result = convertToOverlay( lod );
+    }
+
+    return result;
 }

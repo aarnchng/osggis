@@ -148,6 +148,18 @@ namespace osgGIS
         bool getPaged() const;
         
         /**
+         * Sets whether the compiled graph should be converted into an
+         * overlay graph (i.e. projected onto the terrain)
+         */
+        void setOverlay( bool value );
+        
+        /**
+         * Gets whether the compiled graph should be returns as an 
+         * overlay graph (i.e. projected onto the terrain)
+         */
+        bool getOverlay() const;
+        
+        /**
          * Assigns a task manager to use to build the layer. This will
          * enable multi-threaded layer compilation when it's possible.
          */
@@ -166,9 +178,13 @@ namespace osgGIS
         osg::ref_ptr<SmartReadCallback> read_cb;
         int                             render_bin_number;
         bool                            fade_lods;
+        bool                            overlay;
         bool                            paged;
         osg::ref_ptr<osgDB::Archive>    archive;
         osg::ref_ptr<TaskManager>       task_manager;
+        
+    protected:
+        osg::Node* convertToOverlay( osg::Node* input );
     };
 }
 
