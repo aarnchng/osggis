@@ -45,6 +45,7 @@
 #include <osgViewer/Viewer>
 #include <osgSim/OverlayNode>
 #include <osgGA/TerrainManipulator>
+#include <osgGA/TrackballManipulator>
 #include <osgGA/StateSetManipulator>
 #include <osgViewer/ViewerEventHandlers>
 #include <OpenThreads/Thread>
@@ -205,7 +206,7 @@ main(int argc, char* argv[])
         }
     }
 
-    viewer.setSceneData( group.get() );
+    viewer.setSceneData( group.get() );    
     viewer.setCameraManipulator( manip );
     
     viewer.addEventHandler( new osgViewer::ThreadingHandler() );
@@ -226,7 +227,6 @@ main(int argc, char* argv[])
 
 
     viewer.realize();
-    
     viewer.frame();
     if ( terrain_node )
         manip->setNode( terrain_node );

@@ -21,7 +21,6 @@
 #define _OSGGIS_AUTO_RESET_EVENT_H_ 1
 
 #include <osgGIS/Common>
-//#include <OpenThreads/Block>
 #include <OpenThreads/Mutex>
 #include <OpenThreads/Condition>
 #include <OpenThreads/ScopedLock>
@@ -29,14 +28,14 @@
 namespace osgGIS
 {
     /**
-     * Adds a method to the Block class to release a block and automatically
-     * reset the state to non-released. This simluates the .NET AutoResetEvent
-     * behavior.
+     * Similar to the OpenThreads::Block class, this method maintains a "signalled" state
+     * counter. A thread will only block (upon calling block()) when the number of signals
+     * is zero. This simluates the behavior of the .NET AutoResetEvent class.
      */
-    class AutoResetBlock // : public OpenThreads::Block
+    class AutoResetBlock
     {
     public:
-        AutoResetBlock() // : Block()
+        AutoResetBlock()
         { 
             signal_count = 0;
         }

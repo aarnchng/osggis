@@ -26,6 +26,9 @@
 
 namespace osgGIS
 {
+    /**
+     * A single name/value pair, representing a GIS feature attribute record.
+     */
     class OSGGIS_EXPORT Attribute
     {
     public:

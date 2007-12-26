@@ -26,6 +26,10 @@
 
 namespace osgGIS
 {
+    /**
+     * Assembles osg::Drawable objects into osg::Nodes. This is usually
+     * the final step in a compilation script.
+     */
     class OSGGIS_EXPORT BuildNodesFilter : public NodeFilter
     {
         OSGGIS_META_FILTER( BuildNodesFilter );
@@ -40,44 +44,96 @@ namespace osgGIS
         };
 
     public:
+        /**
+         * Constructs a filter with default properties.
+         */
         BuildNodesFilter();
 
+        /**
+         * Constructs a filter with the specified quick-set options.
+         */
         BuildNodesFilter( int options /*Options*/);
 
         virtual ~BuildNodesFilter();
         
     public:   // properties   
-    
+
+        /**
+         * Sets whether to disable GL lighting on the resulting node graphs.
+         */
         void setDisableLighting( bool value );
         
+        /** 
+         * Gets whether to disable GL lighting on the resulting node graphs.
+         */
         bool getDisableLighting() const;  
         
+        /**
+         * Sets whether to enable backface culling on the resulting node.
+         */
         void setCullBackfaces( bool value );
         
+        /**
+         * Gets whether to enable backfase culling on the resulting node.
+         */
         bool getCullBackfaces() const;
         
+        /**
+         * Sets whether to apply cluster culling to the resulting node. 
+         * Cluster culling is a fast way to cull the entire node based on
+         * a single normal vector. This only applies to geocentric datasets.
+         */
         void setApplyClusterCulling( bool value );
         
+        /**
+         * Gets whether to apply cluster culling to the resulting node.
+         */
         bool getApplyClusterCulling() const;  
         
+        /**
+         * Sets whether to run the OSG optimizer on the resulting node.
+         */
         void setOptimize( bool value );
         
+        /**
+         * Gets whether to run the OSG optimizer on the resulting node.
+         */
         bool getOptimize() const;      
         
         void setOptimizerOptions( int optimizer_options );
         
         int getOptimizerOptions() const;
 
+        /** 
+         * Sets the line width to set on the resulting node.
+         */
         void setLineWidth( float value );
 
+        /**
+         * Gets the line width the set on the resulting node.
+         */
         float getLineWidth() const;
 
+        /** 
+         * Sets the point size to apply to the resulting node graph.
+         */
         void setPointSize( float value );
 
+        /**
+         * Gets the point size to apply to the resulting node graph.
+         */
         float getPointSize() const;
 
+        /**
+         * Sets whether to create geometry for the normal vector used
+         * for cluster culling (for debugging purposes).
+         */
         void setDrawClusterCullingNormals( bool value );
 
+        /**
+         * Gets whether to create geometry for the normal vector used
+         * for cluster culling (for debugging purposes).
+         */
         bool getDrawClusterCullingNormals() const;
                 
     public:

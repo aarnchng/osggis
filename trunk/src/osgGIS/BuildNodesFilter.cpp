@@ -41,7 +41,7 @@ OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 
 BuildNodesFilter::BuildNodesFilter()
 {
-    init( 0 );
+    init( OPTIMIZE );
 }
 
 
@@ -237,7 +237,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         xform->addChild( geode );
         result = xform;
 
-        if ( (options & APPLY_CLUSTER_CULLING) && input_srs->isGeocentric() )
+        if ( getApplyClusterCulling() && input_srs->isGeocentric() )
         {    
             osg::Vec3d control_point = centroid_abs;
             osg::Vec3d normal = centroid_abs;

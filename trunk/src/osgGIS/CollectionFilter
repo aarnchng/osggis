@@ -40,10 +40,11 @@ namespace osgGIS
      * batches or one element at a time, a collection filter is useful for
      * combining related features or for enabling optimization. 
      *
-     * For example: if you want a number of features to be realized in a
-     * single OSG drawable, use a CollectionFilter to batch the feature data
-     * before sending it along to the DrawableFilter that assembles the
-     * drawables.
+     * For example: The CombineLinesFilter optimizes line layers by combining
+     * line segments that share endpoints into single line strips, reducing the
+     * number of features and helping performance. Since this filter needs to
+     * access all incoming features as a group and compare them, you must precede
+     * it with a CollectionFilter.
      *
      * Another possible use for a collection filter would be to save the state
      * of the script to support partial compilation or data caching. This is
