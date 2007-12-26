@@ -132,8 +132,8 @@ static void usage( const char* prog, const char* msg )
     NOUT << ENDL;
     NOUT << "  Layer options:" << ENDL;
     NOUT << "    --gridded                  - Generate simple gridded output (optionally combine with --paged)" << ENDL;
-    NOUT << "    --grid-rows                - Number of rows to generate (when used with --gridded)" << ENDL;
-    NOUT << "    --grid-cols                - Number of columns to generate (when used with --gridded)" << ENDL;
+    NOUT << "    --grid-rows                - Number of rows to generate (implies --gridded)" << ENDL;
+    NOUT << "    --grid-cols                - Number of columns to generate (implies --gridded)" << ENDL;
     NOUT << "    --paged                    - Generate PagedLOD output" << ENDL;
     NOUT << "    --overlay                  - Hints that the output will be used in an osgSim::OverlayNode (disables clamping)" << ENDL;
     NOUT << "    --correlated               - Generate PagedLODs that correlate one-to-one with terrain PagedLODs (forces --paged)" << ENDL;
@@ -199,11 +199,15 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--gridded" ) )
         gridded = true;
 
-    while( arguments.read( "--grid-rows", str ) )
+    while( arguments.read( "--grid-rows", str ) ) {
         sscanf( str.c_str(), "%d", &grid_rows );
+        gridded = true;
+    }
 
-    while( arguments.read( "--grid-cols", str ) )
+    while( arguments.read( "--grid-cols", str ) ) {
         sscanf( str.c_str(), "%d", &grid_cols );
+        gridded = true;
+    }
 
     while( arguments.read( "--correlated" ) )
         correlated = true;

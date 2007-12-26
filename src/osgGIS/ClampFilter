@@ -27,15 +27,16 @@
 namespace osgGIS
 {
     /**
-     * Clamps incoming features, point or line, to a terrain tile.
-     *
-     * Note that this filter does NOT traverse multiple LODs or PagedLODs.
-     * Rather, it is a simple building block. For example to clamp to a multi-LOD
-     * terrain, you would run a script containing this filter on each LOD and then
-     * piece them together. Same goes for PagedLODs - see the PagedLayerCompiler
-     * class.
-     *
-     * This filter does NOT clamp filled polygons (yet). Someday it will.
+     * Clamps incoming features to a terrain. This filter will a) clamp
+     * the incoming feature points to the terrain skin, and b) subdivide
+     * edges/lines so that they confirm to the underlying terrain (effectively
+     * draping them).
+     * 
+     * Note that this filter will not actually drape filled polygons to a
+     * terrain. To do that, you should build the polygons without clamping
+     * (i.e. don't use this filter) and then use the osgSim::OverlayNode to
+     * project them onto the terrain skin at runtime. (You can use the
+     * osggis_viewer app with the "--overlay" option to preview draped layers.)
      */
     class OSGGIS_EXPORT ClampFilter : public FeatureFilter
     {
@@ -58,12 +59,28 @@ namespace osgGIS
 
     public: // properties
 
+        /**
+         * Sets the clamping technique to use. The defauly is CONFORM.
+         */
         void setTechnique( const Technique& value );
 
+        /**
+         * Gets the clamping technique to use.
+         */
         const Technique& getTechnique() const;
 
+        /**
+         * Sets whether to ignore existing Z values in the input feature
+         * data. If you choose to ignore Z's, feature Z will be replaced
+         * with the clamped value. If you do not ignore Z's, feature Z 
+         * will be adjusted so that it is relative to the terrain Z at 
+         * that point.
+         */
         void setIgnoreZ( bool value );
 
+        /**
+         * Gets whether to ignore the Z vlaues in input feature data.
+         */
         bool getIgnoreZ() const;
 
 
