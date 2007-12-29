@@ -60,7 +60,13 @@ namespace osgGIS
         
         FilterState* getNextState();
 
-    protected:
+    protected:       
+        enum ElementType {
+            TYPE_FEATURE,
+            TYPE_DRAWABLE,
+            TYPE_NODE 
+        };
+
         osg::ref_ptr<FilterState> next_state;
         osg::ref_ptr<ScriptContext> context;
         std::string name;

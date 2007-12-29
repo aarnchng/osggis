@@ -20,6 +20,10 @@
 #include <osgGIS/ExtrudeGeomFilter>
 #include <osgGIS/ExpressionEvaluator>
 #include <osg/Geometry>
+#include <osg/Texture2D>
+#include <osg/TexEnv>
+#include <osg/Image>
+#include <osgDB/ReadFile>
 #include <osgUtil/SmoothingVisitor>
 #include <osgUtil/Tessellator>
 #include <float.h>
@@ -38,13 +42,14 @@ ExtrudeGeomFilter::ExtrudeGeomFilter()
     options = 0;
     min_height = 1.0;
     max_height = 2.0;
+    tex_index = 0;
+    randomize_facade_textures = false;
 }
 
 
 ExtrudeGeomFilter::ExtrudeGeomFilter( const int& _options )
 {
     options = _options;
-    //setHeight( 1.0 );
 }
 
 
@@ -52,7 +57,6 @@ ExtrudeGeomFilter::ExtrudeGeomFilter(const osg::Vec4f& color,
                                      double height )
 {
     overall_color  = color;
-    //overall_height = height;
     options        = 0;
     min_height     = 1.0;
     max_height     = 2.0;
@@ -132,6 +136,17 @@ ExtrudeGeomFilter::getMaxHeight() const
     return max_height;
 }
 
+void
+ExtrudeGeomFilter::setRandomizeFacadeTextures( bool value )
+{
+    randomize_facade_textures = value;
+}
+
+bool
+ExtrudeGeomFilter::getRandomizeFacadeTextures() const
+{
+    return randomize_facade_textures;
+}
 
 void
 ExtrudeGeomFilter::setProperty( const Property& p )
@@ -144,6 +159,8 @@ ExtrudeGeomFilter::setProperty( const Property& p )
         setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
     else if ( p.getName() == "randomize_heights" )
         setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
+    else if ( p.getName() == "randomize_facade_textures" )
+        setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -156,9 +173,12 @@ ExtrudeGeomFilter::getProperties() const
     p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
     p.push_back( Property( "min_height", getMinHeight() ) );
     p.push_back( Property( "max_height", getMaxHeight() ) );
+    p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
     return p;
 }
 
+#define TEX_WIDTH_M 3
+#define TEX_HEIGHT_M 4
 
 static bool
 extrudeWallsUp(const GeoShape&         shape, 
@@ -177,6 +197,9 @@ extrudeWallsUp(const GeoShape&         shape,
 
     osg::Vec3Array* verts = new osg::Vec3Array( num_verts );
     walls->setVertexArray( verts );
+
+    osg::Vec2Array* texcoords = new osg::Vec2Array( num_verts );
+    walls->setTexCoordArray( 0, texcoords );
 
     osg::Vec4Array* colors = new osg::Vec4Array( num_verts );
     walls->setColorArray( colors );
@@ -210,6 +233,7 @@ extrudeWallsUp(const GeoShape&         shape,
             const GeoPointList& part = *k;
             unsigned int wall_part_ptr = wall_vert_ptr;
             unsigned int roof_part_ptr = roof_vert_ptr;
+            double part_len = 0.0;
 
             for( GeoPointList::const_iterator m = part.begin(); m != part.end(); m++ )
             {
@@ -218,7 +242,7 @@ extrudeWallsUp(const GeoShape&         shape,
                     osg::Vec3d m_world = *m * srs->getInverseReferenceFrame();
                     if ( srs && srs->isGeocentric() )
                     {
-                        osg::Vec3d p_vec = m_world; //*m * srs->getInverseReferenceFrame();
+                        osg::Vec3d p_vec = m_world;
                         osg::Vec3d e_vec = p_vec;
                         e_vec.normalize();
                         p_vec = p_vec + (e_vec * height);
@@ -232,10 +256,6 @@ extrudeWallsUp(const GeoShape&         shape,
                         {
                             target_len = m_world.z() + height;
                         }
-                        //if ( m->z() + height > target_len )
-                        //{
-                        //    target_len = m->z() + height;
-                        //}
                     }
                 }
                 else // if ( pass == 1 )
@@ -247,7 +267,7 @@ extrudeWallsUp(const GeoShape&         shape,
                         osg::Vec3d m_world = *m * srs->getInverseReferenceFrame();
                         if ( srs->isGeocentric() )
                         {
-                            osg::Vec3d p_vec = m_world; //*m * srs->getInverseReferenceFrame();
+                            osg::Vec3d p_vec = m_world;
                             osg::Vec3d e_vec = p_vec;
                             e_vec.normalize();
                             double gap_len = target_len - (p_vec+(e_vec*height)).length();
@@ -260,7 +280,7 @@ extrudeWallsUp(const GeoShape&         shape,
                         }
                         else
                         {
-                            extrude_vec.set( m_world.x(), m_world.y(), target_len ); //m->x(), m->y(), target_len );
+                            extrude_vec.set( m_world.x(), m_world.y(), target_len );
                             extrude_vec = extrude_vec * srs->getReferenceFrame();
                         }
                     }
@@ -275,10 +295,25 @@ extrudeWallsUp(const GeoShape&         shape,
                         (*roof_verts)[roof_vert_ptr++] = extrude_vec;
                     }
 
-                    (*colors)[wall_vert_ptr] = color;
-                    (*verts)[wall_vert_ptr++] = extrude_vec;
-                    (*colors)[wall_vert_ptr] = color;
-                    (*verts)[wall_vert_ptr++] = *m;
+                    //double height = (extrude_vec - *m).length();
+                     
+                    part_len += wall_vert_ptr > wall_part_ptr?
+                        (extrude_vec - (*verts)[wall_vert_ptr-2]).length() :
+                        0.0;
+
+                    double h = (extrude_vec - *m).length();
+                    int p;
+
+                    p = wall_vert_ptr++;
+                    (*colors)[p] = color;
+                    (*verts)[p] = extrude_vec;
+                    //(*texcoords)[p].set( part_len/TEX_WIDTH_M, 1.0f );
+                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, h/TEX_HEIGHT_M );
+
+                    p = wall_vert_ptr++;
+                    (*colors)[p] = color;
+                    (*verts)[p] = *m;
+                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, 0.0f );
                 }
             }
 
@@ -287,10 +322,24 @@ extrudeWallsUp(const GeoShape&         shape,
                 // close the wall if it's a poly:
                 if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
                 {
-                    (*colors)[wall_vert_ptr] = color;
-                    (*verts)[wall_vert_ptr++] = (*verts)[wall_part_ptr];
-                    (*colors)[wall_vert_ptr] = color;
-                    (*verts)[wall_vert_ptr++] = (*verts)[wall_part_ptr+1];
+                    part_len += wall_vert_ptr > wall_part_ptr?
+                        ((*verts)[wall_part_ptr] - (*verts)[wall_vert_ptr-2]).length() :
+                        0.0;
+
+                    double h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
+
+                    int p;
+
+                    p = wall_vert_ptr++;
+                    (*colors)[p] = color;
+                    (*verts)[p] = (*verts)[wall_part_ptr];
+                    //(*texcoords)[p].set( part_len/TEX_WIDTH_M, 1.0f );
+                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, h );
+
+                    p = wall_vert_ptr++;
+                    (*colors)[p] = color;
+                    (*verts)[p] = (*verts)[wall_part_ptr+1];
+                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, 0.0f );
                 }
 
                 walls->addPrimitiveSet( new osg::DrawArrays(
@@ -314,65 +363,99 @@ extrudeWallsUp(const GeoShape&         shape,
 DrawableList
 ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
+    if ( getRandomizeFacadeTextures() )
+    {
+        // TEST: texturing
+        int k = tex_index++ % 4;
+        osg::Image* image = new osg::Image();
+        image->setFileName( 
+            k == 0? "g:/data/ttools/terrasim/large_win_tan_border.rgb" :
+            k == 1? "g:/data/ttools/terrasim/blue_glass.rgb" :
+            k == 2? "g:/data/ttools/terrasim/red_tan_brick_storefront.rgb" :
+                    "g:/data/ttools/terrasim/cement_3x3win.rgb" );
+        //osg::Texture2D* tex = new osg::Texture2D( image );
+        active_tex = new osg::Texture2D( image );
+        active_tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+        active_tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+        //osg::TexEnv* texenv = new osg::TexEnv();
+        active_texenv = new osg::TexEnv();
+        active_texenv->setMode( osg::TexEnv::MODULATE );
+
+        //active_state = new osg::StateSet();
+        //active_state->setTextureAttributeAndModes( 0, tex );
+        //active_state->setTextureAttribute( 0, texenv );
+    }
+
+    return BuildGeomFilter::process( input, env );
+}
+
+
+DrawableList
+ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
+{
     DrawableList output;
 
-    for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
+    osg::Vec4 color = getColorForFeature( input );
+
+    for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
     {
-        Feature* f = i->get();
+        const GeoShape& shape = *j;
 
-        osg::Vec4 color = getColorForFeature( f );
-
-        for( GeoShapeList::const_iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
+        double height = 0.0;
+        
+        // first try the height expression (takes precedence)
+        if ( height_expr.length() > 0 )
         {
-            const GeoShape& shape = *j;
-
-            double height = 0.0;
-            
-            // first try the height expression (takes precedence)
-            if ( height_expr.length() > 0 )
+            ExpressionEvaluator eval( input );
+            if ( !eval.eval( height_expr, /*out*/height ) )
             {
-                ExpressionEvaluator eval( f );
-                if ( !eval.eval( height_expr, /*out*/height ) )
-                {
-                    osg::notify(osg::WARN) 
-                        << "Warning, expression " << height_expr << " has an error" << std::endl;
-                }
-            }
-
-            // next try the functor.. this may eventually go away as well..
-            else if ( height_functor.valid() )
-            {
-                height = height_functor->get( f );
-            }
-
-            osg::ref_ptr<osg::Geometry> walls = new osg::Geometry();
-            osg::ref_ptr<osg::Geometry> rooflines = NULL;
-            
-            if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
-            {
-                rooflines = new osg::Geometry();
-            }
-
-            if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color ) )
-            {                
-                // generate per-vertex normals:
-                osgUtil::SmoothingVisitor smoother;
-                smoother.smooth( *(walls.get()) );            
-                output.push_back( walls.get() );
-
-                // tessellate and add the roofs if necessary:
-                if ( rooflines.valid() )
-                {
-                    osgUtil::Tessellator tess;
-                    tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
-                    tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
-                    tess.retessellatePolygons( *(rooflines.get()) );
-                    smoother.smooth( *(rooflines.get()) );
-
-                    output.push_back( rooflines.get() );
-                }
+                osg::notify(osg::WARN) 
+                    << "Warning, height expression \"" << height_expr << "\" has an error" << std::endl;
             }
         }
+
+        // next try the functor.. this may eventually go away as well..
+        else if ( height_functor.valid() )
+        {
+            height = height_functor->get( input );
+        }
+
+        osg::ref_ptr<osg::Geometry> walls = new osg::Geometry();
+        osg::ref_ptr<osg::Geometry> rooflines = NULL;
+        
+        if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
+        {
+            rooflines = new osg::Geometry();
+        }
+
+        if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color ) )
+        {                
+            if ( active_tex.valid() ) //active_state.valid() )
+            {
+                //walls->getOrCreateStateSet()->merge( *(active_state.get()) ); // crashed the optimizer?!
+                walls->getOrCreateStateSet()->setTextureAttributeAndModes( 0, active_tex.get(), osg::StateAttribute::ON );
+                walls->getOrCreateStateSet()->setTextureAttribute( 0, active_texenv.get(), osg::StateAttribute::ON );
+            }
+
+            // generate per-vertex normals
+            // todo: replace this nonsense
+            osgUtil::SmoothingVisitor smoother;
+            smoother.smooth( *(walls.get()) );            
+            output.push_back( walls.get() );
+
+            // tessellate and add the roofs if necessary:
+            if ( rooflines.valid() )
+            {
+                osgUtil::Tessellator tess;
+                tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+                tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+                tess.retessellatePolygons( *(rooflines.get()) );
+                smoother.smooth( *(rooflines.get()) );
+
+                output.push_back( rooflines.get() );
+            }
+        }   
     }
 
     return output;

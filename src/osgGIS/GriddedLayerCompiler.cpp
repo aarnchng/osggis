@@ -32,6 +32,7 @@
 #include <osgUtil/Optimizer>
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
+#include <osgDB/Registry>
 #include <sstream>
 
 using namespace osgGIS;

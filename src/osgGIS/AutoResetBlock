@@ -47,7 +47,8 @@ namespace osgGIS
             if ( signal_count == 0 ) {
                 result = cond.wait( &mut ) == 0;
             }
-            signal_count--;
+            if ( result )
+                signal_count--;
             return result;
         }
 

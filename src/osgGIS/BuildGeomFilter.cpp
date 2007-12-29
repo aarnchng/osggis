@@ -126,6 +126,15 @@ BuildGeomFilter::getProperties() const
 DrawableList
 BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
+    if ( getRandomizeColors() )
+        active_color = getRandomColor();
+
+    return DrawableFilter::process( input, env );
+}
+
+DrawableList
+BuildGeomFilter::process( Feature* f, FilterEnv* env ) //FeatureList& input, FilterEnv* env )
+{
     //osg::notify( osg::ALWAYS )
     //    << "Feature (" << input->getOID() << ") extent = " << input->getExtent().toString()
     //    << std::endl;
@@ -137,64 +146,57 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
     // geometry for each. Then merge the geometries.
     bool needs_tessellation = false;
 
-    DrawableList text_output;
+    osg::Geometry* geom = new osg::Geometry();
 
-    for( FeatureList::iterator i = input.begin(); i != input.end(); i++ )
+    // TODO: pre-total points and pre-allocate these arrays:
+    osg::Vec3Array* verts = new osg::Vec3Array();
+    geom->setVertexArray( verts );
+    unsigned int vert_ptr = 0;
+
+    // per-vertex coloring takes more memory than per-primitive-set coloring,
+    // but it renders faster.
+    osg::Vec4Array* colors = new osg::Vec4Array();
+    geom->setColorArray( colors );
+    geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
+
+    //osg::Vec3Array* normals = new osg::Vec3Array();
+    //geom->setNormalArray( normals );
+    //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
+    //normals->push_back( osg::Vec3( 0, 0, 1 ) );
+
+    const GeoShapeList& shapes = f->getShapes();
+
+    osg::Vec4 color = getColorForFeature( f );
+
+    for( GeoShapeList::const_iterator s = shapes.begin(); s != shapes.end(); s++ )
     {
-        Feature* f = i->get();
+        const GeoShape& shape = *s;
 
-        osg::Geometry* geom = new osg::Geometry();
-
-        // TODO: pre-total points and pre-allocate these arrays:
-        osg::Vec3Array* verts = new osg::Vec3Array();
-        geom->setVertexArray( verts );
-        unsigned int vert_ptr = 0;
-
-        // per-vertex coloring takes more memory than per-primitive-set coloring,
-        // but it renders faster.
-        osg::Vec4Array* colors = new osg::Vec4Array();
-        geom->setColorArray( colors );
-        geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
-
-        //osg::Vec3Array* normals = new osg::Vec3Array();
-        //geom->setNormalArray( normals );
-        //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
-        //normals->push_back( osg::Vec3( 0, 0, 1 ) );
-
-        const GeoShapeList& shapes = f->getShapes();
-
-        osg::Vec4 color = getColorForFeature( f );
-
-        for( GeoShapeList::const_iterator s = shapes.begin(); s != shapes.end(); s++ )
+        if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
         {
-            const GeoShape& shape = *s;
-
-            if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
-            {
-                needs_tessellation = true;
-            }
-
-            GLenum prim_type = 
-                shape.getShapeType() == GeoShape::TYPE_POINT? osg::PrimitiveSet::POINTS : 
-                shape.getShapeType() == GeoShape::TYPE_LINE?  osg::PrimitiveSet::LINE_STRIP :
-                osg::PrimitiveSet::LINE_LOOP;
-
-            for( unsigned int pi = 0; pi < shape.getPartCount(); pi++ )
-            {
-                unsigned int part_ptr = vert_ptr;
-                const GeoPointList& points = shape.getPart( pi );
-                for( unsigned int vi = 0; vi < points.size(); vi++ )
-                {
-                    verts->push_back( points[vi] );
-                    vert_ptr++;
-                    colors->push_back( color );
-                }
-                geom->addPrimitiveSet( new osg::DrawArrays( prim_type, part_ptr, vert_ptr-part_ptr ) );
-            }
+            needs_tessellation = true;
         }
 
-        output.push_back( geom );
+        GLenum prim_type = 
+            shape.getShapeType() == GeoShape::TYPE_POINT? osg::PrimitiveSet::POINTS : 
+            shape.getShapeType() == GeoShape::TYPE_LINE?  osg::PrimitiveSet::LINE_STRIP :
+            osg::PrimitiveSet::LINE_LOOP;
+
+        for( unsigned int pi = 0; pi < shape.getPartCount(); pi++ )
+        {
+            unsigned int part_ptr = vert_ptr;
+            const GeoPointList& points = shape.getPart( pi );
+            for( unsigned int vi = 0; vi < points.size(); vi++ )
+            {
+                verts->push_back( points[vi] );
+                vert_ptr++;
+                colors->push_back( color );
+            }
+            geom->addPrimitiveSet( new osg::DrawArrays( prim_type, part_ptr, vert_ptr-part_ptr ) );
+        }
     }
+
+    output.push_back( geom );
     
     // tessellate all polygon geometries. Tessellating each geometry separately
     // with TESS_TYPE_GEOMETRY is much faster than doing the whole bunch together
@@ -211,48 +213,23 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
         }
     }
 
-    // finally, combine all the geometries:
-    //mergeDrawables( output );
-
     return output;
 }
-
-
-void
-BuildGeomFilter::mergeDrawables( DrawableList& drawables )
-{
-    if ( drawables.size() > 0 )
-    {        
-        osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-        for( DrawableList::iterator i = drawables.begin(); i != drawables.end(); i++ )
-        {
-            geode->addDrawable( i->get() );
-        }
-        osgUtil::Optimizer::MergeGeometryVisitor merger;
-        //merger.setTargetMaximumNumberOfVertices( INT_MAX );
-        geode->accept( merger );
-        drawables.clear();
-        drawables.insert( drawables.end(), 
-            geode->getDrawableList().begin(), geode->getDrawableList().end() );
-    }
-}
-
-
 
 osg::Vec4
 BuildGeomFilter::getColorForFeature( Feature* f )
 {
-    if ( options & RANDOMIZE_COLORS )
-    {
-        if ( color_table.size() == 0 )
-            buildColorMap( 123, 1.0f ); // TODO: make this user-provided
+    //err...address this later
+    return getRandomizeColors()? active_color : overall_color;
+}
 
-        unsigned int index = ((int)f->getOID())%color_table.size();
-        //return osg::Vec4(RANDCOL,RANDCOL,RANDCOL,1);
-        return color_table[index];
-    }
-    else
-    {
-        return overall_color;
-    }
+osg::Vec4
+BuildGeomFilter::getRandomColor()
+{
+    if ( color_table.size() == 0 )
+        buildColorMap( 123, 1.0f ); // TODO: make this user-provided
+
+    //unsigned int index = ((int)f->getOID())%color_table.size();
+    unsigned int index = ((int)::rand())%color_table.size();
+    return color_table[index];
 }

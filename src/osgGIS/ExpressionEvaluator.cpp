@@ -184,7 +184,10 @@ static const char *operator_idiv  = "\\";
           if ( attr.isValid() )
           {
             token = attr.asString();
-            rpn.append( SEP + token );
+            if ( token.length() > 0 && token[0] == '-' )
+                rpn.append( SEP + "0" + SEP + '-' + SEP + token.substr(1) );
+            else
+                rpn.append( SEP + token );
           }
           continue;
       }
@@ -335,6 +338,8 @@ static const char *operator_idiv  = "\\";
       else
       {
         // get operand1 and op2
+        if ( st.empty() )
+            return eval_evalerr;
         op2 = st.top(); st.pop();
         if (!st.empty())
         {
@@ -392,6 +397,8 @@ static const char *operator_idiv  = "\\";
         st.push(r);
       }
     }
+    if ( st.empty() )
+        return eval_evalerr;
     result = st.top();
     st.pop();
     if (!st.empty())

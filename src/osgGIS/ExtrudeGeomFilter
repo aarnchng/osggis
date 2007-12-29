@@ -22,6 +22,9 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/BuildGeomFilter>
+//#include <osg/StateSet>
+#include <osg/Texture>
+#include <osg/TexEnv>
 
 namespace osgGIS
 {
@@ -57,12 +60,6 @@ namespace osgGIS
         void setHeightExpr( const std::string& expr );
 
         const std::string& getHeightExpr() const;
-        
-        // @deprecated - use setHeightExpr
-        //void setHeight( double height ); 
-        
-        // @deprecated - use getHeightExpr
-        //double getHeight() const;
 
         void setMinHeight( double value );
         
@@ -75,33 +72,29 @@ namespace osgGIS
         void setRandomizeHeights( bool value );
         
         bool getRandomizeHeights() const;
+
+        void setRandomizeFacadeTextures( bool value );
         
-        // @deprecated - use setHeightExpr
-        //void setHeightAttribute( const std::string& attr_name );
+        bool getRandomizeFacadeTextures() const;
         
-        // @deprecated - use getHeightExpr
-        //const std::string& getHeightAttribute() const;
-        
-        // @deprecated - use setHeightExpr
-        //void setHeightScale( double scale_factor );
-        
-        // @deprecated - use getHeightExpr
-        //double getHeightScale() const;
 
     protected:
         virtual DrawableList process( FeatureList& input, FilterEnv* env );
+        virtual DrawableList process( Feature* input, FilterEnv* env );
         
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
         
     private:
         std::string height_expr;
-        //double overall_height;
         double min_height;
         double max_height;
-        //std::string height_attr;
-        //double height_scale;
         osg::ref_ptr< FeatureFunctor<double> > height_functor;
+        int tex_index;
+        bool randomize_facade_textures;
+        //osg::ref_ptr<osg::StateSet> active_state;
+        osg::ref_ptr<osg::Texture> active_tex;
+        osg::ref_ptr<osg::TexEnv> active_texenv;
     };
 }
 
