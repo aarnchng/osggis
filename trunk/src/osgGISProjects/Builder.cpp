@@ -31,6 +31,8 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
 #include <osgDB/Archive>
+#include <osgDB/Registry>
+#include <osgDB/ReaderWriter>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
@@ -220,6 +222,9 @@ Builder::build( BuildLayer* layer )
         num_threads > 1? new TaskManager( num_threads ) :
         num_threads < 1? new TaskManager() :
         NULL;
+    
+    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( "noTexturesInIVEFile" );
+    osgDB::Registry::instance()->setOptions( options );
 
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.

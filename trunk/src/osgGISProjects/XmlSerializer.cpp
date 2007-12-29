@@ -21,6 +21,7 @@
 #include <osgGISProjects/XmlDOM>
 #include <osgGISProjects/XmlDocument>
 #include <osgGIS/Registry>
+#include <osgGIS/Utils>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <expat.h>
@@ -178,8 +179,14 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
             for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
             {
                 XmlElement* f_e = (XmlElement*)i->get();
+
                 std::string type = f_e->getAttr( "type" );
                 Filter* f = osgGIS::Registry::instance()->createFilterByType( type );
+
+                // try again with "Filter" suffix
+                if ( !f && !StringUtils::endsWith( type, "Filter", false ) )
+                    f = osgGIS::Registry::instance()->createFilterByType( type + "Filter" );
+
                 if ( f )
                 {
                     XmlNodeList prop_els = f_e->getSubElements( "property" );

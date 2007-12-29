@@ -68,21 +68,11 @@ namespace osgGIS
     public: // Internal compilation methods
 
         virtual FilterState* newState();
-
-        //void push( Feature* input );
-        //void push( const FeatureList& input );
-        //bool traverse( FilterEnv* env );
-        //
-        //virtual void reset( ScriptContext* );
         
     protected:
 
         FeatureFilter();
         virtual ~FeatureFilter();
-    //            
-    //private:        
-
-    //    FeatureList in_features;
     };
 }
 

@@ -42,6 +42,9 @@ OGR_SpatialReference::OGR_SpatialReference(void* _handle,
     double semi_major_axis = OSRGetSemiMajor( handle, &err );
     double semi_minor_axis = OSRGetSemiMinor( handle, &err );
     ellipsoid = Ellipsoid( semi_major_axis, semi_minor_axis );
+    
+    is_geographic = OSRIsGeographic( handle ) != 0;
+    is_projected = OSRIsProjected( handle ) != 0;
 }
 
 
@@ -258,16 +261,14 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
 bool
 OGR_SpatialReference::isGeographic() const
 {
-    OGR_SCOPE_LOCK();
-	return handle? OSRIsGeographic( handle ) != 0 : false;
+    return is_geographic;
 }
 
 
 bool
 OGR_SpatialReference::isProjected() const
 {
-    OGR_SCOPE_LOCK();
-	return handle? OSRIsProjected( handle ) != 0 : false;
+    return is_projected;
 }
 
 

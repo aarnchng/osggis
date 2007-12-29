@@ -1,0 +1,21 @@
+#ifndef _OSGGIS_UTILS_H_
+#define _OSGGIS_UTILS_H_ 1
+
+#include <osgGIS/Common>
+#include <string>
+
+namespace osgGIS
+{
+    struct OSGGIS_EXPORT StringUtils
+    {
+        /** 
+         * Gets whether a string ends with another string.
+         */
+        static bool endsWith( 
+            const std::string& str,
+            const std::string& suffix,
+            bool  case_sensitive =false );
+    };
+}
+
+#endif //_OSGGIS_TERRAIN_UTILS_H_

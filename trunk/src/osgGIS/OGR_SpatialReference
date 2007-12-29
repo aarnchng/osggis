@@ -91,6 +91,8 @@ namespace osgGIS
 		std::string wkt;
 		Ellipsoid ellipsoid;
         osg::ref_ptr<SpatialReference> basis;
+        bool is_geographic;
+        bool is_projected;
 	};
 }
 

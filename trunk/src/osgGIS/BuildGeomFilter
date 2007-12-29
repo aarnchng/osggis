@@ -88,17 +88,20 @@ namespace osgGIS
     protected:
 
         virtual DrawableList process( FeatureList& input, FilterEnv* env );
+        virtual DrawableList process( Feature* input, FilterEnv* env );
         
     protected:
         virtual osg::Vec4 getColorForFeature( Feature* input );
+        virtual osg::Vec4 getRandomColor();
 
-        void mergeDrawables( DrawableList& drawables );
+        //void mergeDrawables( DrawableList& drawables );
 
         virtual ~BuildGeomFilter();
         
     protected:
-        int        options;
-        osg::Vec4f overall_color;
+        int       options;
+        osg::Vec4 overall_color;
+        osg::Vec4 active_color;
     };
 }
 

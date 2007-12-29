@@ -39,6 +39,7 @@ osg::Node*
 SimpleLayerCompiler::compileLOD( FeatureLayer* layer, Script* script )
 {
     osg::ref_ptr<FilterEnv> env = new FilterEnv();
+    env->setExtent( layer->getExtent() );
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );

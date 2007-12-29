@@ -42,6 +42,7 @@
 #include <osg/Camera>
 #include <osg/TexEnv>
 #include <osgDB/ReadFile>
+#include <osgDB/Registry>
 #include <osgViewer/Viewer>
 #include <osgSim/OverlayNode>
 #include <osgGA/TerrainManipulator>
@@ -106,6 +107,8 @@ int
 main(int argc, char* argv[])
 {
     osg::ArgumentParser args( &argc, argv );
+
+    osgDB::Registry::instance()->getOrCreateSharedStateManager();
 
     osgViewer::Viewer viewer( args );
 

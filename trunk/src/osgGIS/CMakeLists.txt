@@ -59,6 +59,7 @@ SET(LIB_PUBLIC_HEADERS
     OGR_Utils
     PagedLayerCompiler
     Property
+    RandomGroupingFilter
     Registry
     RemoveHolesFilter
     RTree
@@ -80,6 +81,7 @@ SET(LIB_PUBLIC_HEADERS
     TaskManager
     TerrainUtils
     TransformFilter
+    Utils
 )
 
 ADD_LIBRARY(${LIB_NAME}
@@ -129,6 +131,7 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_Utils.cpp
     PagedLayerCompiler.cpp
     Property.cpp
+    RandomGroupingFilter.cpp
     Registry.cpp
     RemoveHolesFilter.cpp
     RTreeSpatialIndex.cpp
@@ -144,6 +147,7 @@ ADD_LIBRARY(${LIB_NAME}
     TaskManager.cpp
     TerrainUtils.cpp
     TransformFilter.cpp
+    Utils.cpp
 )
 
 LINK_EXTERNAL(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT}    ${MATH_LIBRARY})
