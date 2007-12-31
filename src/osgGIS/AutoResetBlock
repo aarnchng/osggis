@@ -48,7 +48,7 @@ namespace osgGIS
                 result = cond.wait( &mut ) == 0;
             }
             if ( result )
-                signal_count--;
+                signal_count = signal_count == 0? 0 : signal_count-1;
             return result;
         }
 
@@ -60,7 +60,7 @@ namespace osgGIS
                 result = cond.wait( &mut, timeout ) == 0;
             }
             if ( result )
-                signal_count--;
+                signal_count = signal_count == 0? 0 : signal_count-1;
             return result;
         }
         

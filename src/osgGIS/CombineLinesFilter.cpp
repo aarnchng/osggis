@@ -82,10 +82,10 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
     {
         Feature* f = i->get();
 
-        for( GeoShapeList::iterator& j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
+        for( GeoShapeList::iterator j = f->getShapes().begin(); j != f->getShapes().end(); j++ )
         {
             GeoShape& shape = *j;
-            for( GeoPartList::iterator& k = shape.getParts().begin(); k != shape.getParts().end(); k++ )
+            for( GeoPartList::iterator k = shape.getParts().begin(); k != shape.getParts().end(); k++ )
             {
                 GeoPointList& part = *k;
                 if ( part.size() > 0 )
