@@ -48,10 +48,6 @@ TaskThread::run()
         // wait until the next task arrives:
         run_block.block();
 
-        // quit the thread if necessary:
-        if ( getState() == STATE_EXIT )
-            break;
-
         // if the last task was cleared, start this new one
         if ( getState() == STATE_READY && task.valid() )
         {
@@ -60,8 +56,13 @@ TaskThread::run()
             task->run();
             end = osg::Timer::instance()->tick();
             setState( STATE_RESULT_READY );
-            activity_block.signal();
         }
+        
+        activity_block.signal();
+
+        // quit the thread if necessary:
+        if ( getState() == STATE_EXIT )
+            break;
     }
 }
 
