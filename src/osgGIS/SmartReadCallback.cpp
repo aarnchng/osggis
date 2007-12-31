@@ -53,7 +53,7 @@ SmartReadCallback::readNodeFile( const std::string& filename )
                     //osg::notify(osg::NOTICE)<<"Erasing "<<i->first<<std::endl;
                     // found a node which is only referenced in the cache so we can disgard it
                     // and know that the actual memory will be released.
-                    i = cache.erase( i );
+                    cache.erase( i );
                     break;
                 }
             }
