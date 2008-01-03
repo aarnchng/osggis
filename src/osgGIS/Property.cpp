@@ -23,19 +23,26 @@
 
 using namespace osgGIS;
 
+static std::string
+normalize( std::string input )
+{
+    std::replace( input.begin(), input.end(), '_', '-' );
+    return input;
+}
+
 Property::Property()
 {
 }
 
 Property::Property( const std::string& _name, const std::string& _value )
 {
-    name = _name;
+    name = normalize( _name );
     value = _value;
 }
 
 Property::Property( const std::string& _name, int _value )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _value;
     value = ss.str();
@@ -43,7 +50,7 @@ Property::Property( const std::string& _name, int _value )
 
 Property::Property( const std::string& _name, float _value )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _value;
     value = ss.str();
@@ -51,7 +58,7 @@ Property::Property( const std::string& _name, float _value )
 
 Property::Property( const std::string& _name, double _value )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _value;
     value = ss.str();
@@ -59,13 +66,13 @@ Property::Property( const std::string& _name, double _value )
 
 Property::Property( const std::string& _name, bool _value )
 {
-    name = _name;
+    name = normalize( _name );
     value = _value? "true" : "false";
 }
 
 Property::Property( const std::string& _name, const osg::Vec2f& _v )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _v[0] << " " << _v[1];
     value = ss.str();
@@ -73,7 +80,7 @@ Property::Property( const std::string& _name, const osg::Vec2f& _v )
 
 Property::Property( const std::string& _name, const osg::Vec3f& _v )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _v[0] << " " << _v[1] << " " << _v[2];
     value = ss.str();
@@ -81,7 +88,7 @@ Property::Property( const std::string& _name, const osg::Vec3f& _v )
 
 Property::Property( const std::string& _name, const osg::Vec4f& _v )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     ss << _v[0] << " " << _v[1] << " " << _v[2] << " " << _v[3];
     value = ss.str();
@@ -89,7 +96,7 @@ Property::Property( const std::string& _name, const osg::Vec4f& _v )
 
 Property::Property( const std::string& _name, const osg::Matrix& _v )
 {
-    name = _name;
+    name = normalize( _name );
     std::stringstream ss;
     const osg::Matrix::value_type* p = _v.ptr();
     for( int i=0; i<15; i++ ) ss << *p++ << " ";
@@ -176,9 +183,10 @@ Property::getMatrixValue() const
 int 
 Properties::getIntValue( const std::string& key, int def )
 {
+    std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
     {
-        if ( i->getName() == key )
+        if ( i->getName() == nkey )
         {
             return i->getIntValue( def );
         }
@@ -189,9 +197,10 @@ Properties::getIntValue( const std::string& key, int def )
 float 
 Properties::getFloatValue( const std::string& key, float def )
 {
+    std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
     {
-        if ( i->getName() == key )
+        if ( i->getName() == nkey )
         {
             return i->getFloatValue( def );
         }
@@ -202,9 +211,10 @@ Properties::getFloatValue( const std::string& key, float def )
 double 
 Properties::getDoubleValue( const std::string& key, double def )
 {
+    std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
     {
-        if ( i->getName() == key )
+        if ( i->getName() == nkey )
         {
             return i->getDoubleValue( def );
         }
@@ -215,9 +225,10 @@ Properties::getDoubleValue( const std::string& key, double def )
 bool 
 Properties::getBoolValue( const std::string& key, bool def )
 {
+    std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
     {
-        if ( i->getName() == key )
+        if ( i->getName() == nkey )
         {
             return i->getBoolValue( def );
         }
@@ -228,9 +239,10 @@ Properties::getBoolValue( const std::string& key, bool def )
 std::string 
 Properties::getValue( const std::string& key, std::string def )
 {
+    std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
     {
-        if ( i->getName() == key )
+        if ( i->getName() == nkey )
         {
             return i->getValue();
         }

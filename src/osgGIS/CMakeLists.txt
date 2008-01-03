@@ -62,11 +62,15 @@ SET(LIB_PUBLIC_HEADERS
     RandomGroupingFilter
     Registry
     RemoveHolesFilter
+    Resource
+    ResourceLibrary
     RTree
     RTreeSpatialIndex
+    Rule
     Script
     ScriptContext
     SelectFilter
+    SkinResource
     SimpleFeature
     SimpleLayerCompiler
     SimpleSpatialIndex
@@ -77,6 +81,7 @@ SET(LIB_PUBLIC_HEADERS
     SpatialReferenceFactory
     StubSpatialIndex
     SuperFeature
+    Tags
     Task
     TaskManager
     TerrainUtils
@@ -134,10 +139,14 @@ ADD_LIBRARY(${LIB_NAME}
     RandomGroupingFilter.cpp
     Registry.cpp
     RemoveHolesFilter.cpp
+    Resource.cpp
+    ResourceLibrary.cpp
     RTreeSpatialIndex.cpp
+    Rule.cpp
     Script.cpp
     ScriptContext.cpp
     SelectFilter.cpp
+    SkinResource.cpp
     SimpleFeature.cpp
     SimpleLayerCompiler.cpp
     SimpleSpatialIndex.cpp
