@@ -1,0 +1,68 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_RESOURCE_H_
+#define _OSGGIS_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Property>
+#include <osgGIS/Tags>
+#include <set>
+
+namespace osgGIS
+{
+    /**
+     * Defines extension/modifier information that can be applied to a feature.
+     * This could be something that modifies the appearance of a compiled feature
+     * (like a skin/texture) or something at the application level (like a hyperlink).
+     */
+    class OSGGIS_EXPORT Resource : public osg::Referenced, public ObjectWithProperties, public ObjectWithTags
+    {
+    public:
+        /**
+         * Gets the name of this resource.
+         */
+        const std::string& getName() const;
+
+        /**
+         * Sets the name of this resource.
+         */
+        void setName( const std::string& name );
+
+
+    public: // ObjectWithProperties
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    protected:
+    
+        Resource();
+        Resource( const std::string& name );
+
+        virtual ~Resource();
+        
+    private:
+        std::string name;
+    };
+    
+    typedef std::set< osg::ref_ptr<Resource> > ResourceSet;
+}
+
+#endif // _OSGGIS_RESOURCE_H_

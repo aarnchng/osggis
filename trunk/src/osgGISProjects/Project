@@ -26,6 +26,7 @@
 #include <osgGISProjects/BuildTarget>
 #include <osgGISProjects/Terrain>
 #include <osgGIS/Script>
+#include <osgGIS/ResourceLibrary>
 
 using namespace osgGIS;
 
@@ -75,7 +76,11 @@ namespace osgGISProjects
         BuildTargetList& getTargets();
 
         BuildTarget* getTarget( const std::string& name );
-
+        
+        
+        ResourceLibrary* getResources();
+        
+        
     protected:
         std::string     name;
         ScriptList      scripts;
@@ -83,6 +88,8 @@ namespace osgGISProjects
         TerrainList     terrains;
         BuildLayerList  layers;
         BuildTargetList targets;
+        osg::ref_ptr<ResourceLibrary> resources;
+        
     };
 }
 

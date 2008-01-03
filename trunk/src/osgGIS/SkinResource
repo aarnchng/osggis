@@ -1,0 +1,71 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SKIN_RESOURCE_H_
+#define _OSGGIS_SKIN_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Resource>
+#include <osg/Vec4>
+
+namespace osgGIS
+{
+    /**
+     * Defines a feature "skin" - metadata that defines the appearance of a
+     * compiled feature.
+     */
+    class OSGGIS_EXPORT SkinResource : public Resource
+    {
+    public:
+        SkinResource();
+        SkinResource( const std::string& name );
+
+    public:
+        void setTexturePath( const std::string& value );
+        const std::string& getTexturePath() const;
+
+        void setTextureWidthMeters( float value );
+        float getTextureWidthMeters() const;
+
+        void setTextureHeightMeters( float value );
+        float getTextureHeightMeters() const;
+
+        void setColor( const osg::Vec4& value );
+        const osg::Vec4& getColor() const;
+
+    public: // ObjectWithProperties
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual ~SkinResource();
+
+    private:
+        std::string tex_path;
+        float tex_width_m;
+        float tex_height_m;
+        osg::Vec4 color;
+
+        void init();
+    };
+}
+
+#endif // _OSGGIS_RESOURCE_H_

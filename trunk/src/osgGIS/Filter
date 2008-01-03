@@ -52,40 +52,6 @@ namespace osgGIS
 
     public:
         virtual ~Filter();
-        
-        /**
-         * Runs the filter logic within the contextual environment, pushing the
-         * filter's output to the next filter in the script chain.
-         *
-         * @param env
-         *      Contextual compilation environment.
-         * @return
-         *      True if traversal succeeded, false upon error.
-         */
-        //virtual bool traverse( FilterEnv* env ) =0;
-
-        /** 
-         * Notifies this filter that a compilation checkpoint has been reached.
-         * This supports batching/metering of data by CollectionFilters.
-         *
-         * @return
-         *      True if traversal succeeded, false upon error.
-         */
-        //virtual bool signalCheckpoint();
-        
-        /**
-         * Resets this filter to its initial state, clearing any input or
-         * output buffers.
-         *
-         * @param context
-         *      Script-level context information
-         */
-        //virtual void reset( ScriptContext* context );
-                
-        /**
-         * Gets the filter attached to the output of this filter.
-         */
-        //Filter* getNextFilter();
 
         /**
          * Sets the name of this filter.
@@ -119,13 +85,8 @@ namespace osgGIS
         Filter();
         
     private:
-        //osg::ref_ptr<Filter> next_filter;
         osg::ref_ptr<ScriptContext> context;
         std::string name;
-        
-        //friend class Script;
-        //Filter* setNextFilter( Filter* filter );
-        //Filter* appendFilter( Filter* filter );
     };
     
     typedef std::vector< osg::ref_ptr<Filter> > FilterList;
