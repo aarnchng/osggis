@@ -34,7 +34,6 @@ namespace osgGIS
         void push( Feature* input );
         void push( const FeatureList& input );
         bool traverse( FilterEnv* env );
-        virtual void reset( ScriptContext* );
 
     protected:
         FeatureList in_features;

@@ -48,6 +48,8 @@ namespace osgGIS
 
         virtual Attribute getAttribute( const std::string& key ) const;
 
+        virtual double getAttributeAsDouble( const std::string& key, double default_val ) const;
+
         virtual void setAttribute( const std::string& key, const std::string& value );
 
         virtual void setAttribute( const std::string& key, int value );

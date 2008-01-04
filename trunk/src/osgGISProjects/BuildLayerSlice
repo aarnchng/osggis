@@ -21,7 +21,7 @@
 #define _OSGGISPROJECTS_BUILD_LAYER_SLICE_H_ 1
 
 #include <osgGISProjects/Common>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <list>
 
 using namespace osgGIS;
@@ -33,9 +33,9 @@ namespace osgGISProjects
     public:
         BuildLayerSlice();
         
-        Script* getScript();
+        FilterGraph* getFilterGraph();
         
-        void setScript( Script* script );
+        void setFilterGraph( FilterGraph* graph );
         
         
         float getMinRange() const;
@@ -56,7 +56,7 @@ namespace osgGISProjects
         void setMaxResolutionLevel( int value );
 
     private:
-        osg::ref_ptr<Script> script;
+        osg::ref_ptr<FilterGraph> graph;
         int min_res_level;
         int max_res_level;
         float min_range;

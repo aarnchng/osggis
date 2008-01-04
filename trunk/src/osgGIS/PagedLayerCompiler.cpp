@@ -226,42 +226,40 @@ PagedLayerCompiler::compileGeometry(
     double           geom_min_range,
     double           geom_max_range )
 {
-    // figure out which script to use:
-    //TODO: if the geom range crosses >1 script range, make an LOD with 
+    // figure out which filter graph to use:
+    //TODO: if the geom range crosses >1 graph range, make an LOD with 
     //      multiple geometries (possible paged).
 
-    Script* script = NULL;
+    FilterGraph* graph = NULL;
     double closest_to_max = DBL_MAX;
-    for( ScriptRangeList::iterator s = script_ranges.begin(); s != script_ranges.end(); s++ )
+    for( FilterGraphRangeList::iterator s = graph_ranges.begin(); s != graph_ranges.end(); s++ )
     {
         double diff = fabs( geom_max_range - s->max_range );
-        //if ( script == NULL || ( geom_max_range <= s->max_range && diff < closest_to_max ) )
         if ( geom_max_range <= s->max_range && geom_min_range >= s->min_range && diff < closest_to_max )
-        //if ( geom_max_range <= s->max_range && diff < closest_to_max )
         {
             closest_to_max = diff;
-            script = s->script.get();
+            graph = s->graph.get();
         }
     }
 
-    // compile that script:
+    // compile that graph:
     osg::Node* out = NULL;
-    if ( script )
+    if ( graph )
     {
         osg::notify(osg::NOTICE) << indent[level+2]
-            << "script = " << script->getName() << std::endl;
+            << "graph = " << graph->getName() << std::endl;
 
         osg::ref_ptr<FilterEnv> env = new FilterEnv();
         env->setTerrainNode( tile_terrain );
         env->setTerrainSRS( terrain_srs.get() );
         env->setExtent( tile_extent );
-        Compiler compiler( layer, script );
+        Compiler compiler( layer, graph, getSession() );
         out = compiler.compile( env.get() );
     }
     else
     {
         out = new osg::Group();
-        out->setName( "osgGIS: NO SCRIPT" );
+        out->setName( "osgGIS: NO FILTER GRAPH" );
         out->setDataVariance( osg::Object::DYNAMIC ); // no optimization
     }
     return out;
@@ -278,7 +276,7 @@ PagedLayerCompiler::compileAll(
     layer_min_range = DBL_MAX;
     layer_max_range = DBL_MIN;
     
-    for( ScriptRangeList::iterator i = script_ranges.begin(); i != script_ranges.end(); i++ )
+    for( FilterGraphRangeList::iterator i = graph_ranges.begin(); i != graph_ranges.end(); i++ )
     {
         if ( i->min_range < layer_min_range )
             layer_min_range = i->min_range;

@@ -53,14 +53,6 @@ DrawableFilterState::push( const DrawableList& input )
     in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
 }
 
-void
-DrawableFilterState::reset( ScriptContext* context )
-{
-    in_features.clear();
-    in_drawables.clear();
-    FilterState::reset( context );
-}
-
 bool
 DrawableFilterState::traverse( FilterEnv* in_env )
 {

@@ -100,12 +100,14 @@ public:
                     int                _col,
                     const GeoExtent&   _extent, 
                     FeatureLayer*      _layer,
+                    Session*           _session,
                     const std::string& _output_file,
                     LayerCompiler&     _compiler ) :
       row(_row),
       col(_col),
       tile_extent( _extent ),
       layer( _layer ),
+      session( _session ),
       output_file( _output_file ),
       compiler( _compiler )
     {
@@ -130,11 +132,11 @@ public:
             
         float min_range = FLT_MAX, max_range = FLT_MIN;
         osg::ref_ptr<osg::LOD> lod = new osg::LOD();
-        LayerCompiler::ScriptRangeList& scripts = compiler.getScripts();
+        LayerCompiler::FilterGraphRangeList& graphs = compiler.getFilterGraphs();
 
-        for( LayerCompiler::ScriptRangeList::iterator i = scripts.begin(); i != scripts.end(); i++ )
+        for( LayerCompiler::FilterGraphRangeList::iterator i = graphs.begin(); i != graphs.end(); i++ )
         {
-            osg::Node* range = compileLOD( i->script.get() );
+            osg::Node* range = compileLOD( i->graph.get() );
             if ( range )
             {
                 lod->addChild( range, i->min_range, i->max_range );
@@ -197,14 +199,14 @@ public:
     }
 
 private:
-    osg::Node* compileLOD( Script* script )
+    osg::Node* compileLOD( FilterGraph* graph )
     {
         osg::ref_ptr<FilterEnv> env = new FilterEnv();
         env->setExtent( tile_extent );
         env->setTerrainNode( compiler.getTerrainNode() );
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
-        Compiler compiler( layer.get(), script );
+        Compiler compiler( layer.get(), graph, session.get() );
         return compiler.compile( env.get() );
     }
 
@@ -213,6 +215,7 @@ private:
     osg::ref_ptr<SmartReadCallback> read_cb;
     GeoExtent tile_extent;
     osg::ref_ptr<FeatureLayer> layer;
+    osg::ref_ptr<Session> session;
     std::string output_file;
     LayerCompiler& compiler;
     osg::ref_ptr<osg::Node> result;
@@ -247,6 +250,11 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         const std::string& bin_name = root->getOrCreateStateSet()->getBinName();
         root->getOrCreateStateSet()->setRenderBinDetails( getRenderBinNumber(), bin_name );
     }
+
+    if ( getSession() && getPreCompileExpr().length() > 0 )
+    {
+        getSession()->createScriptEngine()->run( new Script( getPreCompileExpr() ) );
+    }
     
     if ( extent.isValid() )
     {
@@ -266,21 +274,29 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     GeoPoint( sw.x() + (double)col*dx, sw.y() + (double)row*dy, srs.get() ),
                     GeoPoint( sw.x() + (double)(col+1)*dx, sw.y() + (double)(row+1)*dy, srs.get() ) );
 
+                
+                osg::ref_ptr<CompileTileTask> task = new CompileTileTask( 
+                        row, col,
+                        sub_extent, 
+                        layer, 
+                        getSession(),
+                        output_file, 
+                        *this );
+
                 if ( getTaskManager() )
                 {
-                    getTaskManager()->queueTask( new CompileTileTask( 
-                        row, col, sub_extent, layer, output_file, *this ) );
+                    getTaskManager()->queueTask( task.get() );
                 }
                 else
                 {
-                    osg::ref_ptr<CompileTileTask> task = new CompileTileTask(
-                        row, col, sub_extent, layer, output_file, *this );
                     osg::notify(osg::NOTICE) << task->getName() << ": building..." << std::flush;
+
                     task->run();
                     if ( task->getResult() )
                     {
                         root->addChild( task->getResult() );
                     }
+
                     osg::notify(osg::NOTICE) << "completed" << std::endl;
                 }
             }

@@ -35,6 +35,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     terrain_node = rhs.terrain_node.get();
     terrain_srs = rhs.terrain_srs.get();
     terrain_read_cb = rhs.terrain_read_cb.get();
+    script_engine = rhs.script_engine.get();
 }
 
 
@@ -143,4 +144,28 @@ SmartReadCallback*
 FilterEnv::getTerrainReadCallback()
 {
     return terrain_read_cb.get();
+}
+
+void
+FilterEnv::setScriptEngine( ScriptEngine* _engine )
+{
+    script_engine = _engine;
+}
+
+ScriptEngine*
+FilterEnv::getScriptEngine()
+{
+    return script_engine.get();
+}
+
+void 
+FilterEnv::setProperty( const Property& prop )
+{
+    properties.push_back( prop );
+}
+
+Properties&
+FilterEnv::getProperties()
+{
+    return properties;
 }

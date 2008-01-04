@@ -30,16 +30,16 @@ BuildLayerSlice::BuildLayerSlice()
     max_res_level = -1;
 }
 
-Script*
-BuildLayerSlice::getScript()
+FilterGraph*
+BuildLayerSlice::getFilterGraph()
 {
-    return script.get();
+    return graph.get();
 }
 
 void
-BuildLayerSlice::setScript( Script* _script )
+BuildLayerSlice::setFilterGraph( FilterGraph* _graph )
 {
-    script = _script;
+    graph = _graph;
 }
 
 

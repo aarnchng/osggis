@@ -226,6 +226,13 @@ OGR_Feature::getAttribute( const std::string& key ) const
 }
 
 
+double
+OGR_Feature::getAttributeAsDouble( const std::string& key, double default_val ) const
+{
+    Attribute attr = getAttribute( key );
+    return attr.isValid()? attr.asDouble() : default_val;
+}
+
 void 
 OGR_Feature::setAttribute( const std::string& key, const std::string& value )
 {

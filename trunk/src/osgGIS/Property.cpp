@@ -26,7 +26,8 @@ using namespace osgGIS;
 static std::string
 normalize( std::string input )
 {
-    std::replace( input.begin(), input.end(), '_', '-' );
+    return input;
+    std::replace( input.begin(), input.end(), '-', '_' );
     return input;
 }
 
@@ -143,27 +144,27 @@ Property::getBoolValue( bool def ) const
 }
 
 osg::Vec2f
-Property::getVec2fValue() const
+Property::getVec2Value() const
 {
-    osg::Vec2f v;
+    osg::Vec2 v;
     std::stringstream ss( value );
     ss >> v[0] >> v[1];
     return v;
 }
 
-osg::Vec3f
-Property::getVec3fValue() const
+osg::Vec3
+Property::getVec3Value() const
 {
-    osg::Vec3f v;
+    osg::Vec3 v;
     std::stringstream ss( value );
     ss >> v[0] >> v[1] >> v[2];
     return v;
 }
 
-osg::Vec4f
-Property::getVec4fValue() const
+osg::Vec4
+Property::getVec4Value() const
 {
-    osg::Vec4f v;
+    osg::Vec4 v;
     std::stringstream ss( value );
     ss >> v[0] >> v[1] >> v[2] >> v[3];
     return v;
@@ -236,6 +237,48 @@ Properties::getBoolValue( const std::string& key, bool def )
     return def;
 }
 
+osg::Vec2 
+Properties::getVec2Value( const std::string& key )
+{
+    std::string nkey = normalize( key );
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return i->getVec2Value();
+        }
+    }
+    return osg::Vec2(0,0);
+}
+
+osg::Vec3 
+Properties::getVec3Value( const std::string& key )
+{
+    std::string nkey = normalize( key );
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return i->getVec3Value();
+        }
+    }
+    return osg::Vec3(0,0,0);
+}
+
+osg::Vec4 
+Properties::getVec4Value( const std::string& key )
+{
+    std::string nkey = normalize( key );
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return i->getVec4Value();
+        }
+    }
+    return osg::Vec4(0,0,0,1);
+}
+
 std::string 
 Properties::getValue( const std::string& key, std::string def )
 {
@@ -248,4 +291,25 @@ Properties::getValue( const std::string& key, std::string def )
         }
     }
     return def;
+}
+
+void
+Properties::remove( const std::string& key )
+{
+    std::string nkey = normalize( key );
+    for( Properties::iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            erase( i );
+            return;
+        }
+    }
+}
+
+void
+Properties::set( const Property& prop )
+{
+    remove( prop.getName() );
+    push_back( prop );
 }

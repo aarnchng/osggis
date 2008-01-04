@@ -25,6 +25,7 @@
 #include <osgGIS/SpatialReferenceFactory>
 #include <osgGIS/FeatureStoreFactory>
 #include <osgGIS/Filter>
+#include <osgGIS/ScriptEngine>
 
 namespace osgGIS
 {
@@ -43,7 +44,7 @@ namespace osgGIS
          * Gets the default SRS facotry.
          */
         static SpatialReferenceFactory* SRSFactory();
-				
+
 	public:
 		
         /**
@@ -86,6 +87,9 @@ namespace osgGIS
          *      New feature store factory implementation.
          */
 		void setFeatureStoreFactory( FeatureStoreFactory* factory );
+
+        
+        ScriptEngine* createScriptEngine();
 		
 
     public:

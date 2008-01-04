@@ -23,7 +23,7 @@
 #include <osgGISProjects/Common>
 #include <osgGISProjects/Document>
 #include <osgGISProjects/Project>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <iostream>
 
 using namespace osgGIS;
@@ -42,9 +42,9 @@ namespace osgGISProjects
         virtual void store( Document* doc, std::ostream& out ) =0;
 
         
-        virtual Script* readScript( Document* doc ) =0;
+        virtual FilterGraph* readFilterGraph( Document* doc ) =0;
 
-        virtual Document* writeScript( Script* script ) =0;
+        virtual Document* writeFilterGraph( FilterGraph* graph ) =0;
         
         
         virtual Project* readProject( Document* doc ) =0;

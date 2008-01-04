@@ -20,6 +20,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/DefaultFeatureStoreFactory>
 #include <osgGIS/OGR_SpatialReferenceFactory>
+#include <osgGIS/Lua_ScriptEngine>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
@@ -146,4 +147,10 @@ Registry::addFilterType( const std::string& type, FilterFactory* factory )
     filter_factories[type] = factory;
     osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered filter type " << type << std::endl;
     return true;
+}
+
+ScriptEngine*
+Registry::createScriptEngine()
+{
+    return new Lua_ScriptEngine();
 }

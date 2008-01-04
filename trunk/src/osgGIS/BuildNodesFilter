@@ -28,7 +28,7 @@ namespace osgGIS
 {
     /**
      * Assembles osg::Drawable objects into osg::Nodes. This is usually
-     * the final step in a compilation script.
+     * the final step in a filter graph.
      */
     class OSGGIS_EXPORT BuildNodesFilter : public NodeFilter
     {

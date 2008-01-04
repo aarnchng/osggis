@@ -22,7 +22,8 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/Session>
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/TaskManager>
 #include <osg/Node>
@@ -44,15 +45,15 @@ namespace osgGIS
         LayerCompiler();
 
     public:
-        struct ScriptRange {
+        struct FilterGraphRange {
             float min_range, max_range;
-            osg::ref_ptr<Script> script;
+            osg::ref_ptr<FilterGraph> graph;
         };
-        typedef std::list<ScriptRange> ScriptRangeList;
+        typedef std::list<FilterGraphRange> FilterGraphRangeList;
 
     public:
         /**
-         * Adds a script that should be used to build geometry within
+         * Adds a graph that should be used to build geometry within
          * the specified visibility range.
          *
          * @param min_range
@@ -61,16 +62,16 @@ namespace osgGIS
          * @param max_range
          *      Maximum visibility range - get any further and the geometry
          *      disappears.
-         * @param script
-         *      Compile geometry using this script for the given range.
+         * @param graph
+         *      Compile geometry using this graph for the given range.
          */
-        void addScript( float min_range, float max_range, Script* script );
+        void addFilterGraph( float min_range, float max_range, FilterGraph* graph );
         
         /**
-         * Gets the list of scripts and the visibility range associated 
+         * Gets the list of graphs and the visibility range associated 
          * with each one.
          */
-        ScriptRangeList& getScripts();
+        FilterGraphRangeList& getFilterGraphs();
         
         /** 
          * Sets the reference terrain against which to compile.
@@ -170,8 +171,24 @@ namespace osgGIS
          */
         TaskManager* getTaskManager();
         
+        /**
+         * Assigns a session object for this compiler to use. The session
+         * tracks common data and stats across related compilations.
+         */
+        void setSession( Session* session );
+        
+        /**
+         * Gets the session assigned to this compiler.
+         */
+        Session* getSession();
+        
+        void setPreCompileExpr( const std::string& expr );
+        
+        const std::string& getPreCompileExpr() const;
+        
+        
     protected:
-        ScriptRangeList                 script_ranges;
+        FilterGraphRangeList            graph_ranges;
         osg::ref_ptr<osg::Node>         terrain;
         osg::ref_ptr<SpatialReference>  terrain_srs;
         GeoExtent                       terrain_extent;            
@@ -182,6 +199,8 @@ namespace osgGIS
         bool                            paged;
         osg::ref_ptr<osgDB::Archive>    archive;
         osg::ref_ptr<TaskManager>       task_manager;
+        osg::ref_ptr<Session>           session;
+        std::string                     pre_compile_expr;
         
     protected:
         osg::Node* convertToOverlay( osg::Node* input );

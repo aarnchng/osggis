@@ -24,7 +24,8 @@
 #include <osgGIS/PagedLayerCompiler>
 #include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/Registry>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/Resource>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -143,6 +144,18 @@ Builder::build( BuildLayer* layer )
     VERBOSE_OUT <<
         "Building layer \"" << layer->getName() << "\"." << std::endl;
 
+    // first create and initialize a Session that will share data across the build.
+    osg::ref_ptr<Session> session = new Session();
+
+    for( ScriptList::iterator i = project->getScripts().begin(); i != project->getScripts().end(); i++ )
+        session->addScript( i->get() );
+
+    for( ResourceList::iterator i = project->getResources().begin(); i != project->getResources().end(); i++ )
+        session->getResources().addResource( i->get() );
+
+
+    // now establish the source data record form this layer and open a feature layer
+    // that connects to that source.
     Source* source = layer->getSource();
     if ( !source )
     {
@@ -232,16 +245,17 @@ Builder::build( BuildLayer* layer )
     {
         PagedLayerCompiler compiler;
 
+        compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
-            compiler.addScript(
+            compiler.addFilterGraph(
                 i->get()->getMinRange(),
                 i->get()->getMaxRange(),
-                i->get()->getScript() );
+                i->get()->getFilterGraph() );
         }
 
         compiler.compile(
@@ -252,23 +266,25 @@ Builder::build( BuildLayer* layer )
     {
         GriddedLayerCompiler compiler;
 
+        compiler.setSession( session.get() );
+        compiler.setTaskManager( manager.get() );
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get() );
+
         //TODO: replace with LayerCompiler::setProperties
         compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
         compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
         compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
         compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
         compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
-
-        compiler.setTaskManager( manager.get() );
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
+        compiler.setPreCompileExpr( layer->getProperties().getValue( "pre_script", "" ) );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
-            compiler.addScript(
+            compiler.addFilterGraph(
                 i->get()->getMinRange(),
                 i->get()->getMaxRange(),
-                i->get()->getScript() );
+                i->get()->getFilterGraph() );
         }
 
         osg::ref_ptr<osg::Node> node = compiler.compile(
@@ -287,19 +303,21 @@ Builder::build( BuildLayer* layer )
     {
         SimpleLayerCompiler compiler;
 
-        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
-        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
-
+        compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
+
+        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
+        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
+
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
-            compiler.addScript(
+            compiler.addFilterGraph(
                 i->get()->getMinRange(),
                 i->get()->getMaxRange(),
-                i->get()->getScript() );
+                i->get()->getFilterGraph() );
         }
 
         osg::ref_ptr<osg::Node> node = compiler.compile(

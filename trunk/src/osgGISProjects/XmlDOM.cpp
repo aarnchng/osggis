@@ -21,6 +21,7 @@
 #include <osg/Notify>
 #include <expat.h>
 #include <algorithm>
+#include <sstream>
 
 using namespace osgGISProjects;
 
@@ -100,21 +101,25 @@ XmlElement::getSubElement( const std::string& name ) const
 }
 
 
-const std::string&
+std::string
 XmlElement::getText() const
 {
+    std::stringstream builder;
+
     for( XmlNodeList::const_iterator i = getChildren().begin(); i != getChildren().end(); i++ )
     {
         if ( i->get()->isText() )
         {
-            return ( static_cast<XmlText*>( i->get() ) )->getValue();
+            builder << ( static_cast<XmlText*>( i->get() ) )->getValue();
         }
     }
-    return EMPTY_VALUE;
+
+    std::string result = builder.str();
+    return result;
 }
 
 
-const std::string&
+std::string
 XmlElement::getSubElementText( const std::string& name ) const
 {
     XmlElement* e = getSubElement( name );

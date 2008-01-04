@@ -24,7 +24,7 @@
  */
 
 #include <osgGIS/Registry>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 
 #include <osgGISProjects/XmlSerializer>
 #include <osgGISProjects/Project>

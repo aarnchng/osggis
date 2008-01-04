@@ -66,6 +66,12 @@ SimpleFeature::getAttribute( const std::string& key ) const
     return i != attributes.end()? i->second : Attribute::invalid();
 }
 
+double
+SimpleFeature::getAttributeAsDouble( const std::string& key, double default_val ) const
+{
+    Attribute attr = getAttribute( key );
+    return attr.isValid()? attr.asDouble() : default_val;
+}
 
 void 
 SimpleFeature::setAttribute( const std::string& key, const std::string& value )

@@ -43,13 +43,6 @@ FeatureFilterState::push( const FeatureList& input )
     in_features.insert( in_features.end(), input.begin(), input.end() );
 }
 
-void
-FeatureFilterState::reset( ScriptContext* context )
-{
-    in_features.clear();
-    FilterState::reset( context );
-}
-
 bool
 FeatureFilterState::traverse( FilterEnv* in_env )
 {

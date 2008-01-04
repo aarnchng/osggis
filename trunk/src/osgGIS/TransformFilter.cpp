@@ -134,10 +134,11 @@ TransformFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "localize" )
         setLocalize( p.getBoolValue( getLocalize() ) );
-    else if ( p.getName() == "matrix" )
-        setMatrix( p.getMatrixValue() );
+    //else if ( p.getName() == "matrix" )
+    //    setMatrix( p.getMatrixValue() );
     else if ( p.getName() == "translate" )
-        setMatrix( osg::Matrix::translate( p.getVec3fValue() ) );
+        translate_expr = p.getValue();
+        //setMatrix( osg::Matrix::translate( p.getVec3Value() ) );
     else if ( p.getName() == "use_terrain_srs" )
         setUseTerrainSRS( p.getBoolValue( getUseTerrainSRS() ) );
     else if ( p.getName() == "srs" )
@@ -151,7 +152,9 @@ TransformFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
     p.push_back( Property( "localize", getLocalize() ) );
-    p.push_back( Property( "matrix", getMatrix() ) );
+    //p.push_back( Property( "matrix", getMatrix() ) );
+    if ( translate_expr.length() > 0 )
+        p.push_back( Property( "translate", translate_expr ) );
     if ( getUseTerrainSRS() )
         p.push_back( Property( "use_terrain_srs", getUseTerrainSRS() ) );
     if ( getSRS() )
@@ -168,6 +171,16 @@ TransformFilter::process( Feature* input, FilterEnv* env )
     osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
     if ( !new_out_srs.valid() )
         new_out_srs = srs.get();
+
+    // resolve the xlate shortcut
+    osg::Matrix working_matrix = xform_matrix;
+
+    if ( translate_expr.length() > 0 )
+    {
+        ScriptResult r = env->getScriptEngine()->run( new Script( translate_expr ), input, env );
+        if ( r.isValid() )
+            working_matrix = osg::Matrix::translate( r.asVec3() );
+    }
 
     if ( new_out_srs.valid() )
     {
@@ -202,7 +215,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
         env->setOutputSRS( new_out_srs.get() );
     }
 
-    if ( new_out_srs.valid() || ( xform_matrix.valid() && !xform_matrix.isIdentity() ) )
+    if ( new_out_srs.valid() || ( working_matrix.valid() && !working_matrix.isIdentity() ) )
     {
         for( GeoShapeList::iterator shape = input->getShapes().begin(); 
              shape!= input->getShapes().end();
@@ -212,7 +225,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
             {
                 new_out_srs->transformInPlace( *shape );
             }
-            else if ( xform_matrix.valid() && !xform_matrix.isIdentity() )
+            else if ( working_matrix.valid() && !working_matrix.isIdentity() )
             {
                 struct XformVisitor : public GeoPointVisitor {
                     osg::Matrixd mat;
@@ -224,7 +237,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
                 };
 
                 XformVisitor visitor;
-                visitor.mat = xform_matrix;
+                visitor.mat = working_matrix;
                 shape->accept( visitor );
             }
         }

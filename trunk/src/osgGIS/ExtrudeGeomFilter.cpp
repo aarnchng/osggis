@@ -396,7 +396,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
 {
     DrawableList output;
 
-    osg::Vec4 color = getColorForFeature( input );
+    osg::Vec4 color = getColorForFeature( input, env );
 
     for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
     {
@@ -407,12 +407,9 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         // first try the height expression (takes precedence)
         if ( height_expr.length() > 0 )
         {
-            ExpressionEvaluator eval( input );
-            if ( !eval.eval( height_expr, /*out*/height ) )
-            {
-                osg::notify(osg::WARN) 
-                    << "Warning, height expression \"" << height_expr << "\" has an error" << std::endl;
-            }
+            osg::ref_ptr<Script> script = new Script( height_expr );
+            ScriptResult r = env->getScriptEngine()->run( script.get(), input, env );
+            height = r.isValid()? r.asDouble( height ) : height;
         }
 
         // next try the functor.. this may eventually go away as well..

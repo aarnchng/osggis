@@ -32,7 +32,6 @@ namespace osgGIS
         DrawableFilterState( DrawableFilter* filter );
 
         bool traverse( FilterEnv* );
-        virtual void reset( ScriptContext* );
 
         void push( Feature* input );
         void push( const FeatureList& input );

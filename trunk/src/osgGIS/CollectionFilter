@@ -31,7 +31,7 @@ namespace osgGIS
     /**
      * A filter that collects incoming data and meters it out in batches.
      *
-     * Normally, data (such as features or drawables) passes through a script
+     * Normally, data (such as features or drawables) passes through a graph
      * one element at a time. A collection filter will "collect" elements,
      * wait until a checkpoint is reached, and then meter the collected
      * elements out in batches.
@@ -47,7 +47,7 @@ namespace osgGIS
      * it with a CollectionFilter.
      *
      * Another possible use for a collection filter would be to save the state
-     * of the script to support partial compilation or data caching. This is
+     * of the graph to support partial compilation or data caching. This is
      * not yet implemented but will be in the future.
      */
     class OSGGIS_EXPORT CollectionFilter : public Filter

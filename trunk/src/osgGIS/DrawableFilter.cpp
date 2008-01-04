@@ -19,8 +19,6 @@
 
 #include <osgGIS/DrawableFilter>
 #include <osgGIS/DrawableFilterState>
-//#include <osgGIS/NodeFilter>
-//#include <osgGIS/CollectionFilter>
 #include <osg/Notify>
 
 using namespace osgGIS;
@@ -39,39 +37,6 @@ DrawableFilter::newState()
 {
     return new DrawableFilterState( this );
 }
-
-//void
-//DrawableFilter::push( Feature* input )
-//{
-//    in_features.push_back( input );
-//}
-//
-//void
-//DrawableFilter::push( const FeatureList& input )
-//{
-//    in_features.insert( in_features.end(), input.begin(), input.end() );
-//}
-//
-//void
-//DrawableFilter::push( osg::Drawable* input )
-//{
-//    in_drawables.push_back( input );
-//}
-//
-//void
-//DrawableFilter::push( const DrawableList& input )
-//{
-//    in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
-//}
-//
-//void
-//DrawableFilter::reset( ScriptContext* context )
-//{
-//    in_features.clear();
-//    in_drawables.clear();
-//    Filter::reset( context );
-//}
-//
 
 DrawableList
 DrawableFilter::process( Feature* f, FilterEnv* env )
@@ -113,46 +78,3 @@ DrawableFilter::process( DrawableList& input, FilterEnv* env )
     }
     return output;
 }
-
-
-//bool
-//DrawableFilter::traverse( FilterEnv* in_env )
-//{
-//    bool ok = true;
-//
-//    osg::ref_ptr<FilterEnv> env = in_env->advance();
-//
-//    Filter* next = getNextFilter();
-//    if ( next )
-//    {
-//        DrawableList output =
-//            in_features.size() > 0? process( in_features, env.get() ) :
-//            in_drawables.size() > 0? process( in_drawables, env.get() ) :
-//            DrawableList();
-//        
-//        if ( dynamic_cast<NodeFilter*>( next ) )
-//        {
-//            NodeFilter* filter = static_cast<NodeFilter*>( next );
-//            filter->push( output );
-//        }
-//        else if ( dynamic_cast<DrawableFilter*>( next ) )
-//        {
-//            DrawableFilter* filter = static_cast<DrawableFilter*>( next );
-//            filter->push( output );
-//        }
-//        else if ( dynamic_cast<CollectionFilter*>( next ) )
-//        {
-//            CollectionFilter* filter = static_cast<CollectionFilter*>( next );
-//            filter->push( output );
-//        }
-//
-//        ok = next->traverse( env.get() );
-//    }
-//
-//    in_features.clear();
-//    in_drawables.clear();
-//    //in_feature = NULL;
-//    //in_drawable = NULL;
-//
-//    return ok;
-//}

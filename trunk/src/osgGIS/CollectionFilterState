@@ -33,7 +33,6 @@ namespace osgGIS
         CollectionFilterState( CollectionFilter* filter );
 
         bool traverse( FilterEnv* );
-        virtual void reset( ScriptContext* );
         virtual bool signalCheckpoint();
 
         void push( Feature* input );
@@ -44,9 +43,6 @@ namespace osgGIS
         void push( const osg::NodeList& nodes );
 
     protected:
-//        FeatureList in_features;
-//        DrawableList in_drawables;
-//        osg::NodeList in_nodes;
         osg::ref_ptr<CollectionFilter> filter;
         osg::ref_ptr<FilterEnv> saved_env;
         

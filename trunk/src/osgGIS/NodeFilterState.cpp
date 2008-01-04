@@ -32,15 +32,6 @@ NodeFilterState::NodeFilterState( NodeFilter* _filter )
 }
 
 void
-NodeFilterState::reset( ScriptContext* _context )
-{
-    in_drawables.clear();
-    in_nodes.clear();
-    out_nodes.clear();
-    FilterState::reset( _context );
-}
-
-void
 NodeFilterState::push( osg::Drawable* input )
 {
     in_drawables.push_back( input );

@@ -50,16 +50,6 @@ FilterState::appendState( FilterState* _state )
     return next_state.get();
 }
 
-void
-FilterState::reset( ScriptContext* _context )
-{
-    if ( next_state.valid() )
-    {
-        next_state->reset( _context );
-    }
-    context = _context;
-}
-
 bool
 FilterState::signalCheckpoint()
 {

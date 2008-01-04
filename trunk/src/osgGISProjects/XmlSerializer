@@ -46,9 +46,9 @@ namespace osgGISProjects
         virtual void store( Document* doc, std::ostream& out );
         
         
-        virtual Script* readScript( Document* doc );
+        virtual FilterGraph* readFilterGraph( Document* doc );
 
-        virtual Document* writeScript( Script* script );
+        virtual Document* writeFilterGraph( FilterGraph* graph );
         
         
         virtual Project* readProject( Document* doc );
@@ -58,6 +58,7 @@ namespace osgGISProjects
         
     protected:
     
+        FilterGraph* decodeFilterGraph( XmlElement*, Project* );
         Script* decodeScript( XmlElement*, Project* );
         Source* decodeSource( XmlElement*, Project* );
         Terrain* decodeTerrain( XmlElement*, Project* );
@@ -66,7 +67,7 @@ namespace osgGISProjects
         BuildLayerSlice* decodeSlice( XmlElement*, Project* );
         Project* decodeProject( XmlElement* );
         
-        XmlElement* encodeScript( Script* );
+        XmlElement* encodeFilterGraph( FilterGraph* );
         XmlElement* encodeProject( Project* );
     };
 }

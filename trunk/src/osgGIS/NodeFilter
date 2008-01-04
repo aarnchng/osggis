@@ -21,7 +21,6 @@
 #define _OSGGIS_NODE_FILTER_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/ScriptContext>
 #include <osgGIS/CollectionFilter>
 #include <osgGIS/DrawableFilter>
 #include <osg/Node>
@@ -81,46 +80,10 @@ namespace osgGIS
     public:
 
         FilterState* newState();
-
-        ///**
-        // * Pushes a drawable onto this filter's input data queue.
-        // */
-        //void push( osg::Drawable* input );
-
-        ///**
-        // * Pushes a collection of drawables onto this filter's input data queue.
-        // */
-        //void push( DrawableList& input );
-
-        ///**
-        // * Pushes a single node onto this filter's input data queue.
-        // */
-        //void push( osg::Node* input );
-
-        ///**
-        // * Pushes a collection of nodes onto this filter's input data queue.
-        // */
-        //void push( osg::NodeList& input );
-
-        //bool traverse( FilterEnv* env );
-
-        //virtual void reset( ScriptContext* );
-        //
-        ///**
-        // * Gets the output node collection from this filter. Since a NodeFilter
-        // * can be the final node in a script's filter chain, this method allows
-        // * the compiler to retrieve the final results.
-        // */
-        //osg::NodeList& getOutput();
         
     protected:
         NodeFilter();
-        virtual ~NodeFilter();        
-    //    
-    //private:        
-    //    DrawableList  in_drawables; 
-    //    osg::NodeList in_nodes;
-    //    osg::NodeList out_nodes;  
+        virtual ~NodeFilter();  
     };
 }
 

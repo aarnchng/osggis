@@ -43,44 +43,6 @@ NodeFilter::newState()
 }
 
 
-//void
-//NodeFilter::reset( ScriptContext* _context )
-//{
-//    in_drawables.clear();
-//    in_nodes.clear();
-//    out_nodes.clear();
-//    Filter::reset( _context );
-//}
-//
-//
-//void
-//NodeFilter::push( osg::Drawable* input )
-//{
-//    in_drawables.push_back( input );
-//}
-//
-//
-//void
-//NodeFilter::push( DrawableList& input )
-//{
-//    in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
-//}
-//
-//
-//void
-//NodeFilter::push( osg::Node* input )
-//{
-//    in_nodes.push_back( input );
-//}
-//
-//
-//void
-//NodeFilter::push( osg::NodeList& input )
-//{
-//    in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
-//}
-
-
 osg::NodeList 
 NodeFilter::process( DrawableList& input, FilterEnv* env )
 {

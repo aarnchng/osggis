@@ -29,7 +29,7 @@ namespace osgGIS
 {
     /**
      * Compiles a feature layer by breaking it down into a grid of rows
-     * and columns and running the script against each tile.
+     * and columns and running the graph against each tile.
      */
     class OSGGIS_EXPORT GriddedLayerCompiler : public LayerCompiler
     {
@@ -54,11 +54,6 @@ namespace osgGIS
     private:
         int num_rows, num_cols;
         bool paged;
-
-        //osg::Node* compileLOD(
-        //    FeatureLayer*    layer,
-        //    Script*          script,
-        //    const GeoExtent& extent );
     };
 }
 
