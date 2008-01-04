@@ -21,14 +21,15 @@
 #define _OSGGIS_COMPILER_H 1
 
 #include <osgGIS/Common>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osgGIS/FeatureLayer>
+#include <osgGIS/Session>
 #include <osg/Group>
 
 namespace osgGIS
 {
     /**
-     * Uses a script to compile a feature layer into a scene graph.
+     * Uses a filter graph to compile a feature layer into a scene graph.
      */
     class OSGGIS_EXPORT Compiler : public osg::Referenced
     {
@@ -38,10 +39,22 @@ namespace osgGIS
          *
          * @param layer
          *      Feature layer to compile
-         * @param script
-         *      Script to use to compile the feature layer
+         * @param graph
+         *      Graph to use to compile the feature layer
+         * @param session
+         *      Session under which this compiler operates
          */
-        Compiler( FeatureLayer* layer, Script* script );
+        Compiler( FeatureLayer* layer, FilterGraph* graph, Session* session );
+
+        /**
+         * Constructs a new compiler (with a default session).
+         *
+         * @param layer
+         *      Feature layer to compile
+         * @param graph
+         *      Graph to use to compile the feature layer
+         */
+        Compiler( FeatureLayer* layer, FilterGraph* graph );
 
         /**
          * Compiles the feature layer with a default environment.
@@ -57,7 +70,7 @@ namespace osgGIS
          *      Context within which to compile the feature layer. This can
          *      convey environment-sensitive information such as the spatial
          *      area of interest, the LOD range, and the spatial reference 
-         *      system. This way you can design a single script and use it
+         *      system. This way you can design a single graph and use it
          *      over and over with different context settings. See FilterEnv
          *      for more information.
          * @return
@@ -67,16 +80,23 @@ namespace osgGIS
 
 
     public:
-        virtual ~Compiler();
 
-    protected:
         FeatureLayer* getFeatureLayer();
 
-        Script* getScript();
+        FilterGraph* getFilterGraph();
+
+        Session* getSession();
+
+
+    public:
+
+        virtual ~Compiler();
+
         
     private:
         osg::ref_ptr<FeatureLayer> layer;
-        osg::ref_ptr<Script>       script;
+        osg::ref_ptr<FilterGraph>  graph;
+        osg::ref_ptr<Session>      session;
     };
 }
 

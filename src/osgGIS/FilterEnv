@@ -24,6 +24,8 @@
 #include <osgGIS/GeoExtent>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/SmartReadCallback>
+#include <osgGIS/ScriptEngine>
+#include <osgGIS/Property>
 #include <osg/Node>
 
 namespace osgGIS
@@ -134,7 +136,22 @@ namespace osgGIS
          */
         SmartReadCallback* getTerrainReadCallback();
 
+        /**
+         * Sets the script engine
+         */
+        void setScriptEngine( ScriptEngine* engine );
+
+        /**
+         * Gets the scripting engine
+         */
+        ScriptEngine* getScriptEngine();
+
     public:
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties& getProperties();
+
+    protected:
                 
         virtual ~FilterEnv();
         
@@ -145,6 +162,8 @@ namespace osgGIS
         osg::ref_ptr<SpatialReference>  terrain_srs;
         osg::ref_ptr<osg::Node>         terrain_node;
         osg::ref_ptr<SmartReadCallback> terrain_read_cb;
+        osg::ref_ptr<ScriptEngine>      script_engine;
+        Properties                      properties;
     };
 }
 

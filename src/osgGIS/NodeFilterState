@@ -33,7 +33,6 @@ namespace osgGIS
         NodeFilterState( NodeFilter* filter );  
         
         bool traverse( FilterEnv* env );
-        virtual void reset( ScriptContext* );
 
         /**
          * Pushes a drawable onto this filter's input data queue.
@@ -58,7 +57,7 @@ namespace osgGIS
         
         /**
          * Gets the output node collection from this filter. Since a NodeFilter
-         * can be the final node in a script's filter chain, this method allows
+         * can be the final node in a graphs's filter chain, this method allows
          * the compiler to retrieve the final results.
          */
         osg::NodeList& getOutput();

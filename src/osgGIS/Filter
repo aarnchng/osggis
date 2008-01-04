@@ -21,7 +21,6 @@
 #define _OSGGIS_FILTER_H_
 
 #include <osgGIS/Common>
-#include <osgGIS/ScriptContext>
 #include <osgGIS/Property>
 #include <osgGIS/FilterState>
 #include <osg/Drawable>
@@ -32,10 +31,10 @@
 namespace osgGIS
 {
     /**
-     * A discrete data-processing element in a Script.
+     * A discrete data-processing element in a FilterGraph.
      *
      * A Filter in a dicrete data processor. It takes input and generates
-     * output data. When chained together in a Script, filters sequentially
+     * output data. When chained together in a FilterGraph, filters sequentially
      * process data in discrete steps which together form a complete,
      * repeatable data compilation procedure.
      *
@@ -85,7 +84,6 @@ namespace osgGIS
         Filter();
         
     private:
-        osg::ref_ptr<ScriptContext> context;
         std::string name;
     };
     

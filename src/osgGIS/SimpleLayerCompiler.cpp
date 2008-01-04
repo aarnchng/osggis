@@ -18,7 +18,7 @@
  */
 
 #include <osgGIS/SimpleLayerCompiler>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osgGIS/Compiler>
 #include <osgGIS/FilterEnv>
 #include <osgGIS/FadeHelper>
@@ -36,14 +36,14 @@ SimpleLayerCompiler::SimpleLayerCompiler()
 
 
 osg::Node*
-SimpleLayerCompiler::compileLOD( FeatureLayer* layer, Script* script )
+SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
 {
     osg::ref_ptr<FilterEnv> env = new FilterEnv();
     env->setExtent( layer->getExtent() );
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );
-    Compiler compiler( layer, script );
+    Compiler compiler( layer, graph, getSession() );
     return compiler.compile( env.get() );
 }
 
@@ -65,9 +65,9 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
         FadeHelper::enableFading( lod->getOrCreateStateSet() );
     }
 
-    for( ScriptRangeList::iterator i = script_ranges.begin(); i != script_ranges.end(); i++ )
+    for( FilterGraphRangeList::iterator i = graph_ranges.begin(); i != graph_ranges.end(); i++ )
     {
-        osg::Node* range = compileLOD( layer, i->script.get() );
+        osg::Node* range = compileLOD( layer, i->graph.get() );
         if ( range )
         {
             lod->addChild( range, i->min_range, i->max_range );

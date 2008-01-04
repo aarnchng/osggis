@@ -27,6 +27,9 @@
 
 #define RANDCOL ((((float)(::rand()%255)))/255.0f)
 
+#define PROP_COLOR "BuildGeomFilter::color"
+#define PROP_BATCH "BuildGeomFilter::batch" 
+
 using namespace osgGIS;
 
 #include <osgGIS/Registry>
@@ -85,6 +88,18 @@ BuildGeomFilter::getColor() const
     return overall_color;
 }
 
+void
+BuildGeomFilter::setColorExpr( const std::string& _expr )
+{
+    color_expr = _expr;
+}
+
+const std::string&
+BuildGeomFilter::getColorExpr() const
+{
+    return color_expr;
+}
+
 
 void
 BuildGeomFilter::setRandomizeColors( bool on_off )
@@ -106,7 +121,8 @@ void
 BuildGeomFilter::setProperty( const Property& prop )
 {
     if ( prop.getName() == "color" )
-        setColor( prop.getVec4fValue() );
+        setColorExpr( prop.getValue() );
+        //setColorExpr( prop.getVec4fValue() );
     if ( prop.getName() == "randomize_colors" )
         setRandomizeColors( prop.getBoolValue( getRandomizeColors() ) );
 
@@ -118,7 +134,7 @@ Properties
 BuildGeomFilter::getProperties() const
 {
     Properties p = DrawableFilter::getProperties();
-    p.push_back( Property( "color", getColor() ) );
+    p.push_back( Property( "color", getColorExpr() ) );
     p.push_back( Property( "randomize_colors", getRandomizeColors() ) );
     return p;
 }
@@ -126,14 +142,32 @@ BuildGeomFilter::getProperties() const
 DrawableList
 BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
-    if ( getRandomizeColors() )
-        active_color = getRandomColor();
+    // if features are arriving in batch, resolve the color here.
+    // otherwise we will resolve it later in process(feature,env).
+    osg::Vec4 color = overall_color;
+    bool batch = input.size() > 1;
+
+    if ( batch && getColorExpr().length() > 0 )
+    {
+        ScriptResult r = env->getScriptEngine()->run(
+            new Script( getColorExpr() ),
+            env );
+
+        if ( r.isValid() )
+            color = r.asVec4();
+    }
+
+    env->setProperty( Property( PROP_COLOR, color ) );
+    env->setProperty( Property( PROP_BATCH, batch ) );
+
+    //if ( getRandomizeColors() )
+    //    active_color = getRandomColor();
 
     return DrawableFilter::process( input, env );
 }
 
 DrawableList
-BuildGeomFilter::process( Feature* f, FilterEnv* env ) //FeatureList& input, FilterEnv* env )
+BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input, FilterEnv* env )
 {
     //osg::notify( osg::ALWAYS )
     //    << "Feature (" << input->getOID() << ") extent = " << input->getExtent().toString()
@@ -164,9 +198,11 @@ BuildGeomFilter::process( Feature* f, FilterEnv* env ) //FeatureList& input, Fil
     //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
     //normals->push_back( osg::Vec3( 0, 0, 1 ) );
 
-    const GeoShapeList& shapes = f->getShapes();
+    const GeoShapeList& shapes = input->getShapes();
 
-    osg::Vec4 color = getColorForFeature( f );
+    // if we're in batch mode, the color was resolved in the other process() function.
+    // otherwise we still need to resolve it.
+    osg::Vec4 color = getColorForFeature( input, env );
 
     for( GeoShapeList::const_iterator s = shapes.begin(); s != shapes.end(); s++ )
     {
@@ -217,10 +253,30 @@ BuildGeomFilter::process( Feature* f, FilterEnv* env ) //FeatureList& input, Fil
 }
 
 osg::Vec4
-BuildGeomFilter::getColorForFeature( Feature* f )
+BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
 {
+    osg::Vec4 result = overall_color;
+    
+    bool batch = env->getProperties().getBoolValue( PROP_BATCH, false );
+    if ( batch )
+    {
+        result = env->getProperties().getVec4Value( PROP_COLOR );
+    }
+    else
+    {
+        ScriptResult r = env->getScriptEngine()->run(
+            new Script( getColorExpr() ),
+            feature,
+            env );
+
+        if ( r.isValid() )
+            result = r.asVec4();
+    }
+
+    return result;
+
     //err...address this later
-    return getRandomizeColors()? active_color : overall_color;
+    //return getRandomizeColors()? active_color : overall_color;
 }
 
 osg::Vec4

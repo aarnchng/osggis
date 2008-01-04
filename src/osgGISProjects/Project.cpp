@@ -57,10 +57,22 @@ Project::getScripts()
     return scripts;
 }
 
-Script*
-Project::getScript( const std::string& key )
+const FilterGraphList&
+Project::getFilterGraphs() const
 {
-    for( ScriptList::const_iterator i = scripts.begin(); i != scripts.end(); i++ )
+    return graphs;
+}
+
+FilterGraphList&
+Project::getFilterGraphs()
+{
+    return graphs;
+}
+
+FilterGraph*
+Project::getFilterGraph( const std::string& key )
+{
+    for( FilterGraphList::const_iterator i = graphs.begin(); i != graphs.end(); i++ )
     {
         if ( i->get()->getName() == key )
             return i->get();
@@ -160,3 +172,14 @@ Project::getTarget( const std::string& key )
     return NULL;
 }
 
+const ResourceList&
+Project::getResources() const
+{
+    return resources;
+}
+
+ResourceList&
+Project::getResources()
+{
+    return resources;
+}

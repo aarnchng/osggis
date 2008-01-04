@@ -71,6 +71,16 @@ namespace osgGIS
         const osg::Vec4f& getColor() const;
 
         /**
+         * Sets the expression that evaluates to the color to use.
+         */
+        void setColorExpr( const std::string& expr );
+
+        /**
+         * Gets the expression that evaluates to color to use.
+         */
+        const std::string& getColorExpr() const;
+
+        /**
          * Sets whether to assign random colors to the geometry.
          */
         void setRandomizeColors( bool enabled );
@@ -91,17 +101,16 @@ namespace osgGIS
         virtual DrawableList process( Feature* input, FilterEnv* env );
         
     protected:
-        virtual osg::Vec4 getColorForFeature( Feature* input );
+        virtual osg::Vec4 getColorForFeature( Feature* input, FilterEnv* env );
         virtual osg::Vec4 getRandomColor();
-
-        //void mergeDrawables( DrawableList& drawables );
 
         virtual ~BuildGeomFilter();
         
     protected:
-        int       options;
-        osg::Vec4 overall_color;
-        osg::Vec4 active_color;
+        int         options;
+        std::string color_expr;
+        osg::Vec4   overall_color;
+//        osg::Vec4   active_color;
     };
 }
 

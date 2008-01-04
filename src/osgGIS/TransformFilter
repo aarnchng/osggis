@@ -132,7 +132,7 @@ namespace osgGIS
 
         /**
          * Sets whether to localize the feature geodata by transforming it so it is
-         * relative to the centroid of the script's working extent
+         * relative to the centroid of the graph's working extent
          *
          * @param enabled
          *      True to localize geodata; false to not localize
@@ -141,7 +141,7 @@ namespace osgGIS
 
         /**
          * Gets whether to localize the feature geodata by transforming it so it is
-         * relative to the centroid of the script's working extent.
+         * relative to the centroid of the graph's working extent.
          *
          * @return True to localize, false to not localize.
          */
@@ -158,7 +158,8 @@ namespace osgGIS
     private:
         osg::ref_ptr<SpatialReference> srs;
         osg::Matrix                    xform_matrix;
-        int                            options;        
+        int                            options; 
+        std::string                    translate_expr;
     };
 }
 

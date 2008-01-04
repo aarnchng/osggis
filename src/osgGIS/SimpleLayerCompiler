@@ -23,7 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/LayerCompiler>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osg/Node>
 #include <string>
 
@@ -54,7 +54,7 @@ namespace osgGIS
     private:
         osg::Node* compileLOD(
             FeatureLayer* layer,
-            Script*       script);
+            FilterGraph*  graph);
     };
 }
 

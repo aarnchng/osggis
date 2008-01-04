@@ -1,0 +1,28 @@
+$#include <osgGIS/Attribute>
+$#include <osgGIS/Feature>
+$#include <osgGIS/FilterEnv>
+$#include <osgGIS/Resource>
+$#include <osgGIS/ResourceLibrary>
+$#include <string>
+$using namespace osgGIS;
+
+class Attribute
+{
+  bool        isValid();
+  std::string asString();
+  int         asInt();
+  double      asDouble();
+  bool        asBool();
+};
+
+class Feature
+{
+  int getOID();
+  double getAttributeAsDouble( const char*, double );
+  Attribute getAttribute( const char* );
+};
+
+class FilterEnv
+{
+};
+

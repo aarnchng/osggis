@@ -22,7 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osgGIS/LayerCompiler>
 #include <osg/Node>
 #include <string>
@@ -80,7 +80,6 @@ namespace osgGIS
             int                level,
             osg::Node*         tile_terrain,
             const GeoExtent&   tile_extent,
-            //double             tile_min_range,
             double             tile_max_range,
             const std::string& tile_filename );
             

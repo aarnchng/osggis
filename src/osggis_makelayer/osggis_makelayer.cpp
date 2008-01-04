@@ -25,14 +25,14 @@
  *
  * Demonstrates:
  *  - How to connect to a feature layer
- *  - How to build a script and use various filters
+ *  - How to build a filter graph and use various filters
  *  - How to use the PagedLayerCompiler
  */
 
 #include <osgGIS/Registry>
 #include <osgGIS/FeatureStore>
 #include <osgGIS/Compiler>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osgGIS/CropFilter>
 #include <osgGIS/TransformFilter>
 #include <osgGIS/ChangeShapeTypeFilter>
@@ -293,42 +293,42 @@ parseCommandLine( int argc, char** argv )
 
 
 
-osgGIS::Script*
-createScript()
+osgGIS::FilterGraph*
+createFilterGraph()
 {
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
-    // The "script" is a series of filters that will transform the GIS
+    // The "filter graph" is a series of filters that will transform the GIS
     // feature data into a scene graph.
-    osgGIS::Script* script = new osgGIS::Script();
+    osgGIS::FilterGraph* graph = new osgGIS::FilterGraph();
     
     // Treat the incoming feature data as lines:
     if ( shape_type != osgGIS::GeoShape::TYPE_UNSPECIFIED )
     {
-        script->appendFilter( new osgGIS::ChangeShapeTypeFilter(
+        graph->appendFilter( new osgGIS::ChangeShapeTypeFilter(
             shape_type ) );
     }
 
     // Remove holes in polygons as an optimization
     if ( remove_holes )
     {
-        script->appendFilter( new osgGIS::RemoveHolesFilter() );
+        graph->appendFilter( new osgGIS::RemoveHolesFilter() );
     }
 
     // Replace features with convex hull
     if ( convex_hull )
     {
-        script->appendFilter( new osgGIS::CollectionFilter() );
-        script->appendFilter( new osgGIS::ConvexHullFilter() );
+        graph->appendFilter( new osgGIS::CollectionFilter() );
+        graph->appendFilter( new osgGIS::ConvexHullFilter() );
     }
 
     // Crop the feature data to the compiler environment's working extent:
-    script->appendFilter( new osgGIS::CropFilter( 
+    graph->appendFilter( new osgGIS::CropFilter( 
         include_grid? osgGIS::CropFilter::SHOW_CROP_LINES : 0 ) );
 
     // Transform the features to the target spatial reference system,
     // localizing them to a local origin:
-    script->appendFilter( new osgGIS::TransformFilter(
+    graph->appendFilter( new osgGIS::TransformFilter(
         osgGIS::TransformFilter::USE_TERRAIN_SRS |
         osgGIS::TransformFilter::LOCALIZE ) );
 
@@ -336,7 +336,7 @@ createScript()
     // after the transform means we're dealing in meters.
     if ( decimate_threshold > 0.0 )
     {
-        script->appendFilter( new osgGIS::DecimateFilter( 
+        graph->appendFilter( new osgGIS::DecimateFilter( 
             decimate_threshold ) );
     }
 
@@ -344,7 +344,7 @@ createScript()
     // terrain skin (unless we are overlay-ing)
     if ( !overlay )
     {
-        script->appendFilter( new osgGIS::ClampFilter() );
+        graph->appendFilter( new osgGIS::ClampFilter() );
     }
 
     // Construct osg::Drawable's from the incoming feature batches:
@@ -361,19 +361,19 @@ createScript()
             gf->setMaxHeight( extrude_max_height );
             gf->setRandomizeHeights( true );
         }
-        script->appendFilter( gf );
+        graph->appendFilter( gf );
     }
     else
     {
         osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
         gf->setColor( color );
         gf->setRandomizeColors( color.a() == 0 );
-        script->appendFilter( gf );
+        graph->appendFilter( gf );
     }
 
     // Bring all the drawables into a single collection so that they
     // all fall under the same osg::Geode.
-    script->appendFilter( new osgGIS::CollectionFilter() );
+    graph->appendFilter( new osgGIS::CollectionFilter() );
 
     // Construct a Node that contains the drawables and adjust its
     // state set.
@@ -382,10 +382,10 @@ createScript()
         osgGIS::BuildNodesFilter::OPTIMIZE |
         (!lighting? osgGIS::BuildNodesFilter::DISABLE_LIGHTING : 0) );
 
-    script->appendFilter( bnf );
+    graph->appendFilter( bnf );
 
-    script->setName( "Default" );
-    return script;
+    graph->setName( "Default" );
+    return graph;
 }
 
 
@@ -446,9 +446,9 @@ main(int argc, char* argv[])
     }
 
 
-    // Next we create a script that the compiler will use to build the geometry:
+    // Next we create a filter graph that the compiler will use to build the geometry:
     NOUT << "Compiling..." << ENDL;
-    osg::ref_ptr<osgGIS::Script> script = createScript();
+    osg::ref_ptr<osgGIS::FilterGraph> graph = createFilterGraph();
 
     // Create the output folder if necessary:
     if ( osgDB::getFilePath( output_file ).length() > 0 && !osgDB::makeDirectoryForFile( output_file ) )
@@ -480,7 +480,7 @@ main(int argc, char* argv[])
         // tile for each terrain tile.
         osgGIS::PagedLayerCompiler compiler;
 
-        compiler.addScript( range_near, range_far, script.get() );
+        compiler.addFilterGraph( range_near, range_far, graph.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setPriorityOffset( priority_offset );
         compiler.setFadeLODs( fade_lods );
@@ -503,7 +503,7 @@ main(int argc, char* argv[])
         compiler.setFadeLODs( fade_lods );
         //compiler.setOverlay( overlay );
 
-        compiler.addScript( range_near, range_far, script.get() );
+        compiler.addFilterGraph( range_near, range_far, graph.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         compiler.setTaskManager( manager.get() );
@@ -526,7 +526,7 @@ main(int argc, char* argv[])
     {
         osgGIS::SimpleLayerCompiler compiler;
         
-        compiler.addScript( range_near, range_far, script.get() );
+        compiler.addFilterGraph( range_near, range_far, graph.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
         compiler.setFadeLODs( fade_lods );

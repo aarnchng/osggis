@@ -40,6 +40,7 @@ SET(LIB_PUBLIC_HEADERS
     FeatureStore
     FeatureStoreFactory
     Filter
+    FilterGraph
     FilterState
     FilterEnv
     GeocentricSpatialReference
@@ -50,6 +51,8 @@ SET(LIB_PUBLIC_HEADERS
     LayerCompiler
     LineSegmentIntersector2
     LocalizeNodesFilter
+    Lua_ScriptEngine
+    Lua_ScriptEngine_tolua
     NodeFilter
     NodeFilterState
     OGR_Feature
@@ -68,8 +71,9 @@ SET(LIB_PUBLIC_HEADERS
     RTreeSpatialIndex
     Rule
     Script
-    ScriptContext
+    ScriptEngine
     SelectFilter
+    SessionFilter
     SkinResource
     SimpleFeature
     SimpleLayerCompiler
@@ -117,6 +121,7 @@ ADD_LIBRARY(${LIB_NAME}
     FeatureFilterState.cpp
     FeatureLayer.cpp
     Filter.cpp
+    FilterGraph.cpp
     FilterState.cpp
     FilterEnv.cpp
     GeocentricSpatialReference.cpp
@@ -127,6 +132,8 @@ ADD_LIBRARY(${LIB_NAME}
     LayerCompiler.cpp
     LineSegmentIntersector2.cpp
     LocalizeNodesFilter.cpp
+    Lua_ScriptEngine.cpp
+    Lua_ScriptEngine_tolua.cpp
     NodeFilter.cpp
     NodeFilterState.cpp
     OGR_Feature.cpp
@@ -144,8 +151,8 @@ ADD_LIBRARY(${LIB_NAME}
     RTreeSpatialIndex.cpp
     Rule.cpp
     Script.cpp
-    ScriptContext.cpp
     SelectFilter.cpp
+    Session.cpp
     SkinResource.cpp
     SimpleFeature.cpp
     SimpleLayerCompiler.cpp
@@ -160,7 +167,7 @@ ADD_LIBRARY(${LIB_NAME}
 )
 
 LINK_EXTERNAL(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT}    ${MATH_LIBRARY})
-LINK_WITH_VARIABLES(${LIB_NAME} OSG_LIBRARY OSGUTIL_LIBRARY OSGDB_LIBRARY OSGFX_LIBRARY OSGSIM_LIBRARY OSGTEXT_LIBRARY OPENTHREADS_LIBRARY GDAL_LIBRARY)
+LINK_WITH_VARIABLES(${LIB_NAME} OSG_LIBRARY OSGUTIL_LIBRARY OSGDB_LIBRARY OSGFX_LIBRARY OSGSIM_LIBRARY OSGTEXT_LIBRARY OPENTHREADS_LIBRARY GDAL_LIBRARY LUA_LIBRARY TOLUA_LIBRARY)
 LINK_CORELIB_DEFAULT(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT} ${MATH_LIBRARY} )
 
 INCLUDE(ModuleInstall OPTIONAL)

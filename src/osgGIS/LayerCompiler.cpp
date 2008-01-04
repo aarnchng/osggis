@@ -52,20 +52,20 @@ LayerCompiler::getTaskManager()
 }
 
 void
-LayerCompiler::addScript( float min_range, float max_range, Script* script )
+LayerCompiler::addFilterGraph( float min_range, float max_range, FilterGraph* graph )
 {
-    ScriptRange slice;
+    FilterGraphRange slice;
     slice.min_range = min_range;
     slice.max_range = max_range;
-    slice.script = script;
+    slice.graph = graph;
 
-    script_ranges.push_back( slice );
+    graph_ranges.push_back( slice );
 }
 
-LayerCompiler::ScriptRangeList&
-LayerCompiler::getScripts()
+LayerCompiler::FilterGraphRangeList&
+LayerCompiler::getFilterGraphs()
 {
-    return script_ranges;
+    return graph_ranges;
 }
 
 void
@@ -176,4 +176,28 @@ LayerCompiler::convertToOverlay( osg::Node* input )
     o_node->setOverlaySubgraph( input );
     o_node->setOverlayTextureSizeHint( 1024 );
     return o_node;
+}
+
+Session*
+LayerCompiler::getSession()
+{
+    return session.get();
+}
+
+void
+LayerCompiler::setSession( Session* _session )
+{
+    session = _session;
+}
+
+void
+LayerCompiler::setPreCompileExpr( const std::string& expr )
+{
+    pre_compile_expr = expr;
+}
+
+const std::string&
+LayerCompiler::getPreCompileExpr() const
+{
+    return pre_compile_expr;
 }

@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Resource>
 #include <osgGIS/Rule>
+#include <OpenThreads/Mutex>
 #include <map>
 
 namespace osgGIS
@@ -32,8 +33,10 @@ namespace osgGIS
      * Resources define external things that a compiler can apply to features
      * (like a texture skin or a hyperlink). Rules define how a a feature
      * selects a particular resource.
+     *
+     * This class is thread-safe.
      */
-    class OSGGIS_EXPORT ResourceLibrary : public osg::Referenced
+    class OSGGIS_EXPORT ResourceLibrary
     {
     public:
         ResourceLibrary();
@@ -61,6 +64,8 @@ namespace osgGIS
         
         ResourcesByName resources;
         RulesByName     rules;
+
+        OpenThreads::Mutex mut;
     };
 }
 

@@ -30,24 +30,9 @@ CollectionFilterState::CollectionFilterState( CollectionFilter* _filter )
     filter = _filter;
 }
 
-void
-CollectionFilterState::reset( osgGIS::ScriptContext* context )
-{
-    feature_groups.clear();
-    drawable_groups.clear();
-    node_groups.clear();
-    //in_features.clear();
-    //in_drawables.clear();
-    //in_nodes.clear();
-    FilterState::reset( context );
-}
-
-
 void 
 CollectionFilterState::push( const FeatureList& input )
 {
-    //in_features.insert( in_features.end(), input.begin(), input.end() );
-
     for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
         push( (Feature*)( i->get() ) );
 }
@@ -56,7 +41,6 @@ CollectionFilterState::push( const FeatureList& input )
 void
 CollectionFilterState::push( Feature* input )
 {
-    //in_features.push_back( input );
     feature_groups[ filter->assign( input ) ].push_back( input );
 }
 
@@ -64,7 +48,6 @@ CollectionFilterState::push( Feature* input )
 void 
 CollectionFilterState::push( const DrawableList& input )
 {
-    //in_drawables.insert( in_drawables.end(), input.begin(), input.end() );
     for( DrawableList::const_iterator i = input.begin(); i != input.end(); i++ )
         push( (osg::Drawable*)( i->get() ) );
 }
@@ -73,7 +56,6 @@ CollectionFilterState::push( const DrawableList& input )
 void
 CollectionFilterState::push( osg::Drawable* input )
 {
-    //in_drawables.push_back( input );
     drawable_groups[ filter->assign( input ) ].push_back( input );
 }
 
@@ -81,7 +63,6 @@ CollectionFilterState::push( osg::Drawable* input )
 void 
 CollectionFilterState::push( const osg::NodeList& input )
 {
-    //in_nodes.insert( in_nodes.begin(), input.begin(), input.end() );
     for( osg::NodeList::const_iterator i = input.begin(); i != input.end(); i++ )
         push( i->get() );
 }
@@ -90,7 +71,6 @@ CollectionFilterState::push( const osg::NodeList& input )
 void
 CollectionFilterState::push( osg::Node* input )
 {
-    //in_nodes.push_back( input );
     node_groups[ filter->assign( input ) ].push_back( input );
 }
 
@@ -207,9 +187,6 @@ CollectionFilterState::signalCheckpoint()
     feature_groups.clear();
     drawable_groups.clear();
     node_groups.clear();
-    //in_features.clear();
-    //in_drawables.clear();
-    //in_nodes.clear();
     saved_env = NULL;
 
     return ok;

@@ -25,11 +25,12 @@
 
 #include <osgGIS/Registry>
 #include <osgGIS/Compiler>
-#include <osgGIS/Script>
+#include <osgGIS/FilterGraph>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/BuildNodesFilter>
 #include <osgGIS/TransformFilter>
 #include <osgGIS/FadeHelper>
+#include <osgGIS/ScriptEngine>
 
 #include <osg/ArgumentParser>
 #include <osgDB/FileUtils>
@@ -128,31 +129,31 @@ parseCommandLine( int argc, char** argv )
 }
 
 
-osgGIS::Script*
-createScript()
+osgGIS::FilterGraph*
+createFilterGraph()
 {
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
-    // The Script is a series of filters that will transform the GIS
+    // The FilterGraph is a series of filters that will transform the GIS
     // feature data into a scene graph.
-    osgGIS::Script* script = new osgGIS::Script();
+    osgGIS::FilterGraph* graph = new osgGIS::FilterGraph();
 
     // Construct osg::Drawable's from the incoming feature batches:
     osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
     gf->setColor( color );
     gf->setRandomizeColors( color.a() == 0 );
-    script->appendFilter( gf );
+    graph->appendFilter( gf );
 
     // Bring all the drawables into a single collection so that they
     // all fall under the same osg::Geode.
-    script->appendFilter( new osgGIS::CollectionFilter() );
+    graph->appendFilter( new osgGIS::CollectionFilter() );
 
     // Construct a Node that contains the drawables and adjust its state set.
-    script->appendFilter( new osgGIS::BuildNodesFilter( 
+    graph->appendFilter( new osgGIS::BuildNodesFilter( 
         osgGIS::BuildNodesFilter::CULL_BACKFACES |
         osgGIS::BuildNodesFilter::DISABLE_LIGHTING ) );
 
-    return script;
+    return graph;
 }
 
 
@@ -171,11 +172,11 @@ main(int argc, char* argv[])
     if ( !layer.valid() )
         return die( "Failed to create feature layer." );
 
-    // Create a script that the compiler will use to build the geometry:
-    osg::ref_ptr<osgGIS::Script> script = createScript();
+    // Create a graph that the compiler will use to build the geometry:
+    osg::ref_ptr<osgGIS::FilterGraph> graph = createFilterGraph();
 
     // Compile the feature layer into a scene graph.
-    osgGIS::Compiler compiler( layer.get(), script.get() );
+    osgGIS::Compiler compiler( layer.get(), graph.get() );
     osg::ref_ptr<osg::Node> output = compiler.compile();
 
     if ( !output.valid() )

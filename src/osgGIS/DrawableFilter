@@ -36,7 +36,7 @@ namespace osgGIS
      * The subclass implementation should override either one/both of the
      * feature-based process() methods, or one/both of the drawable-based
      * process() methods(). The compiler will call the appropriate method based
-     * on the preceding filter in the script.
+     * on the preceding filter in the graph.
      */
     class OSGGIS_EXPORT DrawableFilter : public Filter
     {        
@@ -108,24 +108,10 @@ namespace osgGIS
 
         virtual FilterState* newState();
 
-    //    bool traverse( FilterEnv* );
-    //    virtual void reset( ScriptContext* );
-
-    //public: // Methods internal to the scripting engine        
-
-    //    void push( Feature* input );
-    //    void push( const FeatureList& input );
-    //    void push( osg::Drawable* input );
-    //    void push( const DrawableList& input );
-
     protected:        
 
         DrawableFilter();
         virtual ~DrawableFilter();
-    //            
-    //private:        
-    //    FeatureList in_features;
-    //    DrawableList in_drawables;        
     };
 }
 

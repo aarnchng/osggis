@@ -55,7 +55,7 @@ SkinResource::setProperty( const Property& prop )
     else if ( prop.getName() == "texture_path" )
         setTexturePath( prop.getValue() );
     else if ( prop.getName() == "color" )
-        setColor( prop.getVec4fValue() );
+        setColor( prop.getVec4Value() );
     else
         Resource::setProperty( prop );
 }

@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Property>
 #include <osgGIS/Tags>
+#include <list>
 #include <set>
 
 namespace osgGIS
@@ -32,7 +33,7 @@ namespace osgGIS
      * This could be something that modifies the appearance of a compiled feature
      * (like a skin/texture) or something at the application level (like a hyperlink).
      */
-    class OSGGIS_EXPORT Resource : public osg::Referenced, public ObjectWithProperties, public ObjectWithTags
+    class OSGGIS_EXPORT Resource : public osg::Referenced, public IObjectWithProperties, public ObjectWithTags
     {
     public:
         /**
@@ -62,6 +63,7 @@ namespace osgGIS
         std::string name;
     };
     
+    typedef std::list< osg::ref_ptr<Resource> > ResourceList;
     typedef std::set< osg::ref_ptr<Resource> > ResourceSet;
 }
 

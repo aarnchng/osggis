@@ -1,4 +1,5 @@
 #include <osgGIS/ResourceLibrary>
+#include <OpenThreads/ScopedLock>
 #include <algorithm>
 
 using namespace osgGIS;
@@ -21,6 +22,8 @@ ResourceLibrary::ResourceLibrary()
 void
 ResourceLibrary::addResource( Resource* resource )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     if ( resource )
         resources[ normalize( resource->getName() ) ] = resource;
 }
@@ -28,6 +31,8 @@ ResourceLibrary::addResource( Resource* resource )
 void
 ResourceLibrary::removeResource( Resource* resource )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     if ( resource )
         resources.erase( normalize( resource->getName() ) );
 }
@@ -35,6 +40,8 @@ ResourceLibrary::removeResource( Resource* resource )
 void
 ResourceLibrary::addRule( Rule* rule )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     if ( rule )
         rules[ normalize( rule->getName() ) ] = rule;
 }
@@ -42,6 +49,8 @@ ResourceLibrary::addRule( Rule* rule )
 void
 ResourceLibrary::removeRule( Rule* rule )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     if ( rule )
         rules.erase( normalize( rule->getName() ) );
 }
@@ -49,6 +58,8 @@ ResourceLibrary::removeRule( Rule* rule )
 Resource*
 ResourceLibrary::getResource( const std::string& name )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     ResourcesByName::iterator i = resources.find( normalize( name ) );
     return i != resources.end()? i->second.get() : NULL;
 }
@@ -56,6 +67,8 @@ ResourceLibrary::getResource( const std::string& name )
 ResourceSet
 ResourceLibrary::getResourcesWithTag( const std::string& tag )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     ResourceSet result;
 
     for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ )
@@ -71,6 +84,8 @@ ResourceLibrary::getResourcesWithTag( const std::string& tag )
 ResourceSet
 ResourceLibrary::getResourcesWithTags( const std::set<std::string>& tags )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     ResourceSet result;
 
     for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ )
@@ -86,6 +101,8 @@ ResourceLibrary::getResourcesWithTags( const std::set<std::string>& tags )
 Rule*
 ResourceLibrary::getRule( const std::string& name )
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+
     RulesByName::iterator i = rules.find( normalize( name ) );
     return i != rules.end()? i->second.get() : NULL;
 }

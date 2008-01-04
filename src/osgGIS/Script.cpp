@@ -18,24 +18,33 @@
  */
 
 #include <osgGIS/Script>
-#include <osgGIS/CollectionFilterState>
-#include <osgGIS/DrawableFilterState>
-#include <osgGIS/FeatureFilterState>
-#include <osgGIS/NodeFilterState>
-#include <osg/Notify>
-#include <osg/Timer>
 
 using namespace osgGIS;
 
 Script::Script()
 {
+    //NOP
 }
 
-
-Script::~Script()
+Script::Script(const std::string& _code )
 {
+    setCode( _code );
 }
 
+Script::Script(const std::string& _name,
+               const std::string& _language, 
+               const std::string& _code )
+{
+    setName( _name );
+    setLanguage( _language );
+    setCode( _code );
+}
+
+void
+Script::setName( const std::string& _name )
+{
+    name = _name;
+}
 
 const std::string&
 Script::getName() const
@@ -43,272 +52,117 @@ Script::getName() const
     return name;
 }
 
+void
+Script::setLanguage( const std::string& _language )
+{
+    language = _language;
+}
+
+const std::string&
+Script::getLanguage() const
+{
+    return language;
+}
 
 void
-Script::setName( const std::string& value )
+Script::setCode( const std::string& _code )
 {
-    name = value;
+    code = _code;
 }
 
-const FilterList&
-Script::getFilters() const
+const std::string&
+Script::getCode() const
 {
-    return filters;
+    return code;
 }
 
-FilterList&
-Script::getFilters()
+
+ScriptResult
+ScriptResult::Error( const std::string& _msg )
 {
-    return filters;
+    return ScriptResult( false, _msg );
 }
 
+ScriptResult::ScriptResult( bool _valid, const std::string& _msg )
+{
+    valid = false;
+    prop = Property( "", _msg );
+}
+
+ScriptResult::ScriptResult()
+{
+    valid = false;
+}
+
+ScriptResult::ScriptResult( const std::string& val )
+{
+    prop = Property( "", val );
+    valid = true;
+}
+
+ScriptResult::ScriptResult( double val )
+{
+    prop = Property( "", val );
+    valid = true;
+}
+
+ScriptResult::ScriptResult( int val )
+{
+    prop = Property( "", val );
+    valid = true;
+}
+
+ScriptResult::ScriptResult( bool val )
+{
+    prop = Property( "", val );
+    valid = true;
+}
 
 bool 
-Script::appendFilter( Filter* filter )
+ScriptResult::isValid()
 {
-    filters.push_back( filter );
-
-    //if ( !first_filter.valid() )
-    //{
-    //    if (dynamic_cast<FeatureFilter*>( filter ) ||
-    //        dynamic_cast<DrawableFilter*>( filter ) ||
-    //        dynamic_cast<CollectionFilter*>( filter ) )
-    //    {
-    //        first_filter = filter;
-    //    }
-    //    else
-    //    {
-    //        osg::notify( osg::WARN ) 
-    //            << "Illegal; first filter must be a DrawableFilter or a FeatureFilter" 
-    //            << std::endl;
-    //        return false;
-    //    }
-    //}
-    //else
-    //{
-    //    if ( !first_filter->appendFilter( filter ) )
-    //        return false;
-    //}
-
-    //NodeFilter* node_filter = dynamic_cast<NodeFilter*>( filter );
-    //if ( node_filter )
-    //{
-    //    output_filter = node_filter;
-    //}
-
-    return true;
+    return valid;
 }
 
-
-Filter*
-Script::getFilter( const std::string& name )
+std::string 
+ScriptResult::asString() const
 {
-    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
-    {
-        if ( i->get()->getName() == name )
-            return i->get();
-    }
-    return NULL;
+    return prop.getValue();
 }
 
-    //for( Filter* f = getFirstFilter(); f != NULL; f = f->getNextFilter() )
-    //{
-    //    if ( f->getName() == name )
-    //    {
-    //        return f;
-    //    }
-    //}
-    //return NULL;
-//}
-
-
-//void 
-//Script::resetFilters( ScriptContext* context )
-//{
-//    if ( first_filter.get() )
-//    {
-//        first_filter->reset( context );
-//    }
-//}
-
-
-bool
-Script::run( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output )
+float      
+ScriptResult::asFloat( float def ) const
 {
-    bool ok = false;
-
-    osg::ref_ptr<NodeFilterState> output_state;
-
-    // first build a new state chain corresponding to our filter chain.
-    osg::ref_ptr<FilterState> first = NULL;
-    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
-    {
-        FilterState* next_state = i->get()->newState();
-        if ( !first.valid() )
-        {
-            first = next_state;
-        }
-        else
-        {
-            first->appendState( next_state );
-        }
-
-        if ( dynamic_cast<NodeFilterState*>( next_state ) )
-        {
-            output_state = static_cast<NodeFilterState*>( next_state );
-        }
-    }
-
-    // now traverse the states.
-    if ( first.valid() )
-    {
-        ok = true;
-        int count = 0;
-        osg::Timer_t start = osg::Timer::instance()->tick();
-        
-        env->setOutputSRS( env->getInputSRS() );
-
-        if ( dynamic_cast<FeatureFilterState*>( first.get() ) )
-        {
-            FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
-            {
-                state->push( cursor->next() );
-                ok = state->traverse( env );
-                count++;
-            }
-            if ( ok )
-            {
-                ok = state->signalCheckpoint();
-            }
-        }
-        else if ( dynamic_cast<DrawableFilterState*>( first.get() ) )
-        {
-            DrawableFilterState* state = static_cast<DrawableFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
-            {
-                state->push( cursor->next() );
-                ok = state->traverse( env );
-                count++;           
-            }
-            if ( ok )
-            {
-                ok = state->signalCheckpoint();
-            }
-        }
-        else if ( dynamic_cast<CollectionFilterState*>( first.get() ) )
-        {
-            CollectionFilterState* state = static_cast<CollectionFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
-            {
-                state->push( cursor->next() );
-                ok = state->traverse( env );
-                count++;           
-            }
-            if ( ok )
-            {
-                ok = state->signalCheckpoint();
-            }
-        }
-
-        osg::Timer_t end = osg::Timer::instance()->tick();
-
-        double dur = osg::Timer::instance()->delta_s( start, end );
-        //osg::notify( osg::ALWAYS ) << std::endl << "Time = " << dur << " s; Per Feature Avg = " << (dur/(double)count) << " s" << std::endl;
-    }
-
-    if ( output_state.valid() )
-    {
-        osg::NodeList& result = output_state->getOutput();
-        output.insert( output.end(), result.begin(), result.end() );
-    }
-
-    return ok;
+    return prop.getFloatValue( def );
 }
 
-//bool
-//Script::run( FeatureCursor* cursor, FilterEnv* env )
-//{
-//    bool ok = false;
-//    if ( first_filter.valid() )
-//    {
-//        ok = true;
-//        int count = 0;
-//
-//        osg::Timer_t start = osg::Timer::instance()->tick();
-//
-//        env->setOutputSRS( env->getInputSRS() );
-//        
-//        if ( dynamic_cast<FeatureFilter*>( first_filter.get() ) )
-//        {
-//            FeatureFilter* filter = static_cast<FeatureFilter*>( first_filter.get() );
-//            while( ok && cursor->hasNext() )
-//            {
-//                filter->push( cursor->next() );
-//                ok = filter->traverse( env );
-//                count++;
-//            }
-//            if ( ok )
-//            {
-//                ok = filter->signalCheckpoint();
-//            }
-//        }
-//        else if ( dynamic_cast<DrawableFilter*>( first_filter.get() ) )
-//        {
-//            DrawableFilter* filter = static_cast<DrawableFilter*>( first_filter.get() );
-//            while( ok && cursor->hasNext() )
-//            {
-//                filter->push( cursor->next() );
-//                ok = filter->traverse( env );
-//                count++;           
-//            }
-//            if ( ok )
-//            {
-//                ok = filter->signalCheckpoint();
-//            }
-//        }
-//        else if ( dynamic_cast<CollectionFilter*>( first_filter.get() ) )
-//        {
-//            CollectionFilter* filter = static_cast<CollectionFilter*>( first_filter.get() );
-//            while( ok && cursor->hasNext() )
-//            {
-//                filter->push( cursor->next() );
-//                ok = filter->traverse( env );
-//                count++;           
-//            }
-//            if ( ok )
-//            {
-//                ok = filter->signalCheckpoint();
-//            }
-//        }
-//
-//        osg::Timer_t end = osg::Timer::instance()->tick();
-//
-//        double dur = osg::Timer::instance()->delta_s( start, end );
-//        //osg::notify( osg::ALWAYS ) << std::endl << "Time = " << dur << " s; Per Feature Avg = " << (dur/(double)count) << " s" << std::endl;
-//    }
-//    return ok;
-//}
+double      
+ScriptResult::asDouble( double def ) const
+{
+    return prop.getDoubleValue( def );
+}
 
+int         
+ScriptResult::asInt( int def ) const
+{
+    return prop.getIntValue( def );
+}
 
-//osg::NodeList
-//Script::getOutput( bool reset )
-//{
-//    osg::NodeList result = output_filter.valid()?
-//        output_filter->getOutput() :
-//        osg::NodeList();
-//
-//    if ( reset )
-//    {
-//        resetFilters( NULL );
-//    }
-//
-//    return result;
-//}
+bool        
+ScriptResult::asBool( bool def ) const
+{
+    return prop.getBoolValue( def );
+}
 
+osg::Vec4
+ScriptResult::asVec4() const
+{
+    return prop.getVec4Value();
+}
 
-//Filter*
-//Script::getFirstFilter()
-//{
-//    return first_filter.get();
-//}
+osg::Vec3
+ScriptResult::asVec3() const
+{
+    return prop.getVec3Value();
+}
+

@@ -49,16 +49,15 @@ namespace osgGIS
         float getFloatValue( float def ) const;
         double getDoubleValue( double def ) const;
         bool getBoolValue( bool def ) const;
-        osg::Vec2f getVec2fValue() const;
-        osg::Vec3f getVec3fValue() const;
-        osg::Vec4f getVec4fValue() const;
+        osg::Vec2 getVec2Value() const;
+        osg::Vec3 getVec3Value() const;
+        osg::Vec4 getVec4Value() const;
         osg::Matrix getMatrixValue() const;
 
     private:
         std::string name;
         std::string value;
     };
-
     
     class OSGGIS_EXPORT Properties : public std::vector<Property>
     {
@@ -67,15 +66,18 @@ namespace osgGIS
         float getFloatValue( const std::string& name, float def );
         double getDoubleValue( const std::string& name, double def );
         bool getBoolValue( const std::string& name, bool def );
+        osg::Vec2 getVec2Value( const std::string& name );
+        osg::Vec3 getVec3Value( const std::string& name );
+        osg::Vec4 getVec4Value( const std::string& name );
         std::string getValue( const std::string& name, std::string def );
+        void remove( const std::string& key );
+        void set( const Property& p );
     };
-    
-    
-    class /*interface*/ OSGGIS_EXPORT ObjectWithProperties
+        
+    class /*interface*/ OSGGIS_EXPORT IObjectWithProperties
     {
     public:
-        virtual void setProperty( const Property& prop ) =0;
-        
+        virtual void setProperty( const Property& prop ) =0;        
         virtual Properties getProperties() const =0;
     };
 }

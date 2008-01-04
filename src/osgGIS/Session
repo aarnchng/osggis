@@ -1,0 +1,77 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SESSION_H_
+#define _OSGGIS_SESSION_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/ScriptEngine>
+#include <osgGIS/ResourceLibrary>
+#include <OpenThreads/Mutex>
+
+namespace osgGIS
+{
+    /**
+     * A "session" is a state object that exists throughout the life
+     * of one or more related compilations. The Session holds common
+     * re-usable data elements (like Scripts and Resources), tracks
+     * statistics, and so forth.
+     *
+     * A session may be shared across compilations that exist in
+     * separate threads -- therefore access to the session's resources
+     * is protected by mutex.
+     */
+    class OSGGIS_EXPORT Session : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new, empty session.
+         */
+        Session();
+
+        /**
+         * Creates a new scripting engine that incorporates any
+         * scripts stored in this session.
+         */
+        ScriptEngine* createScriptEngine();
+
+        /**
+         * Adds a script to this session. The script will be available
+         * in ScriptEngine's created by calling createScriptEngine().
+         */
+        void addScript( Script* script );
+
+        /**
+         * Gets the resource library that manages shared resources for
+         * this session.
+         */
+        const ResourceLibrary& getResources() const;
+        ResourceLibrary& getResources();
+
+    protected:
+        virtual ~Session();
+
+    private:
+        ScriptList scripts;
+        ResourceLibrary resources;
+        OpenThreads::Mutex session_mtx;
+    };
+}
+
+#endif //_OSGGIS_SESSION_H_

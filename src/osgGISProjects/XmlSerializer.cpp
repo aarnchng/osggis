@@ -91,16 +91,14 @@ XmlSerializer::store( Document* doc, std::ostream& out )
 
 
 XmlElement*
-XmlSerializer::encodeScript( Script* script )
+XmlSerializer::encodeFilterGraph( FilterGraph* graph )
 {
-    XmlElement* script_e = new XmlElement( "script" );
+    XmlElement* graph_e = new XmlElement( "graph" );
 
-    for( FilterList::const_iterator i = script->getFilters().begin(); i != script->getFilters().end(); i++ )
+    for( FilterList::const_iterator i = graph->getFilters().begin(); i != graph->getFilters().end(); i++ )
     {
         Filter* f = i->get();
 
-    //for( Filter* f = script->getFirstFilter(); f != NULL; f = f->getNextFilter() )
-    //{
         XmlAttributes attrs;
         attrs[ "type" ] = f->getFilterType();
         XmlElement* filter_e = new XmlElement( "filter", attrs );
@@ -111,44 +109,43 @@ XmlSerializer::encodeScript( Script* script )
             const Property& prop = *i;
         }
 
-        script_e->getChildren().push_back( filter_e );
+        graph_e->getChildren().push_back( filter_e );
     }
-    return script_e;
+    return graph_e;
 }
 
-
-Script*
-XmlSerializer::readScript( Document* doc )
+FilterGraph*
+XmlSerializer::readFilterGraph( Document* doc )
 {    
-    Script* result = NULL;
+    FilterGraph* result = NULL;
     if ( doc )
     {
         XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeScript( xml_doc->getSubElement( "script" ), NULL );
+        result = decodeFilterGraph( xml_doc->getSubElement( "graph" ), NULL );
     }
     return result;
 }
 
 
 Document*
-XmlSerializer::writeScript( Script* script )
+XmlSerializer::writeFilterGraph( FilterGraph* graph )
 {
     XmlDocument* doc = new XmlDocument();
 
-    if ( script )
+    if ( graph )
     {
-        XmlElement* script_el = encodeScript( script );
-        doc->getChildren().push_back( script_el );
+        XmlElement* graph_e = encodeFilterGraph( graph );
+        doc->getChildren().push_back( graph_e );
     }
 
     return doc;
 }
 
 
-Script*
-XmlSerializer::decodeScript( XmlElement* e, Project* proj )
+FilterGraph*
+XmlSerializer::decodeFilterGraph( XmlElement* e, Project* proj )
 {
-    Script* script = NULL;
+    FilterGraph* graph = NULL;
     if ( e )
     {
         std::string name = e->getAttr( "name" );
@@ -157,23 +154,23 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
         std::string parent_name = e->getAttr( "inherits" );
         if ( parent_name.length() > 0 )
         {
-            Script* parent_script = proj->getScript( parent_name );
-            if ( !parent_script )
+            FilterGraph* parent_graph = proj->getFilterGraph( parent_name );
+            if ( !parent_graph )
             {
                 osg::notify( osg::WARN ) 
-                    << "Parent script \"" << parent_name << "\" not found for script \""
+                    << "Parent graph \"" << parent_name << "\" not found for graph \""
                     << name << "\"" << std::endl;
             }
             else
             {
-                script = new Script( *parent_script );
+                graph = new FilterGraph( *parent_graph );
                 //TODO...
             }
         }
         else
         {
-            script = new Script();
-            script->setName( name );
+            graph = new FilterGraph();
+            graph->setName( name );
 
             XmlNodeList filter_els = e->getSubElements( "filter" );
             for( XmlNodeList::const_iterator i = filter_els.begin(); i != filter_els.end(); i++ )
@@ -197,14 +194,24 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
                         std::string value = k_e->getAttr( "value" );
                         f->setProperty( Property( name, value ) );
                     }
-                    script->appendFilter( f );
+                    graph->appendFilter( f );
                 }
             }
         }
     }
-    return script;
+    return graph;
 }
 
+Script*
+XmlSerializer::decodeScript( XmlElement* e, Project* proj )
+{
+    Script* script = NULL;
+    if ( e )
+    {
+        script = new Script( e->getAttr( "name" ), e->getAttr( "language" ), e->getText() );
+    }
+    return script;
+}
 
 Source*
 XmlSerializer::decodeSource( XmlElement* e, Project* proj )
@@ -248,8 +255,8 @@ XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
         slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
         slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
 
-        std::string script = e->getAttr( "script" );
-        slice->setScript( proj->getScript( script ) ); //TODO: warning?
+        std::string graph = e->getAttr( "graph" );
+        slice->setFilterGraph( proj->getFilterGraph( graph ) ); //TODO: warning?
     }
     return slice;
 }
@@ -337,7 +344,7 @@ XmlSerializer::decodeProject( XmlElement* e )
     {
         project = new Project();
         project->setName( e->getAttr( "name" ) );
-
+        
         // scripts
         XmlNodeList scripts = e->getSubElements( "script" );
         for( XmlNodeList::const_iterator j = scripts.begin(); j != scripts.end(); j++ )
@@ -345,6 +352,15 @@ XmlSerializer::decodeProject( XmlElement* e )
             Script* script = decodeScript( static_cast<XmlElement*>( j->get() ), project );
             if ( script )
                 project->getScripts().push_back( script );
+        }
+
+        // graphs
+        XmlNodeList graphs = e->getSubElements( "graph" );
+        for( XmlNodeList::const_iterator j = graphs.begin(); j != graphs.end(); j++ )
+        {
+            FilterGraph* graph = decodeFilterGraph( static_cast<XmlElement*>( j->get() ), project );
+            if ( graph )
+                project->getFilterGraphs().push_back( graph );
         }
 
         // terrains

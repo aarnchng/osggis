@@ -21,7 +21,6 @@
 #define _OSGGIS_FILTER_STATE_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/ScriptContext>
 #include <osgGIS/FilterEnv>
 
 namespace osgGIS
@@ -31,7 +30,7 @@ namespace osgGIS
     public:
         /**
          * Runs the filter logic within the contextual environment, pushing the
-         * filter's output to the next filter in the script chain.
+         * filter's output to the next filter in the chain.
          *
          * @param env
          *      Contextual compilation environment.
@@ -50,14 +49,8 @@ namespace osgGIS
         virtual bool signalCheckpoint();
         
         /**
-         * Resets this filter to its initial state, clearing any input or
-         * output buffers.
-         *
-         * @param context
-         *      Script-level context information
+         * Gets the next filter state in the chain.
          */
-        virtual void reset( ScriptContext* context );
-        
         FilterState* getNextState();
 
     protected:       
@@ -68,10 +61,9 @@ namespace osgGIS
         };
 
         osg::ref_ptr<FilterState> next_state;
-        osg::ref_ptr<ScriptContext> context;
         std::string name;
         
-        friend class Script;
+        friend class FilterGraph;
         FilterState* setNextState( FilterState* state );
         FilterState* appendState( FilterState* state );
     };
