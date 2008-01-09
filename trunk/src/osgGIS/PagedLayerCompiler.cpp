@@ -118,6 +118,8 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
         terrain_extent : 
         GeoExtent( -180, -90, 180, 90, Registry::SRSFactory()->createWGS84() );
 
+    // note that this compiler does not support the getAreaOfInterest() setting.
+
     // compile away.
     return compileAll( layer, top_extent );
 }

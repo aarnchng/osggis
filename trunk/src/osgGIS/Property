@@ -42,6 +42,7 @@ namespace osgGIS
         Property( const std::string& name, const osg::Vec3f& value );
         Property( const std::string& name, const osg::Vec4f& value );
         Property( const std::string& name, const osg::Matrix& value );
+        Property( const std::string& name, osg::Referenced* value );
 
         const std::string& getName() const;
         const std::string& getValue() const;
@@ -53,10 +54,12 @@ namespace osgGIS
         osg::Vec3 getVec3Value() const;
         osg::Vec4 getVec4Value() const;
         osg::Matrix getMatrixValue() const;
+        osg::Referenced* getRefValue();
 
     private:
         std::string name;
         std::string value;
+        osg::ref_ptr<osg::Referenced> ref_value;
     };
     
     class OSGGIS_EXPORT Properties : public std::vector<Property>
@@ -70,6 +73,7 @@ namespace osgGIS
         osg::Vec3 getVec3Value( const std::string& name );
         osg::Vec4 getVec4Value( const std::string& name );
         std::string getValue( const std::string& name, std::string def );
+        osg::Referenced* getRefValue( const std::string& name );
         void remove( const std::string& key );
         void set( const Property& p );
     };

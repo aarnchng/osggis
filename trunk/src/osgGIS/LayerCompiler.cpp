@@ -37,6 +37,10 @@ LayerCompiler::LayerCompiler()
     render_bin_number = INT_MAX;
     fade_lods = false;
     overlay = false;
+    aoi_xmin = DBL_MAX;
+    aoi_ymin = DBL_MAX;
+    aoi_xmax = DBL_MIN;
+    aoi_ymax = DBL_MIN;
 }
 
 void
@@ -200,4 +204,48 @@ const std::string&
 LayerCompiler::getPreCompileExpr() const
 {
     return pre_compile_expr;
+}
+
+void
+LayerCompiler::setAreaOfInterest( double x0, double y0, double x1, double y1 )
+{
+    aoi_xmin = x0;
+    aoi_ymin = y0;
+    aoi_xmax = x1;
+    aoi_ymax = y1;
+}
+
+GeoExtent
+LayerCompiler::getAreaOfInterest( FeatureLayer* layer )
+{
+    if ( aoi_xmin < aoi_xmax && aoi_ymin < aoi_ymax )
+    {
+        return GeoExtent( aoi_xmin, aoi_ymin, aoi_xmax, aoi_ymax, layer->getSRS() );
+    }
+    else
+    {
+        return layer->getExtent();
+    }
+}
+
+Properties
+LayerCompiler::getProperties()
+{
+    Properties props;
+    //TODO - populate!
+    return props;
+}
+
+void
+LayerCompiler::setProperties( Properties& input )
+{
+    setPaged( input.getBoolValue( "paged", getPaged() ) );
+    setFadeLODs( input.getBoolValue( "fade_lods", getFadeLODs() ) );
+    setRenderBinNumber( input.getIntValue( "render_bin_number", getRenderBinNumber() ) );
+    setPreCompileExpr( input.getValue( "pre_script", getPreCompileExpr() ) );
+
+    aoi_xmin = input.getDoubleValue( "aoi_xmin", DBL_MAX );
+    aoi_ymin = input.getDoubleValue( "aoi_ymin", DBL_MAX );
+    aoi_xmax = input.getDoubleValue( "aoi_xmax", DBL_MIN );
+    aoi_ymax = input.getDoubleValue( "aoi_ymax", DBL_MIN );
 }

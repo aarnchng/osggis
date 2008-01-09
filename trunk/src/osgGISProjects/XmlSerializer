@@ -60,6 +60,7 @@ namespace osgGISProjects
     
         FilterGraph* decodeFilterGraph( XmlElement*, Project* );
         Script* decodeScript( XmlElement*, Project* );
+        Resource* decodeResource( XmlElement*, Project* );
         Source* decodeSource( XmlElement*, Project* );
         Terrain* decodeTerrain( XmlElement*, Project* );
         BuildTarget* decodeTarget( XmlElement*, Project* );

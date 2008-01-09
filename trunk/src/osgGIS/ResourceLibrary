@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/Resource>
+#include <osgGIS/SkinResource>
 #include <osgGIS/Rule>
 #include <OpenThreads/Mutex>
 #include <map>
@@ -45,6 +46,10 @@ namespace osgGIS
         void addResource( Resource* resource );
 
         Resource* getResource( const std::string& name );
+
+        SkinResource* getSkin( const std::string& name );
+
+        SkinResource* getSkin( int index );
 
         void removeResource( Resource* resource );
 

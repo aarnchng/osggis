@@ -90,6 +90,12 @@ FilterEnv::getInputSRS() const
     return in_srs.get();
 }
 
+SpatialReference*
+FilterEnv::getInputSRS() 
+{
+    return in_srs.get();
+}
+
 
 void
 FilterEnv::setOutputSRS( const SpatialReference* _srs )

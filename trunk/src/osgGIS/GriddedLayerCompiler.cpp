@@ -76,6 +76,24 @@ GriddedLayerCompiler::getNumColumns() const
 }
 
 
+Properties
+GriddedLayerCompiler::getProperties()
+{
+    Properties props = LayerCompiler::getProperties();
+    //TODO - populate!
+    return props;
+}
+
+void
+GriddedLayerCompiler::setProperties( Properties& input )
+{
+    setNumRows( input.getIntValue( "num_rows", getNumRows() ) );
+    setNumColumns( input.getIntValue( "num_cols", getNumColumns() ) );
+    setNumColumns( input.getIntValue( "num_columns", getNumColumns() ) );
+    LayerCompiler::setProperties( input );
+}
+
+
 osg::Node*
 GriddedLayerCompiler::compile( FeatureLayer* layer )
 {
@@ -230,12 +248,12 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
     osg::Group* root = new osg::Group();
 
     // determine the working extent:
-    GeoExtent extent = layer->getExtent();
-    if ( extent.isInfinite() || !extent.isValid() )
+    GeoExtent aoi = getAreaOfInterest( layer );
+    if ( aoi.isInfinite() || !aoi.isValid() )
     {
         const SpatialReference* srs = layer->getSRS()->getBasisSRS();
 
-        extent = GeoExtent(
+        aoi = GeoExtent(
             GeoPoint( -180.0, -90.0, srs ),
             GeoPoint(  180.0,  90.0, srs ) );
     }
@@ -256,11 +274,11 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         getSession()->createScriptEngine()->run( new Script( getPreCompileExpr() ) );
     }
     
-    if ( extent.isValid() )
+    if ( aoi.isValid() )
     {
-        const GeoPoint& sw = extent.getSouthwest();
-        const GeoPoint& ne = extent.getNortheast();
-        osg::ref_ptr<SpatialReference> srs = extent.getSRS();
+        const GeoPoint& sw = aoi.getSouthwest();
+        const GeoPoint& ne = aoi.getNortheast();
+        osg::ref_ptr<SpatialReference> srs = aoi.getSRS();
 
         double dx = (ne.x() - sw.x()) / num_cols;
         double dy = (ne.y() - sw.y()) / num_rows;

@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/SelectFilter>
+#include <osgGIS/Script>
 #include <osg/Notify>
 
 using namespace osgGIS;
@@ -76,9 +77,15 @@ FeatureList
 SelectFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
-    
-    //todo
-    output.push_back( input );
+
+    if ( getSelectExpr().length() > 0 )
+    {
+        ScriptResult r = env->getScriptEngine()->run(
+            new Script( getSelectExpr() ), input, env );
+
+        if ( r.isValid() && r.asBool( false ) )
+            output.push_back( input );
+    }
 
     return output;
 }

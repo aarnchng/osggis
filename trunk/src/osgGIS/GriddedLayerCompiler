@@ -47,6 +47,10 @@ namespace osgGIS
         osg::Node* compile( FeatureLayer* layer );
 
         osg::Node* compile( FeatureLayer* layer, const std::string& output_file );
+        
+    public:
+        virtual Properties getProperties();
+        virtual void setProperties( Properties& props ); 
 
     public:
         virtual ~GriddedLayerCompiler();

@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/BuildGeomFilter>
+#include <osgGIS/SkinResource>
 //#include <osg/StateSet>
 #include <osg/Texture>
 #include <osg/TexEnv>
@@ -76,6 +77,10 @@ namespace osgGIS
         void setRandomizeFacadeTextures( bool value );
         
         bool getRandomizeFacadeTextures() const;
+
+        void setWallSkinExpr( const std::string& expr );
+
+        const std::string& getWallSkinExpr() const;
         
 
     protected:
@@ -92,9 +97,11 @@ namespace osgGIS
         osg::ref_ptr< FeatureFunctor<double> > height_functor;
         int tex_index;
         bool randomize_facade_textures;
-        //osg::ref_ptr<osg::StateSet> active_state;
         osg::ref_ptr<osg::Texture> active_tex;
         osg::ref_ptr<osg::TexEnv> active_texenv;
+        std::string wall_skin_expr;
+        
+        SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
     };
 }
 

@@ -249,6 +249,13 @@ GeoExtent::isInfinite() const
 
 
 bool
+GeoExtent::isFinite() const
+{
+    return getArea() > 0;
+}
+
+
+bool
 GeoExtent::isEmpty() const
 {
     return !isValid() || ( !isInfinite() && ( !sw.isValid() || !ne.isValid() ) );
@@ -325,6 +332,12 @@ GeoExtent::intersectsExtent( const GeoPointList& input ) const
     return intersects( input_extent );
 }
 
+
+bool
+GeoExtent::contains( double x, double y ) const 
+{
+    return contains( GeoPoint( x, y, getSRS() ) );
+}
 
 bool
 GeoExtent::contains( const GeoPoint& input ) const 

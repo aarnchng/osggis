@@ -2,28 +2,67 @@
 
 using namespace osgGIS;
 
-Feature::Feature( FeatureOID _oid, GeoShape* _shape )
-: oid( _oid ),
-  shape( _shape )
+Attribute
+FeatureBase::getAttribute( const std::string& key ) const
 {
+    AttributeTable::const_iterator i = user_attrs.find( key );
+    return i != user_attrs.end()? i->second : Attribute::invalid();
 }
 
-
-Feature::~Feature()
+double
+FeatureBase::getAttributeAsDouble( const std::string& key ) const
 {
-	//NOP
+    Attribute attr = getAttribute( key );
+    return attr.isValid()? attr.asDouble() : 0.0;
 }
 
-
-FeatureOID
-Feature::getOID() const
+int 
+FeatureBase::getAttributeAsInt( const std::string& key ) const
 {
-	return oid;
+    Attribute a = getAttribute( key );
+    return a.isValid()? a.asInt() : 0;
 }
 
-
-GeoShape*
-Feature::getShape() const
+bool 
+FeatureBase::getAttributeAsBool( const std::string& key ) const
 {
-	return shape;
+    Attribute a = getAttribute( key );
+    return a.isValid()? a.asBool() : false;
+}
+
+std::string 
+FeatureBase::getAttributeAsString( const std::string& key ) const
+{
+    Attribute a = getAttribute( key );
+    return a.isValid()? a.asString() : "";
+}
+
+void 
+FeatureBase::setAttribute( const std::string& key, const std::string& value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void 
+FeatureBase::setAttribute( const std::string& key, int value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void 
+FeatureBase::setAttribute( const std::string& key, double value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void
+FeatureBase::setAttribute( const std::string& key, bool value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+const AttributeTable&
+FeatureBase::getUserAttrs() const
+{
+    return user_attrs;
 }

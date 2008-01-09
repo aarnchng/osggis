@@ -165,7 +165,7 @@ main(int argc, char* argv[])
         {
             osgSim::OverlayNode* ov = new osgSim::OverlayNode( osgSim::OverlayNode::VIEW_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
             ov->setOverlaySubgraph( o_node );
-            ov->setOverlayTextureSizeHint( 2048 );
+            ov->setOverlayTextureSizeHint( 1024 );
             overlays.push_back( ov );
         }
     }

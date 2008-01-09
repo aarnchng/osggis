@@ -25,6 +25,7 @@
 #include <osgGIS/SpatialReferenceFactory>
 #include <osgGIS/FeatureStoreFactory>
 #include <osgGIS/Filter>
+#include <osgGIS/Resource>
 #include <osgGIS/ScriptEngine>
 
 namespace osgGIS
@@ -97,12 +98,17 @@ namespace osgGIS
 
         bool addFilterType( const std::string& type, FilterFactory* factory );
 
+        Resource* createResourceByType( const std::string& type );
+
+        bool addResourceType( const std::string& type, ResourceFactory* factory );
+        
 	private:
 		Registry();
 		
 		osg::ref_ptr<SpatialReferenceFactory> spatial_ref_factory;
 		osg::ref_ptr<FeatureStoreFactory>     feature_store_factory;
         FilterFactoryMap                      filter_factories;
+        ResourceFactoryMap                    resource_factories;
 
 		static Registry* singleton;
 		

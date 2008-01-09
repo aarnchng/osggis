@@ -64,6 +64,24 @@ ResourceLibrary::getResource( const std::string& name )
     return i != resources.end()? i->second.get() : NULL;
 }
 
+SkinResource* 
+ResourceLibrary::getSkin( const std::string& name )
+{
+    Resource* r = getResource( name );
+    return r? dynamic_cast<SkinResource*>( r ) : NULL;
+}
+
+SkinResource*
+ResourceLibrary::getSkin( int index )
+{
+    ResourceVector skins;
+    for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ ) {
+        if ( i->second->getResourceType() == SkinResource::getStaticResourceType() ) 
+            skins.push_back( i->second.get() );
+    }
+    return dynamic_cast<SkinResource*>( skins[index % skins.size()].get() );
+}
+
 ResourceSet
 ResourceLibrary::getResourcesWithTag( const std::string& tag )
 {
