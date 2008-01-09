@@ -61,7 +61,9 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 #include <iostream>
-
+#include <fstream>
+#include <string>
+#include <sstream>
 
 
 #define NOUT osg::notify(osg::NOTICE)
@@ -80,6 +82,7 @@ bool gridded = false;
 int grid_rows = 1;
 int grid_cols = 1;
 osg::Vec4f color(1,1,1,1);
+std::string color_expr;
 bool include_grid = false;
 bool preview = false;
 osgGIS::GeoExtent terrain_extent( 
@@ -100,6 +103,7 @@ bool remove_holes = false;
 bool fade_lods = false;
 int num_threads = 0;
 bool overlay = false;
+osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 
 int
 die( const std::string& msg )
@@ -125,8 +129,9 @@ static void usage( const char* prog, const char* msg )
     NOUT << ENDL;
     NOUT << "Optional:"<< ENDL;
     NOUT << "    --terrain <filename>      - Terrain data file to which to clamp vectors" << ENDL;
-    NOUT << "    --terrain_extent <long_min,lat_min,long_max,lat_max>" << ENDL;
+    NOUT << "    --terrain-extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
+    NOUT << "    --terrain-srs              - File (usually .prj) containing projection of terain" << ENDL;
     NOUT << "    --geocentric               - Generate geocentric output geometry to match a PagedLOD globe" << ENDL;
     NOUT << "    --threads <num>            - Number of parallel compiler threads (default = # of logical procs)" << ENDL;
     NOUT << ENDL;
@@ -155,7 +160,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
-    NOUT << "    --color <r,g,b,a>          - Color of output geometry (0->1)" << ENDL;
+    NOUT << "    --color <expr>             - Color, as a Lua expression (e.g. \"vec4(1,0,0,1)\")" << ENDL;
     NOUT << "    --random-colors            - Randomly assign feature colors" << ENDL;
 
 }
@@ -250,8 +255,25 @@ parseCommandLine( int argc, char** argv )
         }
     }
 
-    while( arguments.read( "--color", str ) )
-        sscanf( str.c_str(), "%f,%f,%f,%f", &color.x(), &color.y(), &color.z(), &color.a() );
+    std::string prj_file;
+    while( arguments.read( "--terrain-srs", prj_file ) )
+    {
+        std::stringstream prj;
+        std::ifstream infile( prj_file.c_str() );
+        std::istream_iterator<std::string> begin( infile );
+        std::istream_iterator<std::string> end;
+        while( begin != end )
+            prj << *begin++;
+        terrain_srs = registry->getSRSFactory()->createSRSfromWKT( prj.str() );
+
+        if ( terrain_srs.valid() )
+        {
+            osg::notify(osg::NOTICE) << "Read terrain SRS from file => " << 
+                terrain_srs->getName() << std::endl;
+        }
+    }
+
+    while( arguments.read( "--color", color_expr ) );
 
     while( arguments.read( "--random-colors" ) )
         color.a() = 0.0;
@@ -351,8 +373,7 @@ createFilterGraph()
     if ( extrude )
     {
         osgGIS::ExtrudeGeomFilter* gf = new osgGIS::ExtrudeGeomFilter();
-        gf->setColor( color );
-        gf->setRandomizeColors( color.a() == 0 );
+        //gf->setRandomizeColors( color.a() == 0 );
         if ( extrude_height_expr.length() > 0 ) {
             gf->setHeightExpr( extrude_height_expr );
         }
@@ -361,13 +382,19 @@ createFilterGraph()
             gf->setMaxHeight( extrude_max_height );
             gf->setRandomizeHeights( true );
         }
+        gf->setColorExpr( color_expr );
+        if ( color.a() == 0 )
+            gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
+
         graph->appendFilter( gf );
     }
     else
     {
         osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
-        gf->setColor( color );
-        gf->setRandomizeColors( color.a() == 0 );
+        //gf->setRandomizeColors( color.a() == 0 );
+        gf->setColorExpr( color_expr );
+        if ( color.a() == 0 )
+            gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
         graph->appendFilter( gf );
     }
 
@@ -381,6 +408,12 @@ createFilterGraph()
         osgGIS::BuildNodesFilter::CULL_BACKFACES |
         osgGIS::BuildNodesFilter::OPTIMIZE |
         (!lighting? osgGIS::BuildNodesFilter::DISABLE_LIGHTING : 0) );
+
+    // cluster culling causes overlay geometry not to work properly.
+    if ( !overlay )
+    {
+        bnf->setApplyClusterCulling( true );
+    }
 
     graph->appendFilter( bnf );
 
@@ -420,7 +453,6 @@ main(int argc, char* argv[])
 
     // Next we load the terrain file to which we will clamp the vector data:
     osg::ref_ptr<osg::Node> terrain;
-    osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 
     if ( terrain_file.length() > 0 )
     {
@@ -430,11 +462,14 @@ main(int argc, char* argv[])
             return die( "Terrain load failed!" );
 
         // determine the terrain's SRS (required):
-        terrain_srs = registry->getSRSFactory()->createSRSfromTerrain( terrain.get() );
         if ( !terrain_srs.valid() )
-            return die( "Unable to determine the spatial reference of the terrain." );
+        {
+            terrain_srs = registry->getSRSFactory()->createSRSfromTerrain( terrain.get() );
+            if ( !terrain_srs.valid() )
+                return die( "Unable to determine the spatial reference of the terrain." );
 
-        NOUT << "  terrain SRS = " << terrain_srs->getName() << std::endl;
+            NOUT << "  terrain SRS = " << terrain_srs->getName() << std::endl;
+        }
     }
 
     // Go earth-centered if necessary:

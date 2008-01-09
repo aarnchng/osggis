@@ -118,6 +118,12 @@ ScriptResult::ScriptResult( bool val )
     valid = true;
 }
 
+ScriptResult::ScriptResult( osg::Referenced* val )
+{
+    prop = Property( "", val );
+    valid = true;
+}
+
 bool 
 ScriptResult::isValid()
 {
@@ -164,5 +170,11 @@ osg::Vec3
 ScriptResult::asVec3() const
 {
     return prop.getVec3Value();
+}
+
+osg::Referenced*
+ScriptResult::asRef()
+{
+    return prop.getRefValue();
 }
 

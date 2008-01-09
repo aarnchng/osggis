@@ -6,6 +6,19 @@ $#include <osgGIS/ResourceLibrary>
 $#include <string>
 $using namespace osgGIS;
 
+$extern "C" {
+
+class Feature
+{
+  int getOID();
+  Attribute getAttribute( const char* );
+  double getAttributeAsDouble( const char* );
+  int getAttributeAsInt( const char* );
+  std::string getAttributeAsString( const char* );
+  bool getAttributeAsBool( const char* );
+  GeoExtent getExtent();
+};
+
 class Attribute
 {
   bool        isValid();
@@ -15,14 +28,36 @@ class Attribute
   bool        asBool();
 };
 
-class Feature
-{
-  int getOID();
-  double getAttributeAsDouble( const char*, double );
-  Attribute getAttribute( const char* );
-};
-
 class FilterEnv
 {
+  GeoExtent getExtent();
+  SpatialReference* getInputSRS();
 };
+
+class GeoExtent
+{
+  double getXMin();
+  double getYMin();
+  double getXMax();
+  double getYMax();
+  bool contains( double x, double y );
+  bool contains( GeoPoint p );
+  double getArea();
+};
+
+class GeoPoint
+{
+  GeoPoint(double x, double y, SpatialReference* srs);
+  double x();
+  double y();
+  double z();
+};
+
+class SpatialReference
+{
+  GeoPoint transform( GeoPoint in );
+  SpatialReference* getBasisSRS();
+};
+
+$} // extern "C"
 

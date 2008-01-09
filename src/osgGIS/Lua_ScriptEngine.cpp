@@ -170,7 +170,15 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
         tolua_pushusertype( L, env, "FilterEnv" ); // pushed the second argument
         if ( lua_pcall( L, 2, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
         {
-            result << lua_tostring( L, lua_gettop( L ) );
+            if ( lua_isboolean( L, lua_gettop( L ) ) )
+            {
+                bool rv = lua_toboolean( L, lua_gettop( L ) )? true : false;
+                result << (rv? "true" : "false");
+            }
+            else
+            {
+                result << lua_tostring( L, lua_gettop( L ) );
+            }
             ok = true;
             lua_pop( L, 1 );
         }

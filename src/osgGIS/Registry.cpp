@@ -149,6 +149,22 @@ Registry::addFilterType( const std::string& type, FilterFactory* factory )
     return true;
 }
 
+
+Resource* 
+Registry::createResourceByType( const std::string& type )
+{
+    ResourceFactoryMap::const_iterator i = resource_factories.find( type );
+    return i != resource_factories.end()? i->second->createResource() : NULL;
+}
+
+bool 
+Registry::addResourceType( const std::string& type, ResourceFactory* factory )
+{
+    resource_factories[type] = factory;
+    osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered resource type " << type << std::endl;
+    return true;
+}
+
 ScriptEngine*
 Registry::createScriptEngine()
 {

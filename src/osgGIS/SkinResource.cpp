@@ -21,6 +21,10 @@
 
 using namespace osgGIS;
 
+#include <osgGIS/Registry>
+OSGGIS_DEFINE_RESOURCE(SkinResource);
+
+
 SkinResource::SkinResource()
 {
     init();
@@ -117,4 +121,14 @@ const osg::Vec4&
 SkinResource::getColor() const
 {
     return color;
+}
+
+osg::StateSet*
+SkinResource::getStateSet()
+{
+    if ( !state_set.valid() )
+    {
+        //TODO
+    }
+    return state_set.get();
 }

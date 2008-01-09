@@ -58,35 +58,3 @@ SimpleFeature::getExtent() const
     return extent;
 }
 
-
-Attribute
-SimpleFeature::getAttribute( const std::string& key ) const
-{
-    AttributeTable::const_iterator i = attributes.find( key );
-    return i != attributes.end()? i->second : Attribute::invalid();
-}
-
-double
-SimpleFeature::getAttributeAsDouble( const std::string& key, double default_val ) const
-{
-    Attribute attr = getAttribute( key );
-    return attr.isValid()? attr.asDouble() : default_val;
-}
-
-void 
-SimpleFeature::setAttribute( const std::string& key, const std::string& value )
-{
-    attributes[key] = Attribute( key, value );
-}
-
-void 
-SimpleFeature::setAttribute( const std::string& key, int value )
-{
-    attributes[key] = Attribute( key, value );
-}
-
-void 
-SimpleFeature::setAttribute( const std::string& key, double value )
-{
-    attributes[key] = Attribute( key, value );
-}

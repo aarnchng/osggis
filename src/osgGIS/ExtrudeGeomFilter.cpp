@@ -34,8 +34,11 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 
 
-
 #define FRAND (((double)(rand()%100))/100.0)
+
+#define PROP_BATCH "ExtrudeGeomFilter::batch"
+#define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
+
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()
 {
@@ -149,6 +152,18 @@ ExtrudeGeomFilter::getRandomizeFacadeTextures() const
 }
 
 void
+ExtrudeGeomFilter::setWallSkinExpr( const std::string& value )
+{
+    wall_skin_expr = value;
+}
+
+const std::string&
+ExtrudeGeomFilter::getWallSkinExpr() const
+{
+    return wall_skin_expr;
+}
+
+void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
@@ -161,6 +176,8 @@ ExtrudeGeomFilter::setProperty( const Property& p )
         setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
     else if ( p.getName() == "randomize_facade_textures" )
         setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
+    else if ( p.getName() == "wall_skin" )
+        setWallSkinExpr( p.getValue() );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -169,11 +186,14 @@ Properties
 ExtrudeGeomFilter::getProperties() const
 {
     Properties p = BuildGeomFilter::getProperties();
-    p.push_back( Property( "height", getHeightExpr() ) );
+    if ( getHeightExpr().length() > 0 )
+        p.push_back( Property( "height", getHeightExpr() ) );
     p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
     p.push_back( Property( "min_height", getMinHeight() ) );
     p.push_back( Property( "max_height", getMaxHeight() ) );
     p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
+    if ( getWallSkinExpr().length() > 0 )
+        p.push_back( Property( "wall_skin", getWallSkinExpr() ) );
     return p;
 }
 
@@ -360,32 +380,60 @@ extrudeWallsUp(const GeoShape&         shape,
 }
 
 
+SkinResource*
+ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
+{
+    SkinResource* skin = NULL;
+    bool batch = env->getProperties().getBoolValue( PROP_BATCH, false );
+    if ( batch )
+    {
+        skin = dynamic_cast<SkinResource*>( env->getProperties().getRefValue( PROP_WALL_SKIN ) );
+    }
+    else if ( getWallSkinExpr().length() > 0 )
+    {
+        ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), f, env );
+        if ( r.isValid() )
+            skin = dynamic_cast<SkinResource*>( r.asRef() );
+    }
+    return skin;
+}
+
 DrawableList
 ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
-    if ( getRandomizeFacadeTextures() )
+    bool batch = input.size() > 1;
+    env->setProperty( Property( PROP_BATCH, batch ) );
+
+    if ( batch && getWallSkinExpr().length() > 0 )
     {
-        // TEST: texturing
-        int k = tex_index++ % 4;
-        osg::Image* image = new osg::Image();
-        image->setFileName( 
-            k == 0? "g:/data/ttools/terrasim/large_win_tan_border.rgb" :
-            k == 1? "g:/data/ttools/terrasim/blue_glass.rgb" :
-            k == 2? "g:/data/ttools/terrasim/red_tan_brick_storefront.rgb" :
-                    "g:/data/ttools/terrasim/cement_3x3win.rgb" );
-        //osg::Texture2D* tex = new osg::Texture2D( image );
-        active_tex = new osg::Texture2D( image );
-        active_tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-        active_tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-
-        //osg::TexEnv* texenv = new osg::TexEnv();
-        active_texenv = new osg::TexEnv();
-        active_texenv->setMode( osg::TexEnv::MODULATE );
-
-        //active_state = new osg::StateSet();
-        //active_state->setTextureAttributeAndModes( 0, tex );
-        //active_state->setTextureAttribute( 0, texenv );
+        ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), env );
+        if ( r.isValid() )
+            env->setProperty( Property( PROP_WALL_SKIN, r.asRef() ) );
     }
+
+    //if ( getRandomizeFacadeTextures() )
+    //{
+    //    // TEST: texturing
+    //    int k = tex_index++ % 4;
+    //    osg::Image* image = new osg::Image();
+    //    image->setFileName( 
+    //        k == 0? "g:/data/ttools/terrasim/large_win_tan_border.rgb" :
+    //        k == 1? "g:/data/ttools/terrasim/blue_glass.rgb" :
+    //        k == 2? "g:/data/ttools/terrasim/red_tan_brick_storefront.rgb" :
+    //                "g:/data/ttools/terrasim/cement_3x3win.rgb" );
+    //    //osg::Texture2D* tex = new osg::Texture2D( image );
+    //    active_tex = new osg::Texture2D( image );
+    //    active_tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+    //    active_tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+    //    //osg::TexEnv* texenv = new osg::TexEnv();
+    //    active_texenv = new osg::TexEnv();
+    //    active_texenv->setMode( osg::TexEnv::MODULATE );
+
+    //    //active_state = new osg::StateSet();
+    //    //active_state->setTextureAttributeAndModes( 0, tex );
+    //    //active_state->setTextureAttribute( 0, texenv );
+    //}
 
     return BuildGeomFilter::process( input, env );
 }
@@ -417,6 +465,9 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         {
             height = height_functor->get( input );
         }
+
+        // establish the wall skin resource:
+        SkinResource* skin = getWallSkinForFeature( input, env );
 
         osg::ref_ptr<osg::Geometry> walls = new osg::Geometry();
         osg::ref_ptr<osg::Geometry> rooflines = NULL;

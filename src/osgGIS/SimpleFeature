@@ -31,7 +31,7 @@ namespace osgGIS
      * A concrete feature class you can use to create new features on the
      * fly.
      */
-	class OSGGIS_EXPORT SimpleFeature : public Feature
+	class OSGGIS_EXPORT SimpleFeature : public FeatureBase
 	{
     public:
         SimpleFeature();
@@ -46,21 +46,10 @@ namespace osgGIS
 		
 		virtual const GeoExtent& getExtent() const;
 
-        virtual Attribute getAttribute( const std::string& key ) const;
-
-        virtual double getAttributeAsDouble( const std::string& key, double default_val ) const;
-
-        virtual void setAttribute( const std::string& key, const std::string& value );
-
-        virtual void setAttribute( const std::string& key, int value );
-
-        virtual void setAttribute( const std::string& key, double value );
-
     protected:
 
         GeoShapeList   shapes;
         GeoExtent      extent;
-        AttributeTable attributes;
 	};
 }
 

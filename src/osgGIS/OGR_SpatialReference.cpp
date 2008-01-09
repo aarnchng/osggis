@@ -126,7 +126,9 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
 
 	    void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
-            osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl;
+            osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
+                << "    From => " << input_sr->getName() << std::endl
+                << "    To   => " << this->getName() << std::endl;
             return false;
         }
 

@@ -26,9 +26,9 @@ using namespace osgGIS;
 static std::string
 normalize( std::string input )
 {
-    return input;
-    std::replace( input.begin(), input.end(), '-', '_' );
-    return input;
+    std::string output = input;
+    std::replace( output.begin(), output.end(), '-', '_' );
+    return output;
 }
 
 Property::Property()
@@ -105,6 +105,12 @@ Property::Property( const std::string& _name, const osg::Matrix& _v )
     value = ss.str();
 }
 
+Property::Property( const std::string& _name, osg::Referenced* _rv )
+{
+    name = normalize( _name );
+    ref_value = _rv;
+}
+
 const std::string& 
 Property::getName() const
 {
@@ -115,6 +121,12 @@ const std::string&
 Property::getValue() const
 {
     return value;
+}
+
+osg::Referenced*
+Property::getRefValue()
+{
+    return ref_value.get();
 }
 
 int 
@@ -292,6 +304,21 @@ Properties::getValue( const std::string& key, std::string def )
     }
     return def;
 }
+
+osg::Referenced*
+Properties::getRefValue( const std::string& key )
+{
+    std::string nkey = normalize( key );
+    for( Properties::iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return i->getRefValue();
+        }
+    }
+    return NULL;
+}
+
 
 void
 Properties::remove( const std::string& key )

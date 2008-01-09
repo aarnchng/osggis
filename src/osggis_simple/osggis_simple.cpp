@@ -141,7 +141,9 @@ createFilterGraph()
     // Construct osg::Drawable's from the incoming feature batches:
     osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
     gf->setColor( color );
-    gf->setRandomizeColors( color.a() == 0 );
+    if ( color.a() == 0 )
+        gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
+    //gf->setRandomizeColors( color.a() == 0 );
     graph->appendFilter( gf );
 
     // Bring all the drawables into a single collection so that they

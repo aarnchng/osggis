@@ -73,7 +73,6 @@ SET(LIB_PUBLIC_HEADERS
     Script
     ScriptEngine
     SelectFilter
-    SessionFilter
     SkinResource
     SimpleFeature
     SimpleLayerCompiler
@@ -116,6 +115,7 @@ ADD_LIBRARY(${LIB_NAME}
     ExpressionEvaluator.cpp
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp
+    Feature.cpp
     FeatureCursorImpl.cpp
     FeatureFilter.cpp
     FeatureFilterState.cpp

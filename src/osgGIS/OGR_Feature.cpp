@@ -157,8 +157,8 @@ decodePart( void* handle, GeoShape& shape, int dim )
         OGR_G_GetPoint( handle, v, &x, &y, &z );
 
         part[j] = dim == 2?
-            GeoPoint( x, y, z, shape.getSRS() ) :
-            GeoPoint( x, y, shape.getSRS() );
+            GeoPoint( x, y, shape.getSRS() ) :
+            GeoPoint( x, y, z, shape.getSRS() );
     }
 }
 
@@ -195,12 +195,15 @@ OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_
 Attribute
 OGR_Feature::getAttribute( const std::string& key ) const
 {
-    AttributeTable::const_iterator i = user_attrs.find( key );
-    if ( i != user_attrs.end() )
+    // GW: need a mutex here? is there any caching going on? Ideally,
+    // each OGR_Feature instance is unique relative to the compilation
+    // context.
+    AttributeTable::const_iterator i = getUserAttrs().find( key );
+    if ( i != getUserAttrs().end() )
     {
         return i->second;
     }
-    else
+    else //TODO: perhaps cache the features in the UserAttrs table?
     {
         OGR_SCOPE_LOCK();
         int index = OGR_F_GetFieldIndex( handle, key.c_str() );
@@ -223,33 +226,4 @@ OGR_Feature::getAttribute( const std::string& key ) const
     }  
 
     return invalid_attr;
-}
-
-
-double
-OGR_Feature::getAttributeAsDouble( const std::string& key, double default_val ) const
-{
-    Attribute attr = getAttribute( key );
-    return attr.isValid()? attr.asDouble() : default_val;
-}
-
-void 
-OGR_Feature::setAttribute( const std::string& key, const std::string& value )
-{
-    //TODO
-    //don't forget the mutex
-}
-
-void 
-OGR_Feature::setAttribute( const std::string& key, int value )
-{
-    //TODO
-    //don't forget the mutex
-}
-
-void 
-OGR_Feature::setAttribute( const std::string& key, double value )
-{
-    //TODO
-    //don't forget the mutex
 }

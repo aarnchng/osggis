@@ -79,7 +79,7 @@ FeatureFilterState::traverse( FilterEnv* in_env )
     }
     else
     {
-        osg::notify( osg::WARN ) << "Traverse called before all inputs were set" << std::endl;
+        //osg::notify( osg::WARN ) << "Traverse called before all inputs were set" << std::endl;
         ok = false;
     }
 

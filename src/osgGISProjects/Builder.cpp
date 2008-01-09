@@ -147,12 +147,13 @@ Builder::build( BuildLayer* layer )
     // first create and initialize a Session that will share data across the build.
     osg::ref_ptr<Session> session = new Session();
 
+    // add shared scripts to the session:
     for( ScriptList::iterator i = project->getScripts().begin(); i != project->getScripts().end(); i++ )
         session->addScript( i->get() );
 
+    // add shared resources to the session:
     for( ResourceList::iterator i = project->getResources().begin(); i != project->getResources().end(); i++ )
         session->getResources().addResource( i->get() );
-
 
     // now establish the source data record form this layer and open a feature layer
     // that connects to that source.
@@ -245,6 +246,7 @@ Builder::build( BuildLayer* layer )
     {
         PagedLayerCompiler compiler;
 
+        compiler.setProperties( layer->getProperties() );
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
@@ -266,18 +268,19 @@ Builder::build( BuildLayer* layer )
     {
         GriddedLayerCompiler compiler;
 
+        compiler.setProperties( layer->getProperties() );
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
 
         //TODO: replace with LayerCompiler::setProperties
-        compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
-        compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
-        compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
-        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
-        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
-        compiler.setPreCompileExpr( layer->getProperties().getValue( "pre_script", "" ) );
+        //compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
+        //compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
+        //compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
+        //compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
+        //compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
+        //compiler.setPreCompileExpr( layer->getProperties().getValue( "pre_script", "" ) );        
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -303,14 +306,11 @@ Builder::build( BuildLayer* layer )
     {
         SimpleLayerCompiler compiler;
 
+        compiler.setProperties( layer->getProperties() );
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get() );
-
-        compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
-        compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
-
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {

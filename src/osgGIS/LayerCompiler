@@ -182,9 +182,29 @@ namespace osgGIS
          */
         Session* getSession();
         
-        void setPreCompileExpr( const std::string& expr );
+        /**
+         * Sets the extent of the layer to compile. By default, the compiler
+         * will just use the full extent of the feature layer's contents. You
+         * can use this to override that value and specify an area of interest
+         * manually.
+         */
+        void setAreaOfInterest( double xmin, double ymin, double xmax, double ymax );
+         
+        /**
+         * Gets the layer extent that this compiler will use. If this is set
+         * to GeoExtent::Infinite, that compiler will query the feature layer
+         * for its full extent and use that as the AOI.
+         */
+        GeoExtent getAreaOfInterest( FeatureLayer* layer );
         
+        
+        
+        void setPreCompileExpr( const std::string& expr );        
         const std::string& getPreCompileExpr() const;
+        
+    public:
+        virtual Properties getProperties();
+        virtual void setProperties( Properties& props );    
         
         
     protected:
@@ -201,6 +221,7 @@ namespace osgGIS
         osg::ref_ptr<TaskManager>       task_manager;
         osg::ref_ptr<Session>           session;
         std::string                     pre_compile_expr;
+        double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
         
     protected:
         osg::Node* convertToOverlay( osg::Node* input );

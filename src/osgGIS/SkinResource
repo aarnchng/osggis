@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Resource>
 #include <osg/Vec4>
+#include <osg/StateSet>
 
 namespace osgGIS
 {
@@ -32,11 +33,14 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT SkinResource : public Resource
     {
+        OSGGIS_META_RESOURCE(SkinResource);
+
     public:
         SkinResource();
         SkinResource( const std::string& name );
 
-    public:
+    public: // properties
+
         void setTexturePath( const std::string& value );
         const std::string& getTexturePath() const;
 
@@ -48,6 +52,10 @@ namespace osgGIS
 
         void setColor( const osg::Vec4& value );
         const osg::Vec4& getColor() const;
+
+    public:
+
+        osg::StateSet* getStateSet();
 
     public: // ObjectWithProperties
 
@@ -63,6 +71,7 @@ namespace osgGIS
         float tex_width_m;
         float tex_height_m;
         osg::Vec4 color;
+        osg::ref_ptr<osg::StateSet> state_set;
 
         void init();
     };

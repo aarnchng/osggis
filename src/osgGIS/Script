@@ -88,6 +88,18 @@ namespace osgGIS
     class OSGGIS_EXPORT ScriptResult
     {
     public:
+        enum ReturnType
+        {
+            TYPE_BOOL,
+            TYPE_INT,
+            TYPE_DOUBLE,
+            TYPE_STRING,
+            TYPE_VEC3,
+            TYPE_VEC4,
+            TYPE_REF
+        };
+
+    public:
         static ScriptResult Error( const std::string& msg );
 
         ScriptResult();
@@ -96,6 +108,7 @@ namespace osgGIS
         ScriptResult( double val );
         ScriptResult( int val );
         ScriptResult( bool val );
+        ScriptResult( osg::Referenced* ref );
 
         bool isValid();
 
@@ -106,9 +119,11 @@ namespace osgGIS
         bool        asBool( bool def) const;
         osg::Vec3   asVec3() const;
         osg::Vec4   asVec4() const;
+        osg::Referenced* asRef();
 
     private:
         ScriptResult( bool, const std::string& );
+        ReturnType type;
         bool valid;
         Property prop;
     };

@@ -262,7 +262,7 @@ BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
     {
         result = env->getProperties().getVec4Value( PROP_COLOR );
     }
-    else
+    else if ( getColorExpr().length() > 0 )
     {
         ScriptResult r = env->getScriptEngine()->run(
             new Script( getColorExpr() ),

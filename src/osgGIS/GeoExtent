@@ -81,6 +81,12 @@ namespace osgGIS
 		bool isInfinite() const;
 
         /**
+         * Checks whether the extent is of finite size (and valid). Analagous
+         * to getArea() > 0.
+         */
+        bool isFinite() const;
+
+        /**
          * Gets the spatial reference system of the extent points.
          */
 		const SpatialReference* getSRS() const;
@@ -116,6 +122,13 @@ namespace osgGIS
          *      Points to test against extent.
          */
         bool intersectsExtent( const GeoPointList& input ) const;
+
+        /**
+         * Returns true if a point falls within this extent.
+         * @param input
+         *      Point to test against this extent.
+         */
+        bool contains( double x, double y ) const;
 		
         /**
          * Returns true if a point falls within this extent.

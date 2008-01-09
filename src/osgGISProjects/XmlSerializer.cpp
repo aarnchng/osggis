@@ -213,6 +213,29 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
     return script;
 }
 
+Resource*
+XmlSerializer::decodeResource( XmlElement* e, Project* proj )
+{
+    Resource* resource = NULL;
+    if ( e )
+    {
+        std::string type = e->getAttr( "type" );
+        resource = osgGIS::Registry::instance()->createResourceByType( type );
+        if ( resource )
+        {
+            XmlNodeList prop_els = e->getSubElements( "property" );
+            for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
+            {
+                XmlElement* k_e = (XmlElement*)k->get();
+                std::string name = k_e->getAttr( "name" );
+                std::string value = k_e->getAttr( "value" );
+                resource->setProperty( Property( name, value ) );
+            }
+        }
+    }
+    return resource;
+}
+
 Source*
 XmlSerializer::decodeSource( XmlElement* e, Project* proj )
 {

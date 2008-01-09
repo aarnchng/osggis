@@ -84,6 +84,7 @@ namespace osgGIS
          * is expressed.
          */
         const SpatialReference* getInputSRS() const;
+        SpatialReference* getInputSRS();
         
         /**
          * Sets the spatial reference system in which the filter's output geodata
