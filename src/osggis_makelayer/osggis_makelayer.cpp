@@ -64,6 +64,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <iterator>
 
 
 #define NOUT osg::notify(osg::NOTICE)
@@ -260,10 +261,8 @@ parseCommandLine( int argc, char** argv )
     {
         std::stringstream prj;
         std::ifstream infile( prj_file.c_str() );
-        std::istream_iterator<std::string> begin( infile );
-        std::istream_iterator<std::string> end;
-        while( begin != end )
-            prj << *begin++;
+        std::istream_iterator<std::string> begin( infile ), end;
+        while( begin != end ) prj << *begin++;
         terrain_srs = registry->getSRSFactory()->createSRSfromWKT( prj.str() );
 
         if ( terrain_srs.valid() )
