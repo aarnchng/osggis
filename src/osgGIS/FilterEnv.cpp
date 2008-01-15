@@ -38,6 +38,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     terrain_srs = rhs.terrain_srs.get();
     terrain_read_cb = rhs.terrain_read_cb.get();
     script_engine = rhs.script_engine.get();
+    properties = rhs.properties;
 }
 
 
@@ -185,4 +186,10 @@ Properties&
 FilterEnv::getProperties()
 {
     return properties;
+}
+
+Property
+FilterEnv::getProperty( const char* name ) const
+{
+    return properties.get( std::string( name ) );
 }

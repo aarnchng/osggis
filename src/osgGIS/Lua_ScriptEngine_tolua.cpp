@@ -1,21 +1,22 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 01/15/08 11:16:58.
+** Generated automatically by tolua 5.1b on 01/15/08 15:03:37.
 */
 
 #ifndef __cplusplus
 #include "stdlib.h"
 #endif
 #include "string.h"
+
 #include <osgGIS/Attribute>
 #include <osgGIS/Feature>
 #include <osgGIS/FilterEnv>
+#include <osgGIS/Property>
 #include <osgGIS/Resource>
 #include <osgGIS/ResourceLibrary>
 #include <string>
 using namespace osgGIS;
 extern "C" {
-
 #include "tolua.h"
 
 /* Exported function */
@@ -28,6 +29,12 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
  static int tolua_collect_GeoPoint (lua_State* tolua_S)
 {
  GeoPoint* self = (GeoPoint*) tolua_tousertype(tolua_S,1,0);
+ delete self;
+ return 0;
+}
+ static int tolua_collect_Property (lua_State* tolua_S)
+{
+ Property* self = (Property*) tolua_tousertype(tolua_S,1,0);
  delete self;
  return 0;
 }
@@ -58,8 +65,9 @@ static void tolua_reg_types (lua_State* tolua_S)
 {
  tolua_usertype(tolua_S,"Feature");
  tolua_usertype(tolua_S,"FilterEnv");
- tolua_usertype(tolua_S,"SpatialReference");
  tolua_usertype(tolua_S,"GeoPoint");
+ tolua_usertype(tolua_S,"SpatialReference");
+ tolua_usertype(tolua_S,"Property");
  tolua_usertype(tolua_S,"Attribute");
  tolua_usertype(tolua_S,"GeoExtent");
 }
@@ -322,6 +330,156 @@ static int tolua_Lua_ScriptEngine_tolua_Attribute_asBool00(lua_State* tolua_S)
 #endif
 }
 
+/* method: isValid of class  Property */
+static int tolua_Lua_ScriptEngine_tolua_Property_isValid00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Property",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Property* self = (Property*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'isValid'",NULL);
+#endif
+ {
+  bool tolua_ret = (bool)  self->isValid();
+ tolua_pushboolean(tolua_S,(bool)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'isValid'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: asString of class  Property */
+static int tolua_Lua_ScriptEngine_tolua_Property_asString00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Property",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Property* self = (Property*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asString'",NULL);
+#endif
+ {
+  const char* tolua_ret = (const char*)  self->asString();
+ tolua_pushstring(tolua_S,(const char*)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'asString'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: asDouble of class  Property */
+static int tolua_Lua_ScriptEngine_tolua_Property_asDouble00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Property",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Property* self = (Property*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asDouble'",NULL);
+#endif
+ {
+  double tolua_ret = (double)  self->asDouble();
+ tolua_pushnumber(tolua_S,(double)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'asDouble'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: asInt of class  Property */
+static int tolua_Lua_ScriptEngine_tolua_Property_asInt00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Property",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Property* self = (Property*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asInt'",NULL);
+#endif
+ {
+  int tolua_ret = (int)  self->asInt();
+ tolua_pushnumber(tolua_S,(double)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'asInt'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: asBool of class  Property */
+static int tolua_Lua_ScriptEngine_tolua_Property_asBool00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Property",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Property* self = (Property*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asBool'",NULL);
+#endif
+ {
+  bool tolua_ret = (bool)  self->asBool();
+ tolua_pushboolean(tolua_S,(bool)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'asBool'.",&tolua_err);
+ return 0;
+#endif
+}
+
 /* method: getExtent of class  FilterEnv */
 static int tolua_Lua_ScriptEngine_tolua_FilterEnv_getExtent00(lua_State* tolua_S)
 {
@@ -386,6 +544,46 @@ static int tolua_Lua_ScriptEngine_tolua_FilterEnv_getInputSRS00(lua_State* tolua
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'getInputSRS'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getProperty of class  FilterEnv */
+static int tolua_Lua_ScriptEngine_tolua_FilterEnv_getProperty00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"FilterEnv",0,&tolua_err) ||
+ !tolua_isstring(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  FilterEnv* self = (FilterEnv*)  tolua_tousertype(tolua_S,1,0);
+  const char* tolua_var_2 = ((const char*)  tolua_tostring(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getProperty'",NULL);
+#endif
+ {
+  Property tolua_ret = (Property)  self->getProperty(tolua_var_2);
+ {
+#ifdef __cplusplus
+ void* tolua_obj = new Property(tolua_ret);
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_Property),"Property");
+#else
+ void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(Property));
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"Property");
+#endif
+ }
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getProperty'.",&tolua_err);
  return 0;
 #endif
 }
@@ -888,6 +1086,18 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"asBool",tolua_Lua_ScriptEngine_tolua_Attribute_asBool00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
+ tolua_cclass(tolua_S,"Property","Property","",tolua_collect_Property);
+#else
+ tolua_cclass(tolua_S,"Property","Property","",tolua_collect);
+#endif
+ tolua_beginmodule(tolua_S,"Property");
+ tolua_function(tolua_S,"isValid",tolua_Lua_ScriptEngine_tolua_Property_isValid00);
+ tolua_function(tolua_S,"asString",tolua_Lua_ScriptEngine_tolua_Property_asString00);
+ tolua_function(tolua_S,"asDouble",tolua_Lua_ScriptEngine_tolua_Property_asDouble00);
+ tolua_function(tolua_S,"asInt",tolua_Lua_ScriptEngine_tolua_Property_asInt00);
+ tolua_function(tolua_S,"asBool",tolua_Lua_ScriptEngine_tolua_Property_asBool00);
+ tolua_endmodule(tolua_S);
+#ifdef __cplusplus
  tolua_cclass(tolua_S,"FilterEnv","FilterEnv","",0);
 #else
  tolua_cclass(tolua_S,"FilterEnv","FilterEnv","",tolua_collect);
@@ -895,6 +1105,7 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_beginmodule(tolua_S,"FilterEnv");
  tolua_function(tolua_S,"getExtent",tolua_Lua_ScriptEngine_tolua_FilterEnv_getExtent00);
  tolua_function(tolua_S,"getInputSRS",tolua_Lua_ScriptEngine_tolua_FilterEnv_getInputSRS00);
+ tolua_function(tolua_S,"getProperty",tolua_Lua_ScriptEngine_tolua_FilterEnv_getProperty00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
  tolua_cclass(tolua_S,"GeoExtent","GeoExtent","",tolua_collect_GeoExtent);

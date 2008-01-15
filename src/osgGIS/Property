@@ -57,6 +57,11 @@ namespace osgGIS
         osg::Referenced* getRefValue();
         bool isValid() const;
 
+        const char* asString() const;
+        double asDouble() const;
+        int asInt() const;
+        bool asBool() const;
+
         Property static invalid();
 
     private:

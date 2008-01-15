@@ -12,6 +12,7 @@ SET(LIB_PUBLIC_HEADERS
     Attribute
     AutoResetBlock
     BuildGeomFilter
+    BuildLabelsFilter
     BuildNodesFilter
     ChangeShapeTypeFilter
     ClampFilter
@@ -99,6 +100,7 @@ ADD_LIBRARY(${LIB_NAME}
     ${LIB_PUBLIC_HEADERS}
     Attribute.cpp
     BuildGeomFilter.cpp
+    BuildLabelsFilter.cpp
     BuildNodesFilter.cpp
     ChangeShapeTypeFilter.cpp
     ClampFilter.cpp

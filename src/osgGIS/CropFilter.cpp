@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/CropFilter>
+#include <osgGIS/SimpleFeature>
 #include <osg/Notify>
 #include <stack>
 
@@ -706,16 +707,19 @@ CropFilter::process( Feature* input, FilterEnv* env )
             }
         }
 
-        if ( options & CropFilter::SHOW_CROP_LINES )
+        if ( getShowCropLines() )
         {
+            GeoPointList part;
+            part.push_back( crop_extent.getSouthwest() );
+            part.push_back( crop_extent.getSoutheast() );
+            part.push_back( crop_extent.getNortheast() );
+            part.push_back( crop_extent.getNorthwest() );
+            part.push_back( crop_extent.getSouthwest() );
             GeoShape extent_shape( GeoShape::TYPE_LINE, crop_extent.getSRS() );
-            GeoPointList& part = extent_shape.addPart( 5 );
-            part[0] = crop_extent.getSouthwest();
-            part[1] = crop_extent.getSoutheast();
-            part[2] = crop_extent.getNortheast();
-            part[3] = crop_extent.getNorthwest();
-            part[4] = part[0];
-            new_shapes.push_back( extent_shape );
+            extent_shape.getParts().push_back( part );
+            Feature* extent_f = new SimpleFeature();
+            extent_f->getShapes().push_back( extent_shape );
+            output.push_back( extent_f );
         }
 
         input->getShapes().swap( new_shapes );

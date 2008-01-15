@@ -216,6 +216,30 @@ Property::getMatrixValue() const
 }
 
 
+const char* 
+Property::asString() const
+{
+    return value.c_str();
+}
+
+double
+Property::asDouble() const
+{
+    return getDoubleValue( 0.0 );
+}
+
+int 
+Property::asInt() const
+{
+    return getIntValue( 0 );
+}
+
+bool 
+Property::asBool() const
+{
+    return getBoolValue( false );
+}
+
 int 
 Properties::getIntValue( const std::string& key, int def )
 {

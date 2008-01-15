@@ -133,6 +133,7 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
         Property p = env->getSession()->getProperty( PROP_FILE );
         RefFile* file = dynamic_cast<RefFile*>( p.getRefValue() );
         if ( !file ) {
+            ScopedLock<ReentrantMutex> create_file_lock( env->getSession()->getSessionMutex() );
             file = new RefFile( getOutputFile() );
             env->getSession()->setProperty( Property( PROP_FILE, file ) );
             osg::notify(osg::NOTICE) << "WriteText: writing to " << getOutputFile() << std::endl;

@@ -220,11 +220,13 @@ private:
     osg::Node* compileLOD( FilterGraph* graph )
     {
         osg::ref_ptr<FilterEnv> env = session->createFilterEnv();
+        env->setProperty( Property( "compiler.grid_row", row ) );
+        env->setProperty( Property( "compiler.grid_col", col ) );
         env->setExtent( tile_extent );
         env->setTerrainNode( compiler.getTerrainNode() );
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
-        Compiler compiler( layer.get(), graph ); //, session.get() );
+        Compiler compiler( layer.get(), graph );
         return compiler.compile( env.get() );
     }
 
