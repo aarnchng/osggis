@@ -80,7 +80,9 @@ Lua_ScriptEngine::run( Script* script )
     {
         if ( lua_pcall( L, 0, 1, 0 ) == 0 )
         {
-            result << lua_tostring( L, lua_gettop(L) );
+            const char* top = lua_tostring( L, lua_gettop(L) );
+            if ( top )
+                result << top;
             ok = true;
         }
         else
@@ -122,7 +124,9 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
         tolua_pushusertype( L, env, "FilterEnv" ); // pushed the second argument
         if ( lua_pcall( L, 1, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
         {
-            result << lua_tostring( L, lua_gettop( L ) );
+            const char* top = lua_tostring( L, lua_gettop( L ) );
+            if ( top )
+                result << top;
             ok = true;
             lua_pop( L, 1 );
         }
@@ -177,7 +181,9 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
             }
             else
             {
-                result << lua_tostring( L, lua_gettop( L ) );
+                const char* top = lua_tostring( L, lua_gettop( L ) );
+                if ( top )
+                    result << top;
             }
             ok = true;
             lua_pop( L, 1 );

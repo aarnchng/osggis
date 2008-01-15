@@ -89,3 +89,9 @@ Session::getProperty( const std::string& name )
     OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
     return properties.get( name );
 }
+
+OpenThreads::ReentrantMutex&
+Session::getSessionMutex()
+{
+    return session_mtx;
+}

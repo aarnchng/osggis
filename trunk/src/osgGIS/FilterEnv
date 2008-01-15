@@ -159,6 +159,7 @@ namespace osgGIS
 
         virtual void setProperty( const Property& prop );
         virtual Properties& getProperties();
+        virtual Property getProperty( const char* name ) const;
 
     protected:
                 

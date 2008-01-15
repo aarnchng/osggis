@@ -1,0 +1,82 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUILD_LABELS_FILTER_H_
+#define _OSGGIS_BUILD_LABELS_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/BuildGeomFilter>
+
+namespace osgGIS
+{
+    /**
+     * Builds osgText labels for features.
+     */
+    class OSGGIS_EXPORT BuildLabelsFilter : public BuildGeomFilter
+    {
+        OSGGIS_META_FILTER( BuildLabelsFilter );
+
+    public:
+        /**
+         * Constructs a new filter for converting features into labels.
+         */
+        BuildLabelsFilter();
+
+
+    public: //properties
+
+        /**
+         * Sets the expression that evaluates to the color to use.
+         */
+        void setTextExpr( const std::string& expr );
+
+        /**
+         * Gets the expression that evaluates to color to use.
+         */
+        const std::string& getTextExpr() const;
+        
+        void setFontSizeExpr( const std::string& expr );
+        
+        const std::string& getFontSizeExpr() const;
+        
+        void setDisableDepthTest( bool value );
+        
+        bool getDisableDepthTest() const;
+        
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual DrawableList process( FeatureList& input, FilterEnv* env );
+        virtual DrawableList process( Feature* input, FilterEnv* env );
+
+        virtual ~BuildLabelsFilter();
+        
+    protected:
+        std::string text_expr;
+        std::string font_size_expr;
+        bool        disable_depth_test;
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_LABELS_FILTER_H_

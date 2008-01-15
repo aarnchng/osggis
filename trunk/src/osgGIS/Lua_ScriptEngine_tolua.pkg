@@ -1,6 +1,7 @@
 $#include <osgGIS/Attribute>
 $#include <osgGIS/Feature>
 $#include <osgGIS/FilterEnv>
+$#include <osgGIS/Property>
 $#include <osgGIS/Resource>
 $#include <osgGIS/ResourceLibrary>
 $#include <string>
@@ -24,10 +25,20 @@ class Attribute
   bool        asBool();
 };
 
+class Property
+{
+  bool        isValid();
+  const char* asString();
+  double      asDouble();
+  int         asInt();
+  bool        asBool();
+};
+
 class FilterEnv
 {
   GeoExtent getExtent();
   SpatialReference* getInputSRS();
+  Property getProperty( const char* );
 };
 
 class GeoExtent

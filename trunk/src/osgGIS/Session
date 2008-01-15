@@ -24,6 +24,7 @@
 #include <osgGIS/ScriptEngine>
 #include <osgGIS/ResourceLibrary>
 #include <OpenThreads/Mutex>
+#include <OpenThreads/ReentrantMutex>
 
 namespace osgGIS
 {
@@ -73,6 +74,15 @@ namespace osgGIS
         ResourceLibrary& getResources();
         
         /**
+         * Accesses the session-wide mutex. Filter can use this to perform
+         * session-thread-safe operations (like opening or writing to a shared
+         * file, for example).
+         *
+         * Use this sparingly or risk hurting performance!
+         */
+        OpenThreads::ReentrantMutex& getSessionMutex();
+        
+        /**
          * Gets the session-level user data.
          */
         virtual Property getProperty( const std::string& name );
@@ -88,7 +98,7 @@ namespace osgGIS
     private:
         ScriptList scripts;
         ResourceLibrary resources;
-        OpenThreads::Mutex session_mtx;
+        OpenThreads::ReentrantMutex session_mtx;
         Properties properties;
     };
 }
