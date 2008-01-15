@@ -44,7 +44,7 @@ namespace osgGIS
          * @param session
          *      Session under which this compiler operates
          */
-        Compiler( FeatureLayer* layer, FilterGraph* graph, Session* session );
+        //Compiler( FeatureLayer* layer, FilterGraph* graph, Session* session );
 
         /**
          * Constructs a new compiler (with a default session).

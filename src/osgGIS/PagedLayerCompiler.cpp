@@ -251,11 +251,11 @@ PagedLayerCompiler::compileGeometry(
         osg::notify(osg::NOTICE) << indent[level+2]
             << "graph = " << graph->getName() << std::endl;
 
-        osg::ref_ptr<FilterEnv> env = new FilterEnv();
+        osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
         env->setTerrainNode( tile_terrain );
         env->setTerrainSRS( terrain_srs.get() );
         env->setExtent( tile_extent );
-        Compiler compiler( layer, graph, getSession() );
+        Compiler compiler( layer, graph ); //, getSession() );
         out = compiler.compile( env.get() );
     }
     else

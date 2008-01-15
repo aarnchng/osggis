@@ -73,6 +73,7 @@ SET(LIB_PUBLIC_HEADERS
     Script
     ScriptEngine
     SelectFilter
+    Session
     SkinResource
     SimpleFeature
     SimpleLayerCompiler
@@ -90,6 +91,7 @@ SET(LIB_PUBLIC_HEADERS
     TerrainUtils
     TransformFilter
     Utils
+    WriteTextFilter
 )
 
 ADD_LIBRARY(${LIB_NAME}
@@ -164,6 +166,7 @@ ADD_LIBRARY(${LIB_NAME}
     TerrainUtils.cpp
     TransformFilter.cpp
     Utils.cpp
+    WriteTextFilter.cpp
 )
 
 LINK_EXTERNAL(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT}    ${MATH_LIBRARY})

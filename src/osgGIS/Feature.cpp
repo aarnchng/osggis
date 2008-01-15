@@ -9,33 +9,33 @@ FeatureBase::getAttribute( const std::string& key ) const
     return i != user_attrs.end()? i->second : Attribute::invalid();
 }
 
-double
-FeatureBase::getAttributeAsDouble( const std::string& key ) const
-{
-    Attribute attr = getAttribute( key );
-    return attr.isValid()? attr.asDouble() : 0.0;
-}
-
-int 
-FeatureBase::getAttributeAsInt( const std::string& key ) const
-{
-    Attribute a = getAttribute( key );
-    return a.isValid()? a.asInt() : 0;
-}
-
-bool 
-FeatureBase::getAttributeAsBool( const std::string& key ) const
-{
-    Attribute a = getAttribute( key );
-    return a.isValid()? a.asBool() : false;
-}
-
-std::string 
-FeatureBase::getAttributeAsString( const std::string& key ) const
-{
-    Attribute a = getAttribute( key );
-    return a.isValid()? a.asString() : "";
-}
+//double
+//FeatureBase::getAttributeAsDouble( const std::string& key ) const
+//{
+//    Attribute attr = getAttribute( key );
+//    return attr.isValid()? attr.asDouble() : 0.0;
+//}
+//
+//int 
+//FeatureBase::getAttributeAsInt( const std::string& key ) const
+//{
+//    Attribute a = getAttribute( key );
+//    return a.isValid()? a.asInt() : 0;
+//}
+//
+//bool 
+//FeatureBase::getAttributeAsBool( const std::string& key ) const
+//{
+//    Attribute a = getAttribute( key );
+//    return a.isValid()? a.asBool() : false;
+//}
+//
+//const char* 
+//FeatureBase::getAttributeAsString( const std::string& key ) const
+//{
+//    Attribute a = getAttribute( key );
+//    return a.isValid()? a.asString() : "";
+//}
 
 void 
 FeatureBase::setAttribute( const std::string& key, const std::string& value )

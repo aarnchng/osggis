@@ -32,14 +32,6 @@ Compiler::Compiler( FeatureLayer* _layer, FilterGraph* _graph )
 {
     layer = _layer;
     graph = _graph;
-    session = new Session();
-}
-
-Compiler::Compiler( FeatureLayer* _layer, FilterGraph* _graph, Session* _session )
-{
-    layer = _layer;
-    graph = _graph;
-    session = _session? _session : new Session();
 }
 
 
@@ -65,6 +57,8 @@ Compiler::getFilterGraph()
 Session*
 Compiler::getSession()
 {
+    if ( !session.valid() )
+        session = new Session();
     return session.get();
 }
 
@@ -72,7 +66,7 @@ Compiler::getSession()
 osg::Group*
 Compiler::compile()
 {
-    osg::ref_ptr<FilterEnv> env = new FilterEnv();
+    osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
     return compile( env.get() );
 }
 
@@ -83,12 +77,15 @@ Compiler::compile( FilterEnv* env_template )
     osg::Group* result = new osg::Group();
 
     // Set up the initial filter environment:
-    osg::ref_ptr<FilterEnv> env = env_template?
-        new FilterEnv( *env_template ) : new FilterEnv();
-
-    if ( env->getScriptEngine() == NULL )
+    osg::ref_ptr<FilterEnv> env;
+    if ( env_template )
     {
-        env->setScriptEngine( session->createScriptEngine() );
+        env = new FilterEnv( *env_template );
+        session = env->getSession();
+    }
+    else
+    {
+        env = getSession()->createFilterEnv();
     }
 
     env->setInputSRS( layer->getSRS() );

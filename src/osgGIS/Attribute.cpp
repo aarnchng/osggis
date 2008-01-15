@@ -92,7 +92,7 @@ Attribute::getType() const
     return type;
 }
 
-const std::string&
+const char*
 Attribute::asString()
 {
     if ( type != TYPE_STRING && string_value.length() == 0 )
@@ -104,7 +104,7 @@ Attribute::asString()
             gen << double_value;
         string_value = gen.str();
     }
-    return string_value;
+    return string_value.c_str();
 }
 
 int

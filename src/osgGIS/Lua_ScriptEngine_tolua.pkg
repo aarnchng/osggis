@@ -12,19 +12,15 @@ class Feature
 {
   int getOID();
   Attribute getAttribute( const char* );
-  double getAttributeAsDouble( const char* );
-  int getAttributeAsInt( const char* );
-  std::string getAttributeAsString( const char* );
-  bool getAttributeAsBool( const char* );
   GeoExtent getExtent();
 };
 
 class Attribute
 {
   bool        isValid();
-  std::string asString();
-  int         asInt();
+  const char* asString();
   double      asDouble();
+  int         asInt();
   bool        asBool();
 };
 
@@ -42,7 +38,9 @@ class GeoExtent
   double getYMax();
   bool contains( double x, double y );
   bool contains( GeoPoint p );
+  bool contains( GeoExtent e );
   double getArea();
+  GeoPoint getCentroid();
 };
 
 class GeoPoint

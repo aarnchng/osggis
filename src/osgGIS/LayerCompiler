@@ -178,7 +178,8 @@ namespace osgGIS
         void setSession( Session* session );
         
         /**
-         * Gets the session assigned to this compiler.
+         * Gets the session assigned to this compiler, or creates and
+         * returns a new one if setSession() was never called.
          */
         Session* getSession();
         

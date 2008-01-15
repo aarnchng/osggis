@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 01/08/08 09:17:46.
+** Generated automatically by tolua 5.1b on 01/15/08 11:16:58.
 */
 
 #ifndef __cplusplus
@@ -14,25 +14,20 @@
 #include <osgGIS/ResourceLibrary>
 #include <string>
 using namespace osgGIS;
-
 extern "C" {
+
 #include "tolua.h"
 
 /* Exported function */
 TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
 LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
 
+
 /* function to release collected object */
 #ifdef __cplusplus
  static int tolua_collect_GeoPoint (lua_State* tolua_S)
 {
  GeoPoint* self = (GeoPoint*) tolua_tousertype(tolua_S,1,0);
- delete self;
- return 0;
-}
- static int tolua_collect_std_string (lua_State* tolua_S)
-{
- std::string* self = (std::string*) tolua_tousertype(tolua_S,1,0);
  delete self;
  return 0;
 }
@@ -63,9 +58,8 @@ static void tolua_reg_types (lua_State* tolua_S)
 {
  tolua_usertype(tolua_S,"Feature");
  tolua_usertype(tolua_S,"FilterEnv");
- tolua_usertype(tolua_S,"GeoPoint");
  tolua_usertype(tolua_S,"SpatialReference");
- tolua_usertype(tolua_S,"std::string");
+ tolua_usertype(tolua_S,"GeoPoint");
  tolua_usertype(tolua_S,"Attribute");
  tolua_usertype(tolua_S,"GeoExtent");
 }
@@ -136,142 +130,6 @@ static int tolua_Lua_ScriptEngine_tolua_Feature_getAttribute00(lua_State* tolua_
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'getAttribute'.",&tolua_err);
- return 0;
-#endif
-}
-
-/* method: getAttributeAsDouble of class  Feature */
-static int tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsDouble00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
- !tolua_isusertype(tolua_S,1,"Feature",0,&tolua_err) ||
- !tolua_isstring(tolua_S,2,0,&tolua_err) ||
- !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
- goto tolua_lerror;
- else
-#endif
- {
-  Feature* self = (Feature*)  tolua_tousertype(tolua_S,1,0);
-  const char* tolua_var_2 = ((const char*)  tolua_tostring(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getAttributeAsDouble'",NULL);
-#endif
- {
-  double tolua_ret = (double)  self->getAttributeAsDouble(tolua_var_2);
- tolua_pushnumber(tolua_S,(double)tolua_ret);
- }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'getAttributeAsDouble'.",&tolua_err);
- return 0;
-#endif
-}
-
-/* method: getAttributeAsInt of class  Feature */
-static int tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsInt00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
- !tolua_isusertype(tolua_S,1,"Feature",0,&tolua_err) ||
- !tolua_isstring(tolua_S,2,0,&tolua_err) ||
- !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
- goto tolua_lerror;
- else
-#endif
- {
-  Feature* self = (Feature*)  tolua_tousertype(tolua_S,1,0);
-  const char* tolua_var_3 = ((const char*)  tolua_tostring(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getAttributeAsInt'",NULL);
-#endif
- {
-  int tolua_ret = (int)  self->getAttributeAsInt(tolua_var_3);
- tolua_pushnumber(tolua_S,(double)tolua_ret);
- }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'getAttributeAsInt'.",&tolua_err);
- return 0;
-#endif
-}
-
-/* method: getAttributeAsString of class  Feature */
-static int tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsString00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
- !tolua_isusertype(tolua_S,1,"Feature",0,&tolua_err) ||
- !tolua_isstring(tolua_S,2,0,&tolua_err) ||
- !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
- goto tolua_lerror;
- else
-#endif
- {
-  Feature* self = (Feature*)  tolua_tousertype(tolua_S,1,0);
-  const char* tolua_var_4 = ((const char*)  tolua_tostring(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getAttributeAsString'",NULL);
-#endif
- {
-  std::string tolua_ret = (std::string)  self->getAttributeAsString(tolua_var_4);
- {
-#ifdef __cplusplus
- void* tolua_obj = new std::string(tolua_ret);
- tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_std_string),"std::string");
-#else
- void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(std::string));
- tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"std::string");
-#endif
- }
- }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'getAttributeAsString'.",&tolua_err);
- return 0;
-#endif
-}
-
-/* method: getAttributeAsBool of class  Feature */
-static int tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsBool00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
- !tolua_isusertype(tolua_S,1,"Feature",0,&tolua_err) ||
- !tolua_isstring(tolua_S,2,0,&tolua_err) ||
- !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
- goto tolua_lerror;
- else
-#endif
- {
-  Feature* self = (Feature*)  tolua_tousertype(tolua_S,1,0);
-  const char* tolua_var_5 = ((const char*)  tolua_tostring(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getAttributeAsBool'",NULL);
-#endif
- {
-  bool tolua_ret = (bool)  self->getAttributeAsBool(tolua_var_5);
- tolua_pushboolean(tolua_S,(bool)tolua_ret);
- }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'getAttributeAsBool'.",&tolua_err);
  return 0;
 #endif
 }
@@ -362,52 +220,14 @@ static int tolua_Lua_ScriptEngine_tolua_Attribute_asString00(lua_State* tolua_S)
  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asString'",NULL);
 #endif
  {
-  std::string tolua_ret = (std::string)  self->asString();
- {
-#ifdef __cplusplus
- void* tolua_obj = new std::string(tolua_ret);
- tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_std_string),"std::string");
-#else
- void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(std::string));
- tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"std::string");
-#endif
- }
+  const char* tolua_ret = (const char*)  self->asString();
+ tolua_pushstring(tolua_S,(const char*)tolua_ret);
  }
  }
  return 1;
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'asString'.",&tolua_err);
- return 0;
-#endif
-}
-
-/* method: asInt of class  Attribute */
-static int tolua_Lua_ScriptEngine_tolua_Attribute_asInt00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
- !tolua_isusertype(tolua_S,1,"Attribute",0,&tolua_err) ||
- !tolua_isnoobj(tolua_S,2,&tolua_err)
- )
- goto tolua_lerror;
- else
-#endif
- {
-  Attribute* self = (Attribute*)  tolua_tousertype(tolua_S,1,0);
-#ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asInt'",NULL);
-#endif
- {
-  int tolua_ret = (int)  self->asInt();
- tolua_pushnumber(tolua_S,(double)tolua_ret);
- }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'asInt'.",&tolua_err);
  return 0;
 #endif
 }
@@ -438,6 +258,36 @@ static int tolua_Lua_ScriptEngine_tolua_Attribute_asDouble00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'asDouble'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: asInt of class  Attribute */
+static int tolua_Lua_ScriptEngine_tolua_Attribute_asInt00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Attribute",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Attribute* self = (Attribute*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'asInt'",NULL);
+#endif
+ {
+  int tolua_ret = (int)  self->asInt();
+ tolua_pushnumber(tolua_S,(double)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'asInt'.",&tolua_err);
  return 0;
 #endif
 }
@@ -721,6 +571,33 @@ tolua_lerror:
  return tolua_Lua_ScriptEngine_tolua_GeoExtent_contains00(tolua_S);
 }
 
+/* method: contains of class  GeoExtent */
+static int tolua_Lua_ScriptEngine_tolua_GeoExtent_contains02(lua_State* tolua_S)
+{
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"GeoExtent",0,&tolua_err) ||
+ !tolua_isusertype(tolua_S,2,"GeoExtent",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+ {
+  GeoExtent* self = (GeoExtent*)  tolua_tousertype(tolua_S,1,0);
+  GeoExtent e = *((GeoExtent*)  tolua_tousertype(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'contains'",NULL);
+#endif
+ {
+  bool tolua_ret = (bool)  self->contains(e);
+ tolua_pushboolean(tolua_S,(bool)tolua_ret);
+ }
+ }
+ return 1;
+tolua_lerror:
+ return tolua_Lua_ScriptEngine_tolua_GeoExtent_contains01(tolua_S);
+}
+
 /* method: getArea of class  GeoExtent */
 static int tolua_Lua_ScriptEngine_tolua_GeoExtent_getArea00(lua_State* tolua_S)
 {
@@ -747,6 +624,44 @@ static int tolua_Lua_ScriptEngine_tolua_GeoExtent_getArea00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'getArea'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getCentroid of class  GeoExtent */
+static int tolua_Lua_ScriptEngine_tolua_GeoExtent_getCentroid00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"GeoExtent",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  GeoExtent* self = (GeoExtent*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getCentroid'",NULL);
+#endif
+ {
+  GeoPoint tolua_ret = (GeoPoint)  self->getCentroid();
+ {
+#ifdef __cplusplus
+ void* tolua_obj = new GeoPoint(tolua_ret);
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_GeoPoint),"GeoPoint");
+#else
+ void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(GeoPoint));
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"GeoPoint");
+#endif
+ }
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getCentroid'.",&tolua_err);
  return 0;
 #endif
 }
@@ -958,10 +873,6 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_beginmodule(tolua_S,"Feature");
  tolua_function(tolua_S,"getOID",tolua_Lua_ScriptEngine_tolua_Feature_getOID00);
  tolua_function(tolua_S,"getAttribute",tolua_Lua_ScriptEngine_tolua_Feature_getAttribute00);
- tolua_function(tolua_S,"getAttributeAsDouble",tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsDouble00);
- tolua_function(tolua_S,"getAttributeAsInt",tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsInt00);
- tolua_function(tolua_S,"getAttributeAsString",tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsString00);
- tolua_function(tolua_S,"getAttributeAsBool",tolua_Lua_ScriptEngine_tolua_Feature_getAttributeAsBool00);
  tolua_function(tolua_S,"getExtent",tolua_Lua_ScriptEngine_tolua_Feature_getExtent00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
@@ -972,8 +883,8 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_beginmodule(tolua_S,"Attribute");
  tolua_function(tolua_S,"isValid",tolua_Lua_ScriptEngine_tolua_Attribute_isValid00);
  tolua_function(tolua_S,"asString",tolua_Lua_ScriptEngine_tolua_Attribute_asString00);
- tolua_function(tolua_S,"asInt",tolua_Lua_ScriptEngine_tolua_Attribute_asInt00);
  tolua_function(tolua_S,"asDouble",tolua_Lua_ScriptEngine_tolua_Attribute_asDouble00);
+ tolua_function(tolua_S,"asInt",tolua_Lua_ScriptEngine_tolua_Attribute_asInt00);
  tolua_function(tolua_S,"asBool",tolua_Lua_ScriptEngine_tolua_Attribute_asBool00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
@@ -997,7 +908,9 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"getYMax",tolua_Lua_ScriptEngine_tolua_GeoExtent_getYMax00);
  tolua_function(tolua_S,"contains",tolua_Lua_ScriptEngine_tolua_GeoExtent_contains00);
  tolua_function(tolua_S,"contains",tolua_Lua_ScriptEngine_tolua_GeoExtent_contains01);
+ tolua_function(tolua_S,"contains",tolua_Lua_ScriptEngine_tolua_GeoExtent_contains02);
  tolua_function(tolua_S,"getArea",tolua_Lua_ScriptEngine_tolua_GeoExtent_getArea00);
+ tolua_function(tolua_S,"getCentroid",tolua_Lua_ScriptEngine_tolua_GeoExtent_getCentroid00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
  tolua_cclass(tolua_S,"GeoPoint","GeoPoint","",tolua_collect_GeoPoint);
@@ -1031,4 +944,6 @@ TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S)
  return 1;
 }
 
-}
+
+
+} // extern "C"
