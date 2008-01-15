@@ -21,14 +21,16 @@
 
 using namespace osgGIS;
 
-FilterEnv::FilterEnv()
+FilterEnv::FilterEnv( Session* _session )
 {
+    session = _session;
     extent = GeoExtent::infinite();   
 }
 
 
 FilterEnv::FilterEnv( const FilterEnv& rhs )
 {
+    session = rhs.session.get();
     extent = rhs.extent;
     in_srs = rhs.in_srs.get();
     out_srs = rhs.out_srs.get();
@@ -161,7 +163,16 @@ FilterEnv::setScriptEngine( ScriptEngine* _engine )
 ScriptEngine*
 FilterEnv::getScriptEngine()
 {
+    if ( !script_engine.valid() && session.valid() )
+        script_engine = session->createScriptEngine();
+
     return script_engine.get();
+}
+
+Session*
+FilterEnv::getSession()
+{
+    return session.get();
 }
 
 void 

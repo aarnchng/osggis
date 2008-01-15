@@ -31,14 +31,22 @@ normalize( std::string input )
     return output;
 }
 
+Property
+Property::invalid()
+{
+    return Property();
+}
+
 Property::Property()
 {
+    valid = false;
 }
 
 Property::Property( const std::string& _name, const std::string& _value )
 {
     name = normalize( _name );
     value = _value;
+    valid = true;
 }
 
 Property::Property( const std::string& _name, int _value )
@@ -47,6 +55,7 @@ Property::Property( const std::string& _name, int _value )
     std::stringstream ss;
     ss << _value;
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, float _value )
@@ -55,6 +64,7 @@ Property::Property( const std::string& _name, float _value )
     std::stringstream ss;
     ss << _value;
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, double _value )
@@ -63,12 +73,14 @@ Property::Property( const std::string& _name, double _value )
     std::stringstream ss;
     ss << _value;
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, bool _value )
 {
     name = normalize( _name );
     value = _value? "true" : "false";
+    valid = true;
 }
 
 Property::Property( const std::string& _name, const osg::Vec2f& _v )
@@ -77,6 +89,7 @@ Property::Property( const std::string& _name, const osg::Vec2f& _v )
     std::stringstream ss;
     ss << _v[0] << " " << _v[1];
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, const osg::Vec3f& _v )
@@ -85,6 +98,7 @@ Property::Property( const std::string& _name, const osg::Vec3f& _v )
     std::stringstream ss;
     ss << _v[0] << " " << _v[1] << " " << _v[2];
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, const osg::Vec4f& _v )
@@ -93,6 +107,7 @@ Property::Property( const std::string& _name, const osg::Vec4f& _v )
     std::stringstream ss;
     ss << _v[0] << " " << _v[1] << " " << _v[2] << " " << _v[3];
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, const osg::Matrix& _v )
@@ -103,12 +118,20 @@ Property::Property( const std::string& _name, const osg::Matrix& _v )
     for( int i=0; i<15; i++ ) ss << *p++ << " ";
     ss << *p;
     value = ss.str();
+    valid = true;
 }
 
 Property::Property( const std::string& _name, osg::Referenced* _rv )
 {
     name = normalize( _name );
     ref_value = _rv;
+    valid = true;
+}
+
+bool
+Property::isValid() const
+{
+    return valid;
 }
 
 const std::string& 
@@ -339,4 +362,18 @@ Properties::set( const Property& prop )
 {
     remove( prop.getName() );
     push_back( prop );
+}
+
+Property
+Properties::get( const std::string& key ) const
+{
+    std::string nkey = normalize( key );
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return *i;
+        }
+    }
+    return Property::invalid();
 }

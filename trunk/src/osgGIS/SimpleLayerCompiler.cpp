@@ -38,12 +38,12 @@ SimpleLayerCompiler::SimpleLayerCompiler()
 osg::Node*
 SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
 {
-    osg::ref_ptr<FilterEnv> env = new FilterEnv();
+    osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
     env->setExtent( getAreaOfInterest( layer ) );
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );
-    Compiler compiler( layer, graph, getSession() );
+    Compiler compiler( layer, graph ); //, getSession() );
     return compiler.compile( env.get() );
 }
 

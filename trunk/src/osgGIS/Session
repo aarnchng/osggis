@@ -27,6 +27,8 @@
 
 namespace osgGIS
 {
+    class FilterEnv;
+    
     /**
      * A "session" is a state object that exists throughout the life
      * of one or more related compilations. The Session holds common
@@ -50,6 +52,12 @@ namespace osgGIS
          * scripts stored in this session.
          */
         ScriptEngine* createScriptEngine();
+        
+        /**
+         * Creates a new filter environment object that will operate
+         * under this session.
+         */
+        FilterEnv* createFilterEnv();
 
         /**
          * Adds a script to this session. The script will be available
@@ -63,6 +71,16 @@ namespace osgGIS
          */
         const ResourceLibrary& getResources() const;
         ResourceLibrary& getResources();
+        
+        /**
+         * Gets the session-level user data.
+         */
+        virtual Property getProperty( const std::string& name );
+        
+        /**
+         * Sets a session-level user data property.
+         */
+        virtual void setProperty( const Property& prop );
 
     protected:
         virtual ~Session();
@@ -71,6 +89,7 @@ namespace osgGIS
         ScriptList scripts;
         ResourceLibrary resources;
         OpenThreads::Mutex session_mtx;
+        Properties properties;
     };
 }
 

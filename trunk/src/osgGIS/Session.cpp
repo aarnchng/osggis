@@ -69,3 +69,23 @@ Session::getResources()
 {
     return resources;
 }
+
+FilterEnv*
+Session::createFilterEnv()
+{
+    return new FilterEnv( this );
+}
+
+void 
+Session::setProperty( const Property& prop )
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    properties.set( prop );
+}
+
+Property
+Session::getProperty( const std::string& name )
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    return properties.get( name );
+}

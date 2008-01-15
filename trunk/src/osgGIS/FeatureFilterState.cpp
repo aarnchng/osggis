@@ -53,11 +53,11 @@ FeatureFilterState::traverse( FilterEnv* in_env )
         // clone a new environment:
         osg::ref_ptr<FilterEnv> env = in_env->advance();
 
+        FeatureList output = filter->process( in_features, env.get() );
+        
         FilterState* next = getNextState();
         if ( next )
         {
-            FeatureList output = filter->process( in_features, env.get() );
-
             if ( dynamic_cast<FeatureFilterState*>( next ) )
             {
                 FeatureFilterState* state = static_cast<FeatureFilterState*>( next );

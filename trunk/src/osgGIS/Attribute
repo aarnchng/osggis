@@ -57,7 +57,7 @@ namespace osgGIS
 
         const Type& getType() const;
 
-        const std::string& asString();
+        const char* asString();
 
         int asInt();
          

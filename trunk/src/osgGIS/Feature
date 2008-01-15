@@ -74,13 +74,13 @@ namespace osgGIS
          */
         virtual Attribute getAttribute( const std::string& key ) const =0;
 
-        virtual double getAttributeAsDouble( const std::string& key ) const =0;
+        //virtual double getAttributeAsDouble( const std::string& key ) const =0;
 
-        virtual int getAttributeAsInt( const std::string& key ) const =0;
+        //virtual int getAttributeAsInt( const std::string& key ) const =0;
 
-        virtual bool getAttributeAsBool( const std::string& key ) const =0;
+        //virtual bool getAttributeAsBool( const std::string& key ) const =0;
 
-        virtual std::string getAttributeAsString( const std::string& key ) const =0;
+        //virtual const char* getAttributeAsString( const std::string& key ) const =0;
 
 
         /**
@@ -113,13 +113,13 @@ namespace osgGIS
 
         virtual Attribute getAttribute( const std::string& key ) const;
 
-        virtual double getAttributeAsDouble( const std::string& key ) const;
+        //virtual double getAttributeAsDouble( const std::string& key ) const;
 
-        virtual int getAttributeAsInt( const std::string& key ) const;
+        //virtual int getAttributeAsInt( const std::string& key ) const;
 
-        virtual bool getAttributeAsBool( const std::string& key ) const;
+        //virtual bool getAttributeAsBool( const std::string& key ) const;
 
-        virtual std::string getAttributeAsString( const std::string& key ) const;
+        //virtual const char* getAttributeAsString( const std::string& key ) const;
         
         
         virtual void setAttribute( const std::string& key, const std::string& value );

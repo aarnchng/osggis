@@ -185,6 +185,9 @@ LayerCompiler::convertToOverlay( osg::Node* input )
 Session*
 LayerCompiler::getSession()
 {
+    if ( !session.valid() )
+        session = new Session();
+
     return session.get();
 }
 

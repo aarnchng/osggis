@@ -25,6 +25,7 @@
 #include <osgGIS/SpatialReference>
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/ScriptEngine>
+#include <osgGIS/Session>
 #include <osgGIS/Property>
 #include <osg/Node>
 
@@ -39,12 +40,14 @@ namespace osgGIS
      */
     class OSGGIS_EXPORT FilterEnv : public osg::Referenced
     {
-    public:
+    private:
+        friend class Session;
         /**
          * Constructs a new, default filter environment.
          */
-        FilterEnv();
+        FilterEnv( Session* );
         
+    public:
         /**
          * Copy constructor.
          */
@@ -138,12 +141,17 @@ namespace osgGIS
         SmartReadCallback* getTerrainReadCallback();
 
         /**
+         * Gets the compiler session under which this filterenv exists.
+         */
+        Session* getSession();
+
+        /**
          * Sets the script engine
          */
         void setScriptEngine( ScriptEngine* engine );
 
         /**
-         * Gets the scripting engine
+         * Gets the scripting engine. Shortcut for getSession()->getScriptEngine()
          */
         ScriptEngine* getScriptEngine();
 
@@ -164,6 +172,7 @@ namespace osgGIS
         osg::ref_ptr<osg::Node>         terrain_node;
         osg::ref_ptr<SmartReadCallback> terrain_read_cb;
         osg::ref_ptr<ScriptEngine>      script_engine;
+        osg::ref_ptr<Session>           session;
         Properties                      properties;
     };
 }

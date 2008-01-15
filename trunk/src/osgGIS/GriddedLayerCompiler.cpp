@@ -219,12 +219,12 @@ public:
 private:
     osg::Node* compileLOD( FilterGraph* graph )
     {
-        osg::ref_ptr<FilterEnv> env = new FilterEnv();
+        osg::ref_ptr<FilterEnv> env = session->createFilterEnv();
         env->setExtent( tile_extent );
         env->setTerrainNode( compiler.getTerrainNode() );
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
-        Compiler compiler( layer.get(), graph, session.get() );
+        Compiler compiler( layer.get(), graph ); //, session.get() );
         return compiler.compile( env.get() );
     }
 
@@ -291,7 +291,6 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                 GeoExtent sub_extent(
                     GeoPoint( sw.x() + (double)col*dx, sw.y() + (double)row*dy, srs.get() ),
                     GeoPoint( sw.x() + (double)(col+1)*dx, sw.y() + (double)(row+1)*dy, srs.get() ) );
-
                 
                 osg::ref_ptr<CompileTileTask> task = new CompileTileTask( 
                         row, col,
