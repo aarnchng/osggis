@@ -44,18 +44,30 @@ namespace osgGIS
         void setTexturePath( const std::string& value );
         const std::string& getTexturePath() const;
 
-        void setTextureWidthMeters( float value );
-        float getTextureWidthMeters() const;
+        void setTextureWidthMeters( double value );
+        double getTextureWidthMeters() const;
 
-        void setTextureHeightMeters( float value );
-        float getTextureHeightMeters() const;
+        // applies to repeating textures
+        void setTextureHeightMeters( double value );
+        double getTextureHeightMeters() const;
+
+        // applies to non-repeating textures
+        void setMinTextureHeightMeters( double value );
+        double getMinTextureHeightMeters() const;
+
+        // applies to non-repeating textures
+        void setMaxTextureHeightMeters( double value );
+        double getMaxTextureHeightMeters() const;
+
+        void setRepeatsVertically( bool value );
+        bool getRepeatsVertically() const;
 
         void setColor( const osg::Vec4& value );
         const osg::Vec4& getColor() const;
 
     public:
 
-        osg::StateSet* getStateSet();
+        osg::StateSet* createStateSet( bool simplify_extrefs );
 
     public: // ObjectWithProperties
 
@@ -68,12 +80,62 @@ namespace osgGIS
 
     private:
         std::string tex_path;
-        float tex_width_m;
-        float tex_height_m;
+        double tex_width_m;
+        double tex_height_m;
+        double min_tex_height_m;
+        double max_tex_height_m;
+        bool repeats_vertically;
         osg::Vec4 color;
-        osg::ref_ptr<osg::StateSet> state_set;
 
         void init();
+    };
+
+    typedef std::vector< osg::ref_ptr<SkinResource> > SkinResourceVec;
+
+    typedef std::list< std::string > TagList;
+
+    class OSGGIS_EXPORT SkinResourceQuery : public osg::Referenced
+    {
+    public:
+        SkinResourceQuery();
+
+        void setTextureHeight( double value );
+        bool hasTextureHeight() const;
+        double getTextureHeight() const;
+
+        void setMinTextureHeight( double value );
+        bool hasMinTextureHeight() const;
+        double getMinTextureHeight() const;
+
+        void setMaxTextureHeight( double value );
+        bool hasMaxTextureHeight() const;
+        double getMaxTextureHeight() const;
+
+        void setRepeatsVertically( bool value );
+        bool hasRepeatsVertically() const;
+        bool getRepeatsVertically() const;
+
+        void addTag( const char* tag );
+        const TagList& getTags() const;
+
+        const std::string& getHashCode();
+
+    private:
+        bool has_tex_height;
+        double tex_height;
+
+        bool has_min_tex_height;
+        double min_tex_height;
+
+        bool has_max_tex_height;
+        double max_tex_height;
+
+        bool has_repeat_vert;
+        bool repeat_vert;
+
+        TagList tags;
+
+        std::string hash_code;
     };
 }
 

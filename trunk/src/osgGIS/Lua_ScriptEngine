@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/ScriptEngine>
+#include <osgGIS/ResourceLibrary>
 extern "C" {
 #include "lua.h"
 }
@@ -64,6 +65,28 @@ namespace osgGIS
     private:
         ScriptList scripts;
         lua_State* L;
+    };
+
+
+    class ResourceList_Lua
+    {
+    public:
+        ResourceList_Lua( const ResourceList& _obj ) : data(_obj) { }
+        int size() const { return data.size(); }
+        const char* getName(int i) { return i < data.size()? data[i].get()->getName() : NULL; }
+    private:
+        ResourceList data;
+    };
+
+    class ResourceLibrary_Lua
+    {
+    public:
+        ResourceLibrary_Lua( ResourceLibrary& _lib ) : lib( _lib ) { }
+        SkinResourceQuery newSkinQuery() { return lib.newSkinQuery(); }
+        ResourceList_Lua getSkins() { return ResourceList_Lua( lib.getSkins() ); }
+        ResourceList_Lua getSkins( const SkinResourceQuery& q ) { return lib.getSkins( q ); }
+    private:
+        ResourceLibrary& lib;
     };
 }
 

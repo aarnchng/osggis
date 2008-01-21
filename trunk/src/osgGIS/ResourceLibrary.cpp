@@ -1,8 +1,10 @@
 #include <osgGIS/ResourceLibrary>
 #include <OpenThreads/ScopedLock>
 #include <algorithm>
+#include <osg/Notify>
 
 using namespace osgGIS;
+using namespace OpenThreads;
 
 static std::string
 normalize( const std::string& input )
@@ -22,105 +24,114 @@ ResourceLibrary::ResourceLibrary()
 void
 ResourceLibrary::addResource( Resource* resource )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
-
+    ScopedLock<ReentrantMutex> sl( mut );
     if ( resource )
-        resources[ normalize( resource->getName() ) ] = resource;
-}
-
-void
-ResourceLibrary::removeResource( Resource* resource )
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
-
-    if ( resource )
-        resources.erase( normalize( resource->getName() ) );
-}
-
-void
-ResourceLibrary::addRule( Rule* rule )
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
-
-    if ( rule )
-        rules[ normalize( rule->getName() ) ] = rule;
-}
-
-void
-ResourceLibrary::removeRule( Rule* rule )
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
-
-    if ( rule )
-        rules.erase( normalize( rule->getName() ) );
+    {
+        if ( dynamic_cast<SkinResource*>( resource ) )
+        {
+            SkinResource* skin = static_cast<SkinResource*>( resource );
+            skins.push_back( skin );
+            osg::notify( osg::NOTICE ) << "...added skin " << skin->getTexturePath() << std::endl;
+        }
+    }
+    //if ( resource )
+    //    resources[ normalize( resource->getName() ) ] = resource;
 }
 
 Resource*
 ResourceLibrary::getResource( const std::string& name )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+    ScopedLock<ReentrantMutex> sl( mut );
 
-    ResourcesByName::iterator i = resources.find( normalize( name ) );
-    return i != resources.end()? i->second.get() : NULL;
+    Resource* result = NULL;
+    result = getSkin( name );
+    //todo...check other types
+    return result;
 }
 
 SkinResource* 
 ResourceLibrary::getSkin( const std::string& name )
 {
-    Resource* r = getResource( name );
-    return r? dynamic_cast<SkinResource*>( r ) : NULL;
-}
+    ScopedLock<ReentrantMutex> sl( mut );
 
-SkinResource*
-ResourceLibrary::getSkin( int index )
-{
-    ResourceVector skins;
-    for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ ) {
-        if ( i->second->getResourceType() == SkinResource::getStaticResourceType() ) 
-            skins.push_back( i->second.get() );
-    }
-    return dynamic_cast<SkinResource*>( skins[index % skins.size()].get() );
-}
-
-ResourceSet
-ResourceLibrary::getResourcesWithTag( const std::string& tag )
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
-
-    ResourceSet result;
-
-    for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ )
+    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
     {
-        Resource* resource = i->second.get();
-        if ( resource->containsTag( tag ) )
-            result.insert( resource );
+        if ( i->get()->getName() == name )
+            return i->get();
+    }
+    return NULL;
+}
+
+
+ResourceList
+ResourceLibrary::getSkins()
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    ResourceList result;
+
+    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
+        result.push_back( i->get() );
+
+    return result;
+}
+
+
+ResourceList
+ResourceLibrary::getSkins( const SkinResourceQuery& q )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    ResourceList result;
+
+    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
+    {
+        SkinResource* r = i->get();
+
+        if ( q.hasTextureHeight() && ( q.getTextureHeight() < r->getMinTextureHeightMeters() || q.getTextureHeight() >= r->getMaxTextureHeightMeters() ) )
+            continue;
+        
+        if ( q.hasMinTextureHeight() && q.getMinTextureHeight() > r->getMaxTextureHeightMeters() )
+            continue;
+
+        if ( q.hasMaxTextureHeight() && q.getMaxTextureHeight() <= r->getMinTextureHeightMeters() )
+            continue;
+
+        if ( q.hasRepeatsVertically() && q.getRepeatsVertically() != r->getRepeatsVertically() )
+            continue;
+
+        result.push_back( r );
     }
 
     return result;
 }
 
-ResourceSet
-ResourceLibrary::getResourcesWithTags( const std::set<std::string>& tags )
+osg::StateSet*
+ResourceLibrary::getStateSet( SkinResource* skin )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
+    ScopedLock<ReentrantMutex> sl( mut );
 
-    ResourceSet result;
-
-    for( ResourcesByName::iterator i = resources.begin(); i != resources.end(); i++ )
+    osg::StateSet* result = NULL;
+    if ( skin )
     {
-        Resource* resource = i->second.get();
-        if ( resource->containsTags( tags ) )
-            result.insert( resource );
+        SkinStateSets::iterator i = skin_state_sets.find( skin );
+        if ( i == skin_state_sets.end() )
+        {
+            bool simplify_extrefs = true; //TODO
+            result = skin->createStateSet( simplify_extrefs );
+            skin_state_sets[skin] = result;
+        }
+        else
+        {
+            result = i->second.get();
+        }
     }
-
     return result;
 }
 
-Rule*
-ResourceLibrary::getRule( const std::string& name )
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( mut );
 
-    RulesByName::iterator i = rules.find( normalize( name ) );
-    return i != rules.end()? i->second.get() : NULL;
+SkinResourceQuery 
+ResourceLibrary::newSkinQuery()
+{
+    return SkinResourceQuery();
 }

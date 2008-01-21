@@ -87,5 +87,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
         result = convertToOverlay( lod );
     }
 
+    finalizeArchive();
+
     return result;
 }

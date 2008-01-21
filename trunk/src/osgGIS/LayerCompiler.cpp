@@ -18,9 +18,12 @@
  */
 
 #include <osgGIS/LayerCompiler>
+#include <osgGIS/Resource>
+#include <osgGIS/Session>
 #include <osgSim/LineOfSight>
 #include <osgSim/OverlayNode>
 #include <osgDB/ReadFile>
+#include <osgDB/FileNameUtils>
 #include <osg/TexEnv>
 #include <map>
 #include <string>
@@ -251,4 +254,29 @@ LayerCompiler::setProperties( Properties& input )
     aoi_ymin = input.getDoubleValue( "aoi_ymin", DBL_MAX );
     aoi_xmax = input.getDoubleValue( "aoi_xmax", DBL_MIN );
     aoi_ymax = input.getDoubleValue( "aoi_ymax", DBL_MIN );
+}
+
+
+void
+LayerCompiler::finalizeArchive()
+{
+    if ( getArchive() )
+    {   
+        osg::ref_ptr<osgDB::ReaderWriter::Options> local_options = new osgDB::ReaderWriter::Options;
+
+        const ResourceNames& names = getSession()->getResourcesUsed();
+        for( ResourceNames::const_iterator i = names.begin(); i != names.end(); i++ )
+        {
+            SkinResource* skin = getSession()->getResources().getSkin( *i );
+            if ( skin )
+            {
+                osg::ref_ptr<osg::Image> image = osgDB::readImageFile( skin->getTexturePath() );
+                if ( image.valid() )
+                {
+                    std::string filename = osgDB::getSimpleFileName( skin->getTexturePath() );
+                    getArchive()->writeImage( *(image.get()), filename, local_options.get() );
+                }
+            }
+        }
+    }
 }

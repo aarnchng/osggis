@@ -121,7 +121,10 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
     // note that this compiler does not support the getAreaOfInterest() setting.
 
     // compile away.
-    return compileAll( layer, top_extent );
+    std::string result = compileAll( layer, top_extent );
+    finalizeArchive();
+
+    return result;
 }
 
 

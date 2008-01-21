@@ -315,3 +315,60 @@ RTree<DATA>::find( const GeoExtent& extent )
     find( root_id, extent, list );
     return list;
 }
+
+
+
+        
+template<typename DATA>
+bool 
+RTree<DATA>::writeTo( std::ostream& out )
+{
+    out << root_id << ' ' << node_id_gen << std::endl;
+    for( RtNodeMap::iterator i = node_table.begin(); i != node_table.end(); i++ )
+    {
+        RtNode* node = i->second.get();
+        out << node->id << ' ' << node->parent_id << ' ' << node->is_leaf << ' ' << node->entries.size() << ' ';
+        for( RtEntryList<DATA>::iterator j = node->entries.begin(); j != node->entries.end(); j++ )
+        {
+            RtEntry<DATA>& entry = *j;
+            out << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
+            if ( node->isLeaf() )
+                out << entry.data;
+            else
+                out << entry.child_id;
+        }
+        out << std::endl;
+    }
+    return true;
+}
+
+template<typename DATA>
+bool
+RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs )
+{
+    std::string line;
+    std::getline( in, line );
+    std::stringstream strin( line );
+    strin >> root_id >> node_id_gen;
+    std::getline( in, line );
+    while( line.length() > 0 )
+    {
+        std::stringstream strin( line );
+        RtNode<DATA>* node = new RtNode<DATA>();
+        int num_entries = 0;
+        strin >> node->id >> node->parent_id >> node->is_leaf >> num_entries;
+        for( int i=0; i<num_entries; i++ )
+        {
+            double xmin, ymin, xmax, ymax;
+            strin >> xmin >> ymin >> xmax >> ymax;
+            RtEntry<DATA> entry;
+            entry.extent = GeoExtent( xmin, ymin, xmax, ymax, srs );
+            if ( node->is_leaf )
+                strin >> entry.data;
+            else
+                strin >> entry.child_id;
+        }
+        std::getline( in, line );
+    }
+    return true;
+}

@@ -225,6 +225,7 @@ namespace osgGIS
         double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
         
     protected:
+        void finalizeArchive();
         osg::Node* convertToOverlay( osg::Node* input );
     };
 }

@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 01/15/08 15:03:37.
+** Generated automatically by tolua 5.1b on 01/19/08 13:01:18.
 */
 
 #ifndef __cplusplus
@@ -14,6 +14,7 @@
 #include <osgGIS/Property>
 #include <osgGIS/Resource>
 #include <osgGIS/ResourceLibrary>
+#include <osgGIS/Lua_ScriptEngine>
 #include <string>
 using namespace osgGIS;
 extern "C" {
@@ -26,6 +27,18 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
 
 /* function to release collected object */
 #ifdef __cplusplus
+ static int tolua_collect_SkinResourceQuery (lua_State* tolua_S)
+{
+ SkinResourceQuery* self = (SkinResourceQuery*) tolua_tousertype(tolua_S,1,0);
+ delete self;
+ return 0;
+}
+ static int tolua_collect_ResourceList_Lua (lua_State* tolua_S)
+{
+ ResourceList_Lua* self = (ResourceList_Lua*) tolua_tousertype(tolua_S,1,0);
+ delete self;
+ return 0;
+}
  static int tolua_collect_GeoPoint (lua_State* tolua_S)
 {
  GeoPoint* self = (GeoPoint*) tolua_tousertype(tolua_S,1,0);
@@ -63,10 +76,13 @@ static int tolua_collect (lua_State* tolua_S)
 /* function to register type */
 static void tolua_reg_types (lua_State* tolua_S)
 {
- tolua_usertype(tolua_S,"Feature");
  tolua_usertype(tolua_S,"FilterEnv");
- tolua_usertype(tolua_S,"GeoPoint");
  tolua_usertype(tolua_S,"SpatialReference");
+ tolua_usertype(tolua_S,"ResourceLibrary_Lua");
+ tolua_usertype(tolua_S,"Feature");
+ tolua_usertype(tolua_S,"ResourceList_Lua");
+ tolua_usertype(tolua_S,"SkinResourceQuery");
+ tolua_usertype(tolua_S,"GeoPoint");
  tolua_usertype(tolua_S,"Property");
  tolua_usertype(tolua_S,"Attribute");
  tolua_usertype(tolua_S,"GeoExtent");
@@ -1056,6 +1072,303 @@ static int tolua_Lua_ScriptEngine_tolua_SpatialReference_getBasisSRS00(lua_State
 #endif
 }
 
+/* method: size of class  ResourceList_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceList_Lua_size00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceList_Lua",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  ResourceList_Lua* self = (ResourceList_Lua*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'size'",NULL);
+#endif
+ {
+  int tolua_ret = (int)  self->size();
+ tolua_pushnumber(tolua_S,(double)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'size'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getName of class  ResourceList_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceList_Lua_getName00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceList_Lua",0,&tolua_err) ||
+ !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  ResourceList_Lua* self = (ResourceList_Lua*)  tolua_tousertype(tolua_S,1,0);
+  int index = ((int)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getName'",NULL);
+#endif
+ {
+  const char* tolua_ret = (const char*)  self->getName(index);
+ tolua_pushstring(tolua_S,(const char*)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getName'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: setTextureHeight of class  SkinResourceQuery */
+static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setTextureHeight00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  SkinResourceQuery* self = (SkinResourceQuery*)  tolua_tousertype(tolua_S,1,0);
+  double value = ((double)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setTextureHeight'",NULL);
+#endif
+ {
+  self->setTextureHeight(value);
+ }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setTextureHeight'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: setMinTextureHeight of class  SkinResourceQuery */
+static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMinTextureHeight00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  SkinResourceQuery* self = (SkinResourceQuery*)  tolua_tousertype(tolua_S,1,0);
+  double value = ((double)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setMinTextureHeight'",NULL);
+#endif
+ {
+  self->setMinTextureHeight(value);
+ }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setMinTextureHeight'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: setMaxTextureHeight of class  SkinResourceQuery */
+static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMaxTextureHeight00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  SkinResourceQuery* self = (SkinResourceQuery*)  tolua_tousertype(tolua_S,1,0);
+  double value = ((double)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setMaxTextureHeight'",NULL);
+#endif
+ {
+  self->setMaxTextureHeight(value);
+ }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setMaxTextureHeight'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: setRepeatsVertically of class  SkinResourceQuery */
+static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setRepeatsVertically00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isboolean(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  SkinResourceQuery* self = (SkinResourceQuery*)  tolua_tousertype(tolua_S,1,0);
+  bool value = ((bool)  tolua_toboolean(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setRepeatsVertically'",NULL);
+#endif
+ {
+  self->setRepeatsVertically(value);
+ }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setRepeatsVertically'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: newSkinQuery of class  ResourceLibrary_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_newSkinQuery00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceLibrary_Lua",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  ResourceLibrary_Lua* self = (ResourceLibrary_Lua*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'newSkinQuery'",NULL);
+#endif
+ {
+  SkinResourceQuery tolua_ret = (SkinResourceQuery)  self->newSkinQuery();
+ {
+#ifdef __cplusplus
+ void* tolua_obj = new SkinResourceQuery(tolua_ret);
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_SkinResourceQuery),"SkinResourceQuery");
+#else
+ void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(SkinResourceQuery));
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"SkinResourceQuery");
+#endif
+ }
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'newSkinQuery'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getSkins of class  ResourceLibrary_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceLibrary_Lua",0,&tolua_err) ||
+ !tolua_isusertype(tolua_S,2,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  ResourceLibrary_Lua* self = (ResourceLibrary_Lua*)  tolua_tousertype(tolua_S,1,0);
+  SkinResourceQuery query = *((SkinResourceQuery*)  tolua_tousertype(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getSkins'",NULL);
+#endif
+ {
+  ResourceList_Lua tolua_ret = (ResourceList_Lua)  self->getSkins(query);
+ {
+#ifdef __cplusplus
+ void* tolua_obj = new ResourceList_Lua(tolua_ret);
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_ResourceList_Lua),"ResourceList_Lua");
+#else
+ void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(ResourceList_Lua));
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"ResourceList_Lua");
+#endif
+ }
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getSkins'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getSkins of class  ResourceLibrary_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins01(lua_State* tolua_S)
+{
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceLibrary_Lua",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+ {
+  ResourceLibrary_Lua* self = (ResourceLibrary_Lua*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getSkins'",NULL);
+#endif
+ {
+  ResourceList_Lua tolua_ret = (ResourceList_Lua)  self->getSkins();
+ {
+#ifdef __cplusplus
+ void* tolua_obj = new ResourceList_Lua(tolua_ret);
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect_ResourceList_Lua),"ResourceList_Lua");
+#else
+ void* tolua_obj = tolua_copy(tolua_S,(void*)&tolua_ret,sizeof(ResourceList_Lua));
+ tolua_pushusertype(tolua_S,tolua_clone(tolua_S,tolua_obj,tolua_collect),"ResourceList_Lua");
+#endif
+ }
+ }
+ }
+ return 1;
+tolua_lerror:
+ return tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins00(tolua_S);
+}
+
 /* Open lib function */
 LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
 {
@@ -1143,6 +1456,36 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"transform",tolua_Lua_ScriptEngine_tolua_SpatialReference_transform00);
  tolua_function(tolua_S,"getBasisSRS",tolua_Lua_ScriptEngine_tolua_SpatialReference_getBasisSRS00);
  tolua_endmodule(tolua_S);
+#ifdef __cplusplus
+ tolua_cclass(tolua_S,"ResourceList_Lua","ResourceList_Lua","",tolua_collect_ResourceList_Lua);
+#else
+ tolua_cclass(tolua_S,"ResourceList_Lua","ResourceList_Lua","",tolua_collect);
+#endif
+ tolua_beginmodule(tolua_S,"ResourceList_Lua");
+ tolua_function(tolua_S,"size",tolua_Lua_ScriptEngine_tolua_ResourceList_Lua_size00);
+ tolua_function(tolua_S,"getName",tolua_Lua_ScriptEngine_tolua_ResourceList_Lua_getName00);
+ tolua_endmodule(tolua_S);
+#ifdef __cplusplus
+ tolua_cclass(tolua_S,"SkinResourceQuery","SkinResourceQuery","",tolua_collect_SkinResourceQuery);
+#else
+ tolua_cclass(tolua_S,"SkinResourceQuery","SkinResourceQuery","",tolua_collect);
+#endif
+ tolua_beginmodule(tolua_S,"SkinResourceQuery");
+ tolua_function(tolua_S,"setTextureHeight",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setTextureHeight00);
+ tolua_function(tolua_S,"setMinTextureHeight",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMinTextureHeight00);
+ tolua_function(tolua_S,"setMaxTextureHeight",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMaxTextureHeight00);
+ tolua_function(tolua_S,"setRepeatsVertically",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setRepeatsVertically00);
+ tolua_endmodule(tolua_S);
+#ifdef __cplusplus
+ tolua_cclass(tolua_S,"ResourceLibrary_Lua","ResourceLibrary_Lua","",0);
+#else
+ tolua_cclass(tolua_S,"ResourceLibrary_Lua","ResourceLibrary_Lua","",tolua_collect);
+#endif
+ tolua_beginmodule(tolua_S,"ResourceLibrary_Lua");
+ tolua_function(tolua_S,"newSkinQuery",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_newSkinQuery00);
+ tolua_function(tolua_S,"getSkins",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins00);
+ tolua_function(tolua_S,"getSkins",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins01);
+ tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);
  return 1;
 }
@@ -1154,7 +1497,6 @@ TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S)
  lua_call(tolua_S, 1, 0);
  return 1;
 }
-
 
 
 } // extern "C"

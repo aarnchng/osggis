@@ -184,12 +184,19 @@ public:
 
             if ( compiler.getArchive() )
             {
-                compiler.getArchive()->writeNode( *(lod.get()), tile_filename );
+                // archive has a serializer mutex, so this is ok:
+                compiler.getArchive()->writeNode( 
+                    *(lod.get()), 
+                    tile_filename,
+                    osgDB::Registry::instance()->getOptions() );
             }
             else
             {
                 std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
-                osgDB::writeNodeFile( *(lod.get()), tile_path );
+                osgDB::writeNodeFile(
+                    *(lod.get()),
+                    tile_path,
+                    osgDB::Registry::instance()->getOptions() );
             }
 
             //str.clear();
@@ -339,6 +346,9 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
             }
         }
     }
+
+    // write any textures to the archive:
+    finalizeArchive();
 
     // finally we organize the root graph better
     osgUtil::Optimizer opt;

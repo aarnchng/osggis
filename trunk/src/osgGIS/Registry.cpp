@@ -25,10 +25,20 @@
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
 #include <fstream>
+#include <algorithm>
 
 using namespace osgGIS;
 
 osgGIS::Registry* osgGIS::Registry::singleton = NULL;
+
+static std::string
+normalize( std::string input )
+{
+    std::string output = input;
+    std::replace( output.begin(), output.end(), '-', '_' );
+    std::transform( output.begin(), output.end(), output.begin(), tolower );
+    return output;
+}
 
 Registry::Registry()
 {
@@ -136,7 +146,8 @@ Registry::setFeatureStoreFactory( FeatureStoreFactory* _factory )
 Filter* 
 Registry::createFilterByType( const std::string& type )
 {
-    FilterFactoryMap::const_iterator i = filter_factories.find( type );
+    std::string n = normalize(type);
+    FilterFactoryMap::const_iterator i = filter_factories.find( n );
     return i != filter_factories.end()? i->second->createFilter() : NULL;
 }
 
@@ -144,7 +155,8 @@ Registry::createFilterByType( const std::string& type )
 bool 
 Registry::addFilterType( const std::string& type, FilterFactory* factory )
 {
-    filter_factories[type] = factory;
+    std::string n = normalize(type);
+    filter_factories[n] = factory;
     osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered filter type " << type << std::endl;
     return true;
 }
@@ -153,14 +165,16 @@ Registry::addFilterType( const std::string& type, FilterFactory* factory )
 Resource* 
 Registry::createResourceByType( const std::string& type )
 {
-    ResourceFactoryMap::const_iterator i = resource_factories.find( type );
+    std::string n = normalize(type);
+    ResourceFactoryMap::const_iterator i = resource_factories.find( n );
     return i != resource_factories.end()? i->second->createResource() : NULL;
 }
 
 bool 
 Registry::addResourceType( const std::string& type, ResourceFactory* factory )
 {
-    resource_factories[type] = factory;
+    std::string n = normalize(type);
+    resource_factories[n] = factory;
     osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered resource type " << type << std::endl;
     return true;
 }
