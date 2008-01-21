@@ -95,3 +95,16 @@ Session::getSessionMutex()
 {
     return session_mtx;
 }
+
+void
+Session::markResourceUsed( Resource* r )
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    resources_used.insert( r->getName() );
+}
+
+const ResourceNames& 
+Session::getResourcesUsed() const
+{
+    return resources_used;
+}

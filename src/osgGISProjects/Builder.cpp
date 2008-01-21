@@ -217,6 +217,10 @@ Builder::build( BuildLayer* layer )
             << std::endl;
         return false;
     }
+    
+    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( "noTexturesInIVEFile" );
+    osgDB::Registry::instance()->setOptions( options );
+
 
     osg::ref_ptr<osgDB::Archive> archive;
     std::string archive_file = output_file;
@@ -236,10 +240,6 @@ Builder::build( BuildLayer* layer )
         num_threads > 1? new TaskManager( num_threads ) :
         num_threads < 1? new TaskManager() :
         NULL;
-    
-    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( "noTexturesInIVEFile" );
-    osgDB::Registry::instance()->setOptions( options );
-
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
     if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
@@ -272,15 +272,7 @@ Builder::build( BuildLayer* layer )
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
-
-        //TODO: replace with LayerCompiler::setProperties
-        //compiler.setNumRows( layer->getProperties().getIntValue( "num_rows", compiler.getNumRows() ) );
-        //compiler.setNumColumns( layer->getProperties().getIntValue( "num_cols", compiler.getNumColumns() ) );
-        //compiler.setPaged( layer->getProperties().getBoolValue( "paged", compiler.getPaged() ) );
-        //compiler.setFadeLODs( layer->getProperties().getBoolValue( "fade_lods", compiler.getFadeLODs() ) );
-        //compiler.setRenderBinNumber( layer->getProperties().getIntValue( "render_bin_number", compiler.getRenderBinNumber() ) );
-        //compiler.setPreCompileExpr( layer->getProperties().getValue( "pre_script", "" ) );        
+        compiler.setArchive( archive.get() ); 
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -297,9 +289,19 @@ Builder::build( BuildLayer* layer )
         if ( node.valid() )
         {
             if ( archive.valid() )
-                archive->writeNode( *(node.get()), output_file );
+            {
+                archive->writeNode( 
+                    *(node.get()), 
+                    output_file,
+                    osgDB::Registry::instance()->getOptions() );
+            }
             else
-                osgDB::writeNodeFile( *(node.get()), output_file );
+            {
+                osgDB::writeNodeFile( 
+                    *(node.get()),
+                    output_file,
+                    osgDB::Registry::instance()->getOptions() );
+            }
         }        
     }
     else
@@ -326,9 +328,19 @@ Builder::build( BuildLayer* layer )
         if ( node.valid() )
         {
             if ( archive.valid() )
-                archive->writeNode( *(node.get()), output_file );
+            {
+                archive->writeNode( 
+                    *(node.get()), 
+                    output_file,
+                    osgDB::Registry::instance()->getOptions() );
+            }
             else
-                osgDB::writeNodeFile( *(node.get()), output_file );
+            {
+                osgDB::writeNodeFile( 
+                    *(node.get()),
+                    output_file,
+                    osgDB::Registry::instance()->getOptions() );
+            }
         }        
     }
 

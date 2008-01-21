@@ -72,6 +72,13 @@ namespace osgGIS
          */
         const ResourceLibrary& getResources() const;
         ResourceLibrary& getResources();
+
+        /**
+         * Stores an indicator that this session used the specified resource.
+         */
+        void markResourceUsed( Resource* resource );
+
+        const ResourceNames& getResourcesUsed() const;
         
         /**
          * Accesses the session-wide mutex. Filter can use this to perform
@@ -100,6 +107,7 @@ namespace osgGIS
         ResourceLibrary resources;
         OpenThreads::ReentrantMutex session_mtx;
         Properties properties;
+        ResourceNames resources_used;
     };
 }
 

@@ -27,6 +27,7 @@
 #include <set>
 #include <vector>
 #include <map>
+
 namespace osgGIS
 {
     /**
@@ -40,7 +41,7 @@ namespace osgGIS
         /**
          * Gets the name of this resource.
          */
-        const std::string& getName() const;
+        const char* getName() const;
 
         /**
          * Sets the name of this resource.
@@ -67,9 +68,10 @@ namespace osgGIS
         std::string name;
     };
     
-    typedef std::list< osg::ref_ptr<Resource> > ResourceList;
-    typedef std::set< osg::ref_ptr<Resource> > ResourceSet;
-    typedef std::vector< osg::ref_ptr<Resource> > ResourceVector;
+    typedef std::vector< osg::ref_ptr<Resource> > ResourceList;
+    //typedef std::set< osg::ref_ptr<Resource> > ResourceSet;
+
+    typedef std::set< std::string > ResourceNames;
 
     struct ResourceFactory : public osg::Referenced {
         virtual Resource* createResource() =0;

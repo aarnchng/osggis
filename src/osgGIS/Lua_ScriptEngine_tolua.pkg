@@ -4,6 +4,7 @@ $#include <osgGIS/FilterEnv>
 $#include <osgGIS/Property>
 $#include <osgGIS/Resource>
 $#include <osgGIS/ResourceLibrary>
+$#include <osgGIS/Lua_ScriptEngine>
 $#include <string>
 $using namespace osgGIS;
 
@@ -67,6 +68,30 @@ class SpatialReference
   GeoPoint transform( GeoPoint in );
   SpatialReference* getBasisSRS();
 };
+
+class ResourceList_Lua
+{
+  int size();
+  const char* getName(int index);
+};
+
+class SkinResourceQuery
+{
+  void setTextureHeight( double value );
+  void setMinTextureHeight( double value );
+  void setMaxTextureHeight( double value );
+  void setRepeatsVertically( bool value );
+};
+
+class ResourceLibrary_Lua
+{
+  SkinResourceQuery newSkinQuery();
+  ResourceList_Lua getSkins( SkinResourceQuery query );
+  ResourceList_Lua getSkins();
+};
+
+
+
 
 $} // extern "C"
 

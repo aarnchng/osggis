@@ -42,10 +42,10 @@ Resource::setName( const std::string& value )
     name = value;
 }
 
-const std::string&
+const char*
 Resource::getName() const
 {
-    return name;
+    return name.c_str();
 }
 
 void

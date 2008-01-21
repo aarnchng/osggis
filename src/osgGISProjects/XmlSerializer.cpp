@@ -221,8 +221,16 @@ XmlSerializer::decodeResource( XmlElement* e, Project* proj )
     {
         std::string type = e->getAttr( "type" );
         resource = osgGIS::Registry::instance()->createResourceByType( type );
+        
+        // try again with "Resource" suffix
+        if ( !resource && !StringUtils::endsWith( type, "Resource", false ) )
+            resource = osgGIS::Registry::instance()->createResourceByType( type + "Resource" );
+
         if ( resource )
         {
+            resource->setName( e->getAttr( "name" ) );
+            resource->addTag( e->getAttr( "tags" ) );
+
             XmlNodeList prop_els = e->getSubElements( "property" );
             for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
             {
@@ -231,6 +239,10 @@ XmlSerializer::decodeResource( XmlElement* e, Project* proj )
                 std::string value = k_e->getAttr( "value" );
                 resource->setProperty( Property( name, value ) );
             }
+        }
+        else
+        {
+            osg::notify( osg::WARN ) << "Unknown resource type: " << type << std::endl;
         }
     }
     return resource;
@@ -375,6 +387,15 @@ XmlSerializer::decodeProject( XmlElement* e )
             Script* script = decodeScript( static_cast<XmlElement*>( j->get() ), project );
             if ( script )
                 project->getScripts().push_back( script );
+        }
+
+        // resources
+        XmlNodeList resources = e->getSubElements( "resource" );
+        for( XmlNodeList::const_iterator j = resources.begin(); j != resources.end(); j++ )
+        {
+            Resource* resource = decodeResource( static_cast<XmlElement*>( j->get() ), project );
+            if ( resource )
+                project->getResources().push_back( resource );
         }
 
         // graphs

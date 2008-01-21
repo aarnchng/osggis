@@ -197,8 +197,8 @@ ExtrudeGeomFilter::getProperties() const
     return p;
 }
 
-#define TEX_WIDTH_M 3
-#define TEX_HEIGHT_M 4
+//#define TEX_WIDTH_M 3
+//#define TEX_HEIGHT_M 4
 
 static bool
 extrudeWallsUp(const GeoShape&         shape, 
@@ -206,9 +206,14 @@ extrudeWallsUp(const GeoShape&         shape,
                double                  height, 
                osg::Geometry*          walls,
                osg::Geometry*          rooflines,
-               const osg::Vec4&        color )
+               const osg::Vec4&        color,
+               SkinResource*           skin )
 {
     bool made_geom = true;
+
+    double tex_width_m = skin? skin->getTextureWidthMeters() : 1.0;
+    double tex_height_m = skin? skin->getTextureHeightMeters() : 1.0;
+    bool   tex_repeats_y = skin? skin->getRepeatsVertically() : true;
 
     int point_count = shape.getTotalPointCount();
     int num_verts = 2 * point_count;
@@ -321,19 +326,25 @@ extrudeWallsUp(const GeoShape&         shape,
                         (extrude_vec - (*verts)[wall_vert_ptr-2]).length() :
                         0.0;
 
-                    double h = (extrude_vec - *m).length();
+                    double h;
+                    if ( tex_repeats_y ) {
+                        h = (extrude_vec - *m).length();
+                        h += (tex_height_m - fmod( h, tex_height_m ) );
+                    }
+                    else {
+                        h = tex_height_m;
+                    }
                     int p;
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = extrude_vec;
-                    //(*texcoords)[p].set( part_len/TEX_WIDTH_M, 1.0f );
-                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, h/TEX_HEIGHT_M );
+                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = *m;
-                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, 0.0f );
+                    (*texcoords)[p].set( part_len/tex_width_m, 0.0f );
                 }
             }
 
@@ -346,20 +357,26 @@ extrudeWallsUp(const GeoShape&         shape,
                         ((*verts)[wall_part_ptr] - (*verts)[wall_vert_ptr-2]).length() :
                         0.0;
 
-                    double h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
+                    double h;
+                    if ( tex_repeats_y ) {
+                        h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
+                        h += (tex_height_m - fmod( h, tex_height_m ) );
+                    }
+                    else {
+                        h = 1.0;
+                    }
 
                     int p;
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = (*verts)[wall_part_ptr];
-                    //(*texcoords)[p].set( part_len/TEX_WIDTH_M, 1.0f );
-                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, h );
+                    (*texcoords)[p].set( part_len/tex_width_m, h );
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = (*verts)[wall_part_ptr+1];
-                    (*texcoords)[p].set( part_len/TEX_WIDTH_M, 0.0f );
+                    (*texcoords)[p].set( part_len/tex_width_m, 0.0f );
                 }
 
                 walls->addPrimitiveSet( new osg::DrawArrays(
@@ -393,7 +410,10 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
     {
         ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), f, env );
         if ( r.isValid() )
-            skin = dynamic_cast<SkinResource*>( r.asRef() );
+        {
+            skin = env->getSession()->getResources().getSkin( r.asString() );
+        }
+         //   skin = dynamic_cast<SkinResource*>( r.asRef() );
     }
     return skin;
 }
@@ -410,30 +430,6 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         if ( r.isValid() )
             env->setProperty( Property( PROP_WALL_SKIN, r.asRef() ) );
     }
-
-    //if ( getRandomizeFacadeTextures() )
-    //{
-    //    // TEST: texturing
-    //    int k = tex_index++ % 4;
-    //    osg::Image* image = new osg::Image();
-    //    image->setFileName( 
-    //        k == 0? "g:/data/ttools/terrasim/large_win_tan_border.rgb" :
-    //        k == 1? "g:/data/ttools/terrasim/blue_glass.rgb" :
-    //        k == 2? "g:/data/ttools/terrasim/red_tan_brick_storefront.rgb" :
-    //                "g:/data/ttools/terrasim/cement_3x3win.rgb" );
-    //    //osg::Texture2D* tex = new osg::Texture2D( image );
-    //    active_tex = new osg::Texture2D( image );
-    //    active_tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-    //    active_tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-
-    //    //osg::TexEnv* texenv = new osg::TexEnv();
-    //    active_texenv = new osg::TexEnv();
-    //    active_texenv->setMode( osg::TexEnv::MODULATE );
-
-    //    //active_state = new osg::StateSet();
-    //    //active_state->setTextureAttributeAndModes( 0, tex );
-    //    //active_state->setTextureAttribute( 0, texenv );
-    //}
 
     return BuildGeomFilter::process( input, env );
 }
@@ -477,13 +473,14 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             rooflines = new osg::Geometry();
         }
 
-        if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color ) )
-        {                
-            if ( active_tex.valid() ) //active_state.valid() )
+        if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color, skin ) )
+        {      
+            if ( skin )
             {
-                //walls->getOrCreateStateSet()->merge( *(active_state.get()) ); // crashed the optimizer?!
-                walls->getOrCreateStateSet()->setTextureAttributeAndModes( 0, active_tex.get(), osg::StateAttribute::ON );
-                walls->getOrCreateStateSet()->setTextureAttribute( 0, active_texenv.get(), osg::StateAttribute::ON );
+                walls->setStateSet( env->getSession()->getResources().getStateSet( skin ) );
+                env->getSession()->markResourceUsed( skin );
+                //walls->getOrCreateStateSet()->setTextureAttributeAndModes( 0, skin->getSt.get(), osg::StateAttribute::ON );
+                //walls->getOrCreateStateSet()->setTextureAttribute( 0, active_texenv.get(), osg::StateAttribute::ON );
             }
 
             // generate per-vertex normals

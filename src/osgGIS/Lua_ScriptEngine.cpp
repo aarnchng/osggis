@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/Lua_ScriptEngine>
+#include <osgGIS/FilterEnv>
 #include <osg/Notify>
 #include <sstream>
 extern "C" {
@@ -87,14 +88,19 @@ Lua_ScriptEngine::run( Script* script )
         }
         else
         {
-            result << "Error in LUA script";
+            result << "Error in LUA script; root: " << script->getCode();
         }
         lua_pop( L, 1 );
     }
     else
     {
-        result << "Error in LUA script";
+        result << "Error in LUA script; root: " << script->getCode();
         lua_pop( L, 1 );
+    }
+
+    if ( !ok )
+    {
+        osg::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
@@ -108,7 +114,7 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
     for( ScriptList::iterator i = scripts.begin(); i != scripts.end(); i++ )
         stream << i->get()->getCode() << std::endl;
 
-    stream << "function feature_filter_batch_entry(env)" << std::endl;
+    stream << "function feature_filter_batch_entry(env,resources)" << std::endl;
     stream << "  return " << script->getCode() << std::endl;
     stream << "end" << std::endl;
     std::string code = stream.str();
@@ -120,9 +126,12 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
     {
         lua_pcall( L, 0, 0, 0 ); // to define the functions
 
+        ResourceLibrary_Lua* reslib_wrapper = new ResourceLibrary_Lua(env->getSession()->getResources());
+
         lua_getglobal( L, "feature_filter_batch_entry" ); // loads the function to call
         tolua_pushusertype( L, env, "FilterEnv" ); // pushed the second argument
-        if ( lua_pcall( L, 1, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
+        tolua_pushusertype( L, reslib_wrapper, "ResourceLibrary_Lua" );
+        if ( lua_pcall( L, 2, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
         {
             const char* top = lua_tostring( L, lua_gettop( L ) );
             if ( top )
@@ -134,16 +143,22 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
         {
             int error = lua_gettop( L );
             lua_pop( L, 1 );
-            result << "Error in LUA script";
-            osg::notify(osg::WARN) << "lua_pcall failed, error = " << error << std::endl;
+            result << "Error in LUA script; root: " << script->getCode();
         }
         //lua_pop( L, 1 ); // pop the script
+        
+        delete reslib_wrapper;
     }
     else
     {
         result << "Error in LUA script";
         osg::notify(osg::NOTICE) << "luaL_loadstring failed" << std::endl;
         lua_pop( L, 1 );
+    }
+
+    if ( !ok )
+    {
+        osg::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
@@ -157,7 +172,7 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
     for( ScriptList::iterator i = scripts.begin(); i != scripts.end(); i++ )
         stream << i->get()->getCode() << std::endl;
 
-    stream << "function feature_filter_entry(feature, env)" << std::endl;
+    stream << "function feature_filter_entry(feature, env, resources)" << std::endl;
     stream << "  return " << script->getCode() << std::endl;
     stream << "end" << std::endl;
     std::string code = stream.str();
@@ -169,10 +184,13 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
     {
         lua_pcall( L, 0, 0, 0 ); // to define the functions
 
+        ResourceLibrary_Lua* reslib_wrapper = new ResourceLibrary_Lua(env->getSession()->getResources());
+
         lua_getglobal( L, "feature_filter_entry" ); // loads the function to call
         tolua_pushusertype( L, feature, "Feature" ); // pushes the first argument
         tolua_pushusertype( L, env, "FilterEnv" ); // pushed the second argument
-        if ( lua_pcall( L, 2, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
+        tolua_pushusertype( L, reslib_wrapper, "ResourceLibrary_Lua" );
+        if ( lua_pcall( L, 3, 1, 0 ) == 0 ) // calls the function with 2 in, 1 out
         {
             if ( lua_isboolean( L, lua_gettop( L ) ) )
             {
@@ -192,16 +210,22 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
         {
             int error = lua_gettop( L );
             lua_pop( L, 1 );
-            result << "Error in LUA script";
-            osg::notify(osg::WARN) << "lua_pcall failed, error = " << error << std::endl;
+            result << "Error in LUA script; root: " << script->getCode();
         }
         //lua_pop( L, 1 ); // pop the script
+
+        delete reslib_wrapper;
     }
     else
     {
-        result << "Error in LUA script";
+        result << "Error in LUA script; root: " << script->getCode();
         osg::notify(osg::NOTICE) << "luaL_loadstring failed" << std::endl;
         lua_pop( L, 1 );
+    }
+
+    if ( !ok )
+    {
+        osg::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );

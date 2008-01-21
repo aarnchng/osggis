@@ -55,7 +55,9 @@ void
 BuildNodesFilter::init( int _options )
 {
     options = _options;
-    optimizer_options = osgUtil::Optimizer::ALL_OPTIMIZATIONS;
+    optimizer_options = 
+        osgUtil::Optimizer::ALL_OPTIMIZATIONS &
+        (~osgUtil::Optimizer::TEXTURE_ATLAS_BUILDER); // no texture atlases please
     line_width = 0.0f;
     point_size = 0.0f;
     draw_cluster_culling_normals = false;
@@ -309,7 +311,10 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
     if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
-        opt.optimize( result, getOptimizerOptions() );
+        // disable texture atlases, since they mess with our shared skin resources and
+        // don't work correctly during multi-threaded building
+        int opt_mask = getOptimizerOptions() & (~osgUtil::Optimizer::TEXTURE_ATLAS_BUILDER);
+        opt.optimize( result, opt_mask );
     }
 
     osg::NodeList output;
