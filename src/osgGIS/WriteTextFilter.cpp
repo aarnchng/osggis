@@ -134,9 +134,15 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
         RefFile* file = dynamic_cast<RefFile*>( p.getRefValue() );
         if ( !file ) {
             ScopedLock<ReentrantMutex> create_file_lock( env->getSession()->getSessionMutex() );
-            file = new RefFile( getOutputFile() );
-            env->getSession()->setProperty( Property( PROP_FILE, file ) );
-            osg::notify(osg::NOTICE) << "WriteText: writing to " << getOutputFile() << std::endl;
+
+            // check AGAIN just in case another thread created the file before we acquired the lock:
+            file = dynamic_cast<RefFile*>( p.getRefValue() );
+            if ( !file )
+            {
+                file = new RefFile( getOutputFile() );
+                env->getSession()->setProperty( Property( PROP_FILE, file ) );
+                osg::notify(osg::NOTICE) << "WriteText: writing to " << getOutputFile() << std::endl;
+            }
         }
         
         ScriptResult r = env->getScriptEngine()->run( new Script( getTextExpr() ), input, env );

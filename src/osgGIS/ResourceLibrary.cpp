@@ -33,9 +33,13 @@ ResourceLibrary::addResource( Resource* resource )
             skins.push_back( skin );
             osg::notify( osg::NOTICE ) << "...added skin " << skin->getTexturePath() << std::endl;
         }
+        else if ( dynamic_cast<ModelResource*>( resource ) )
+        {
+            ModelResource* model = static_cast<ModelResource*>( resource );
+            models.push_back( model );
+            osg::notify( osg::NOTICE ) << "...added model " << model->getPath() << std::endl;
+        }
     }
-    //if ( resource )
-    //    resources[ normalize( resource->getName() ) ] = resource;
 }
 
 Resource*
@@ -45,7 +49,7 @@ ResourceLibrary::getResource( const std::string& name )
 
     Resource* result = NULL;
     result = getSkin( name );
-    //todo...check other types
+    if ( !result ) result = getModel( name );
     return result;
 }
 
@@ -99,6 +103,9 @@ ResourceLibrary::getSkins( const SkinResourceQuery& q )
 
         if ( q.hasRepeatsVertically() && q.getRepeatsVertically() != r->getRepeatsVertically() )
             continue;
+        
+        if ( q.getTags().size() > 0 && !r->containsTags( q.getTags() ) )
+            continue;
 
         result.push_back( r );
     }
@@ -117,8 +124,7 @@ ResourceLibrary::getStateSet( SkinResource* skin )
         SkinStateSets::iterator i = skin_state_sets.find( skin );
         if ( i == skin_state_sets.end() )
         {
-            bool simplify_extrefs = true; //TODO
-            result = skin->createStateSet( simplify_extrefs );
+            result = skin->createStateSet();
             skin_state_sets[skin] = result;
         }
         else
@@ -128,6 +134,81 @@ ResourceLibrary::getStateSet( SkinResource* skin )
     }
     return result;
 }
+
+
+
+ModelResource* 
+ResourceLibrary::getModel( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get();
+    }
+    return NULL;
+}
+
+
+ResourceList
+ResourceLibrary::getModels()
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    ResourceList result;
+
+    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+        result.push_back( i->get() );
+
+    return result;
+}
+
+
+ResourceList
+ResourceLibrary::getModels( const ModelResourceQuery& q )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    ResourceList result;
+
+    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+    {
+        ModelResource* r = i->get();
+
+        if ( q.getTags().size() > 0 && !r->containsTags( q.getTags() ) )
+            continue;
+
+        result.push_back( r );
+    }
+
+    return result;
+}
+
+
+osg::Node*
+ResourceLibrary::getNode( ModelResource* model )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    osg::Node* result = NULL;
+    if ( model )
+    {
+        ModelNodes::iterator i = model_nodes.find( model );
+        if ( i == model_nodes.end() )
+        {
+            bool simplify_extrefs = true; //TODO
+            result = model->createNode();
+            model_nodes[model] = result;
+        }
+        else
+        {
+            result = i->second.get();
+        }
+    }
+    return result;
+}
+
 
 
 SkinResourceQuery 

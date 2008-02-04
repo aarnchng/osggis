@@ -19,7 +19,6 @@
 
 #include <osgGIS/NodeFilter>
 #include <osgGIS/NodeFilterState>
-//#include <osgGIS/CollectionFilter>
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>
@@ -40,6 +39,28 @@ FilterState*
 NodeFilter::newState()
 {
     return new NodeFilterState( this );
+}
+
+
+osg::NodeList 
+NodeFilter::process( FeatureList& input, FilterEnv* env )
+{
+    osg::NodeList output;
+    for( FeatureList::iterator i = input.begin(); i != input.end(); i++ )
+    {
+        osg::NodeList interim = process( i->get(), env );
+        output.insert( output.end(), interim.begin(), interim.end() );
+    }
+    return output;
+}
+
+
+osg::NodeList 
+NodeFilter::process( Feature* input, FilterEnv* env )
+{
+    osg::NodeList output;
+    //NOP
+    return output;
 }
 
 
@@ -87,52 +108,3 @@ NodeFilter::process( osg::Node* input, FilterEnv* env )
     output.push_back( input );
     return output;
 }
-
-
-
-//bool
-//NodeFilter::traverse( FilterEnv* in_env )
-//{
-//    bool ok = true;
-//
-//    osg::ref_ptr<FilterEnv> env = in_env->advance();
-//
-//    if ( in_drawables.size() > 0 )
-//    {
-//        out_nodes = process( in_drawables, env.get() );
-//    }
-//    else if ( in_nodes.size() > 0 )
-//    {
-//        out_nodes = process( in_nodes, env.get() );
-//    }
-//    
-//    Filter* next = getNextFilter();
-//    if ( next && out_nodes.size() > 0 )
-//    {
-//        if ( dynamic_cast<NodeFilter*>( next ) )
-//        {
-//            NodeFilter* filter = static_cast<NodeFilter*>( next );
-//            filter->push( out_nodes );
-//        }
-//        else if ( dynamic_cast<CollectionFilter*>( next ) )
-//        {
-//            CollectionFilter* filter = static_cast<CollectionFilter*>( next );
-//            filter->push( out_nodes );
-//        }
-//
-//        ok = next->traverse( env.get() );
-//    }
-//
-//    in_drawables.clear();
-//    in_nodes.clear();
-//
-//    return ok;
-//}
-//
-//
-//osg::NodeList&
-//NodeFilter::getOutput()
-//{
-//    return out_nodes;
-//}
-

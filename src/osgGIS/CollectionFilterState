@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/FilterState>
 #include <osgGIS/CollectionFilter>
+#include <osg/Node>
 #include <map>
 
 namespace osgGIS
@@ -46,13 +47,13 @@ namespace osgGIS
         osg::ref_ptr<CollectionFilter> filter;
         osg::ref_ptr<FilterEnv> saved_env;
         
-        typedef std::map<std::string,FeatureList> FeatureGroups;
-        typedef std::map<std::string,DrawableList> DrawableGroups;
-        typedef std::map<std::string,osg::NodeList> NodeGroups;
-        
-        FeatureGroups  feature_groups;
-        DrawableGroups drawable_groups;
-        NodeGroups     node_groups;
+        FeatureList features;
+        DrawableList drawables;
+        osg::NodeList nodes;
+
+        //FeatureGroups  feature_groups;
+        //DrawableGroups drawable_groups;
+        //NodeGroups     node_groups;
     };
 }
 

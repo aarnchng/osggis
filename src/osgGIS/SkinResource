@@ -67,7 +67,7 @@ namespace osgGIS
 
     public:
 
-        osg::StateSet* createStateSet( bool simplify_extrefs );
+        osg::StateSet* createStateSet();
 
     public: // ObjectWithProperties
 

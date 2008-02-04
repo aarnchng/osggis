@@ -29,6 +29,7 @@
 #include <osg/ProxyNode>
 #include <osg/Group>
 #include <osg/Timer>
+#include <osg/Depth>
 #include <osgUtil/Optimizer>
 #include <osgDB/FileNameUtils>
 #include <osgDB/WriteFile>
@@ -42,6 +43,8 @@ GriddedLayerCompiler::GriddedLayerCompiler()
 {
     num_rows = 10;
     num_cols = 10;
+    row_size = 0.0;
+    col_size = 0.0;
     paged = false;
 }
 
@@ -75,6 +78,30 @@ GriddedLayerCompiler::getNumColumns() const
     return num_cols;
 }
 
+void 
+GriddedLayerCompiler::setRowSize( double value )
+{
+    row_size = value;
+}
+
+double 
+GriddedLayerCompiler::getRowSize() const
+{
+    return row_size;
+}
+
+void 
+GriddedLayerCompiler::setColumnSize( double value )
+{
+    col_size = value;
+}
+
+double 
+GriddedLayerCompiler::getColumnSize() const
+{
+    return col_size;
+}
+
 
 Properties
 GriddedLayerCompiler::getProperties()
@@ -90,6 +117,9 @@ GriddedLayerCompiler::setProperties( Properties& input )
     setNumRows( input.getIntValue( "num_rows", getNumRows() ) );
     setNumColumns( input.getIntValue( "num_cols", getNumColumns() ) );
     setNumColumns( input.getIntValue( "num_columns", getNumColumns() ) );
+    setRowSize( input.getDoubleValue( "row_size", getRowSize() ) );
+    setColumnSize( input.getDoubleValue( "col_size", getColumnSize() ) );
+    setColumnSize( input.getDoubleValue( "column_size", getColumnSize() ) );
     LayerCompiler::setProperties( input );
 }
 
@@ -143,10 +173,6 @@ public:
         std::string output_dir = osgDB::getFilePath( output_file );
         std::string output_prefix = osgDB::getStrippedName( output_file );
         std::string output_extension = osgDB::getFileExtension( output_file );
-
-        //str.clear();
-        //str << "Starting row=" << row << " col=" << col << ", extent=" << tile_extent.toString() << "... " << std::endl;
-        //report( str.str() );
             
         float min_range = FLT_MAX, max_range = FLT_MIN;
         osg::ref_ptr<osg::LOD> lod = new osg::LOD();
@@ -181,6 +207,8 @@ public:
             plod->setRange( 0, min_range, max_range );
             plod->setCenter( lod->getBound().center() );
             plod->setRadius( lod->getBound().radius() );
+            
+            compiler.localizeResourceReferences( lod.get() );
 
             if ( compiler.getArchive() )
             {
@@ -199,22 +227,12 @@ public:
                     osgDB::Registry::instance()->getOptions() );
             }
 
-            //str.clear();
-            //str << "  Completed row=" << row << " col=" << col << " @ " << tile_filename << std::endl;
-            //report( str.str() );
-
             result = plod;
-            //root->addChild( plod );
         }
         else
         {
-            //root->addChild( lod.get() );
             result = lod.get();
         }
-
-        //str.clear();
-        //str << "  Done; hits = " << read_cb->getMruHitRatio() << std::endl;
-        //report( str.str() );
     }
 
 public:
@@ -272,10 +290,11 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         FadeHelper::enableFading( root->getOrCreateStateSet() );
     }
 
-    if ( getRenderBinNumber() != INT_MAX )
+    if ( getRenderOrder() >= 0 )
     {
         const std::string& bin_name = root->getOrCreateStateSet()->getBinName();
-        root->getOrCreateStateSet()->setRenderBinDetails( getRenderBinNumber(), bin_name );
+        root->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
+        root->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
     }
 
     if ( getSession() && getPreCompileExpr().length() > 0 )
@@ -289,17 +308,50 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         const GeoPoint& ne = aoi.getNortheast();
         osg::ref_ptr<SpatialReference> srs = aoi.getSRS();
 
-        double dx = (ne.x() - sw.x()) / num_cols;
-        double dy = (ne.y() - sw.y()) / num_rows;
+        double dx, dy;
+        double last_dx, last_dy;
+
+        if ( row_size > 0.0 )
+        {
+            num_rows = (int) ::ceil( aoi.getHeight()/row_size );
+            dy = row_size;
+            last_dy = ::fmod( aoi.getHeight(), row_size );
+            if ( last_dy == 0.0 )
+                last_dy = dy;
+        }
+        else
+        {
+            dy = aoi.getHeight() / std::max( num_rows, 1 );
+            last_dy = dy;
+        }
+
+        if ( col_size > 0.0 )
+        {
+            num_cols = (int) ::ceil( aoi.getWidth()/col_size );
+            dx = col_size;
+            last_dx = ::fmod( aoi.getWidth(), col_size );
+            if ( last_dx == 0.0 )
+                last_dx = dx;
+        }
+        else
+        {
+            dx = aoi.getWidth() / std::max( num_cols, 1 );
+            last_dx = dx;
+        }
 
         // Queue each tile as a parallelized task
         for( unsigned int col = 0; col < num_cols; col++ )
         {
+            double col_width = col+1 < num_cols? dx : last_dx;
+
             for( unsigned int row = 0; row < num_rows; row++ )
             {
+                double row_height = row+1 < num_rows? dy : last_dy;
+
                 GeoExtent sub_extent(
-                    GeoPoint( sw.x() + (double)col*dx, sw.y() + (double)row*dy, srs.get() ),
-                    GeoPoint( sw.x() + (double)(col+1)*dx, sw.y() + (double)(row+1)*dy, srs.get() ) );
+                    sw.x() + (double)col*dx, sw.y() + (double)row*dy,
+                    sw.x() + (double)col*dx + col_width, sw.y() + (double)row*dy + row_height,
+                    srs.get() );
                 
                 osg::ref_ptr<CompileTileTask> task = new CompileTileTask( 
                         row, col,
@@ -348,7 +400,8 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
     }
 
     // write any textures to the archive:
-    finalizeArchive();
+    localizeResourceReferences( root );
+    finalizeLayer( osgDB::getFilePath( output_file ) );
 
     // finally we organize the root graph better
     osgUtil::Optimizer opt;

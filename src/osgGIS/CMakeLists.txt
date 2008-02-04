@@ -49,11 +49,13 @@ SET(LIB_PUBLIC_HEADERS
     GeoPoint
     GeoShape
     GriddedLayerCompiler
+    GroupFilter
     LayerCompiler
     LineSegmentIntersector2
     LocalizeNodesFilter
     Lua_ScriptEngine
     Lua_ScriptEngine_tolua
+    ModelResource
     NodeFilter
     NodeFilterState
     OGR_Feature
@@ -85,6 +87,7 @@ SET(LIB_PUBLIC_HEADERS
     SpatialReferenceBase
     SpatialReferenceFactory
     StubSpatialIndex
+    SubstituteModelFilter
     SuperFeature
     Tags
     Task
@@ -133,11 +136,13 @@ ADD_LIBRARY(${LIB_NAME}
     GeoPoint.cpp
     GeoShape.cpp
     GriddedLayerCompiler.cpp
+    GroupFilter.cpp
     LayerCompiler.cpp
     LineSegmentIntersector2.cpp
     LocalizeNodesFilter.cpp
     Lua_ScriptEngine.cpp
     Lua_ScriptEngine_tolua.cpp
+    ModelResource.cpp
     NodeFilter.cpp
     NodeFilterState.cpp
     OGR_Feature.cpp
@@ -163,6 +168,7 @@ ADD_LIBRARY(${LIB_NAME}
     SimpleSpatialIndex.cpp
     SmartReadCallback.cpp
     SpatialReference.cpp
+    SubstituteModelFilter.cpp
     Task.cpp
     TaskManager.cpp
     TerrainUtils.cpp

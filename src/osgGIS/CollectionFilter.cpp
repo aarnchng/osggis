@@ -19,9 +19,6 @@
 
 #include <osgGIS/CollectionFilter>
 #include <osgGIS/CollectionFilterState>
-//#include <osgGIS/FeatureFilter>
-//#include <osgGIS/DrawableFilter>
-//#include <osgGIS/NodeFilter>
 #include <osg/Notify>
 
 using namespace osgGIS;

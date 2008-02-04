@@ -218,7 +218,8 @@ Builder::build( BuildLayer* layer )
         return false;
     }
     
-    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( "noTexturesInIVEFile" );
+    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( 
+        "noTexturesInIVEFile noWriteExternalReferenceFiles useOriginalExternalReferences" );
     osgDB::Registry::instance()->setOptions( options );
 
 
@@ -250,7 +251,7 @@ Builder::build( BuildLayer* layer )
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
+        compiler.setArchive( archive.get(), archive_file );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -272,7 +273,7 @@ Builder::build( BuildLayer* layer )
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() ); 
+        compiler.setArchive( archive.get(), archive_file );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -312,7 +313,7 @@ Builder::build( BuildLayer* layer )
         compiler.setSession( session.get() );
         compiler.setTaskManager( manager.get() );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
+        compiler.setArchive( archive.get(), archive_file );
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {
@@ -323,7 +324,8 @@ Builder::build( BuildLayer* layer )
         }
 
         osg::ref_ptr<osg::Node> node = compiler.compile(
-            feature_layer.get() );
+            feature_layer.get(),
+            output_file );
 
         if ( node.valid() )
         {

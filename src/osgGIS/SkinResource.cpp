@@ -178,13 +178,10 @@ SkinResource::getColor() const
 }
 
 osg::StateSet*
-SkinResource::createStateSet( bool simplify_extrefs )
+SkinResource::createStateSet()
 {
     osg::Image* image = new osg::Image();
-    std::string refname = osgDB::convertFileNameToNativeStyle( getTexturePath() );
-    if ( simplify_extrefs )
-        refname = osgDB::getSimpleFileName( refname );
-    image->setFileName( refname );
+    image->setFileName( getTexturePath() );
 
     osg::Texture* tex = new osg::Texture2D( image );
     tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );

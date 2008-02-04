@@ -1,0 +1,73 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SUBSTITUTE_MODEL_FILTER_H_
+#define _OSGGIS_SUBSTITUTE_MODEL_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/NodeFilter>
+
+namespace osgGIS
+{
+    /**
+     * Builds nodes for placing externally loaded models at featuer locations.
+     */
+    class OSGGIS_EXPORT SubstituteModelFilter : public NodeFilter
+    {
+        OSGGIS_META_FILTER( SubstituteModelFilter );
+
+    public:
+        /**
+         * Constructs a new filter for converting features into labels.
+         */
+        SubstituteModelFilter();
+
+
+    public: //properties
+
+        /**
+         * Sets the expression that evaluates to the model resource to use.
+         */
+        void setModelExpr( const std::string& expr );
+
+        /**
+         * Gets the expression that evaluates to the model resource to use.
+         */
+        const std::string& getModelExpr() const;
+        
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
+
+        virtual osg::NodeList process( Feature* input, FilterEnv* env );
+
+        virtual ~SubstituteModelFilter();
+        
+    protected:
+        std::string model_expr;
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_LABELS_FILTER_H_

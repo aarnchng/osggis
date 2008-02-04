@@ -51,6 +51,7 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <OpenThreads/Thread>
 #include <iostream>
+#include <osgGIS/Utils>
 
 #define NOUT osg::notify(osg::NOTICE)
 #define ENDL std::endl

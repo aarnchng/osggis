@@ -91,7 +91,7 @@ RandomGroupingFilter::getProperties() const
 }
 
 std::string 
-RandomGroupingFilter::assign( Feature* input )
+RandomGroupingFilter::assign( Feature* input, FilterEnv* env )
 {
     std::stringstream stream;
     stream << ( ::rand() % getNumGroups() );
@@ -99,7 +99,7 @@ RandomGroupingFilter::assign( Feature* input )
 }
 
 std::string
-RandomGroupingFilter::assign( osg::Drawable* input )
+RandomGroupingFilter::assign( osg::Drawable* input, FilterEnv* env )
 {
     std::stringstream stream;
     stream << ( ::rand() % getNumGroups() );
@@ -107,7 +107,7 @@ RandomGroupingFilter::assign( osg::Drawable* input )
 }
 
 std::string
-RandomGroupingFilter::assign( osg::Node* input )
+RandomGroupingFilter::assign( osg::Node* input, FilterEnv* env )
 {
     std::stringstream stream;
     stream << ( ::rand() % getNumGroups() );

@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/CollectionFilter>
 #include <osgGIS/DrawableFilter>
+#include <osgGIS/FeatureFilter>
 #include <osg/Node>
 
 namespace osgGIS
@@ -37,6 +38,26 @@ namespace osgGIS
     class OSGGIS_EXPORT NodeFilter : public Filter
     {
     public:
+        /**
+         * Processes a single feature into a collection of nodes.
+         *
+         * @param input
+         *      Individual feature to process
+         * @param env
+         *      Contextual compilation environment
+         */
+        virtual osg::NodeList process( Feature* input, FilterEnv* env );
+        
+        /**
+         * Processes a collection of features into a collection of nodes.
+         *
+         * @param input
+         *      Batch of features to process
+         * @param env
+         *      Contextual compilation environment
+         */
+        virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
+
         /**
          * Processes a single drawable into a collection of nodes.
          *

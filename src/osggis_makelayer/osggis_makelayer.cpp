@@ -490,9 +490,12 @@ main(int argc, char* argv[])
 
     // Open an archive if necessary
     osg::ref_ptr<osgDB::Archive> archive;
+    std::string archive_file;
+
     if ( osgDB::getLowerCaseFileExtension( output_file ) == "osga" )
     {
         archive = osgDB::openArchive( output_file, osgDB::Archive::CREATE, 4096 );
+        archive_file = output_file;
         output_file = "out.ive";
 
         // since there's no way to set the master file name...fake it out
@@ -519,7 +522,7 @@ main(int argc, char* argv[])
         compiler.setPriorityOffset( priority_offset );
         compiler.setFadeLODs( fade_lods );
         //compiler.setOverlay( overlay );
-        compiler.setArchive( archive.get() );
+        compiler.setArchive( archive.get(), archive_file );
         compiler.setTaskManager( manager.get() );
 
         compiler.compile(
@@ -539,7 +542,7 @@ main(int argc, char* argv[])
 
         compiler.addFilterGraph( range_near, range_far, graph.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
+        compiler.setArchive( archive.get(), archive_file );
         compiler.setTaskManager( manager.get() );
 
         osg::ref_ptr<osg::Node> node = new osg::Group();
@@ -562,7 +565,7 @@ main(int argc, char* argv[])
         
         compiler.addFilterGraph( range_near, range_far, graph.get() );
         compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get() );
+        compiler.setArchive( archive.get(), archive_file );
         compiler.setFadeLODs( fade_lods );
         //compiler.setOverlay( overlay );
         compiler.setTaskManager( manager.get() );
