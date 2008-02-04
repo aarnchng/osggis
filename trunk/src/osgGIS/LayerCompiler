@@ -107,12 +107,14 @@ namespace osgGIS
          * Sets the archive to which the compiler should write files,
          * if applicable.
          */
-        void setArchive( osgDB::Archive* archive );
+        void setArchive( osgDB::Archive* archive, const std::string& filename );
         
         /**
          * Gets the archive to which the compiler should write files, if set.
          */
         osgDB::Archive* getArchive();
+
+        const std::string& getArchiveFileName() const;
 
         /**
          * Sets whether to apply fading to LOD nodes.
@@ -125,16 +127,16 @@ namespace osgGIS
         bool getFadeLODs() const;
 
         /**
-         * Sets the render bin number to assign to this layer.
-         * INT_MAX means no render bin
+         * Sets the render order for the layer. This will disable depth testing
+         * for the output layer as well.
+         * -1 means no ordered rendering.
          */
-        void setRenderBinNumber( int value );
+        void setRenderOrder( int value );
         
         /**
-         * Gets the render bin number to assign to this layer.
-         * INT_MAX means no render bin.
+         * Gets the render order, or -1 if none has been set.
          */
-        int getRenderBinNumber() const;
+        int getRenderOrder() const;
 
         /**
          * Sets whether the compiler should generate PagedLODs instead
@@ -198,7 +200,8 @@ namespace osgGIS
          */
         GeoExtent getAreaOfInterest( FeatureLayer* layer );
         
-        
+        void setLocalizeResources( bool value );
+        bool getLocalizeResources() const;
         
         void setPreCompileExpr( const std::string& expr );        
         const std::string& getPreCompileExpr() const;
@@ -207,6 +210,16 @@ namespace osgGIS
         virtual Properties getProperties();
         virtual void setProperties( Properties& props );    
         
+        // rewrites any texture image or proxy node file references so that they
+        // reference files we've moved inside the archive.
+        void localizeResourceReferences( osg::Node* );
+    
+        /**
+         * Sets whether to re-write image filenames for images stored in archives
+         * so that they include the archive name as a prefix.
+         */
+        //void setRewriteArchiveImageRefs( bool value );
+        //bool getRewriteArchiveImageRefs() const;
         
     protected:
         FilterGraphRangeList            graph_ranges;
@@ -214,19 +227,24 @@ namespace osgGIS
         osg::ref_ptr<SpatialReference>  terrain_srs;
         GeoExtent                       terrain_extent;            
         osg::ref_ptr<SmartReadCallback> read_cb;
-        int                             render_bin_number;
+        int                             render_order;
         bool                            fade_lods;
         bool                            overlay;
         bool                            paged;
         osg::ref_ptr<osgDB::Archive>    archive;
+        std::string                     archive_filename;
         osg::ref_ptr<TaskManager>       task_manager;
         osg::ref_ptr<Session>           session;
         std::string                     pre_compile_expr;
         double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
-        
+        bool                            localize_resources;
+
     protected:
-        void finalizeArchive();
+
+        void finalizeLayer( const std::string& output_folder );
+
         osg::Node* convertToOverlay( osg::Node* input );
+        
     };
 }
 

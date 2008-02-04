@@ -25,7 +25,7 @@ using namespace osgGIS;
 BuildLayerSlice::BuildLayerSlice()
 {
     min_range = 0.0f;
-    max_range = -1.0f;
+    max_range = FLT_MAX;
     min_res_level = -1;
     max_res_level = -1;
 }

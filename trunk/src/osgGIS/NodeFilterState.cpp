@@ -32,6 +32,18 @@ NodeFilterState::NodeFilterState( NodeFilter* _filter )
 }
 
 void
+NodeFilterState::push( Feature* input )
+{
+    in_features.push_back( input );
+}
+
+void
+NodeFilterState::push( FeatureList& input )
+{
+    in_features.insert( in_features.end(), input.begin(), input.end() );
+}
+
+void
 NodeFilterState::push( osg::Drawable* input )
 {
     in_drawables.push_back( input );
@@ -62,7 +74,11 @@ NodeFilterState::traverse( FilterEnv* in_env )
 
     osg::ref_ptr<FilterEnv> env = in_env->advance();
 
-    if ( in_drawables.size() > 0 )
+    if ( in_features.size() > 0 )
+    {
+        out_nodes = filter->process( in_features, env.get() );
+    }
+    else if ( in_drawables.size() > 0 )
     {
         out_nodes = filter->process( in_drawables, env.get() );
     }
@@ -85,9 +101,11 @@ NodeFilterState::traverse( FilterEnv* in_env )
             state->push( out_nodes );
         }
 
+        out_nodes.clear();
         ok = next->traverse( env.get() );
     }
 
+    in_features.clear();
     in_drawables.clear();
     in_nodes.clear();
 

@@ -49,7 +49,8 @@ namespace osgGIS
          *    Compiled feature layer
          */
         osg::Node* compile(
-            FeatureLayer* layer );
+            FeatureLayer* layer,
+            const std::string& output_file ="");
             
     private:
         osg::Node* compileLOD(

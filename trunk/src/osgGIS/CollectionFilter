@@ -91,9 +91,9 @@ namespace osgGIS
 
     public:
 
-        virtual std::string assign( Feature* ) { return "default"; }
-        virtual std::string assign( osg::Drawable* ) { return "default"; }
-        virtual std::string assign( osg::Node* ) { return "default"; }
+        virtual std::string assign( Feature*, FilterEnv* ) { return ""; }
+        virtual std::string assign( osg::Drawable*, FilterEnv* ) { return ""; }
+        virtual std::string assign( osg::Node*, FilterEnv* ) { return ""; }
 
     private:
 

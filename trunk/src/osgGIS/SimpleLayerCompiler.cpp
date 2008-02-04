@@ -25,6 +25,8 @@
 #include <osg/Group>
 #include <osg/LOD>
 #include <osg/Notify>
+#include <osg/Depth>
+#include <osgDB/FileNameUtils>
 #include <osgSim/LineOfSight> // for the DatabaseCacheReadCallback
 
 using namespace osgGIS;
@@ -43,13 +45,13 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );
-    Compiler compiler( layer, graph ); //, getSession() );
+    Compiler compiler( layer, graph );
     return compiler.compile( env.get() );
 }
 
 
 osg::Node*
-SimpleLayerCompiler::compile( FeatureLayer* layer )
+SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_file )
 {
     osg::Node* result = NULL;
 
@@ -80,6 +82,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
         }
     }
 
+
     result = lod;
 
     if ( getOverlay() )
@@ -87,7 +90,15 @@ SimpleLayerCompiler::compile( FeatureLayer* layer )
         result = convertToOverlay( lod );
     }
 
-    finalizeArchive();
+    if ( getRenderOrder() >= 0 )
+    {
+        const std::string& bin_name = result->getOrCreateStateSet()->getBinName();
+        result->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
+        result->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
+    }
+
+    localizeResourceReferences( result );
+    finalizeLayer( osgDB::getFilePath( output_file ) );
 
     return result;
 }

@@ -122,7 +122,8 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
 
     // compile away.
     std::string result = compileAll( layer, top_extent );
-    finalizeArchive();
+
+    finalizeLayer( output_dir );
 
     return result;
 }
@@ -413,6 +414,8 @@ PagedLayerCompiler::compileTile(
         // Write the new file before create subtiles.
         std::string new_abs_path = osgDB::concatPaths( output_dir, tile_filename );
         top->setName( tile_filename );
+
+        localizeResourceReferences( top.get() );
 
         // TODO: does this work for archives?? abs path?
         if ( getArchive() )

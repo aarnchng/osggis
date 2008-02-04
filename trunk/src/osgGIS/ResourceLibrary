@@ -23,7 +23,9 @@
 #include <osgGIS/Common>
 #include <osgGIS/Resource>
 #include <osgGIS/SkinResource>
+#include <osgGIS/ModelResource>
 #include <osg/StateSet>
+#include <osg/Node>
 #include <OpenThreads/ReentrantMutex>
 #include <map>
 
@@ -47,6 +49,7 @@ namespace osgGIS
 
         Resource* getResource( const std::string& name );
 
+
         SkinResource* getSkin( const std::string& name );
 
         ResourceList getSkins();
@@ -57,11 +60,26 @@ namespace osgGIS
 
         SkinResourceQuery newSkinQuery();
 
+        
+        
+        ModelResource* getModel( const std::string& name );
+
+        ResourceList getModels();
+
+        ResourceList getModels( const ModelResourceQuery& query );
+
+        ModelResourceQuery newModelQuery();
+
+        osg::Node* getNode( ModelResource* model );
+
     private:
         SkinResourceVec skins;
-
         typedef std::map< SkinResource*, osg::ref_ptr<osg::StateSet> > SkinStateSets;
         SkinStateSets skin_state_sets;
+
+        ModelResourceVec models;
+        typedef std::map< ModelResource*, osg::ref_ptr<osg::Node> > ModelNodes;
+        ModelNodes model_nodes;
 
         OpenThreads::ReentrantMutex mut;
     };

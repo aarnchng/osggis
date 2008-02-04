@@ -36,6 +36,14 @@ namespace osgGIS
     public:
         GriddedLayerCompiler();
 
+        void setRowSize( double value );
+
+        double getRowSize() const;
+
+        void setColumnSize( double value );
+
+        double getColumnSize() const;
+
         void setNumRows( int value );
 
         int getNumRows() const;
@@ -56,6 +64,7 @@ namespace osgGIS
         virtual ~GriddedLayerCompiler();
 
     private:
+        double row_size, col_size;
         int num_rows, num_cols;
         bool paged;
     };

@@ -22,10 +22,13 @@
 
 #include <osgGIS/Common>
 #include <set>
+#include <list>
 #include <algorithm>
 
 namespace osgGIS
-{
+{    
+    typedef std::list< std::string > TagList;
+
     /**
      * Helper class that implements tagging
      */
@@ -43,8 +46,8 @@ namespace osgGIS
         bool containsTag( const std::string& _tag ) const {
             return tags.find( normalize( _tag )) != tags.end();
         }
-        bool containsTags( const std::set<std::string>& _tags ) const {
-            for( std::set<std::string>::const_iterator i = _tags.begin(); i != _tags.end(); i++ ) {
+        bool containsTags( const TagList& _tags ) const {
+            for( TagList::const_iterator i = _tags.begin(); i != _tags.end(); i++ ) {
                 if ( tags.find( normalize( *i ) ) == tags.end() )
                     return false;
             }
@@ -66,7 +69,7 @@ namespace osgGIS
         virtual void addTag( const std::string& tag ) =0;       
         virtual void removeTag( const std::string& tag ) =0;        
         virtual bool containsTag( const std::string& tag ) const =0;        
-        virtual bool containsTags( const std::set<std::string>& tags ) const =0;
+        virtual bool containsTags( const TagList& tags ) const =0;
     };
 
     class OSGGIS_EXPORT ObjectWithTags : public IObjectWithTags
@@ -75,7 +78,7 @@ namespace osgGIS
         virtual void addTag( const std::string& tag ) { helper.addTag( tag ); }    
         virtual void removeTag( const std::string& tag ) { helper.removeTag( tag ); }
         virtual bool containsTag( const std::string& tag ) const { return helper.containsTag( tag ); }
-        virtual bool containsTags( const std::set<std::string>& tags ) const { return helper.containsTags( tags ); }
+        virtual bool containsTags( const TagList& tags ) const { return helper.containsTags( tags ); }
     private:
         TagHelper helper;
     };

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_RANDOM_GROUPING_FILTER_H_
-#define _OSGGIS_RANDOM_GROUPING_FILTER_H_ 1
+#ifndef _OSGGIS_GROUP_FILTER_H_
+#define _OSGGIS_GROUP_FILTER_H_ 1
 
 #include <osgGIS/Common>
 #include <osgGIS/CollectionFilter>
@@ -26,49 +26,44 @@
 namespace osgGIS
 {
     /**
-     * A filter that randomly batches features into a set number of groups.
-     *
-     * This filter will eventually be deprecated in favor of a scripting-
-     * language grouping filter that supports a "random" function.
+     * A filter that groups feature based on an expression.
      */
-    class OSGGIS_EXPORT RandomGroupingFilter : public CollectionFilter
+    class OSGGIS_EXPORT GroupFilter : public CollectionFilter
     {
-        OSGGIS_META_FILTER( RandomGroupingFilter );  
+        OSGGIS_META_FILTER( GroupFilter );  
 
     public:
-        RandomGroupingFilter();
-        RandomGroupingFilter( int num_groups );
+        /**
+         * Constructs a new grouping filter.
+         */
+        GroupFilter();
 
 
     public: // properties
 
-        void setNumGroups( int value );
-        int getNumGroups() const;
+        void setGroupExpr( const std::string& value );
 
-        void setSeed( int value );
-        int getSeed() const;
+        const std::string& getGroupExpr() const;
+
     
     public:
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;
-        
-    public:
-    
-        virtual std::string assign( Feature*, FilterEnv* env );
-        virtual std::string assign( osg::Drawable*, FilterEnv* env );
-        virtual std::string assign( osg::Node*, FilterEnv* env );
 
     public:
 
-        virtual ~RandomGroupingFilter();
+        virtual ~GroupFilter();
+
+    public:
+
+        virtual std::string assign( Feature*, FilterEnv* );
 
     private:
-        
-        int num_groups;
-        int seed;
+
+        std::string group_expr;
     };
 }
 
 
-#endif // _OSGGIS_RANDOM_GROUPING_FILTER_H_
+#endif // _OSGGIS_COLLECTION_FILTER_H_

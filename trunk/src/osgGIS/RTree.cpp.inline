@@ -82,7 +82,7 @@ RTree<DATA>::pickSeedsQ(RtEntryList<DATA>& list,
                         int& out_first_index,
                         int& out_second_index)
 {
-    double largest_d = 0.0;
+    double largest_d = -1.0; //0.0;
 
     for( typename RtEntryList<DATA>::iterator i = list.begin(); i != list.end(); i++ )
     {
@@ -265,6 +265,14 @@ template<typename DATA>
 void
 RTree<DATA>::insert( const RtNodeId& node_id, const GeoExtent& extent, const DATA& data )
 {
+//    GeoExtent index_extent = extent;
+//    if ( index_extent.getArea() == 0 )
+//    {
+//        GeoPoint c = index_extent.getCentroid();
+//        index_extent.expandToInclude( GeoPoint( c.x()-0.5, c.y()-0.5, index_extent.getSRS() ) );
+//        index_extent.expandToInclude( GeoPoint( c.x()+0.5, c.y()+0.5, index_extent.getSRS() ) );
+//    }
+    
     // I1
     RtNode<DATA>* L = chooseLeaf( node_id, extent );
     RtNode<DATA>* LL = NULL;

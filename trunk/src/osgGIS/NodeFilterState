@@ -35,6 +35,16 @@ namespace osgGIS
         bool traverse( FilterEnv* env );
 
         /**
+         * Pushes a feature onto this filter's input data queue.
+         */
+        void push( Feature* input );
+
+        /**
+         * Pushes a collection of features onto this filter's input data queue.
+         */
+        void push( FeatureList& input );
+
+        /**
          * Pushes a drawable onto this filter's input data queue.
          */
         void push( osg::Drawable* input );
@@ -64,6 +74,7 @@ namespace osgGIS
 
     protected:
         osg::ref_ptr<NodeFilter> filter;
+        FeatureList in_features;
         DrawableList in_drawables;
         osg::NodeList in_nodes;
         osg::NodeList out_nodes;

@@ -25,6 +25,13 @@
 
 using namespace osgGIS;
 
+
+        
+typedef std::map<std::string,FeatureList>   FeatureGroups;
+typedef std::map<std::string,DrawableList>  DrawableGroups;
+typedef std::map<std::string,osg::NodeList> NodeGroups;
+
+
 CollectionFilterState::CollectionFilterState( CollectionFilter* _filter )
 {
     filter = _filter;
@@ -33,45 +40,51 @@ CollectionFilterState::CollectionFilterState( CollectionFilter* _filter )
 void 
 CollectionFilterState::push( const FeatureList& input )
 {
-    for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
-        push( (Feature*)( i->get() ) );
+    features.insert( features.end(), input.begin(), input.end() );
+    //for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
+    //    push( (Feature*)( i->get() ) );
 }
 
 
 void
 CollectionFilterState::push( Feature* input )
 {
-    feature_groups[ filter->assign( input ) ].push_back( input );
+    features.push_back( input );
+    //feature_groups[ filter->assign( input ) ].push_back( input );
 }
 
 
 void 
 CollectionFilterState::push( const DrawableList& input )
 {
-    for( DrawableList::const_iterator i = input.begin(); i != input.end(); i++ )
-        push( (osg::Drawable*)( i->get() ) );
+    drawables.insert( drawables.end(), input.begin(), input.end() );
+    //for( DrawableList::const_iterator i = input.begin(); i != input.end(); i++ )
+    //    push( (osg::Drawable*)( i->get() ) );
 }
 
 
 void
 CollectionFilterState::push( osg::Drawable* input )
 {
-    drawable_groups[ filter->assign( input ) ].push_back( input );
+    drawables.push_back( input );
+    //drawable_groups[ filter->assign( input ) ].push_back( input );
 }
 
 
 void 
 CollectionFilterState::push( const osg::NodeList& input )
 {
-    for( osg::NodeList::const_iterator i = input.begin(); i != input.end(); i++ )
-        push( i->get() );
+    nodes.insert( nodes.end(), input.begin(), input.end() );
+    //for( osg::NodeList::const_iterator i = input.begin(); i != input.end(); i++ )
+    //    push( i->get() );
 }
 
 
 void
 CollectionFilterState::push( osg::Node* input )
 {
-    node_groups[ filter->assign( input ) ].push_back( input );
+    nodes.push_back( input );
+    //node_groups[ filter->assign( input ) ].push_back( input );
 }
 
 
@@ -141,38 +154,77 @@ CollectionFilterState::signalCheckpoint()
 
         if ( dynamic_cast<FeatureFilterState*>( next ) )
         {
+            FeatureGroups feature_groups;
+            for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+                feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+
             FeatureFilterState* state = static_cast<FeatureFilterState*>( next );
             ok = meterGroups( feature_groups, state, metering, saved_env.get() );
         }
         else if ( dynamic_cast<DrawableFilterState*>( next ) )
         {
             DrawableFilterState* state = static_cast<DrawableFilterState*>( next );
-            if ( feature_groups.size() > 0 )
-                ok = meterGroups( feature_groups, state, metering, saved_env.get() );
-            else if ( drawable_groups.size() > 0 )
-                ok = meterGroups( drawable_groups, state, metering, saved_env.get() );
+            if ( features.size() > 0 )
+            {
+                FeatureGroups groups;
+                for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
+            else if ( drawables.size() > 0 )
+            {
+                DrawableGroups groups;
+                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
             else
                 ok = false;
         }
         else if ( dynamic_cast<NodeFilterState*>( next ) )
         {
             NodeFilterState* state = static_cast<NodeFilterState*>( next );
-            if ( drawable_groups.size() > 0 )
-                ok = meterGroups( drawable_groups, state, metering, saved_env.get() );
-            else if ( node_groups.size() > 0 )
-                ok = meterGroups( node_groups, state, metering, saved_env.get() );
+            if ( drawables.size() > 0 )
+            {
+                DrawableGroups groups;
+                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
+            else if ( nodes.size() > 0 )
+            {
+                NodeGroups groups;
+                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
             else
                 ok = false;
         }
         else if ( dynamic_cast<CollectionFilterState*>( next ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );   
-            if ( feature_groups.size() > 0 )
+            if ( features.size() > 0 )
+            {
+                FeatureGroups feature_groups;
+                for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( feature_groups, state, metering, saved_env.get() );
-            else if ( drawable_groups.size() > 0 )
-                ok = meterGroups( drawable_groups, state, metering, saved_env.get() );
-            else if ( node_groups.size() > 0 )
-                ok = meterGroups( node_groups, state, metering, saved_env.get() );
+            }
+            else if ( drawables.size() > 0 )
+            {
+                DrawableGroups groups;
+                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
+            else if ( nodes.size() > 0 )
+            {
+                NodeGroups groups;
+                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
             else
                 ok = false;         
         }
@@ -184,9 +236,12 @@ CollectionFilterState::signalCheckpoint()
     }
 
     // clean up the input:
-    feature_groups.clear();
-    drawable_groups.clear();
-    node_groups.clear();
+    features.clear();
+    drawables.clear();
+    nodes.clear();
+    //feature_groups.clear();
+    //drawable_groups.clear();
+    //node_groups.clear();
     saved_env = NULL;
 
     return ok;
