@@ -80,8 +80,8 @@ namespace osgGIS
         
         inline std::list<DATA> find( const GeoExtent& extent );
 
-        inline bool writeTo( std::ostream& out );
-        inline bool readFrom( std::istream& in, SpatialReference* srs );
+        //inline bool writeTo( std::ostream& out );
+        //inline bool readFrom( std::istream& in, SpatialReference* srs );
 
     private:
         inline void insert( const RtNodeId&, const GeoExtent&, const DATA& );

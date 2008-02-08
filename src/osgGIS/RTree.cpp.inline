@@ -325,23 +325,22 @@ RTree<DATA>::find( const GeoExtent& extent )
 }
 
 
-
-        
+/*
 template<typename DATA>
 bool 
 RTree<DATA>::writeTo( std::ostream& out )
 {
     out << root_id << ' ' << node_id_gen << std::endl;
-    for( RtNodeMap::iterator i = node_table.begin(); i != node_table.end(); i++ )
+    for( typename RtNodeMap<DATA>::iterator i = node_table.begin(); i != node_table.end(); i++ )
     {
-        RtNode* node = i->second.get();
+        RtNode<DATA>* node = i->second.get();
         out << node->id << ' ' << node->parent_id << ' ' << node->is_leaf << ' ' << node->entries.size() << ' ';
-        for( RtEntryList<DATA>::iterator j = node->entries.begin(); j != node->entries.end(); j++ )
+        for( typename RtEntryList<DATA>::iterator j = node->entries.begin(); j != node->entries.end(); j++ )
         {
             RtEntry<DATA>& entry = *j;
             out << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
             if ( node->isLeaf() )
-                out << entry.data;
+                 out << entry.data;
             else
                 out << entry.child_id;
         }
@@ -380,3 +379,4 @@ RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs )
     }
     return true;
 }
+*/
