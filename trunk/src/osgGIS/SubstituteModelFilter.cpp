@@ -19,6 +19,11 @@
 
 #include <osgGIS/SubstituteModelFilter>
 #include <osg/MatrixTransform>
+#include <osg/NodeVisitor>
+#include <osg/Drawable>
+#include <osg/Geometry>
+#include <osg/Geode>
+#include <osgText/Text>
 
 using namespace osgGIS;
 
@@ -78,8 +83,56 @@ SubstituteModelFilter::getProperties() const
 osg::Node*
 optimizeCluster( const FeatureList& features, osg::Node* model )
 {
-    //TODO
-    return new osg::Group();
+    class ClusterVisitor : public osg::NodeVisitor {
+    public:
+        ClusterVisitor( const FeatureList& _features ) 
+            : features( _features ),
+              osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ) {
+        }
+
+        void apply( osg::Geode& geode )
+        {
+            DrawableList old_drawables = geode.getDrawableList();
+            geode.removeDrawables( 0, geode.getNumDrawables() );
+
+			for( DrawableList::iterator i = old_drawables.begin(); i != old_drawables.end(); i++ )
+			{
+				osg::Drawable* old_d = i->get();
+				for( FeatureList::const_iterator j = features.begin(); j != features.end(); j++ )
+				{
+					osg::Vec3d c = j->get()->getExtent().getCentroid();
+					osg::Drawable* new_d = dynamic_cast<osg::Drawable*>( old_d->clone( osg::CopyOp::DEEP_COPY_ALL ) );
+
+					if ( dynamic_cast<osg::Geometry*>( new_d ) )
+					{
+						osg::Geometry* geom = static_cast<osg::Geometry*>( new_d );
+						osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
+						if ( verts )
+						{
+							for( osg::Vec3Array::iterator k = verts->begin(); k != verts->end(); k++ )
+							{
+								//todo
+							}
+						}
+					}
+					else if ( dynamic_cast<osgText::Text*>( new_d ) )
+					{
+						osgText::Text* text = static_cast<osgText::Text*>( new_d );
+					}
+				}
+			}
+
+            geode.dirtyBound();
+        }
+
+    private:
+        const FeatureList& features;
+    };
+
+	osg::Node* clone = dynamic_cast<osg::Node*>( model->clone( osg::CopyOp::DEEP_COPY_ALL ) );
+	ClusterVisitor cv( features );
+	clone->accept( cv );
+	return clone;
 }
 
 
