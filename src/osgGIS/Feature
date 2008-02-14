@@ -57,7 +57,9 @@ namespace osgGIS
 		virtual const GeoShapeList& getShapes() const =0;
 		
         /**
-         * Gets the geodata associated with the feature.
+         * Gets the geodata associated with the feature (writable). 
+         * Important: if you change the underlying point data, be sure to call
+         * dirtyExtent()!
          */
 		virtual GeoShapeList& getShapes() =0;
 		
@@ -73,15 +75,6 @@ namespace osgGIS
          *      Name of the attribute to return
          */
         virtual Attribute getAttribute( const std::string& key ) const =0;
-
-        //virtual double getAttributeAsDouble( const std::string& key ) const =0;
-
-        //virtual int getAttributeAsInt( const std::string& key ) const =0;
-
-        //virtual bool getAttributeAsBool( const std::string& key ) const =0;
-
-        //virtual const char* getAttributeAsString( const std::string& key ) const =0;
-
 
         /**
          * Sets a user-attribute to a string value.
@@ -112,14 +105,6 @@ namespace osgGIS
     public:
 
         virtual Attribute getAttribute( const std::string& key ) const;
-
-        //virtual double getAttributeAsDouble( const std::string& key ) const;
-
-        //virtual int getAttributeAsInt( const std::string& key ) const;
-
-        //virtual bool getAttributeAsBool( const std::string& key ) const;
-
-        //virtual const char* getAttributeAsString( const std::string& key ) const;
         
         
         virtual void setAttribute( const std::string& key, const std::string& value );
@@ -129,6 +114,8 @@ namespace osgGIS
         virtual void setAttribute( const std::string& key, double value );
 
         virtual void setAttribute( const std::string& key, bool value );
+        
+        
 
     protected:
 

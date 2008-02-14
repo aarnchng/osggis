@@ -57,6 +57,7 @@ OGR_Feature::getShapes() const
 GeoShapeList&
 OGR_Feature::getShapes()
 {
+    extent = GeoExtent::invalid();
     return shapes;
 }
 
@@ -64,8 +65,37 @@ OGR_Feature::getShapes()
 const GeoExtent&
 OGR_Feature::getExtent() const
 {
+    if ( !extent.isValid() )
+    {
+        OGR_Feature* non_const_this = const_cast<OGR_Feature*>( this );
+        GeoShapeList& shapes = non_const_this->getShapes();
+        int j = 0;
+        for( GeoShapeList::iterator i = shapes.begin(); i != shapes.end(); i++, j++ )
+        {
+            GeoShape& shape = *i;
+            if ( j == 0 )
+                non_const_this->extent = shape.getExtent();
+            else
+                non_const_this->extent.expandToInclude( shape.getExtent() );
+        }
+    }
     return extent;
 }
+
+
+//void
+//OGR_Feature::dirtyExtent()
+//{
+//    int j=0;
+//    for( GeoShapeList::iterator i = getShapes().begin(); i != getShapes().end(); i++, j++ )
+//    {
+//        GeoShape& shape = *i;
+//        if ( j == 0 )
+//            extent = shape.getExtent();
+//        else
+//            extent.expandToInclude( shape.getExtent() );
+//    }
+//}
 
 
 void

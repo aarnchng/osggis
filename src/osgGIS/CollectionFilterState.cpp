@@ -183,8 +183,15 @@ CollectionFilterState::signalCheckpoint()
         }
         else if ( dynamic_cast<NodeFilterState*>( next ) )
         {
-            NodeFilterState* state = static_cast<NodeFilterState*>( next );
-            if ( drawables.size() > 0 )
+            NodeFilterState* state = static_cast<NodeFilterState*>( next ); 
+            if ( features.size() > 0 )
+            {
+                FeatureGroups feature_groups;
+                for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( feature_groups, state, metering, saved_env.get() );
+            }
+            else if ( drawables.size() > 0 )
             {
                 DrawableGroups groups;
                 for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
