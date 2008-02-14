@@ -51,21 +51,46 @@ namespace osgGIS
          */
         const std::string& getModelExpr() const;
         
+        /**
+         * Sets whether to materialize models within the generated scene graph. If true,
+         * the filter will incorporate the model's geometry within the output node,
+         * rather than reference it externally via proxy. If false, a ProxyNode will
+         * reference each instance.
+         *
+         * If true, this will also cluster instance groups for performance purposes.
+         * For example, if you have a point cluster in which each point represents an
+         * extref to a tree model, just precede this filter with a CollectionFilter and
+         * this filter will inline, localize, and optimize the tree references for you.
+         *
+         * (NOTE: at the moment, "Materialize" only works when this filter is preceded
+         * by a CollectionFilter.)
+         */
+        void setMaterialize( bool value );
+        
+        /**
+         * Gets whether to materialize/inline model references. See setMaterialize() for
+         * details.
+         */
+        bool getMaterialize() const;
+        
     public:
     
         virtual void setProperty( const Property& );
         virtual Properties getProperties() const;
 
-    protected:
+    public:
 
         virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
 
         virtual osg::NodeList process( Feature* input, FilterEnv* env );
+        
+    protected:        
 
         virtual ~SubstituteModelFilter();
         
     protected:
         std::string model_expr;
+        bool materialize;
     };
 }
 

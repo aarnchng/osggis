@@ -215,7 +215,7 @@ BuildNodesFilter::getProperties() const
 osg::NodeList
 BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
 {
-    osg::Node* result = NULL;
+    //osg::Node* result = NULL;
 
     osg::Geode* geode = new osg::Geode();
     for( DrawableList::iterator i = input.begin(); i != input.end(); i++ )
@@ -223,7 +223,29 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         geode->addDrawable( i->get() );
     }
 
-    result = geode;
+    osg::NodeList nodes;
+    nodes.push_back( geode );
+    return process( nodes, env );
+}
+
+osg::NodeList
+BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
+{
+    osg::Node* result = NULL;
+    if ( input.size() > 1 )
+    {
+        result = new osg::Group();
+        for( osg::NodeList::iterator i = input.begin(); i != input.end(); i++ )
+            result->asGroup()->addChild( i->get() );
+    }
+    else if ( input.size() == 1 )
+    {
+        result = input[0].get();
+    }
+    else
+    {
+        return osg::NodeList();
+    }
 
     // NEXT create a XFORM if there's a localization matrix in the SRS:
     const SpatialReference* input_srs = env->getInputSRS();
@@ -236,7 +258,8 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
         osg::Matrixd irf = input_srs->getInverseReferenceFrame();
         osg::Vec3d centroid_abs = centroid * irf;
         osg::MatrixTransform* xform = new osg::MatrixTransform( irf );
-        xform->addChild( geode );
+
+        xform->addChild( result );
         result = xform;
 
         if ( getApplyClusterCulling() && input_srs->isGeocentric() )
@@ -244,7 +267,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
             osg::Vec3d control_point = centroid_abs;
             osg::Vec3d normal = centroid_abs;
             normal.normalize();
-            osg::BoundingSphere bs = geode->computeBound(); // force it
+            osg::BoundingSphere bs = result->computeBound(); // force it
             float radius = bs.radius();
             float deviation = 
                 (float) -atan( radius / input_srs->getBasisEllipsoid().getSemiMajorAxis() );
@@ -261,40 +284,40 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
             cull_group->addChild( xform );
             result = cull_group;
 
-            if ( getDrawClusterCullingNormals() == true )
-            {
-                //DRAW CLUSTER-CULLING NORMALS
-                osg::Geometry* g = new osg::Geometry();
-                osg::Vec3Array* v = new osg::Vec3Array(2);
-                (*v)[0] = centroid; (*v)[1] = (centroid_abs + (normal*radius)) * input_srs->getReferenceFrame();
-                g->setVertexArray( v );
-                osg::Vec4Array* c = new osg::Vec4Array(1);
-                (*c)[0] = osg::Vec4f( 0,1,0,1 );
-                g->setColorArray( c );
-                g->setColorBinding( osg::Geometry::BIND_OVERALL );
-                g->addPrimitiveSet( new osg::DrawArrays( osg::PrimitiveSet::LINES, 0, 2 ) );
-                geode->addDrawable( g );
-            }
+            //if ( getDrawClusterCullingNormals() == true )
+            //{
+            //    //DRAW CLUSTER-CULLING NORMALS
+            //    osg::Geometry* g = new osg::Geometry();
+            //    osg::Vec3Array* v = new osg::Vec3Array(2);
+            //    (*v)[0] = centroid; (*v)[1] = (centroid_abs + (normal*radius)) * input_srs->getReferenceFrame();
+            //    g->setVertexArray( v );
+            //    osg::Vec4Array* c = new osg::Vec4Array(1);
+            //    (*c)[0] = osg::Vec4f( 0,1,0,1 );
+            //    g->setColorArray( c );
+            //    g->setColorBinding( osg::Geometry::BIND_OVERALL );
+            //    g->addPrimitiveSet( new osg::DrawArrays( osg::PrimitiveSet::LINES, 0, 2 ) );
+            //    geode->addDrawable( g );
+            //}
         }
     }
 
     if ( getCullBackfaces() )
     {
-        geode->getOrCreateStateSet()->setAttributeAndModes(
+        result->getOrCreateStateSet()->setAttributeAndModes(
             new osg::CullFace(),
             osg::StateAttribute::ON );
     }
 
     if ( getDisableLighting() )
     {
-        geode->getOrCreateStateSet()->setMode(
+        result->getOrCreateStateSet()->setMode(
             GL_LIGHTING,
             osg::StateAttribute::OFF );
     }
 
     if ( getLineWidth() > 0.0f )
     {
-        geode->getOrCreateStateSet()->setAttribute(
+        result->getOrCreateStateSet()->setAttribute(
             new osg::LineWidth( line_width ),
             osg::StateAttribute::ON );
     }
@@ -303,7 +326,7 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
     {
         osg::Point* point = new osg::Point();
         point->setSize( point_size );
-        geode->getOrCreateStateSet()->setAttribute(
+        result->getOrCreateStateSet()->setAttribute(
             point,
             osg::StateAttribute::ON );
     }

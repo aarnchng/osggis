@@ -143,6 +143,7 @@ namespace osgGIS
         
     protected:
         virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
+        virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
 
     private:
         int   options;

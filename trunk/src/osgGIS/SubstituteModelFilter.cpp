@@ -31,10 +31,12 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
+#define DEFAULT_MATERIALIZE false
+
 
 SubstituteModelFilter::SubstituteModelFilter()
 {
-    //NOP
+    materialize = DEFAULT_MATERIALIZE;
 }
 
 
@@ -56,10 +58,24 @@ SubstituteModelFilter::getModelExpr() const
 }
 
 void
+SubstituteModelFilter::setMaterialize( bool value )
+{
+    materialize = value;
+}
+
+bool
+SubstituteModelFilter::getMaterialize() const
+{
+    return materialize;
+}
+
+void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
         setModelExpr( p.getValue() );
+    else if ( p.getName() == "materialize" )
+        setMaterialize( p.getBoolValue( getMaterialize() ) );
     NodeFilter::setProperty( p );
 }
 
@@ -70,6 +86,8 @@ SubstituteModelFilter::getProperties() const
     Properties p = NodeFilter::getProperties();
     if ( getModelExpr().length() > 0 )
         p.push_back( Property( "model", getModelExpr() ) );
+    if ( getMaterialize() != DEFAULT_MATERIALIZE )
+        p.push_back( Property( "materialize", getMaterialize() ) );
     return p;
 }
 
@@ -81,7 +99,7 @@ SubstituteModelFilter::getProperties() const
 //  relative to the tile centroid. Finally, reassemble all the geodes and optimize. 
 //  hopefully stateset sharing etc will work out. we may need to strip out LODs too.
 osg::Node*
-optimizeCluster( const FeatureList& features, osg::Node* model )
+materializeAndClusterFeatures( const FeatureList& features, osg::Node* model )
 {
     class ClusterVisitor : public osg::NodeVisitor {
     public:
@@ -95,34 +113,42 @@ optimizeCluster( const FeatureList& features, osg::Node* model )
             DrawableList old_drawables = geode.getDrawableList();
             geode.removeDrawables( 0, geode.getNumDrawables() );
 
-			for( DrawableList::iterator i = old_drawables.begin(); i != old_drawables.end(); i++ )
-			{
-				osg::Drawable* old_d = i->get();
-				for( FeatureList::const_iterator j = features.begin(); j != features.end(); j++ )
-				{
-					osg::Vec3d c = j->get()->getExtent().getCentroid();
-					osg::Drawable* new_d = dynamic_cast<osg::Drawable*>( old_d->clone( osg::CopyOp::DEEP_COPY_ALL ) );
+            for( DrawableList::iterator i = old_drawables.begin(); i != old_drawables.end(); i++ )
+            {
+                osg::Drawable* old_d = i->get();
+                for( FeatureList::const_iterator j = features.begin(); j != features.end(); j++ )
+                {
+                    osg::Vec3d c = j->get()->getExtent().getCentroid();
+                    osg::ref_ptr<osg::Drawable> new_d = dynamic_cast<osg::Drawable*>( 
+                        old_d->clone( osg::CopyOp::DEEP_COPY_ARRAYS | osg::CopyOp::DEEP_COPY_PRIMITIVES ) );
 
-					if ( dynamic_cast<osg::Geometry*>( new_d ) )
-					{
-						osg::Geometry* geom = static_cast<osg::Geometry*>( new_d );
-						osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
-						if ( verts )
-						{
-							for( osg::Vec3Array::iterator k = verts->begin(); k != verts->end(); k++ )
-							{
-								//todo
-							}
-						}
-					}
-					else if ( dynamic_cast<osgText::Text*>( new_d ) )
-					{
-						osgText::Text* text = static_cast<osgText::Text*>( new_d );
-					}
-				}
-			}
+                    if ( dynamic_cast<osg::Geometry*>( new_d.get() ) )
+                    {
+                        osg::Geometry* geom = static_cast<osg::Geometry*>( new_d.get() );
+                        osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
+                        if ( verts )
+                        {
+                            for( osg::Vec3Array::iterator k = verts->begin(); k != verts->end(); k++ )
+                            {
+                                (*k).set( (*k).x() + c.x(), (*k).y() + c.y(), (*k).z() + c.z() );
+                            }
+                        }
+                        geom->setColorArray( NULL );
+                        geom->setDataVariance( osg::Object::DYNAMIC );
+
+                        geode.addDrawable( geom );
+                    }
+                    else if ( dynamic_cast<osgText::Text*>( new_d.get() ) )
+                    {
+                        osgText::Text* text = static_cast<osgText::Text*>( new_d.get() );
+                    }
+                }
+            }
 
             geode.dirtyBound();
+            geode.setDataVariance( osg::Object::DYNAMIC );
+            
+            osg::NodeVisitor::apply( geode );
         }
 
     private:
@@ -141,7 +167,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
     osg::NodeList output;
 
-    if ( input.size() > 0 )
+    if ( input.size() > 1 && getMaterialize() )
     {
         if ( getModelExpr().length() > 0 )
         {
@@ -152,7 +178,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 if ( model )
                 {
                     osg::Node* node = env->getSession()->getResources().getNode( model );
-                    output.push_back( optimizeCluster( input, node ) );
+                    output.push_back( materializeAndClusterFeatures( input, node ) );
                 }
             }
         }

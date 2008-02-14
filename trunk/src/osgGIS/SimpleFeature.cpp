@@ -48,6 +48,7 @@ SimpleFeature::getShapes() const
 GeoShapeList&
 SimpleFeature::getShapes()
 {
+    extent = GeoExtent::invalid();
     return shapes;
 }
 
@@ -55,6 +56,20 @@ SimpleFeature::getShapes()
 const GeoExtent&
 SimpleFeature::getExtent() const
 {
+    if ( !extent.isValid() )
+    {
+        SimpleFeature* non_const_this = const_cast<SimpleFeature*>( this );
+        GeoShapeList& shapes = non_const_this->getShapes();
+        int j = 0;
+        for( GeoShapeList::iterator i = shapes.begin(); i != shapes.end(); i++, j++ )
+        {
+            GeoShape& shape = *i;
+            if ( j == 0 )
+                non_const_this->extent = shape.getExtent();
+            else
+                non_const_this->extent.expandToInclude( shape.getExtent() );
+        }
+    }
     return extent;
 }
 
