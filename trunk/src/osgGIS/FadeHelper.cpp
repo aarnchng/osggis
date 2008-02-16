@@ -10,19 +10,18 @@ using namespace osgGIS;
  * Vertex shader for fading
  */
 static const char* fader_vertshader =
-"varying vec3 position; \n"
-"void main()\n"
-"{\n"
-"    position = gl_ModelViewMatrix * gl_Vertex;\n"
-"    gl_Position = ftransform();\n"
-"    gl_FrontColor = gl_Color;\n"
-"}\n";
-
+    "varying vec3 position; \n"
+    "void main()\n"
+    "{\n"
+    "    position = gl_ModelViewMatrix * gl_Vertex;\n"
+    "    gl_Position = ftransform();\n"
+    "    gl_FrontColor = gl_Color;\n"
+    "}\n";
 
 /**
  * Fragment shader for fading
  */
-static const char *fader_fragshader = {
+static const char *fader_fragshader =
     "varying vec3 position;\n"
     "uniform float fade_in_dist;\n"
     "uniform float fade_out_dist;\n"
@@ -30,8 +29,7 @@ static const char *fader_fragshader = {
     "{\n"
     "    float fade = 1.0 - smoothstep( fade_in_dist, fade_out_dist, length(position) );\n"
     "    gl_FragColor = vec4( gl_Color.rgb, gl_Color.a * fade );\n"
-    "}\n"
-};
+    "}\n";
 
 void
 FadeHelper::enableFading( osg::StateSet* state_set )
