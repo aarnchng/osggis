@@ -42,6 +42,8 @@ namespace osgGISProjects
         const std::string& getName() const;
 
         void setName( const std::string& name );
+        
+        void merge( class Project* from );
 
         
 

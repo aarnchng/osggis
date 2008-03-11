@@ -66,6 +66,7 @@ namespace osgGISProjects
         BuildTarget* decodeTarget( XmlElement*, Project* );
         BuildLayer* decodeLayer( XmlElement*, Project* );
         BuildLayerSlice* decodeSlice( XmlElement*, Project* );
+        Project* decodeInclude( XmlElement*, Project* );
         Project* decodeProject( XmlElement* );
         
         XmlElement* encodeFilterGraph( FilterGraph* );
