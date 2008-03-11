@@ -67,10 +67,15 @@ namespace osgGIS
         void addScript( Script* script );
 
         /**
-         * Gets the resource library that manages shared resources for
-         * this session.
+         * Gets a read-only reference to the  resource library that manages
+         * shared resources for this session.
          */
         const ResourceLibrary& getResources() const;
+        
+        /**
+         * Gets a reference to the resource library that manages shared
+         * resources for this session.
+         */
         ResourceLibrary& getResources();
 
         /**
@@ -78,6 +83,10 @@ namespace osgGIS
          */
         void markResourceUsed( Resource* resource );
 
+        /**
+         * Gets a collection of the names of the resources that have been
+         * marked as "used" in this session (by calling markResourceUsed).
+         */
         const ResourceNames& getResourcesUsed() const;
         
         /**

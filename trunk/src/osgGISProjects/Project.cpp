@@ -45,6 +45,18 @@ Project::getName() const
     return name;
 }
 
+void
+Project::merge( Project* src )
+{
+    getScripts().insert( getScripts().end(), src->getScripts().begin(), src->getScripts().end() );
+    getFilterGraphs().insert( getFilterGraphs().end(), src->getFilterGraphs().begin(), src->getFilterGraphs().end() );
+    getSources().insert( getSources().end(), src->getSources().begin(), src->getSources().end() );
+    getTerrains().insert( getTerrains().end(), src->getTerrains().begin(), src->getTerrains().end() );
+    getLayers().insert( getLayers().end(), src->getLayers().begin(), src->getLayers().end() );
+    getTargets().insert( getTargets().end(), src->getTargets().begin(), src->getTargets().end() );
+    getResources().insert( getResources().end(), src->getResources().begin(), src->getResources().end() );
+}
+
 const ScriptList&
 Project::getScripts() const
 {

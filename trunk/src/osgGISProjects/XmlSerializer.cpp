@@ -371,6 +371,31 @@ XmlSerializer::decodeTarget( XmlElement* e, Project* proj )
 }
 
 
+Project*
+XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
+{
+    if ( e )
+    {
+        std::string uri = e->getText();
+        if ( uri.length() > 0 )
+        {
+            osgGISProjects::XmlSerializer ser;
+
+            osg::ref_ptr<osgGISProjects::Document> include_doc = ser.load( uri );    
+            if ( !include_doc.valid() )
+                return proj;
+
+            osg::ref_ptr<osgGISProjects::Project> include_proj = ser.readProject( include_doc.get() );
+            if ( !include_proj.valid() )
+                return proj;
+
+            proj->merge( include_proj.get() );
+        }
+    }
+    return proj;
+}
+
+
 Project* 
 XmlSerializer::decodeProject( XmlElement* e )
 {
@@ -379,6 +404,13 @@ XmlSerializer::decodeProject( XmlElement* e )
     {
         project = new Project();
         project->setName( e->getAttr( "name" ) );
+
+        // includes
+        XmlNodeList includes = e->getSubElements( "include" );
+        for( XmlNodeList::const_iterator j = includes.begin(); j != includes.end(); j++ )
+        {
+            decodeInclude( static_cast<XmlElement*>( j->get() ), project );
+        }
         
         // scripts
         XmlNodeList scripts = e->getSubElements( "script" );

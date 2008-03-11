@@ -290,13 +290,6 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         FadeHelper::enableFading( root->getOrCreateStateSet() );
     }
 
-    if ( getRenderOrder() >= 0 )
-    {
-        const std::string& bin_name = root->getOrCreateStateSet()->getBinName();
-        root->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
-        root->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
-    }
-
     if ( getSession() && getPreCompileExpr().length() > 0 )
     {
         getSession()->createScriptEngine()->run( new Script( getPreCompileExpr() ) );
@@ -406,6 +399,13 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
     // finally we organize the root graph better
     osgUtil::Optimizer opt;
     opt.optimize( root, osgUtil::Optimizer::SPATIALIZE_GROUPS );
+    
+    if ( getRenderOrder() >= 0 )
+    {
+        const std::string& bin_name = root->getOrCreateStateSet()->getBinName();
+        root->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
+        root->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
+    }
     
     osg::Timer_t end = osg::Timer::instance()->tick();
 
