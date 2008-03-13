@@ -72,7 +72,6 @@ SET(LIB_PUBLIC_HEADERS
     ResourceLibrary
     RTree
     RTreeSpatialIndex
-    Rule
     Script
     ScriptEngine
     SelectFilter
@@ -158,7 +157,6 @@ ADD_LIBRARY(${LIB_NAME}
     Resource.cpp
     ResourceLibrary.cpp
     RTreeSpatialIndex.cpp
-    Rule.cpp
     Script.cpp
     SelectFilter.cpp
     Session.cpp

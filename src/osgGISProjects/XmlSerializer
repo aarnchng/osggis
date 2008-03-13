@@ -38,6 +38,10 @@ namespace osgGISProjects
         virtual ~XmlSerializer();
         
     public:
+    
+        static Project* loadProject( const std::string& uri );
+        
+    public:
         
         virtual Document* load( std::istream& in );
         

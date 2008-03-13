@@ -129,14 +129,9 @@ main(int argc, char* argv[])
 	osgGIS::Registry* registry = osgGIS::Registry::instance();
 
     // loads the project file:
-    osgGISProjects::XmlSerializer ser;
-    osg::ref_ptr<osgGISProjects::Document> doc = ser.load( project_file );    
-    if ( !doc.valid() )
-        return die( "Cannot load project file " + project_file );
-
-    osg::ref_ptr<osgGISProjects::Project> project = ser.readProject( doc.get() );
+    osg::ref_ptr<osgGISProjects::Project> project = osgGISProjects::XmlSerializer::loadProject( project_file );
     if ( !project.valid() )
-        return die( "Project file does not contain a valid project!" );
+        return die( "Cannot load project file " + project_file );
 
     VERBOSE_OUT << "Project \"" << project->getName() << "\" loaded." << std::endl;
 
