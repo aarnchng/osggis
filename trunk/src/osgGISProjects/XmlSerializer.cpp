@@ -57,6 +57,19 @@ getRef( const std::string& word )
 }
 
 
+Project*
+XmlSerializer::loadProject( const std::string& uri )
+{
+    XmlSerializer ser;
+    osg::ref_ptr<Document> doc = ser.load( uri );    
+    if ( !doc.valid() )
+        return NULL; // todo: report error
+
+    Project* project = ser.readProject( doc.get() );
+    return project;
+}
+
+
 Document*
 XmlSerializer::load( std::istream& in )
 {
@@ -379,17 +392,11 @@ XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
         std::string uri = e->getText();
         if ( uri.length() > 0 )
         {
-            osgGISProjects::XmlSerializer ser;
-
-            osg::ref_ptr<osgGISProjects::Document> include_doc = ser.load( uri );    
-            if ( !include_doc.valid() )
-                return proj;
-
-            osg::ref_ptr<osgGISProjects::Project> include_proj = ser.readProject( include_doc.get() );
-            if ( !include_proj.valid() )
-                return proj;
-
-            proj->merge( include_proj.get() );
+            osg::ref_ptr<Project> include_proj = XmlSerializer::loadProject( uri );
+            if ( include_proj.valid() )
+            {
+                proj->merge( include_proj.get() );
+            }
         }
     }
     return proj;
