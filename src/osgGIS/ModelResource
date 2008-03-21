@@ -35,17 +35,20 @@ namespace osgGIS
     public:
         ModelResource();
         ModelResource( const std::string& name );
-
+        
     public: // properties
 
-        void setPath( const std::string& value );
-        const std::string& getPath() const;
+        void setModelPath( const std::string& value );
+        const std::string& getModelPath() const;
+        std::string getAbsoluteModelPath() const;
 
     public:
 
         osg::Node* createNode();
+        
+        osg::Node* createProxyNode();
 
-    public: // ObjectWithProperties
+    public: 
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;

@@ -18,6 +18,7 @@
 */
 
 #include <osgGIS/SkinResource>
+#include <osgGIS/Utils>
 #include <osgDB/ReadFile>
 #include <osgDB/FileNameUtils>
 #include <osg/Texture2D>
@@ -68,12 +69,12 @@ SkinResource::setProperty( const Property& prop )
         setMinTextureHeightMeters( prop.getDoubleValue( getMinTextureHeightMeters() ) );
     else if ( prop.getName() == "max_texture_height" )
         setMaxTextureHeightMeters( prop.getDoubleValue( getMaxTextureHeightMeters() ) );
-    else if ( prop.getName() == "texture_path" )
-        setTexturePath( prop.getValue() );
     else if ( prop.getName() == "color" )
         setColor( prop.getVec4Value() );
     else if ( prop.getName() == "repeats_vertically" )
         setRepeatsVertically( prop.getBoolValue( getRepeatsVertically() ) );
+    else if ( prop.getName() == "texture_path" )
+        setTexturePath( prop.getValue() );
     else
         Resource::setProperty( prop );
 }
@@ -102,6 +103,12 @@ const std::string&
 SkinResource::getTexturePath() const
 {
     return tex_path;
+}
+
+std::string
+SkinResource::getAbsoluteTexturePath() const
+{
+    return PathUtils::getAbsPath( getBaseURI(), tex_path );
 }
 
 void 
@@ -181,7 +188,7 @@ osg::StateSet*
 SkinResource::createStateSet()
 {
     osg::Image* image = new osg::Image();
-    image->setFileName( getTexturePath() );
+    image->setFileName( getAbsoluteTexturePath() );
 
     osg::Texture* tex = new osg::Texture2D( image );
     tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );

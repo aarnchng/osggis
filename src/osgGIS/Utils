@@ -21,6 +21,20 @@ namespace osgGIS
             const std::string& suffix,
             bool  case_sensitive =false );
     };
+    
+    struct OSGGIS_EXPORT PathUtils
+    {
+        static bool isAbsPath(
+            const std::string& path );
+            
+        static std::string getAbsPath(
+            const std::string& base_path,
+            const std::string& input_path );
+            
+        static std::string combinePaths(
+            const std::string& left,
+            const std::string& right );
+    };
 }
 
 #endif //_OSGGIS_TERRAIN_UTILS_H_

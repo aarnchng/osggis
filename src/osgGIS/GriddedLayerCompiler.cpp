@@ -160,7 +160,8 @@ public:
       compiler( _compiler )
     {
         std::stringstream s;
-        s << "Cell x" << col << ",y" << row;
+        s << "x" << col << ",y" << row;
+//        s << "Cell x" << col << ",y" << row << " EXT: (" << tile_extent.toString() << ") CEN: (" << tile_extent.getCentroid().toString() << ")";
         setName( s.str() );
 
         read_cb = new SmartReadCallback();
@@ -176,6 +177,7 @@ public:
             
         float min_range = FLT_MAX, max_range = FLT_MIN;
         osg::ref_ptr<osg::LOD> lod = new osg::LOD();
+        lod->setName( getName() );
         LayerCompiler::FilterGraphRangeList& graphs = compiler.getFilterGraphs();
 
         for( LayerCompiler::FilterGraphRangeList::iterator i = graphs.begin(); i != graphs.end(); i++ )
@@ -183,6 +185,7 @@ public:
             osg::Node* range = compileLOD( i->graph.get() );
             if ( range )
             {
+                range->setName( i->graph->getName() );
                 lod->addChild( range, i->min_range, i->max_range );
                 if ( i->min_range < min_range ) min_range = i->min_range;
                 if ( i->max_range > max_range ) max_range = i->max_range;

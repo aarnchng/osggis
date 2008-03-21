@@ -31,13 +31,13 @@ ResourceLibrary::addResource( Resource* resource )
         {
             SkinResource* skin = static_cast<SkinResource*>( resource );
             skins.push_back( skin );
-            osg::notify( osg::NOTICE ) << "...added skin " << skin->getTexturePath() << std::endl;
+            osg::notify( osg::NOTICE ) << "...added skin " << skin->getAbsoluteTexturePath() << std::endl;
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
             ModelResource* model = static_cast<ModelResource*>( resource );
             models.push_back( model );
-            osg::notify( osg::NOTICE ) << "...added model " << model->getPath() << std::endl;
+            osg::notify( osg::NOTICE ) << "...added model " << model->getAbsoluteModelPath() << std::endl;
         }
     }
 }
@@ -209,6 +209,29 @@ ResourceLibrary::getNode( ModelResource* model )
     return result;
 }
 
+
+osg::Node*
+ResourceLibrary::getProxyNode( ModelResource* model )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    osg::Node* result = NULL;
+    if ( model )
+    {
+        ModelNodes::iterator i = model_nodes.find( model );
+        if ( i == model_nodes.end() )
+        {
+            bool simplify_extrefs = true; //TODO
+            result = model->createProxyNode();
+            model_nodes[model] = result;
+        }
+        else
+        {
+            result = i->second.get();
+        }
+    }
+    return result;
+}
 
 
 SkinResourceQuery 

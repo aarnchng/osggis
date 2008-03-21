@@ -334,9 +334,20 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
     if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
+        int opt_mask = getOptimizerOptions();
+
         // disable texture atlases, since they mess with our shared skin resources and
         // don't work correctly during multi-threaded building
-        int opt_mask = getOptimizerOptions() & (~osgUtil::Optimizer::TEXTURE_ATLAS_BUILDER);
+        opt_mask &= ~osgUtil::Optimizer::TEXTURE_ATLAS_BUILDER;
+
+        // I've seen this crash the app when dealing with certain ProxyNodes.
+        // TODO: investigate this later.
+        opt_mask &= ~osgUtil::Optimizer::REMOVE_REDUNDANT_NODES;
+
+        // integrate the optimizer hints:
+        opt_mask |= env->getOptimizerHints().getIncludedOptions();
+        opt_mask &= ~( env->getOptimizerHints().getExcludedOptions() );
+
         opt.optimize( result, opt_mask );
     }
 

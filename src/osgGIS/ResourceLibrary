@@ -71,6 +71,8 @@ namespace osgGIS
         ModelResourceQuery newModelQuery();
 
         osg::Node* getNode( ModelResource* model );
+        
+        osg::Node* getProxyNode( ModelResource* model );
 
     private:
         SkinResourceVec skins;

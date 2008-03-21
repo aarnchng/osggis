@@ -27,6 +27,7 @@
 #include <osgGIS/ScriptEngine>
 #include <osgGIS/Session>
 #include <osgGIS/Property>
+#include <osgGIS/OptimizerHints>
 #include <osg/Node>
 
 namespace osgGIS
@@ -154,6 +155,12 @@ namespace osgGIS
          * Gets the scripting engine. Shortcut for getSession()->getScriptEngine()
          */
         ScriptEngine* getScriptEngine();
+        
+        /**
+         * Gets the optimizer hints - a filter can use this to control the general
+         * optimizer that runs at the end (if applicable)
+         */
+        OptimizerHints& getOptimizerHints();
 
     public:
 
@@ -175,6 +182,7 @@ namespace osgGIS
         osg::ref_ptr<ScriptEngine>      script_engine;
         osg::ref_ptr<Session>           session;
         Properties                      properties;
+        OptimizerHints                  optimizer_hints;
     };
 }
 

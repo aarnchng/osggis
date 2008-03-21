@@ -43,6 +43,7 @@ namespace osgGIS
 
         void setTexturePath( const std::string& value );
         const std::string& getTexturePath() const;
+        std::string getAbsoluteTexturePath() const;
 
         void setTextureWidthMeters( double value );
         double getTextureWidthMeters() const;
@@ -69,7 +70,7 @@ namespace osgGIS
 
         osg::StateSet* createStateSet();
 
-    public: // ObjectWithProperties
+    public: 
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;
