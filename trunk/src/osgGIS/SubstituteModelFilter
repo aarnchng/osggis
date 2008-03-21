@@ -52,6 +52,19 @@ namespace osgGIS
         const std::string& getModelExpr() const;
         
         /**
+         * Sets the expression that evaluates to the absolute pathname of the model
+         * to use (rather than specifying a resource name expression as you do with
+         * setModelExpr).
+         */
+        void setModelPathExpr( const std::string& expr );
+        
+        /**
+         * Gets the xpression that evaluates to the absolute pathname of the model
+         * to use. 
+         */
+        const std::string& getModelPathExpr() const;
+        
+        /**
          * Sets whether to materialize models within the generated scene graph. If true,
          * the filter will incorporate the model's geometry within the output node,
          * rather than reference it externally via proxy. If false, a ProxyNode will
@@ -90,6 +103,7 @@ namespace osgGIS
         
     protected:
         std::string model_expr;
+        std::string model_path_expr;
         bool materialize;
     };
 }

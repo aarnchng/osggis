@@ -64,7 +64,7 @@ namespace osgGIS
 		virtual GeoShapeList& getShapes() =0;
 		
         /**
-         * Gets the minimum bounding rectangle containing all the points in
+         * Gets the 2D minimum bounding rectangle containing all the points in
          * the feature's geodata.
          */
 		virtual const GeoExtent& getExtent() const =0;

@@ -17,58 +17,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/Resource>
+#include <osgGIS/OptimizerHints>
 
 using namespace osgGIS;
 
-Resource::Resource()
+
+OptimizerHints::OptimizerHints()
 {
-    //NOP
+    included = 0;
+    excluded = 0;
 }
 
-Resource::Resource( const std::string& _name )
+OptimizerHints::OptimizerHints( const OptimizerHints& rhs )
 {
-    setName( _name );
-}
-
-Resource::~Resource()
-{
-    //NOP
-}
-
-void
-Resource::setName( const std::string& value )
-{
-    name = value;
-}
-
-const char*
-Resource::getName() const
-{
-    return name.c_str();
+    included = rhs.included;
+    excluded = rhs.excluded;
 }
 
 void
-Resource::setBaseURI( const std::string& value )
+OptimizerHints::include( osgUtil::Optimizer::OptimizationOptions value )
 {
-    base_uri = value;
-}
-
-const std::string&
-Resource::getBaseURI() const
-{
-    return base_uri;
+    included |= (int)value;
 }
 
 void
-Resource::setProperty( const Property& prop )
+OptimizerHints::exclude( osgUtil::Optimizer::OptimizationOptions value )
 {
-    //NOP
+    excluded |= (int)value;
 }
 
-Properties
-Resource::getProperties() const
+osgUtil::Optimizer::OptimizationOptions
+OptimizerHints::getIncludedOptions() const
 {
-    return Properties();
+    return (osgUtil::Optimizer::OptimizationOptions)included;
 }
 
+osgUtil::Optimizer::OptimizationOptions
+OptimizerHints::getExcludedOptions() const
+{
+    return (osgUtil::Optimizer::OptimizationOptions)excluded;
+}

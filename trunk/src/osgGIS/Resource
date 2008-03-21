@@ -35,7 +35,7 @@ namespace osgGIS
      * This could be something that modifies the appearance of a compiled feature
      * (like a skin/texture) or something at the application level (like a hyperlink).
      */
-    class OSGGIS_EXPORT Resource : public osg::Referenced, public IObjectWithProperties, public ObjectWithTags
+    class OSGGIS_EXPORT Resource : public osg::Referenced, public ObjectWithTags
     {
     public:
         /**
@@ -47,9 +47,20 @@ namespace osgGIS
          * Sets the name of this resource.
          */
         void setName( const std::string& name );
+        
+        /**
+         * Sets the base URI path to which relative paths should be appended
+         */
+        void setBaseURI( const std::string& base_uri );
+
+        /**
+         * Gets the base URI for relative paths.
+         */
+        const std::string& getBaseURI() const;
+        
 
 
-    public: // ObjectWithProperties
+    public: 
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;
@@ -66,6 +77,7 @@ namespace osgGIS
         
     private:
         std::string name;
+        std::string base_uri;
     };
     
     typedef std::vector< osg::ref_ptr<Resource> > ResourceList;

@@ -149,7 +149,6 @@ TransformFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
     p.push_back( Property( "localize", getLocalize() ) );
-    //p.push_back( Property( "matrix", getMatrix() ) );
     if ( translate_expr.length() > 0 )
         p.push_back( Property( "translate", translate_expr ) );
     if ( getUseTerrainSRS() )
@@ -168,13 +167,11 @@ TransformFilter::process( Feature* input, FilterEnv* env )
     osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
     if ( !new_out_srs.valid() )
         new_out_srs = srs.get();
-    //if ( !new_out_srs.valid() )
-    //    new_out_srs = env->getInputSRS();
 
     // resolve the xlate shortcut
     osg::Matrix working_matrix = xform_matrix;
 
-    // uh this can go into process(FeatureList) instead of running for every feature..
+    // TODO: this can go into process(FeatureList) instead of running for every feature..
     if ( translate_expr.length() > 0 )
     {
         ScriptResult r = env->getScriptEngine()->run( new Script( translate_expr ), input, env );
@@ -218,7 +215,9 @@ TransformFilter::process( Feature* input, FilterEnv* env )
     }
     
     if ( working_srs )
+    {
         env->setOutputSRS( working_srs );
+    }
 
     if ( working_srs || ( working_matrix.valid() && !working_matrix.isIdentity() ) )
     {

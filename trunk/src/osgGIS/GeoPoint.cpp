@@ -112,7 +112,7 @@ GeoPoint::getDim() const
 void
 GeoPoint::setDim( int _dim )
 {
-    dim = _dim > 0 && _dim < 3? _dim : dim;
+    dim = _dim > 0 && _dim <= 3? _dim : dim;
 }
 
 

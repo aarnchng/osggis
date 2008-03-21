@@ -18,6 +18,7 @@
 */
 
 #include <osgGIS/ModelResource>
+#include <osgGIS/Utils>
 #include <osgDB/ReadFile>
 #include <osgDB/FileNameUtils>
 #include <osg/ProxyNode>
@@ -54,7 +55,7 @@ void
 ModelResource::setProperty( const Property& prop )
 {
     if ( prop.getName() == "model_path" || prop.getName() == "path" )
-        setPath( prop.getValue() );
+        setModelPath( prop.getValue() );
     else
         Resource::setProperty( prop );
 }
@@ -63,32 +64,49 @@ Properties
 ModelResource::getProperties() const
 {
     Properties props = Resource::getProperties();
-    props.push_back( Property( "path", getPath() ) );
+    props.push_back( Property( "model_path", getModelPath() ) );
     return props;
 }
 
 void 
-ModelResource::setPath( const std::string& value )
+ModelResource::setModelPath( const std::string& value )
 {
     path = value;
 }
 
 const std::string& 
-ModelResource::getPath() const
+ModelResource::getModelPath() const
 {
     return path;
+}
+
+std::string
+ModelResource::getAbsoluteModelPath() const
+{
+    return PathUtils::getAbsPath( getBaseURI(), path );
 }
 
 osg::Node*
 ModelResource::createNode()
 {
-    //osg::ProxyNode* proxy = new osg::ProxyNode();
-    //proxy->addChild( new osg::Group(), getPath() );
-    //return proxy;
-
-    osg::Node* node = osgDB::readNodeFile( getPath() );
+    osg::Node* node = osgDB::readNodeFile( getAbsoluteModelPath() );
     return node;
 };
+
+osg::Node*
+ModelResource::createProxyNode()
+{
+    osg::Group* dummy = new osg::Group();
+    dummy->setDataVariance( osg::Object::STATIC );
+
+    //osg::ProxyNode* proxy = new osg::ProxyNode();
+    //proxy->addChild( dummy, getAbsoluteModelPath() );
+    //return proxy;
+
+    osg::PagedLOD* plod = new osg::PagedLOD();
+    plod->addChild( dummy, 0.0f, 15000.0f, getAbsoluteModelPath() );
+    return plod;
+}
 
 ModelResourceQuery::ModelResourceQuery()
 {

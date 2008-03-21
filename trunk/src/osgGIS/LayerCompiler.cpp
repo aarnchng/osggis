@@ -375,10 +375,10 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
             SkinResource* skin = getSession()->getResources().getSkin( *i );
             if ( skin )
             {
-                osg::ref_ptr<osg::Image> image = osgDB::readImageFile( skin->getTexturePath() );
+                osg::ref_ptr<osg::Image> image = osgDB::readImageFile( skin->getAbsoluteTexturePath() );
                 if ( image.valid() )
                 {
-                    std::string filename = osgDB::getSimpleFileName( skin->getTexturePath() );
+                    std::string filename = osgDB::getSimpleFileName( skin->getAbsoluteTexturePath() );
 
                     if ( getArchive() )
                     {
@@ -409,10 +409,10 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
             ModelResource* model = getSession()->getResources().getModel( *i );
             if ( model )
             {
-                osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getPath() );
+                osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getAbsoluteModelPath() );
                 if ( node.valid() )
                 {
-                    std::string filename = osgDB::getSimpleFileName( model->getPath() );
+                    std::string filename = osgDB::getSimpleFileName( model->getAbsoluteModelPath() );
                     if ( getArchive() )
                     {
                         osgDB::ReaderWriter::WriteResult r = getArchive()->writeNode( *(node.get()), filename, local_options.get() );

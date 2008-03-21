@@ -39,6 +39,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     terrain_read_cb = rhs.terrain_read_cb.get();
     script_engine = rhs.script_engine.get();
     properties = rhs.properties;
+    optimizer_hints = rhs.optimizer_hints;
 }
 
 
@@ -192,4 +193,10 @@ Property
 FilterEnv::getProperty( const char* name ) const
 {
     return properties.get( std::string( name ) );
+}
+
+OptimizerHints&
+FilterEnv::getOptimizerHints()
+{
+    return optimizer_hints;
 }
