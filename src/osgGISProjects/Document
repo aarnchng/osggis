@@ -27,7 +27,14 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT Document : public osg::Referenced
     {
     public:
-        Document();
+        Document( const std::string& source_uri );
+        
+        void setSourceURI( const std::string& );
+        
+        const std::string& getSourceURI() const;
+        
+    private:
+        std::string source_uri;
     };
 }
 

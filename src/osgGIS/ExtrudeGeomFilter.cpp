@@ -39,6 +39,8 @@ OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 #define PROP_BATCH "ExtrudeGeomFilter::batch"
 #define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
 
+#define DEFAULT_USE_VBOS false
+
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()
 {
@@ -47,6 +49,7 @@ ExtrudeGeomFilter::ExtrudeGeomFilter()
     max_height = 2.0;
     tex_index = 0;
     randomize_facade_textures = false;
+    use_vbos = DEFAULT_USE_VBOS;
 }
 
 
@@ -163,6 +166,18 @@ ExtrudeGeomFilter::getWallSkinExpr() const
     return wall_skin_expr;
 }
 
+bool
+ExtrudeGeomFilter::getUseVBOs() const
+{
+    return use_vbos;
+}
+
+void
+ExtrudeGeomFilter::setUseVBOs( bool value )
+{
+    use_vbos = value;
+}
+
 void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
@@ -178,6 +193,8 @@ ExtrudeGeomFilter::setProperty( const Property& p )
         setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
     else if ( p.getName() == "wall_skin" )
         setWallSkinExpr( p.getValue() );
+    else if ( p.getName() == "use_vbos" )
+        setUseVBOs( p.getBoolValue( getUseVBOs() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -194,6 +211,8 @@ ExtrudeGeomFilter::getProperties() const
     p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
     if ( getWallSkinExpr().length() > 0 )
         p.push_back( Property( "wall_skin", getWallSkinExpr() ) );
+    if ( getUseVBOs() != DEFAULT_USE_VBOS )
+        p.push_back( Property( "use_vbos", getUseVBOs() ) );
     return p;
 }
 
@@ -486,7 +505,11 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             // generate per-vertex normals
             // todo: replace this nonsense
             osgUtil::SmoothingVisitor smoother;
-            smoother.smooth( *(walls.get()) );            
+            smoother.smooth( *(walls.get()) );   
+
+            if ( use_vbos )
+                walls->setUseVertexBufferObjects( true );
+
             output.push_back( walls.get() );
 
             // tessellate and add the roofs if necessary:
@@ -497,6 +520,9 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
                 tess.retessellatePolygons( *(rooflines.get()) );
                 smoother.smooth( *(rooflines.get()) );
+
+                if ( use_vbos )
+                    rooflines->setUseVertexBufferObjects( true );
 
                 output.push_back( rooflines.get() );
             }

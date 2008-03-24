@@ -86,6 +86,12 @@ namespace osgGIS
          */
         bool getMaterialize() const;
         
+        //TODO: comment
+        void setModelScaleExpr( const std::string& value );
+        
+        //TODO: comment
+        const std::string& getModelScaleExpr() const;
+        
     public:
     
         virtual void setProperty( const Property& );
@@ -101,9 +107,12 @@ namespace osgGIS
 
         virtual ~SubstituteModelFilter();
         
-    protected:
+    private:
+        osg::Node* materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model );
+    
         std::string model_expr;
         std::string model_path_expr;
+        std::string model_scale_expr;
         bool materialize;
     };
 }

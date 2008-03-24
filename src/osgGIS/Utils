@@ -2,19 +2,23 @@
 #define _OSGGIS_UTILS_H_ 1
 
 #include <osgGIS/Common>
+#include <osgDB/Archive>
 #include <string>
 
 namespace osgGIS
 {
     struct OSGGIS_EXPORT StringUtils
     {
+        /**
+         * Returns true if one string starts with another string.
+         */
         static bool startsWith(
             const std::string& str,
             const std::string& prefix,
             bool  case_sensitive =false );
 
         /** 
-         * Gets whether a string ends with another string.
+         *  Returns true if one string ends with another string.
          */
         static bool endsWith( 
             const std::string& str,
@@ -34,6 +38,13 @@ namespace osgGIS
         static std::string combinePaths(
             const std::string& left,
             const std::string& right );
+    };
+    
+    struct OSGGIS_EXPORT ArchiveUtils
+    {
+//        static bool writeFileToArchive(
+//            osgDB::Archive*    archive,
+//            const std::string& abs_path );
     };
 }
 

@@ -18,8 +18,11 @@
  */
 
 #include <osgGISProjects/Terrain>
+#include <osgGIS/Utils>
+#include <osgDB/FileNameUtils>
 
 using namespace osgGISProjects;
+using namespace osgGIS;
 
 Terrain::Terrain()
 {
@@ -29,6 +32,12 @@ Terrain::Terrain()
 Terrain::Terrain( const std::string& _uri )
 {
     setURI( _uri );
+}
+
+void
+Terrain::setBaseURI( const std::string& value )
+{
+    base_uri = value;
 }
 
 void
@@ -53,4 +62,10 @@ const std::string&
 Terrain::getURI() const
 {
     return uri;
+}
+
+const std::string
+Terrain::getAbsoluteURI() const
+{
+    return PathUtils::getAbsPath( base_uri, uri );
 }

@@ -23,8 +23,11 @@
 #include <osg/Drawable>
 #include <osg/Geometry>
 #include <osg/Geode>
+#include <osg/Notify>
 #include <osgUtil/Optimizer>
+#include <osgUtil/SmoothingVisitor>
 #include <osgDB/ReadFile>
+#include <osgDB/FileUtils>
 #include <osgText/Text>
 
 using namespace osgGIS;
@@ -83,6 +86,18 @@ SubstituteModelFilter::getMaterialize() const
 }
 
 void
+SubstituteModelFilter::setModelScaleExpr( const std::string& value )
+{
+    model_scale_expr = value;
+}
+
+const std::string&
+SubstituteModelFilter::getModelScaleExpr() const
+{
+    return model_scale_expr;
+}
+
+void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
@@ -91,6 +106,8 @@ SubstituteModelFilter::setProperty( const Property& p )
         setModelPathExpr( p.getValue() );
     else if ( p.getName() == "materialize" )
         setMaterialize( p.getBoolValue( getMaterialize() ) );
+    else if ( p.getName() == "model_scale" )
+        setModelScaleExpr( p.getValue() );
     NodeFilter::setProperty( p );
 }
 
@@ -105,6 +122,8 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "model_path", getModelPathExpr() ) );
     if ( getMaterialize() != DEFAULT_MATERIALIZE )
         p.push_back( Property( "materialize", getMaterialize() ) );
+    if ( getModelScaleExpr().length() > 0 )
+        p.push_back( Property( "model_", getModelScaleExpr() ) );
     return p;
 }
 
@@ -116,12 +135,13 @@ SubstituteModelFilter::getProperties() const
 //  relative to the tile centroid. Finally, reassemble all the geodes and optimize. 
 //  hopefully stateset sharing etc will work out. we may need to strip out LODs too.
 osg::Node*
-materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model )
+SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model )
 {
     class ClusterVisitor : public osg::NodeVisitor {
     public:
-        ClusterVisitor( const FeatureList& _features, FilterEnv* _env ) 
-            : features( _features ),
+        ClusterVisitor( SubstituteModelFilter* _filter, const FeatureList& _features, FilterEnv* _env ) 
+            : filter( _filter ),
+              features( _features ),
               env( _env ),
               osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ) {
         }
@@ -161,17 +181,21 @@ materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg:
                                     if ( j->get()->getShapes()[0].getParts()[0].size() > 0 )
                                         c = j->get()->getShapes()[0].getParts()[0][0];
 
+                            // get the scaler if there is one:
+                            osg::Vec3 scaler( 1, 1, 1 );
+                            if ( filter->getModelScaleExpr().length() > 0 )
+                            {
+                                ScriptResult r = env->getScriptEngine()->run( new Script( filter->getModelScaleExpr() ), j->get(), env );
+                                if ( r.isValid() )
+                                    scaler = r.asVec3();
+                            }
+
                             for( osg::Vec3Array::iterator k = verts->begin(); k != verts->end(); k++ )
                             {
+                                (*k).set( (*k).x() * scaler.x(), (*k).y() * scaler.y(), (*k).z() * scaler.z() );
                                 *k += osg::Vec3( c.x(), c.y(), c.z() );
                             }
                         }
-
-                        // TODO: what's the deal with this:
-                        geom->setColorArray( NULL );
-
-                        // TODO: and why do this:
-                        geom->setDataVariance( osg::Object::DYNAMIC );
 
                         // add the new cloned, translated drawable back to the geode.
                         geode.addDrawable( geom );
@@ -185,15 +209,22 @@ materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg:
             }
 
             geode.dirtyBound();
-            geode.setDataVariance( osg::Object::DYNAMIC );
 
+            // merge the geometry... probably don't need to do this since the optimizer
+            // will get it in BuildNodes
             osgUtil::Optimizer opt;
             opt.optimize( &geode, osgUtil::Optimizer::MERGE_GEOMETRY );
+
+            // automatically generate normals.
+            // TODO: maybe this should be an option.
+            osgUtil::SmoothingVisitor smoother;
+            geode.accept( smoother );
             
             osg::NodeVisitor::apply( geode );
         }
 
     private:
+        SubstituteModelFilter* filter;
         const FeatureList& features;
         FilterEnv* env;
     };
@@ -203,10 +234,51 @@ materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg:
 	osg::Node* clone = dynamic_cast<osg::Node*>( model->clone( osg::CopyOp::DEEP_COPY_ALL ) );
 
     // ..and apply the clustering to the copy.
-	ClusterVisitor cv( features, env );
+	ClusterVisitor cv( this, features, env );
 	clone->accept( cv );
 
 	return clone;
+}
+
+
+void
+registerTextures( osg::Node* node, Session* session )
+{
+    class ImageFinder : public osg::NodeVisitor {
+    public:
+        ImageFinder( Session* _session )
+            : session(_session), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+
+        void apply( osg::Node& node )
+        {
+            osg::StateSet* ss = node.getStateSet();
+            if ( ss )
+            {
+                for( int i=0; i<ss->getTextureAttributeList().size(); i++ )
+                {
+                    osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
+                    if ( tex && tex->getImage() )
+                    {
+                        std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
+                        if ( abs_path.length() > 0 )
+                        {
+                            SkinResource* skin = new SkinResource();
+                            skin->setTexturePath( abs_path );
+                            session->getResources().addResource( skin );
+                            session->markResourceUsed( skin );
+                            //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
+                        }
+                    }
+                }
+            }
+            osg::NodeVisitor::apply( node ); // up the tree
+        }
+
+        Session* session;
+    };
+
+    ImageFinder image_finder( session );
+    node->accept( image_finder );
 }
 
 
@@ -253,6 +325,12 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
         output = NodeFilter::process( input, env );
     }
     
+    // register textures for localization.
+    for( osg::NodeList::iterator i = output.begin(); i != output.end(); i++ )
+    {
+        registerTextures( i->get(), env->getSession() );
+    }
+
     return output;
 }
 

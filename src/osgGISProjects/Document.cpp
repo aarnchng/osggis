@@ -21,6 +21,19 @@
 
 using namespace osgGISProjects;
 
-Document::Document()
+Document::Document( const std::string& _source_uri )
 {
+    source_uri = _source_uri;
+}
+
+void
+Document::setSourceURI( const std::string& value )
+{
+    source_uri = value;
+}
+
+const std::string&
+Document::getSourceURI() const
+{
+    return source_uri;
 }

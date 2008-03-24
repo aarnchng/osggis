@@ -38,34 +38,34 @@
 using namespace osgGISProjects;
 using namespace osgGIS;
 
-Builder::Builder( Project* _project, const std::string& _base_uri )
+Builder::Builder( Project* _project ) //, const std::string& _base_uri )
 {
     project = _project;
-    base_uri = _base_uri;
+    //base_uri = _base_uri;
     num_threads = 0;
 }
 
 
-static bool
-isUriRooted( const std::string& path )
-{
-    //TODO
-    return false;
-}
-
-
-std::string
-Builder::resolveURI( const std::string& input )
-{
-    if ( isUriRooted( input ) || base_uri.length() == 0 )
-    {
-        return input;
-    }
-    else
-    {
-        return osgDB::concatPaths( base_uri, input );
-    }
-}
+//static bool
+//isUriRooted( const std::string& path )
+//{
+//    //TODO
+//    return false;
+//}
+//
+//
+//std::string
+//Builder::resolveURI( const std::string& input )
+//{
+//    if ( isUriRooted( input ) || base_uri.length() == 0 )
+//    {
+//        return input;
+//    }
+//    else
+//    {
+//        return osgDB::concatPaths( base_uri, input );
+//    }
+//}
 
 void
 Builder::setNumThreads( int _num_threads )
@@ -167,7 +167,8 @@ Builder::build( BuildLayer* layer )
     }
 
     osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
-        resolveURI( source->getURI() ) );
+        source->getAbsoluteURI() );
+
     if ( !feature_layer.valid() )
     {
         //TODO: log error
@@ -185,8 +186,8 @@ Builder::build( BuildLayer* layer )
 
     if ( terrain && terrain->getURI().length() > 0 )
     {
-        std::string terrain_uri = resolveURI( terrain->getURI() );
-        terrain_node = osgDB::readNodeFile( terrain_uri );
+        //std::string terrain_uri = terrain->getAbsoluteURI(); //resolveURI( terrain->getURI() );
+        terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() ); //terrain_uri );
         if ( terrain_node.valid() )
         {
             terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( terrain_node.get() );
@@ -207,7 +208,7 @@ Builder::build( BuildLayer* layer )
         Registry::instance()->getSRSFactory()->createWGS84() );
 
     // output file:
-    std::string output_file = resolveURI( layer->getTarget() );
+    std::string output_file = layer->getAbsoluteTargetPath(); //resolveURI( layer->getTarget() );
     osgDB::makeDirectoryForFile( output_file );
     if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
     {
@@ -218,6 +219,8 @@ Builder::build( BuildLayer* layer )
         return false;
     }
     
+//    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( 
+//        "noWriteExternalReferenceFiles useOriginalExternalReferences" );
     osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( 
         "noTexturesInIVEFile noWriteExternalReferenceFiles useOriginalExternalReferences" );
     osgDB::Registry::instance()->setOptions( options );

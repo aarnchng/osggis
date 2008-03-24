@@ -18,6 +18,7 @@
  */
 
 #include <osgGISProjects/Project>
+#include <osgDB/FileNameUtils>
 #include <algorithm>
 
 using namespace osgGISProjects;
@@ -31,6 +32,24 @@ Project::Project()
 Project::~Project()
 {
     //NOP
+}
+
+void
+Project::setSourceURI( const std::string& value )
+{
+    source_uri = value;
+}
+
+const std::string&
+Project::getSourceURI() const
+{
+    return source_uri;
+}
+
+std::string
+Project::getBaseURI() const
+{
+    return osgDB::getFilePath( source_uri );
 }
 
 void

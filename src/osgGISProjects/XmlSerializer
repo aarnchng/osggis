@@ -71,7 +71,8 @@ namespace osgGISProjects
         BuildLayer* decodeLayer( XmlElement*, Project* );
         BuildLayerSlice* decodeSlice( XmlElement*, Project* );
         Project* decodeInclude( XmlElement*, Project* );
-        Project* decodeProject( XmlElement* );
+        
+        Project* decodeProject( XmlElement*, const std::string& base_uri );
         
         XmlElement* encodeFilterGraph( FilterGraph* );
         XmlElement* encodeProject( Project* );
