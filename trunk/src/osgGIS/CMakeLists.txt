@@ -63,6 +63,7 @@ SET(LIB_PUBLIC_HEADERS
     OGR_SpatialReference
     OGR_SpatialReferenceFactory
     OGR_Utils
+    OptimizerHints
     PagedLayerCompiler
     Property
     RandomGroupingFilter
@@ -149,6 +150,7 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_SpatialReference.cpp
     OGR_SpatialReferenceFactory.cpp
     OGR_Utils.cpp
+    OptimizerHints.cpp
     PagedLayerCompiler.cpp
     Property.cpp
     RandomGroupingFilter.cpp
