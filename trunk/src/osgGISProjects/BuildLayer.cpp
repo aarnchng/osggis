@@ -18,8 +18,11 @@
  */
 
 #include <osgGISProjects/BuildLayer>
+#include <osgGIS/Utils>
+#include <osgDB/FileNameUtils>
 
 using namespace osgGISProjects;
+using namespace osgGIS;
 
 BuildLayer::BuildLayer()
 {
@@ -42,6 +45,12 @@ void
 BuildLayer::setName( const std::string& _name )
 {
     name = _name;
+}
+
+void
+BuildLayer::setBaseURI( const std::string& value )
+{
+    base_uri = value;
 }
 
 Source*
@@ -69,15 +78,21 @@ BuildLayer::setTerrain( Terrain* _terrain )
 }
 
 const std::string&
-BuildLayer::getTarget() const
+BuildLayer::getTargetPath() const
 {
-    return target;
+    return target_path;
+}
+
+const std::string
+BuildLayer::getAbsoluteTargetPath() const
+{
+    return PathUtils::getAbsPath( base_uri, target_path );
 }
 
 void
-BuildLayer::setTarget( const std::string& _target )
+BuildLayer::setTargetPath( const std::string& value )
 {
-    target = _target;
+    target_path = value;
 }
 
 const BuildLayerSliceList&

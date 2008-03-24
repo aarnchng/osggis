@@ -33,18 +33,23 @@ namespace osgGISProjects
         Source( const std::string& uri );
 
         virtual ~Source();
-
+        
+        void setBaseURI( const std::string& base_uri );
+        
         const std::string& getName() const;
         
         void setName( const std::string& value );
 
         const std::string& getURI() const;
+        
+        const std::string getAbsoluteURI() const;
 
         void setURI( const std::string& uri );
 
     private:
         std::string name;
         std::string uri;
+        std::string base_uri;
     };
 
     typedef std::list<osg::ref_ptr<Source> > SourceList;

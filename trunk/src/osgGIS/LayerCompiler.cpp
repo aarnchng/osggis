@@ -332,16 +332,18 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
                 if ( tex && tex->getImage() )
                 {
                     const std::string& name = tex->getImage()->getFileName();
-                    if ( archive_name.length() > 0 )
-                    {
-                        if ( !StringUtils::startsWith( name, archive_name ) )
-                        {
-                            std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
-                            tex->getImage()->setFileName( path );
-                            osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
-                        }
-                    }
-                    else
+
+                    // fix the in-archive reference:
+                    //if ( archive_name.length() > 0 )
+                    //{
+                    //    if ( !StringUtils::startsWith( name, archive_name ) )
+                    //    {
+                    //        std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
+                    //        tex->getImage()->setFileName( path );
+                    //        osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
+                    //    }
+                    //}
+                    //else
                     {
                         std::string simple = osgDB::getSimpleFileName( name );
                         tex->getImage()->setFileName( simple );
@@ -380,7 +382,7 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
                 {
                     std::string filename = osgDB::getSimpleFileName( skin->getAbsoluteTexturePath() );
 
-                    if ( getArchive() )
+                    if ( getArchive() && !getArchive()->fileExists( filename ) )
                     {
                         osgDB::ReaderWriter::WriteResult r = getArchive()->writeImage( *(image.get()), filename, local_options.get() );
                         if ( r.error() )
@@ -392,7 +394,7 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
                     {
                         if ( osgDB::fileExists( output_folder ) )
                         {
-                            if ( !osgDB::writeImageFile( *(image.get()), osgDB::concatPaths( output_folder, filename ), local_options.get() ) )
+                            if ( !osgDB::writeImageFile( *(image.get()), PathUtils::combinePaths( output_folder, filename ), local_options.get() ) )
                             {
                                 osg::notify( osg::WARN ) << "  FAILED to copy image " << filename << " into the folder " << output_folder << std::endl;
                             }

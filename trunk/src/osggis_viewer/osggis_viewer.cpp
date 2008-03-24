@@ -83,6 +83,7 @@ static void usage( const char* prog, const char* msg )
 //    NOUT << "    --no-pre-compile           - Disables pre-compilation for the database pager (default = on)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
     NOUT << "    --frame-rate <fps>         - Sets the target frame rate, disabling VSYNC (default = 60)" << ENDL;
+    NOUT << "    --unlit-terrain            - Disables lighting on the first model loaded (the terrain)" << ENDL;
     NOUT << "" << ENDL;
     NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
@@ -158,6 +159,8 @@ main(int argc, char* argv[])
 
     bool no_pre_compile = args.read( "--no-pre-compile" );
 
+    bool unlit_terrain = args.read( "--unlit-terrain" );
+
     osg::NodeList overlays;
     while( args.read( "--overlay", str ) )
     {
@@ -188,6 +191,13 @@ main(int argc, char* argv[])
                 terrain_node->getOrCreateStateSet()->setAttributeAndModes(
                     new osg::PolygonOffset( po_factor, po_units ),
                     osg::StateAttribute::ON );
+
+                if ( unlit_terrain )
+                {
+                    terrain_node->getOrCreateStateSet()->setMode(
+                        GL_LIGHTING,
+                        osg::StateAttribute::OFF );
+                }
 
                 if ( overlays.size() > 0 )
                 {

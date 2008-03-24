@@ -57,6 +57,7 @@ getRef( const std::string& word )
 }
 
 
+//static
 Project*
 XmlSerializer::loadProject( const std::string& uri )
 {
@@ -89,6 +90,8 @@ XmlSerializer::load( const std::string& uri )
         {
             doc = load( ins );
             ins.close();
+            if ( doc )
+                doc->setSourceURI( uri );
         }
     }
     return doc;
@@ -241,6 +244,7 @@ XmlSerializer::decodeResource( XmlElement* e, Project* proj )
 
         if ( resource )
         {
+            resource->setBaseURI( proj->getBaseURI() );
             resource->setName( e->getAttr( "name" ) );
             resource->addTag( e->getAttr( "tags" ) );
 
@@ -268,6 +272,7 @@ XmlSerializer::decodeSource( XmlElement* e, Project* proj )
     if ( e )
     {
         source = new Source();
+        source->setBaseURI( proj->getBaseURI() );
         source->setName( e->getAttr( "name" ) );
         source->setURI( e->getSubElementText( "uri" ) );
     }
@@ -282,6 +287,7 @@ XmlSerializer::decodeTerrain( XmlElement* e, Project* proj )
     if ( e )
     {
         terrain = new Terrain();
+        terrain->setBaseURI( proj->getBaseURI() );
         terrain->setName( e->getAttr( "name" ) );
         terrain->setURI( e->getSubElementText( "uri" ) );
     }
@@ -297,11 +303,15 @@ XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
     {
         slice = new BuildLayerSlice();
 
-        slice->setMinRange( atof( e->getAttr( "min_range" ).c_str() ) );
-        slice->setMaxRange( atof( e->getAttr( "max_range" ).c_str() ) );
+        if ( e->getAttr( "min_range" ).length() > 0 )
+            slice->setMinRange( atof( e->getAttr( "min_range" ).c_str() ) );
+        if ( e->getAttr( "max_range" ).length() > 0 )
+            slice->setMaxRange( atof( e->getAttr( "max_range" ).c_str() ) );
 
-        slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
-        slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
+        if ( e->getAttr( "min_level" ).length() > 0 )
+            slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
+        if ( e->getAttr( "max_level" ).length() > 0 )
+            slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
 
         std::string graph = e->getAttr( "graph" );
         slice->setFilterGraph( proj->getFilterGraph( graph ) ); //TODO: warning?
@@ -317,6 +327,7 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
     if ( e )
     {
         layer = new BuildLayer();
+        layer->setBaseURI( proj->getBaseURI() );
         layer->setName( e->getAttr( "name" ) ); 
 
         std::string type = e->getAttr( "type" );
@@ -335,7 +346,7 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
             proj->getTerrain( terrain ) :
             new Terrain( terrain ) );
 
-        layer->setTarget( e->getAttr( "target" ) );
+        layer->setTargetPath( e->getAttr( "target" ) );
 
         XmlNodeList slices = e->getSubElements( "slice" );
         for( XmlNodeList::const_iterator i = slices.begin(); i != slices.end(); i++ )
@@ -392,6 +403,8 @@ XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
         std::string uri = e->getText();
         if ( uri.length() > 0 )
         {
+            uri = PathUtils::getAbsPath( proj->getBaseURI(), uri );
+
             osg::ref_ptr<Project> include_proj = XmlSerializer::loadProject( uri );
             if ( include_proj.valid() )
             {
@@ -404,12 +417,13 @@ XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
 
 
 Project* 
-XmlSerializer::decodeProject( XmlElement* e )
+XmlSerializer::decodeProject( XmlElement* e, const std::string& source_uri )
 {
     Project* project = NULL;
     if ( e )
     {
         project = new Project();
+        project->setSourceURI( source_uri );
         project->setName( e->getAttr( "name" ) );
 
         // includes
@@ -501,7 +515,7 @@ XmlSerializer::readProject( Document* doc )
     if ( doc )
     {
         XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeProject( xml_doc->getSubElement( "project" ) );
+        result = decodeProject( xml_doc->getSubElement( "project" ), xml_doc->getSourceURI() );
     }
     return result;
 }

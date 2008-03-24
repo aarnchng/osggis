@@ -145,9 +145,9 @@ main(int argc, char* argv[])
 
     else // build the requested target.
     {
-        std::string base_uri = osgDB::getFilePath( project_file );
+        //std::string base_uri = osgDB::getFilePath( project_file );
 
-        osgGISProjects::Builder builder( project.get(), base_uri );
+        osgGISProjects::Builder builder( project.get() ); //, base_uri );
         if ( num_threads > 0 )
             builder.setNumThreads( num_threads );
 

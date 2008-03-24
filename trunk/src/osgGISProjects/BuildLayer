@@ -46,6 +46,8 @@ namespace osgGISProjects
 
         void setName( const std::string& name );
         
+        void setBaseURI( const std::string& base_uri );
+        
         Source* getSource();
         
         void setSource( Source* source );
@@ -54,10 +56,12 @@ namespace osgGISProjects
         
         void setTerrain( Terrain* terrain );
         
-        const std::string& getTarget() const;
-        
-        void setTarget( const std::string& uri );
+        void setTargetPath( const std::string& uri );
 
+        const std::string& getTargetPath() const;
+        
+        const std::string getAbsoluteTargetPath() const;
+        
         const BuildLayerSliceList& getSlices() const;
 
         BuildLayerSliceList& getSlices();
@@ -78,10 +82,11 @@ namespace osgGISProjects
         
     private:
         std::string name;
+        std::string base_uri;
         BuildLayerSliceList slices;
         osg::ref_ptr<Source> source;
         osg::ref_ptr<Terrain> terrain;
-        std::string target;
+        std::string target_path;
         LayerType type;
         Properties properties;
     };

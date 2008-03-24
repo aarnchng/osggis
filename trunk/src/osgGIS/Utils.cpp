@@ -1,5 +1,7 @@
 #include <osgGIS/Utils>
 #include <osgDB/FileNameUtils>
+#include <osgDB/FileUtils>
+#include <iostream>
 #include <algorithm>
 
 using namespace osgGIS;
@@ -68,3 +70,12 @@ PathUtils::getAbsPath(const std::string& base_path,
     else
         return combinePaths( base_path, my_path );
 }
+
+
+//bool
+//ArchiveUtils::writeFileToArchive(const std::string& archive_path,
+//                                 const std::string& input_path)
+//{
+//    //TODO
+//    return true;
+//}

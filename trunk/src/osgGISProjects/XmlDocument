@@ -30,7 +30,7 @@ namespace osgGISProjects
     class XmlDocument : public XmlElement, public Document
     {
     public:
-        XmlDocument();
+        XmlDocument( const std::string& source_uri ="" );
         
         virtual ~XmlDocument();
         

@@ -18,8 +18,11 @@
  */
 
 #include <osgGISProjects/Source>
+#include <osgGIS/Utils>
+#include <osgDB/FileNameUtils>
 
 using namespace osgGISProjects;
+using namespace osgGIS;
 
 Source::Source()
 {
@@ -34,6 +37,12 @@ Source::Source( const std::string& _uri )
 Source::~Source()
 {
     //NOP
+}
+
+void
+Source::setBaseURI( const std::string& value )
+{
+    base_uri = value;
 }
 
 void
@@ -58,4 +67,10 @@ const std::string&
 Source::getURI() const
 {
     return uri;
+}
+
+const std::string
+Source::getAbsoluteURI() const
+{
+    return PathUtils::getAbsPath( base_uri, uri );
 }

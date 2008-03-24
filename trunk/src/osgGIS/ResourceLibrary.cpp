@@ -1,4 +1,6 @@
 #include <osgGIS/ResourceLibrary>
+#include <osgDB/Registry>
+#include <osgDB/FileNameUtils>
 #include <OpenThreads/ScopedLock>
 #include <algorithm>
 #include <osg/Notify>
@@ -31,13 +33,16 @@ ResourceLibrary::addResource( Resource* resource )
         {
             SkinResource* skin = static_cast<SkinResource*>( resource );
             skins.push_back( skin );
-            osg::notify( osg::NOTICE ) << "...added skin " << skin->getAbsoluteTexturePath() << std::endl;
+            osg::notify( osg::INFO ) << "...added skin " << skin->getAbsoluteTexturePath() << std::endl;
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
             ModelResource* model = static_cast<ModelResource*>( resource );
             models.push_back( model );
-            osg::notify( osg::NOTICE ) << "...added model " << model->getAbsoluteModelPath() << std::endl;
+            osg::notify( osg::INFO ) << "...added model " << model->getAbsoluteModelPath() << std::endl;
+
+            osgDB::Registry::instance()->getDataFilePathList().push_back(
+                osgDB::getFilePath( model->getAbsoluteModelPath() ) );
         }
     }
 }

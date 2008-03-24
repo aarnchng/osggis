@@ -38,6 +38,12 @@ namespace osgGISProjects
     public:
         Project();
         virtual ~Project();
+        
+        void setSourceURI( const std::string& uri );
+        
+        const std::string& getSourceURI() const;
+        
+        std::string getBaseURI() const;
 
         const std::string& getName() const;
 
@@ -93,6 +99,7 @@ namespace osgGISProjects
         
         
     protected:
+        std::string     source_uri;
         std::string     name;
         FilterGraphList graphs;
         SourceList      sources;

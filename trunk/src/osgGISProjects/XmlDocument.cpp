@@ -24,7 +24,8 @@
 
 using namespace osgGISProjects;
 
-XmlDocument::XmlDocument() : XmlElement( "Document" )
+XmlDocument::XmlDocument( const std::string& _source_uri )
+: Document( _source_uri ), XmlElement( "Document" )
 {
     //NOP
 }

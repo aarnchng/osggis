@@ -28,7 +28,7 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT Builder
     {
     public:
-        Builder( Project* project, const std::string& base_uri );
+        Builder( Project* project ); //, const std::string& base_uri );
         
         /** 
          * Sets the maximum number of parallel threads to use for
@@ -46,7 +46,7 @@ namespace osgGISProjects
         bool build( BuildLayer* layer );
 
     private:
-        std::string base_uri;
+        //std::string base_uri;
         osg::ref_ptr<Project> project;
         int num_threads;
         

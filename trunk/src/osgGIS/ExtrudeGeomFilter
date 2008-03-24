@@ -82,6 +82,10 @@ namespace osgGIS
 
         const std::string& getWallSkinExpr() const;
         
+        void setUseVBOs( bool value );
+        
+        bool getUseVBOs() const;
+        
 
     protected:
         virtual DrawableList process( FeatureList& input, FilterEnv* env );
@@ -100,6 +104,7 @@ namespace osgGIS
         osg::ref_ptr<osg::Texture> active_tex;
         osg::ref_ptr<osg::TexEnv> active_texenv;
         std::string wall_skin_expr;
+        bool use_vbos;
         
         SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
     };
