@@ -83,6 +83,17 @@ namespace osgGIS
          */
         bool getIgnoreZ() const;
 
+        /**
+         * Sets the name of an attribute to which the filter will write the
+         * minimum Z value of the feature after clamping.
+         */
+        void setClampedZOutputAttribute( const std::string& value );
+        
+        /**
+         * Gets the name of an attribute to which the filter will write the
+         * minimum Z value of the feature after clamping.
+         */
+        const std::string& getClampedZOutputAttribute() const;
 
     public:
 
@@ -97,6 +108,7 @@ namespace osgGIS
     private:
         Technique technique;
         bool ignore_z;
+        std::string clamped_z_output_attribute;
     };
 };
 

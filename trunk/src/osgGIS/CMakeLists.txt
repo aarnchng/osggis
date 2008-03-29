@@ -26,6 +26,8 @@ SET(LIB_PUBLIC_HEADERS
     DecimateFilter
     DefaultFeatureStoreFactory
     DensifyFilter
+    DisperseFilter
+    DisperseFilterState
     DrawableFilter
     DrawableFilterState
     Ellipsoid
@@ -93,6 +95,7 @@ SET(LIB_PUBLIC_HEADERS
     Task
     TaskManager
     TerrainUtils
+    TierifyPolygonsFilter
     TransformFilter
     Utils
     WriteTextFilter
@@ -116,6 +119,8 @@ ADD_LIBRARY(${LIB_NAME}
     DecimateFilter.cpp
     DefaultFeatureStoreFactory.cpp
     DensifyFilter.cpp
+    DisperseFilter.cpp
+    DisperseFilterState.cpp
     DrawableFilter.cpp
     DrawableFilterState.cpp
     Ellipsoid.cpp
@@ -172,6 +177,7 @@ ADD_LIBRARY(${LIB_NAME}
     Task.cpp
     TaskManager.cpp
     TerrainUtils.cpp
+    TierifyPolygonsFilter.cpp
     TransformFilter.cpp
     Utils.cpp
     WriteTextFilter.cpp
