@@ -21,6 +21,7 @@
 #include <osgGIS/FeatureFilter>
 #include <osgGIS/DrawableFilterState>
 #include <osgGIS/CollectionFilterState>
+#include <osgGIS/DisperseFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
 
@@ -77,6 +78,11 @@ FeatureFilterState::traverse( FilterEnv* in_env )
             else if ( dynamic_cast<CollectionFilterState*>( next ) )
             {
                 CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
+                state->push( output );
+            }
+            else if ( dynamic_cast<DisperseFilterState*>( next ) )
+            {
+                DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
                 state->push( output );
             }
 

@@ -65,6 +65,18 @@ ClampFilter::getIgnoreZ() const
 }
 
 void
+ClampFilter::setClampedZOutputAttribute( const std::string& value )
+{
+    clamped_z_output_attribute = value;
+}
+
+const std::string&
+ClampFilter::getClampedZOutputAttribute() const
+{
+    return clamped_z_output_attribute;
+}
+
+void
 ClampFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "technique" ) {
@@ -75,6 +87,8 @@ ClampFilter::setProperty( const Property& p )
     }
     else if ( p.getName() == "ignore_z" )
         setIgnoreZ( p.getBoolValue( getIgnoreZ() ) );
+    else if ( p.getName() == "clamped_z_output_attribute" )
+        setClampedZOutputAttribute( p.getValue() );
 
     FeatureFilter::setProperty( p );
 }
@@ -83,26 +97,32 @@ Properties
 ClampFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
+
     p.push_back( Property( "technique",
         getTechnique() == TECHNIQUE_SIMPLE? "simple" :
         getTechnique() == TECHNIQUE_CONFORM? "conform" :
         std::string() ) );
     p.push_back( Property( "ignore_z", getIgnoreZ() ) );
 
+    if ( getClampedZOutputAttribute().length() > 0 )
+        p.push_back( Property( "clamped_z_output_attribute", getClampedZOutputAttribute() ) );
+
     return p;
 }
 
 #define ALTITUDE_EXTENSION 250000
-#define DEFAULT_OFFSET_EXTENSION 1
+#define DEFAULT_OFFSET_EXTENSION 0
 
 int
 clampPointPart(GeoPointList&           part,
                osg::Node*              terrain,
                const SpatialReference* srs,
                bool                    ignore_z,
-               SmartReadCallback*      read_cache )
+               SmartReadCallback*      read_cache,
+               double&                 out_clamped_z )
 {
     int clamps = 0;
+    out_clamped_z = DBL_MAX;
 
     osgUtil::IntersectionVisitor iv;
 
@@ -164,6 +184,20 @@ clampPointPart(GeoPointList&           part,
             clamps++;
             if ( read_cache )
                 read_cache->setMruNode( isect.nodePath.back().get() );
+
+            // record the HAT value:
+            if ( srs->isGeocentric() )
+            {
+                double lat, lon, h;
+                srs->getBasisEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
+                if ( h < out_clamped_z )
+                    out_clamped_z = h;
+            }
+            else
+            {
+                if ( offset_point.z() < out_clamped_z )
+                    out_clamped_z = offset_point.z();
+            }
         }
     }
 
@@ -273,7 +307,8 @@ clampLinePart(GeoPointList&           in_part,
             GeoPointList test( 2 );
             test[0] = p0;
             test[1] = p1;
-            if ( clampPointPart( test, target, srs, ignore_z, NULL ) < 2 )
+            double out_clamped_z = 0.0;
+            if ( clampPointPart( test, target, srs, ignore_z, NULL, out_clamped_z ) < 2 )
             {
                 target = terrain;
             }
@@ -340,10 +375,10 @@ clampPolyPart(GeoPointList&           part,
               osg::Node*              terrain,
               const SpatialReference* srs,
               bool                    ignore_z,
-              SmartReadCallback*      read_cache )
+              SmartReadCallback*      read_cache,
+              double&                 out_clamped_z )
 {
-    //TODO
-    clampPointPart( part, terrain, srs, ignore_z, read_cache );
+    clampPointPart( part, terrain, srs, ignore_z, read_cache, out_clamped_z );
 }
 
 
@@ -375,6 +410,8 @@ ClampFilter::process( Feature* input, FilterEnv* env )
     // if no terrain is set, just pass the data through unaffected.
     if ( terrain )
     {
+        double min_clamped_z = DBL_MAX;
+
         for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
         {
             GeoShape& shape = *i;
@@ -384,10 +421,12 @@ ClampFilter::process( Feature* input, FilterEnv* env )
             {
                 GeoPointList& part = *j;
 
+                double out_clamped_z = DBL_MAX;
+
                 switch( shape.getShapeType() )
                 {
                 case GeoShape::TYPE_POINT:
-                    clampPointPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback() );
+                    clampPointPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
                     break;
 
                 case GeoShape::TYPE_LINE:
@@ -395,17 +434,25 @@ ClampFilter::process( Feature* input, FilterEnv* env )
                     break;
 
                 case GeoShape::TYPE_POLYGON:
-                    clampPolyPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback() );
+                    clampPolyPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
                     break;
                 }
 
                 cleansePart( part );
+
+                if ( out_clamped_z < min_clamped_z )
+                    min_clamped_z = out_clamped_z;
             }
 
             if ( new_parts.size() > 0 )
             {
                 shape.getParts().swap( new_parts );
             }
+        }
+
+        if ( getClampedZOutputAttribute().length() > 0 )
+        {
+            input->setAttribute( getClampedZOutputAttribute(), min_clamped_z );
         }
     }
 

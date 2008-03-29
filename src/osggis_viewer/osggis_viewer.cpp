@@ -80,7 +80,6 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --overlay <filename>       - Loads a compiled feature layer as a projected overlay" << ENDL;
     NOUT << "    --point-size <num>         - Sets the point size (default = 1)" << ENDL;
     NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
-//    NOUT << "    --no-pre-compile           - Disables pre-compilation for the database pager (default = on)" << ENDL;
     NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
     NOUT << "    --frame-rate <fps>         - Sets the target frame rate, disabling VSYNC (default = 60)" << ENDL;
     NOUT << "    --unlit-terrain            - Disables lighting on the first model loaded (the terrain)" << ENDL;

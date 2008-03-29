@@ -3,6 +3,7 @@
 #include <osgDB/FileUtils>
 #include <iostream>
 #include <algorithm>
+#include <float.h>
 
 using namespace osgGIS;
 
@@ -72,10 +73,50 @@ PathUtils::getAbsPath(const std::string& base_path,
 }
 
 
-//bool
-//ArchiveUtils::writeFileToArchive(const std::string& archive_path,
-//                                 const std::string& input_path)
-//{
-//    //TODO
-//    return true;
-//}
+bool
+GeomUtils::isPointInPolygon(const GeoPoint& point,
+                            const GeoPointList& polygon )
+{
+    int i, j;
+    bool result = false;
+    for( i=0, j=polygon.size()-1; i<polygon.size(); j = i++ )
+    {
+        if ((((polygon[i].y() <= point.y()) && (point.y() < polygon[j].y())) ||
+             ((polygon[j].y() <= point.y()) && (point.y() < polygon[i].y()))) &&
+            (point.x() < (polygon[j].x()-polygon[i].x()) * (point.y()-polygon[i].y())/(polygon[j].y()-polygon[i].y())+polygon[i].x()))
+        {
+            result = !result;
+        }
+    }
+    return result;
+}
+
+
+
+
+bool
+GeomUtils::isPolygonCW( const GeoPointList& points )
+{
+    // find the ymin point:
+    double ymin = DBL_MAX;
+    int i_lowest = 0;
+
+    for( GeoPointList::const_iterator i = points.begin(); i != points.end(); i++ )
+    {
+        if ( i->y() < ymin ) 
+        {
+            ymin = i->y();
+            i_lowest = i-points.begin();
+        }
+    }
+
+    // next cross the 2 vector converging at that point:
+    osg::Vec3d p0 = *( points.begin() + ( i_lowest > 0? i_lowest-1 : points.size()-1 ) );
+    osg::Vec3d p1 = *( points.begin() + i_lowest );
+    osg::Vec3d p2 = *( points.begin() + ( i_lowest < points.size()-1? i_lowest+1 : 0 ) );
+
+    osg::Vec3d cp = (p1-p0) ^ (p2-p1);
+
+    //TODO: need to rotate into ref frame - for now just use this filter before xforming
+    return cp.z() > 0;
+}

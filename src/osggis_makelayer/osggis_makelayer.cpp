@@ -94,9 +94,6 @@ bool lighting = true;
 bool geocentric = false;
 bool extrude = false;
 std::string extrude_height_expr;
-bool extrude_range = false;
-double extrude_min_height = -1;
-double extrude_max_height = -1;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
 bool convex_hull = false;
@@ -156,8 +153,6 @@ static void usage( const char* prog, const char* msg )
     //NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure (when using --paged)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Feature options:" << ENDL;
-    NOUT << "    --extrude-height <expr>    - Extrude shapes to this height above the terrain (expression)" << ENDL;
-    NOUT << "    --extrude-range <min,max>  - Randomly extrude shapes to heights in this range" << ENDL;
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
@@ -282,12 +277,6 @@ parseCommandLine( int argc, char** argv )
         extrude_height_expr = str;
     }
 
-    while( arguments.read( "--extrude-range", str ) ) {
-        extrude = true;
-        extrude_range = true;
-        sscanf( str.c_str(), "%lf,%lf", &extrude_min_height, &extrude_max_height );
-    }
-
     while( arguments.read( "--decimate", str ) )
         sscanf( str.c_str(), "%lf", &decimate_threshold );
 
@@ -375,11 +364,6 @@ createFilterGraph()
         //gf->setRandomizeColors( color.a() == 0 );
         if ( extrude_height_expr.length() > 0 ) {
             gf->setHeightExpr( extrude_height_expr );
-        }
-        else if ( extrude_range ) {
-            gf->setMinHeight( extrude_min_height );
-            gf->setMaxHeight( extrude_max_height );
-            gf->setRandomizeHeights( true );
         }
         gf->setColorExpr( color_expr );
         if ( color.a() == 0 )

@@ -19,6 +19,7 @@
 
 #include <osgGIS/NodeFilterState>
 #include <osgGIS/CollectionFilterState>
+#include <osgGIS/DisperseFilterState>
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>
@@ -98,6 +99,11 @@ NodeFilterState::traverse( FilterEnv* in_env )
         else if ( dynamic_cast<CollectionFilterState*>( next ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
+            state->push( out_nodes );
+        }
+        else if ( dynamic_cast<DisperseFilterState*>( next ) )
+        {
+            DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
             state->push( out_nodes );
         }
 

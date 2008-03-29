@@ -18,13 +18,13 @@
  */
 
 #include <osgGIS/CollectionFilterState>
+#include <osgGIS/DisperseFilterState>
 #include <osgGIS/DrawableFilterState>
 #include <osgGIS/FeatureFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
 
 using namespace osgGIS;
-
 
         
 typedef std::map<std::string,FeatureList>   FeatureGroups;
@@ -223,6 +223,35 @@ CollectionFilterState::signalCheckpoint()
         else if ( dynamic_cast<CollectionFilterState*>( next ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );   
+            if ( !features.empty() )
+            {
+                FeatureGroups feature_groups;
+                for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( feature_groups, state, metering, saved_env.get() );
+            }
+            else if ( !drawables.empty() )
+            {
+                DrawableGroups groups;
+                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
+            else if ( !nodes.empty() )
+            {
+                NodeGroups groups;
+                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                ok = meterGroups( groups, state, metering, saved_env.get() );
+            }
+            else
+            {
+                ok = false;         
+            }
+        }
+        else if ( dynamic_cast<DisperseFilterState*>( next ) )
+        {
+            DisperseFilterState* state = static_cast<DisperseFilterState*>( next );   
             if ( !features.empty() )
             {
                 FeatureGroups feature_groups;

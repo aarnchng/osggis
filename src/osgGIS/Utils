@@ -2,6 +2,7 @@
 #define _OSGGIS_UTILS_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/GeoShape>
 #include <osgDB/Archive>
 #include <string>
 
@@ -40,11 +41,23 @@ namespace osgGIS
             const std::string& right );
     };
     
-    struct OSGGIS_EXPORT ArchiveUtils
+    struct OSGGIS_EXPORT GeomUtils
     {
-//        static bool writeFileToArchive(
-//            osgDB::Archive*    archive,
-//            const std::string& abs_path );
+        /**
+         * Returns true if the point lies inside the polygon.
+         *
+         * Note: SRS are ignored; the method assumes the point and the
+         * polygon share the same SRS
+         */
+        static bool isPointInPolygon(
+            const GeoPoint& point,
+            const GeoPointList& polygon );
+            
+        /**
+         * Returns true if the polygon is would clockwise.
+         */
+        static bool isPolygonCW(
+            const GeoPointList& polygon );
     };
 }
 
