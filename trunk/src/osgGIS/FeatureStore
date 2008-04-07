@@ -67,7 +67,7 @@ namespace osgGIS
          * Gets the minimum bounding rectangle containing all the geodata
          * in the feature store.
          */
-		virtual const GeoExtent getExtent() =0;
+		virtual const GeoExtent& getExtent() const =0;
 		
         /**
          * Gets an individual feature from the store.
@@ -79,9 +79,14 @@ namespace osgGIS
 		
         /**
          * Creates a cursor that will iterator over ALL the features in
-         * the backing store.
+         * the backing store, in no particular order.
          */
 		virtual FeatureCursor* createCursor() =0;
+		
+		/**
+		 * Writes a feature to the feature store.
+		 */
+		virtual bool insertFeature( Feature* f ) =0;
 
     public:
 

@@ -18,22 +18,51 @@
  */
 
 #include <osgGIS/FilterGraph>
-#include <osgGIS/CollectionFilterState>
-#include <osgGIS/DrawableFilterState>
 #include <osgGIS/FeatureFilterState>
+#include <osgGIS/DrawableFilterState>
 #include <osgGIS/NodeFilterState>
+#include <osgGIS/CollectionFilterState>
+#include <osgGIS/WriteFeaturesFilter>
+#include <osgGIS/Registry>
 #include <osg/Notify>
 #include <osg/Timer>
 
 using namespace osgGIS;
 
-FilterGraph::FilterGraph()
+FilterGraphResult
+FilterGraphResult::ok()
 {
+    return FilterGraphResult( true );
+}
+
+FilterGraphResult
+FilterGraphResult::error()
+{
+    return FilterGraphResult( false );
+}
+
+FilterGraphResult::FilterGraphResult( bool _is_ok )
+{
+    is_ok = _is_ok;
+}
+
+bool
+FilterGraphResult::isOK() const
+{
+    return is_ok;
 }
 
 
+/*****************************************************************************/
+
+FilterGraph::FilterGraph()
+{
+    //NOP
+}
+
 FilterGraph::~FilterGraph()
 {
+    //NOP
 }
 
 
@@ -82,8 +111,81 @@ FilterGraph::getFilter( const std::string& name )
     return NULL;
 }
 
-bool
-FilterGraph::run( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output )
+
+FilterGraphResult
+FilterGraph::computeFeatureStore(FeatureCursor*     cursor,
+                                 FilterEnv*         env,
+                                 const std::string& output_uri )
+{
+    bool ok = false;
+
+    // first build the filter state chain, validating that there are ONLY feature filters
+    // present. No other filter type is permitted when generating a feature store.
+    osg::ref_ptr<FilterState> first = NULL;
+    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
+    {
+        Filter* filter = i->get();
+
+        if ( !dynamic_cast<FeatureFilter*>( filter ) )
+        {
+            osg::notify(osg::WARN) << "Error: illegal filter of type \"" << filter->getFilterType() << "\" in graph. Only feature features are allowed." << std::endl;
+            return FilterGraphResult::error();
+        }
+
+        FilterState* next_state = filter->newState();
+        if ( !first.valid() )
+        {
+            first = next_state;
+        }
+        else
+        {
+            first->appendState( next_state );
+        }
+    }
+
+    if ( !first.valid() )
+    {
+        osg::notify(osg::WARN) << "Error: filter graph \"" << getName() << "\" is empty." << std::endl;
+        return FilterGraphResult::error();
+    }
+
+    // next, append a WriteFeatures filter that will generate the output
+    // feature store.
+    WriteFeaturesFilter* writer = new WriteFeaturesFilter();
+    writer->setOutputURI( output_uri );
+    //writer->setAppendMode( WriteFeaturesFilter::OVERWRITE );
+
+    first->appendState( writer->newState() );
+
+    // now run the graph.
+    ok = true;
+    int count = 0;
+    osg::Timer_t start = osg::Timer::instance()->tick();
+    
+    env->setOutputSRS( env->getInputSRS() );
+
+    FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
+    while( ok && cursor->hasNext() )
+    {
+        state->push( cursor->next() );
+        ok = state->traverse( env );
+        count++;
+    }
+    if ( ok )
+    {
+        ok = state->signalCheckpoint();
+    }
+
+    osg::Timer_t end = osg::Timer::instance()->tick();
+    double dur = osg::Timer::instance()->delta_s( start, end );
+
+    //writer->finalize();
+
+    return ok? FilterGraphResult::ok() : FilterGraphResult::error();
+}
+
+FilterGraphResult
+FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output )
 {
     bool ok = false;
 
@@ -173,5 +275,5 @@ FilterGraph::run( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output )
         output.insert( output.end(), result.begin(), result.end() );
     }
 
-    return ok;
+    return ok? FilterGraphResult::ok() : FilterGraphResult::error();
 }

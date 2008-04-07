@@ -74,3 +74,59 @@ Source::getAbsoluteURI() const
 {
     return PathUtils::getAbsPath( base_uri, uri );
 }
+
+Properties& 
+Source::getProperties()
+{
+    return props;
+}
+
+const Properties& 
+Source::getProperties() const
+{
+    return props;
+}
+
+void
+Source::setParentSource( Source* value )
+{
+    parent_source = value;
+}
+
+Source*
+Source::getParentSource() const
+{
+    return (const_cast<const Source*>(this))->parent_source.get();
+}
+
+bool
+Source::isIntermediate() const
+{
+    return getParentSource() != NULL;
+}
+
+void 
+Source::setFilterGraph( FilterGraph* value )
+{
+    filter_graph = value;
+}
+
+FilterGraph*
+Source::getFilterGraph() const
+{
+    return (const_cast<const Source*>(this))->filter_graph.get();
+}
+
+bool
+Source::needsRefresh() const
+{
+    //TODO
+    return true;
+}
+
+long
+Source::getTimeLastModified() const
+{
+    //TODO
+    return 0L;
+}

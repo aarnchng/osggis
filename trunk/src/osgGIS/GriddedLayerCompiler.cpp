@@ -19,7 +19,7 @@
 
 #include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/GeoExtent>
-#include <osgGIS/Compiler>
+#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/FadeHelper>
 #include <osgGIS/Task>
 #include <osgGIS/TaskManager>
@@ -254,7 +254,7 @@ private:
         env->setTerrainNode( compiler.getTerrainNode() );
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
-        Compiler compiler( layer.get(), graph );
+        SceneGraphCompiler compiler( layer.get(), graph );
         return compiler.compile( env.get() );
     }
 

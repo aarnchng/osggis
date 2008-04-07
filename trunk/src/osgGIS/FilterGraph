@@ -22,12 +22,31 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/FeatureFilter>
+#include <osgGIS/FeatureStore>
 #include <osgGIS/NodeFilter>
 #include <osgGIS/FilterEnv>
 #include <list>
 
 namespace osgGIS
 {
+    /**
+     * Holds the results of a filter graph run.
+     */
+    class OSGGIS_EXPORT FilterGraphResult
+    {
+    public:
+        static FilterGraphResult ok();
+        static FilterGraphResult error();
+        
+        bool isOK() const;
+        
+    private:
+        FilterGraphResult( bool ok );
+        
+        bool is_ok;
+    };
+    
+    
     /**
      * A chain of data-processing filters.
      *
@@ -74,6 +93,8 @@ namespace osgGIS
         bool appendFilter( Filter* filter );
         
         /**
+         * Runs the graph to generate a scene graph.
+         *
          * Executes the graph by passing features to the first filter in the
          * chain. That filter will process the data, pass the results along to
          * the next filter, and so on until completion.
@@ -82,10 +103,20 @@ namespace osgGIS
          *      Source cursor for features to process
          * @param env
          *      Contextual compilation environment
+         * @param output
+         *      Output node list of compiled scene graph
          * @return
          *      True if the filter chain completed without error; false otherwise.
          */
-        bool run( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output );
+        FilterGraphResult computeNodes( 
+            FeatureCursor* cursor, 
+            FilterEnv*     env,
+            osg::NodeList& output );
+        
+        FilterGraphResult computeFeatureStore(
+            FeatureCursor*              cursor,
+            FilterEnv*                  env,
+            const std::string&          output_uri );
 
         /**
          * Finds a filter by its name. 
@@ -107,7 +138,7 @@ namespace osgGIS
         virtual ~FilterGraph();
 
     private:
-        std::string                 name;
+        std::string name;
         FilterList filters;
     };
 

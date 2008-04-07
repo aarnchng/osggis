@@ -19,7 +19,7 @@
 
 #include <osgGIS/SimpleLayerCompiler>
 #include <osgGIS/FilterGraph>
-#include <osgGIS/Compiler>
+#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/FilterEnv>
 #include <osgGIS/FadeHelper>
 #include <osg/Group>
@@ -45,7 +45,7 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );
-    Compiler compiler( layer, graph );
+    SceneGraphCompiler compiler( layer, graph );
     return compiler.compile( env.get() );
 }
 

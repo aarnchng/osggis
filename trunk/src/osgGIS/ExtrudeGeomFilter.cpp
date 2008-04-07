@@ -18,7 +18,6 @@
  */
 
 #include <osgGIS/ExtrudeGeomFilter>
-#include <osgGIS/ExpressionEvaluator>
 #include <osg/Geometry>
 #include <osg/Texture2D>
 #include <osg/TexEnv>
@@ -87,72 +86,72 @@ ExtrudeGeomFilter::getHeightExpr() const
     return height_expr;
 }
 
-void
-ExtrudeGeomFilter::setRandomizeHeights( bool value )
-{
-    options = value?
-        options | RANDOMIZE_HEIGHTS :
-        options & ~RANDOMIZE_HEIGHTS;
-
-    if ( value )
-    { 
-        struct RandomHeightFunctor : FeatureFunctor<double> {
-            RandomHeightFunctor( ExtrudeGeomFilter* _e ) : e( _e ) { }
-            double get( Feature* f ) {
-                return e->getMinHeight() + FRAND * ( e->getMaxHeight() - e->getMinHeight() );
-            }
-            ExtrudeGeomFilter* e;
-        };
-
-        height_functor = new RandomHeightFunctor( this );
-    }
-    else
-    {
-        height_functor = NULL;
-    }
-}
-
-bool
-ExtrudeGeomFilter::getRandomizeHeights() const
-{
-    return ( options & RANDOMIZE_HEIGHTS ) != 0;
-}
-
-void
-ExtrudeGeomFilter::setMinHeight( double value )
-{
-    min_height = value;
-}
-
-double
-ExtrudeGeomFilter::getMinHeight() const
-{
-    return min_height;
-}
-
-void
-ExtrudeGeomFilter::setMaxHeight( double value )
-{
-    max_height = value;
-}
-
-double
-ExtrudeGeomFilter::getMaxHeight() const
-{
-    return max_height;
-}
-
-void
-ExtrudeGeomFilter::setRandomizeFacadeTextures( bool value )
-{
-    randomize_facade_textures = value;
-}
-
-bool
-ExtrudeGeomFilter::getRandomizeFacadeTextures() const
-{
-    return randomize_facade_textures;
-}
+//void
+//ExtrudeGeomFilter::setRandomizeHeights( bool value )
+//{
+//    options = value?
+//        options | RANDOMIZE_HEIGHTS :
+//        options & ~RANDOMIZE_HEIGHTS;
+//
+//    if ( value )
+//    { 
+//        struct RandomHeightFunctor : FeatureFunctor<double> {
+//            RandomHeightFunctor( ExtrudeGeomFilter* _e ) : e( _e ) { }
+//            double get( Feature* f ) {
+//                return e->getMinHeight() + FRAND * ( e->getMaxHeight() - e->getMinHeight() );
+//            }
+//            ExtrudeGeomFilter* e;
+//        };
+//
+//        height_functor = new RandomHeightFunctor( this );
+//    }
+//    else
+//    {
+//        height_functor = NULL;
+//    }
+//}
+//
+//bool
+//ExtrudeGeomFilter::getRandomizeHeights() const
+//{
+//    return ( options & RANDOMIZE_HEIGHTS ) != 0;
+//}
+//
+//void
+//ExtrudeGeomFilter::setMinHeight( double value )
+//{
+//    min_height = value;
+//}
+//
+//double
+//ExtrudeGeomFilter::getMinHeight() const
+//{
+//    return min_height;
+//}
+//
+//void
+//ExtrudeGeomFilter::setMaxHeight( double value )
+//{
+//    max_height = value;
+//}
+//
+//double
+//ExtrudeGeomFilter::getMaxHeight() const
+//{
+//    return max_height;
+//}
+//
+//void
+//ExtrudeGeomFilter::setRandomizeFacadeTextures( bool value )
+//{
+//    randomize_facade_textures = value;
+//}
+//
+//bool
+//ExtrudeGeomFilter::getRandomizeFacadeTextures() const
+//{
+//    return randomize_facade_textures;
+//}
 
 void
 ExtrudeGeomFilter::setWallSkinExpr( const std::string& value )
@@ -183,14 +182,14 @@ ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
         setHeightExpr( p.getValue() );
-    else if ( p.getName() == "min_height" )
-        setMinHeight( p.getDoubleValue( getMinHeight() ) );
-    else if ( p.getName() == "max_height" )
-        setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
-    else if ( p.getName() == "randomize_heights" )
-        setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
-    else if ( p.getName() == "randomize_facade_textures" )
-        setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
+    //else if ( p.getName() == "min_height" )
+    //    setMinHeight( p.getDoubleValue( getMinHeight() ) );
+    //else if ( p.getName() == "max_height" )
+    //    setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
+    //else if ( p.getName() == "randomize_heights" )
+    //    setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
+    //else if ( p.getName() == "randomize_facade_textures" )
+    //    setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
     else if ( p.getName() == "wall_skin" )
         setWallSkinExpr( p.getValue() );
     else if ( p.getName() == "use_vbos" )
@@ -205,10 +204,10 @@ ExtrudeGeomFilter::getProperties() const
     Properties p = BuildGeomFilter::getProperties();
     if ( getHeightExpr().length() > 0 )
         p.push_back( Property( "height", getHeightExpr() ) );
-    p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
-    p.push_back( Property( "min_height", getMinHeight() ) );
-    p.push_back( Property( "max_height", getMaxHeight() ) );
-    p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
+    //p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
+    //p.push_back( Property( "min_height", getMinHeight() ) );
+    //p.push_back( Property( "max_height", getMaxHeight() ) );
+    //p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
     if ( getWallSkinExpr().length() > 0 )
         p.push_back( Property( "wall_skin", getWallSkinExpr() ) );
     if ( getUseVBOs() != DEFAULT_USE_VBOS )

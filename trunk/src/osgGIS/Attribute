@@ -21,8 +21,10 @@
 #define _OSGGIS_ATTRIBUTE_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/Property>
 #include <string>
 #include <map>
+#include <list>
 
 namespace osgGIS
 {
@@ -81,6 +83,34 @@ namespace osgGIS
     };
 
     typedef std::map<std::string,Attribute> AttributeTable;
+    
+    typedef std::list<Attribute> AttributeList;
+    
+    
+    class OSGGIS_EXPORT AttributeSchema
+    {
+    public:
+        AttributeSchema() { }
+        
+        AttributeSchema( const std::string& attr_name, const Attribute::Type& type );
+        
+        AttributeSchema( const std::string& attr_name, const Attribute::Type& type, const Properties& props );
+        
+        const std::string& getName() const;
+        
+        const Attribute::Type& getType() const;
+        
+        const Properties& getProperties() const;
+        
+    private:
+        std::string     name;
+        Attribute::Type type;
+        Properties      props;
+    };
+    
+    typedef std::map<std::string,AttributeSchema> AttributeSchemaTable;
+    
+    typedef std::list<AttributeSchema> AttributeSchemaList;
 }
 
 #endif // _OSGGIS_ATTRIBUTE_H_

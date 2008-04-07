@@ -43,12 +43,6 @@ DefaultFeatureStoreFactory::connectToFeatureStore( const std::string& uri )
 {
 	FeatureStore* result = NULL;
 
-	//// ESRI shapefile:
-	//if ( osgDB::fileExists( uri ) && osgDB::getLowerCaseFileExtension( uri ) == "shp" )
-	//{
-	//	result = new OGR_FeatureStore( uri );		
-	//}
-
     result = new OGR_FeatureStore( uri );
 
 	if ( !result )
@@ -63,4 +57,18 @@ DefaultFeatureStoreFactory::connectToFeatureStore( const std::string& uri )
 	}
 
 	return result;
+}
+
+FeatureStore*
+DefaultFeatureStoreFactory::createFeatureStore(const std::string& uri, 
+                                               const GeoShape::ShapeType& type, 
+                                               const AttributeSchemaList& schemas,
+                                               int   dimensionality,
+                                               const Properties& props )
+{
+    FeatureStore* result = NULL;
+
+    result = new OGR_FeatureStore( uri, type, schemas, dimensionality, props );
+
+    return result;
 }

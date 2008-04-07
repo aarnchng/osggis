@@ -155,3 +155,41 @@ Attribute::asBool()
                string_value == "t" || string_value == "y";
     }
 }
+
+
+/*****************************************************************************/
+
+
+AttributeSchema::AttributeSchema(const std::string&     _attr_name,
+                                 const Attribute::Type& _attr_type )
+{
+    name = _attr_name;
+    type = _attr_type;
+}
+        
+AttributeSchema::AttributeSchema(const std::string&     _attr_name,
+                                 const Attribute::Type& _attr_type,
+                                 const Properties&      _props )
+{
+    name = _attr_name;
+    type = _attr_type;
+    props = _props;
+}
+        
+const std::string&
+AttributeSchema::getName() const
+{
+    return name;
+}
+
+const Attribute::Type& 
+AttributeSchema::getType() const
+{
+    return type;
+}
+
+const Properties& 
+AttributeSchema::getProperties() const
+{
+    return props;
+}

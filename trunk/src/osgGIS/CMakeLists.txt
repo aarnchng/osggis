@@ -10,6 +10,7 @@ SET(LIB_NAME osgGIS)
 
 SET(LIB_PUBLIC_HEADERS
     Attribute
+    AttributeIndex
     AutoResetBlock
     BuildGeomFilter
     BuildLabelsFilter
@@ -21,7 +22,6 @@ SET(LIB_PUBLIC_HEADERS
     Common
     ConvexHullFilter
     CombineLinesFilter
-    Compiler
     CropFilter
     DecimateFilter
     DefaultFeatureStoreFactory
@@ -32,7 +32,6 @@ SET(LIB_PUBLIC_HEADERS
     DrawableFilterState
     Ellipsoid
     Export
-    ExpressionEvaluator
     ExtrudeGeomFilter
     FadeHelper
     Feature
@@ -41,6 +40,7 @@ SET(LIB_PUBLIC_HEADERS
     FeatureFilterState
     FeatureLayer
     FeatureStore
+    FeatureStoreCompiler
     FeatureStoreFactory
     Filter
     FilterGraph
@@ -75,6 +75,7 @@ SET(LIB_PUBLIC_HEADERS
     ResourceLibrary
     RTree
     RTreeSpatialIndex
+    SceneGraphCompiler
     Script
     ScriptEngine
     SelectFilter
@@ -98,6 +99,7 @@ SET(LIB_PUBLIC_HEADERS
     TierifyPolygonsFilter
     TransformFilter
     Utils
+    WriteFeaturesFilter
     WriteTextFilter
 )
 
@@ -113,7 +115,6 @@ ADD_LIBRARY(${LIB_NAME}
     CollectionFilter.cpp
     CollectionFilterState.cpp
     CombineLinesFilter.cpp
-    Compiler.cpp
     ConvexHullFilter.cpp
     CropFilter.cpp
     DecimateFilter.cpp
@@ -124,7 +125,6 @@ ADD_LIBRARY(${LIB_NAME}
     DrawableFilter.cpp
     DrawableFilterState.cpp
     Ellipsoid.cpp
-    ExpressionEvaluator.cpp
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp
     Feature.cpp
@@ -132,6 +132,7 @@ ADD_LIBRARY(${LIB_NAME}
     FeatureFilter.cpp
     FeatureFilterState.cpp
     FeatureLayer.cpp
+    FeatureStoreCompiler.cpp
     Filter.cpp
     FilterGraph.cpp
     FilterState.cpp
@@ -164,6 +165,7 @@ ADD_LIBRARY(${LIB_NAME}
     Resource.cpp
     ResourceLibrary.cpp
     RTreeSpatialIndex.cpp
+    SceneGraphCompiler.cpp
     Script.cpp
     SelectFilter.cpp
     Session.cpp
@@ -180,6 +182,7 @@ ADD_LIBRARY(${LIB_NAME}
     TierifyPolygonsFilter.cpp
     TransformFilter.cpp
     Utils.cpp
+    WriteFeaturesFilter.cpp
     WriteTextFilter.cpp
 )
 

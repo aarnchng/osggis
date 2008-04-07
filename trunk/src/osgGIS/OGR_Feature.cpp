@@ -83,21 +83,6 @@ OGR_Feature::getExtent() const
 }
 
 
-//void
-//OGR_Feature::dirtyExtent()
-//{
-//    int j=0;
-//    for( GeoShapeList::iterator i = getShapes().begin(); i != getShapes().end(); i++, j++ )
-//    {
-//        GeoShape& shape = *i;
-//        if ( j == 0 )
-//            extent = shape.getExtent();
-//        else
-//            extent.expandToInclude( shape.getExtent() );
-//    }
-//}
-
-
 void
 OGR_Feature::load( void* handle )
 {
@@ -225,7 +210,7 @@ OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_
 Attribute
 OGR_Feature::getAttribute( const std::string& key ) const
 {
-    // GW: need a mutex here? is there any caching going on? Ideally,
+    // TODO: need a mutex here? is there any caching going on? Ideally,
     // each OGR_Feature instance is unique relative to the compilation
     // context.
     AttributeTable::const_iterator i = getUserAttrs().find( key );
@@ -241,7 +226,8 @@ OGR_Feature::getAttribute( const std::string& key ) const
         {
             void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, index );
             OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
-            switch( ft ) {
+            switch( ft )
+            {
                 case OFTInteger:
                     return Attribute( key, OGR_F_GetFieldAsInteger( handle, index ) );
                     break;
@@ -256,4 +242,99 @@ OGR_Feature::getAttribute( const std::string& key ) const
     }  
 
     return invalid_attr;
+}
+
+
+AttributeList
+OGR_Feature::getAttributes() const
+{
+    AttributeTable attrs;
+
+    // accumulate the attrs from the store:
+    OGR_SCOPE_LOCK();
+    int count = OGR_F_GetFieldCount( handle );
+    for( int i=1; i<=count; i++ )
+    {
+        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
+        const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
+        attrs[ std::string(field_name) ] = getAttribute( std::string(field_name) );
+    }
+
+    // finally add in the user attrs (overwriting the store attrs if necessary)
+    for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end() ; i++ )
+        attrs[ (*i).first ] = (*i).second;
+
+    // shove it all into a list
+    AttributeList result( attrs.size() );
+    for( AttributeTable::const_iterator i = attrs.begin(); i != attrs.end(); i++ )
+        result.push_back( (*i).second );
+
+    return result;
+}
+
+
+AttributeSchemaList
+OGR_Feature::getAttributeSchemas() const
+{
+    AttributeSchemaTable table;
+
+    // first collect the in-store attrs:
+    OGR_SCOPE_LOCK();
+    int count = OGR_F_GetFieldCount( handle );
+    for( int i=0; i<count; i++ )
+    {
+        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
+
+        OGRFieldType field_type  = OGR_Fld_GetType( field_handle_ref );
+        const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
+        int          field_width = OGR_Fld_GetWidth( field_handle_ref );
+        int          field_just  = OGR_Fld_GetJustify( field_handle_ref );
+        int          field_prec  = OGR_Fld_GetPrecision( field_handle_ref );
+
+        Attribute::Type type;
+        Properties props;
+
+        switch( field_type )
+        {
+        case OFTInteger:
+            type = Attribute::TYPE_INT;
+            props.push_back( Property( "width", field_width ) );
+            props.push_back( Property( "precision", field_prec ) );
+            break;
+
+        case OFTReal:
+            type = Attribute::TYPE_DOUBLE;
+            props.push_back( Property( "width", field_width ) );
+            props.push_back( Property( "precision", field_prec ) );
+            break;
+
+        case OFTString:
+            type = Attribute::TYPE_STRING;
+            props.push_back( Property( "width", field_width ) );
+            props.push_back( Property( "justification", field_just ) );
+            break;
+
+        default:
+            type = Attribute::TYPE_UNSPECIFIED;
+        }
+
+        std::string name(field_name);
+        table[ name ] = AttributeSchema( name, type, props );
+    }
+
+    // collect the user attrs second:
+    for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end(); i++ )
+    {
+        table[ i->first ] = AttributeSchema( i->first, i->second.getType(), Properties() );
+    }
+
+    // convert to a list
+    AttributeSchemaList result;
+
+    for( AttributeSchemaTable::const_iterator i = table.begin(); i != table.end(); i++ )
+    {
+        result.push_back( i->second );
+    }
+
+    return result;
 }

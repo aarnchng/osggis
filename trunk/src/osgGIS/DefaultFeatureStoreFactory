@@ -21,6 +21,7 @@
 #define _OSGGIS_DEFAULTFEATURESTOREFACTORY_H_ 1
 
 #include <osgGIS/FeatureStoreFactory>
+#include <osgGIS/Property>
 
 namespace osgGIS
 {
@@ -40,6 +41,13 @@ namespace osgGIS
 	public: // FeatureStoreFactory
 
 		FeatureStore* connectToFeatureStore( const std::string& uri );
+		
+		FeatureStore* createFeatureStore(
+		    const std::string&         uri,
+		    const GeoShape::ShapeType& type,
+		    const AttributeSchemaList& schema,
+            int   dimensionality,
+            const Properties& props );
 	};
 }
 

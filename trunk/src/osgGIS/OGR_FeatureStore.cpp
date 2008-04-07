@@ -22,12 +22,15 @@
 #include <osgGIS/OGR_SpatialReference>
 #include <osgGIS/OGR_Utils>
 #include <osgGIS/FeatureCursorImpl>
-#include <ogr_api.h>
+#include <osgDB/FileNameUtils>
 #include <osg/Notify>
+#include <ogr_api.h>
+
 
 using namespace osgGIS;
 
 
+// opening an existing feature store.
 OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
 : extent( GeoExtent::invalid() )
 {
@@ -44,6 +47,90 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
             supports_random_read = OGR_L_TestCapability( layer_handle, OLCRandomRead ) == TRUE;
         }
 	}
+}
+
+
+// creating a new feautre store.
+OGR_FeatureStore::OGR_FeatureStore(const std::string&         abs_path,
+                                   const GeoShape::ShapeType& shape_type,
+                                   const AttributeSchemaList& schemas,
+                                   int                        dimensionality,
+                                   const Properties&          props )
+: extent( GeoExtent::invalid() )
+{
+    OGR_SCOPE_LOCK();
+
+    uri = abs_path;
+    supports_random_read = false;
+
+    // pull the appropriate OGR driver, defaulting to shapefile.
+    std::string driver_name = props.getValue( "ogr-driver", "ESRI Shapefile" );
+    OGRSFDriverH driver_handle = OGRGetDriverByName( driver_name.c_str() );
+    if ( driver_handle )
+    {
+        std::string dir_name = osgDB::getFilePath( abs_path );
+        ds_handle = OGR_Dr_CreateDataSource( driver_handle, dir_name.c_str(), NULL );
+        if ( ds_handle )
+        {
+            std::string layer_name = osgDB::getStrippedName( abs_path );
+
+            OGRwkbGeometryType geom_type;
+            
+            if ( dimensionality > 2 )
+            {
+                geom_type =
+                    shape_type == GeoShape::TYPE_POINT ?   wkbMultiPoint25D :
+                    shape_type == GeoShape::TYPE_POLYGON ? wkbMultiPolygon25D :
+                    shape_type == GeoShape::TYPE_LINE ?    wkbMultiLineString25D :
+                    wkbNone;
+            }
+            else
+            {
+                geom_type =
+                    shape_type == GeoShape::TYPE_POINT ?   wkbMultiPoint :
+                    shape_type == GeoShape::TYPE_POLYGON ? wkbMultiPolygon :
+                    shape_type == GeoShape::TYPE_LINE ?    wkbMultiLineString :
+                    wkbNone;
+            }
+
+            OGRSpatialReferenceH srs_handle = NULL; //TODO
+
+            layer_handle = OGR_DS_CreateLayer( ds_handle, layer_name.c_str(), srs_handle, geom_type, NULL );
+            if ( layer_handle )
+            {
+                // create the field schema:
+                for( AttributeSchemaList::const_iterator i = schemas.begin(); i != schemas.end(); i++ )
+                {
+                    const AttributeSchema& schema = *i;
+
+                    OGRFieldType field_type =
+                        schema.getType() == Attribute::TYPE_DOUBLE ? OFTReal :
+                        schema.getType() == Attribute::TYPE_INT ?    OFTInteger :
+                        schema.getType() == Attribute::TYPE_STRING ? OFTString :
+                        OFTString;
+
+                    OGRFieldDefnH field_handle = ::OGR_Fld_Create( schema.getName().c_str(), field_type );
+
+                    if ( schema.getProperties().exists( "justification" ) )
+                        OGR_Fld_SetJustify( field_handle, (OGRJustification)schema.getProperties().getIntValue( "justification", 0 ) );
+
+                    if ( schema.getProperties().exists( "width" ) )
+                        OGR_Fld_SetWidth( field_handle, schema.getProperties().getIntValue( "width", 11 ) );
+
+                    if ( schema.getProperties().exists( "precision" ) )
+                        OGR_Fld_SetPrecision( field_handle, schema.getProperties().getIntValue( "precision", 8 ) );
+
+                    //TODO: handle return error:
+                    if ( OGR_L_CreateField( layer_handle, field_handle, true ) != OGRERR_NONE )
+                    {
+                        osg::notify(osg::WARN) << "Error: OGR_FeatureStore: OGR_L_CreateField failed" << std::endl;
+                    }
+
+                    OGR_Fld_Destroy( field_handle );
+                }
+            }
+        }
+    }
 }
 
 
@@ -159,45 +246,182 @@ OGR_FeatureStore::getFeatureCount() const
 }
 
 
-const GeoExtent
-OGR_FeatureStore::getExtent()
+const GeoExtent&
+OGR_FeatureStore::getExtent() const
 {
-	if ( !extent.isValid() )
+    if ( !extent.isValid() )
+    {
+        (const_cast<OGR_FeatureStore*>(this))->calcExtent();
+    }
+    return extent;
+}
+
+void
+OGR_FeatureStore::calcExtent()
+{
+    OGR_SCOPE_LOCK();
+
+	OGREnvelope envelope;
+
+	if ( OGR_L_GetExtent( layer_handle, &envelope, 1 ) == OGRERR_NONE )
 	{
-        OGR_SCOPE_LOCK();
+		SpatialReference* sr = getSRS();
 
-		OGREnvelope envelope;
-
-		if ( OGR_L_GetExtent( layer_handle, &envelope, 1 ) == OGRERR_NONE )
-		{
-			SpatialReference* sr = getSRS();
-
-			extent = GeoExtent(
-				GeoPoint( envelope.MinX, envelope.MinY, sr ),
-				GeoPoint( envelope.MaxX, envelope.MaxY, sr ),
-				sr );
-		}
-		else
-		{
-			osg::notify( osg::WARN ) << "Unable to compute extent for feature store" << std::endl;
-            extent = GeoExtent::invalid();
-		}
-
-		if ( extent.isValid() && extent.isEmpty() )
-		{
-            osg::ref_ptr<FeatureCursor> cursor = createCursor();
-			while( cursor->hasNext() )
-			{
-				Feature* feature = cursor->next();
-                const GeoShapeList& shapes = feature->getShapes();
-                for( GeoShapeList::const_iterator i = shapes.begin(); i != shapes.end(); i++ )
-                {
-                    const GeoExtent& feature_extent = i->getExtent();
-				    extent.expandToInclude( feature_extent );
-                }
-			}
-		}
+		extent = GeoExtent(
+			GeoPoint( envelope.MinX, envelope.MinY, sr ),
+			GeoPoint( envelope.MaxX, envelope.MaxY, sr ),
+			sr );
+	}
+	else
+	{
+		osg::notify( osg::WARN ) << "Unable to compute extent for feature store" << std::endl;
+        extent = GeoExtent::invalid();
 	}
 
-	return extent;
+	if ( extent.isValid() && extent.isEmpty() )
+	{
+        osg::ref_ptr<FeatureCursor> cursor = createCursor();
+		while( cursor->hasNext() )
+		{
+			Feature* feature = cursor->next();
+            const GeoShapeList& shapes = feature->getShapes();
+            for( GeoShapeList::const_iterator i = shapes.begin(); i != shapes.end(); i++ )
+            {
+                const GeoExtent& feature_extent = i->getExtent();
+			    extent.expandToInclude( feature_extent );
+            }
+		}
+	}
+}
+
+
+static OGRGeometryH
+encodePart( const GeoPointList& part, OGRwkbGeometryType part_type )
+{
+    OGRGeometryH part_handle = OGR_G_CreateGeometry( part_type );
+
+    for( int v = part.size()-1; v >= 0; v-- )
+    {
+        const GeoPoint& p = part[v];
+        if ( p.getDim() > 2 )
+            OGR_G_AddPoint( part_handle, p.x(), p.y(), p.z() );
+        else
+            OGR_G_AddPoint_2D( part_handle, p.x(), p.y() );
+    }
+
+    return part_handle;
+}
+
+
+static OGRGeometryH
+encodeShape( const GeoShape& shape, OGRwkbGeometryType shape_type, OGRwkbGeometryType part_type )
+{
+    OGRGeometryH shape_handle = OGR_G_CreateGeometry( shape_type );
+    if ( shape_handle )
+    {
+        for( GeoPartList::const_iterator i = shape.getParts().begin(); i != shape.getParts().end(); i++ )
+        {
+            OGRGeometryH part_handle = encodePart( *i, part_type );
+            if ( part_handle )
+            {
+                OGR_G_AddGeometryDirectly( shape_handle, part_handle );
+            }
+        }
+    }
+    return shape_handle;
+}
+
+
+bool
+OGR_FeatureStore::insertFeature( Feature* input )
+{
+    OGR_SCOPE_LOCK();
+    OGRFeatureH feature_handle = OGR_F_Create( OGR_L_GetLayerDefn( layer_handle ) );
+    if ( feature_handle )
+    {
+        // assign the attributes:
+        int num_fields = OGR_F_GetFieldCount( feature_handle );
+        for( int i=0; i<num_fields; i++ )
+        {
+            OGRFieldDefnH field_handle_ref = OGR_F_GetFieldDefnRef( feature_handle, i );
+            std::string name = OGR_Fld_GetNameRef( field_handle_ref );
+            int field_index = OGR_F_GetFieldIndex( feature_handle, name.c_str() );
+            Attribute attr = input->getAttribute( name );
+            if ( attr.isValid() )
+            {
+                switch( OGR_Fld_GetType( field_handle_ref ) )
+                {
+                case OFTInteger:
+                    OGR_F_SetFieldInteger( feature_handle, field_index, attr.asInt() );
+                    break;
+                case OFTReal:
+                    OGR_F_SetFieldDouble( feature_handle, field_index, attr.asDouble() );
+                    break;
+                case OFTString:
+                    OGR_F_SetFieldString( feature_handle, field_index, attr.asString() );
+                    break;                    
+                }
+            }
+        }
+
+        // assign the geometry:
+        OGRFeatureDefnH def = ::OGR_L_GetLayerDefn( layer_handle );
+
+        OGRwkbGeometryType singleton_type = OGR_FD_GetGeomType( def );
+
+        OGRwkbGeometryType group_type = 
+            singleton_type == wkbPolygon? wkbMultiPolygon : 
+            singleton_type == wkbPolygon25D? wkbMultiPolygon25D :
+            wkbGeometryCollection;
+
+        OGRwkbGeometryType shape_type =
+            singleton_type == wkbPolygon? wkbPolygon :
+            singleton_type == wkbPolygon25D? wkbPolygon25D :
+            singleton_type == wkbLineString? wkbMultiLineString :
+            singleton_type == wkbLineString25D? wkbMultiLineString25D :
+            singleton_type == wkbPoint? wkbMultiPoint :
+            singleton_type == wkbPoint25D? wkbMultiPoint25D :
+            wkbNone;
+
+        OGRwkbGeometryType part_type =
+            singleton_type == wkbPolygon? wkbLinearRing :
+            singleton_type == wkbPolygon25D? wkbLinearRing :
+            singleton_type;
+
+        OGRGeometryH group_handle = OGR_G_CreateGeometry( group_type );
+
+        for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
+        {
+            OGRGeometryH shape_handle = encodeShape( *j, shape_type, part_type );
+            if ( shape_handle )
+            {
+                if ( OGR_G_AddGeometryDirectly( group_handle, shape_handle ) != OGRERR_NONE )
+                {
+                    osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_G_AddGeometryDirectly failed!" << std::endl;
+                }
+            }
+        }
+
+        // transfers ownership to the feature:
+        OGR_F_SetGeometryDirectly( feature_handle, group_handle );
+
+        if ( OGR_L_CreateFeature( layer_handle, feature_handle ) != OGRERR_NONE )
+        {
+            //TODO: handle error better
+            osg::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_L_CreateFeature failed!" << std::endl;
+            OGR_F_Destroy( feature_handle );
+            return false;
+        }
+
+        // clean up the feature
+        OGR_F_Destroy( feature_handle );
+    }
+    else
+    {
+            //TODO: handle error better
+        osg::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_F_Create failed." << std::endl;
+        return false;
+    }
+
+    return true;
 }

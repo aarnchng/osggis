@@ -62,21 +62,21 @@ namespace osgGIS
 
         const std::string& getHeightExpr() const;
 
-        void setMinHeight( double value );
+//        void setMinHeight( double value );
         
-        double getMinHeight() const;
+//        double getMinHeight() const;
         
-        void setMaxHeight( double value );
+//        void setMaxHeight( double value );
         
-        double getMaxHeight() const;
+//        double getMaxHeight() const;
         
-        void setRandomizeHeights( bool value );
+//        void setRandomizeHeights( bool value );
         
-        bool getRandomizeHeights() const;
+//        bool getRandomizeHeights() const;
 
-        void setRandomizeFacadeTextures( bool value );
+//        void setRandomizeFacadeTextures( bool value );
         
-        bool getRandomizeFacadeTextures() const;
+//        bool getRandomizeFacadeTextures() const;
 
         void setWallSkinExpr( const std::string& expr );
 
