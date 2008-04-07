@@ -74,14 +74,15 @@ namespace osgGIS
     class OSGGIS_EXPORT Properties : public std::vector<Property>
     {
     public:
-        int getIntValue( const std::string& name, int def );
-        float getFloatValue( const std::string& name, float def );
-        double getDoubleValue( const std::string& name, double def );
-        bool getBoolValue( const std::string& name, bool def );
-        osg::Vec2 getVec2Value( const std::string& name );
-        osg::Vec3 getVec3Value( const std::string& name );
-        osg::Vec4 getVec4Value( const std::string& name );
-        std::string getValue( const std::string& name, std::string def );
+        bool exists( const std::string& name ) const;
+        int getIntValue( const std::string& name, int def ) const;
+        float getFloatValue( const std::string& name, float def ) const;
+        double getDoubleValue( const std::string& name, double def ) const;
+        bool getBoolValue( const std::string& name, bool def ) const;
+        osg::Vec2 getVec2Value( const std::string& name ) const;
+        osg::Vec3 getVec3Value( const std::string& name ) const;
+        osg::Vec4 getVec4Value( const std::string& name ) const;
+        std::string getValue( const std::string& name, std::string def ) const;
         osg::Referenced* getRefValue( const std::string& name );
         void remove( const std::string& key );
         Property get( const std::string& name ) const;

@@ -49,6 +49,9 @@ namespace osgGIS
         void setHeightScript( Script* value );
         Script* getHeightScript() const;
         
+        void setOutputHeightAttribute( const std::string& value );
+        const std::string& getOutputHeightAttribute() const;
+        
     public:
         FeatureList process( FeatureList& input, FilterEnv* env );
         
@@ -58,6 +61,7 @@ namespace osgGIS
         
     private:
         osg::ref_ptr<Script> height_script;
+        std::string output_height_attr;
     };
 }
 

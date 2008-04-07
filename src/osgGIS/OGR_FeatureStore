@@ -30,7 +30,14 @@ namespace osgGIS
 	class OGR_FeatureStore : public osgGIS::FeatureStore
 	{
 	public:
-		OGR_FeatureStore( const std::string& uri );
+		OGR_FeatureStore(const std::string& uri );
+		
+        OGR_FeatureStore(
+            const std::string&         abs_path,
+            const GeoShape::ShapeType& shape_type,
+            const AttributeSchemaList& schemas,
+            int                        dimensionality,
+            const Properties&          props );
 		
 	public: // osgGIS::FeatureStore
 	
@@ -46,9 +53,11 @@ namespace osgGIS
 		
 		int getFeatureCount() const;
 		
-		const GeoExtent getExtent();
+		const GeoExtent& getExtent() const;
 
         bool supportsRandomRead() const;
+                        
+        bool insertFeature( Feature* input );
 		
 	public:
 		virtual ~OGR_FeatureStore();
@@ -60,6 +69,8 @@ namespace osgGIS
 		osg::ref_ptr<SpatialReference> spatial_ref;
 		GeoExtent extent;
         bool supports_random_read;
+        
+        void calcExtent();
 	};
 }
 

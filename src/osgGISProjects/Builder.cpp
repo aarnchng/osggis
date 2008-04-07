@@ -26,6 +26,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Resource>
+#include <osgGIS/FeatureStoreCompiler>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -38,34 +39,47 @@
 using namespace osgGISProjects;
 using namespace osgGIS;
 
-Builder::Builder( Project* _project ) //, const std::string& _base_uri )
+/*** Statics ********************************************************/
+
+static bool
+getTerrainData(Terrain*                        terrain,
+               osg::ref_ptr<osg::Node>&        out_terrain_node,
+               osg::ref_ptr<SpatialReference>& out_terrain_srs,
+               GeoExtent&                      out_terrain_extent)
 {
-    project = _project;
-    //base_uri = _base_uri;
-    num_threads = 0;
+    if ( terrain && terrain->getURI().length() > 0 )
+    {
+        out_terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() );
+        if ( out_terrain_node.valid() )
+        {
+            out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
+        }
+        else
+        {
+            osg::notify( osg::WARN )
+                << "Unable to load data for terrain \""
+                << terrain->getName() << "\"." 
+                << std::endl;
+
+            return false;
+        }
+    }
+    
+    out_terrain_extent = GeoExtent(
+        -180, -90, 180, 90, 
+        Registry::instance()->getSRSFactory()->createWGS84() );
+
+    return true;
 }
 
 
-//static bool
-//isUriRooted( const std::string& path )
-//{
-//    //TODO
-//    return false;
-//}
-//
-//
-//std::string
-//Builder::resolveURI( const std::string& input )
-//{
-//    if ( isUriRooted( input ) || base_uri.length() == 0 )
-//    {
-//        return input;
-//    }
-//    else
-//    {
-//        return osgDB::concatPaths( base_uri, input );
-//    }
-//}
+/*** Class methods ***************************************************/
+
+Builder::Builder( Project* _project )
+{
+    project = _project;
+    num_threads = 0;
+}
 
 void
 Builder::setNumThreads( int _num_threads )
@@ -138,6 +152,68 @@ Builder::build( BuildTarget* target )
 }
 
 
+// builds a source, if necessary.
+bool
+Builder::build( Source* source, Session* session )
+{
+    osg::notify(osg::NOTICE) << "Building source " << source->getName() << std::endl;
+
+    // only need to build intermediate sources.
+    if ( !source->isIntermediate() )
+    {
+        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building." << std::endl;
+        return true;
+    }
+
+    Source* parent = source->getParentSource();
+    if ( !parent )
+    {
+        osg::notify(osg::WARN) << "No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
+        return false;
+    }
+
+    // build it's parent first:
+    if ( !build( parent, session ) )
+    {
+        osg::notify(osg::WARN) << "Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
+        return false;
+    }
+
+    // validate the existence of a filter graph:
+    FilterGraph* graph = source->getFilterGraph();
+    if ( !graph )
+    {
+        osg::notify(osg::WARN) << "No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
+        return false;
+    }
+
+    // establish a feature layer for the parent source:
+    osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
+        parent->getAbsoluteURI() );
+    if ( !feature_layer.valid() )
+    {
+        osg::notify( osg::WARN ) << "Cannot access source \"" << source->getName() << "\"" << std::endl;
+        return false;
+    }
+
+    //TODO: should we allow terrains for a source compile?? No. Because we would need to transform
+    // the source into terrain SRS space, which we do not want to do until we're building nodes.
+
+    // initialize a source data compiler:
+    osg::ref_ptr<FilterEnv> source_env = session->createFilterEnv();
+
+    FeatureStoreCompiler compiler( feature_layer.get(), graph );
+
+    if ( !compiler.compile( source->getAbsoluteURI(), source_env.get() ) )
+    {
+        osg::notify( osg::WARN ) << "Error compiling source \"" << source->getName() << "\"" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+
 bool
 Builder::build( BuildLayer* layer )
 {        
@@ -166,6 +242,15 @@ Builder::build( BuildLayer* layer )
         return false;
     }
 
+    // recursively build any sources that need building.
+    if ( !build( source, session.get() ) )
+    {
+        osg::notify( osg::WARN )
+            << "Unable to build source \"" << source->getName() << "\" or one of its dependencies." 
+            << std::endl;
+        return false;
+    }    
+
     osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
         source->getAbsoluteURI() );
 
@@ -181,34 +266,14 @@ Builder::build( BuildLayer* layer )
     // The reference terrain:
     osg::ref_ptr<osg::Node>        terrain_node;
     osg::ref_ptr<SpatialReference> terrain_srs;
+    GeoExtent                      terrain_extent;
 
     Terrain* terrain = layer->getTerrain();
-
-    if ( terrain && terrain->getURI().length() > 0 )
-    {
-        //std::string terrain_uri = terrain->getAbsoluteURI(); //resolveURI( terrain->getURI() );
-        terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() ); //terrain_uri );
-        if ( terrain_node.valid() )
-        {
-            terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( terrain_node.get() );
-        }
-        else
-        {
-            osg::notify( osg::WARN )
-                << "Unable to load data for terrain \""
-                << terrain->getName() << "\"." 
-                << std::endl;
-            return false;
-        }
-    }
-    
-    //TODO: parameterize this..
-    GeoExtent terrain_extent( 
-        -180, -90, 180, 90, 
-        Registry::instance()->getSRSFactory()->createWGS84() );
+    if ( !getTerrainData( terrain, terrain_node, terrain_srs, terrain_extent ) )
+        return false;
 
     // output file:
-    std::string output_file = layer->getAbsoluteTargetPath(); //resolveURI( layer->getTarget() );
+    std::string output_file = layer->getAbsoluteTargetPath();
     osgDB::makeDirectoryForFile( output_file );
     if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
     {

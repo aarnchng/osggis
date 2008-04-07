@@ -240,8 +240,24 @@ Property::asBool() const
     return getBoolValue( false );
 }
 
+/**************************************************************************/
+
+bool
+Properties::exists( const std::string& key ) const
+{
+    std::string nkey = normalize( key );
+    for( Properties::const_iterator i = begin(); i != end(); i++ )
+    {
+        if ( i->getName() == nkey )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 int 
-Properties::getIntValue( const std::string& key, int def )
+Properties::getIntValue( const std::string& key, int def ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -255,7 +271,7 @@ Properties::getIntValue( const std::string& key, int def )
 }
 
 float 
-Properties::getFloatValue( const std::string& key, float def )
+Properties::getFloatValue( const std::string& key, float def ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -269,7 +285,7 @@ Properties::getFloatValue( const std::string& key, float def )
 }
 
 double 
-Properties::getDoubleValue( const std::string& key, double def )
+Properties::getDoubleValue( const std::string& key, double def ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -283,7 +299,7 @@ Properties::getDoubleValue( const std::string& key, double def )
 }
 
 bool 
-Properties::getBoolValue( const std::string& key, bool def )
+Properties::getBoolValue( const std::string& key, bool def ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -297,7 +313,7 @@ Properties::getBoolValue( const std::string& key, bool def )
 }
 
 osg::Vec2 
-Properties::getVec2Value( const std::string& key )
+Properties::getVec2Value( const std::string& key ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -311,7 +327,7 @@ Properties::getVec2Value( const std::string& key )
 }
 
 osg::Vec3 
-Properties::getVec3Value( const std::string& key )
+Properties::getVec3Value( const std::string& key ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -325,7 +341,7 @@ Properties::getVec3Value( const std::string& key )
 }
 
 osg::Vec4 
-Properties::getVec4Value( const std::string& key )
+Properties::getVec4Value( const std::string& key ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )
@@ -339,7 +355,7 @@ Properties::getVec4Value( const std::string& key )
 }
 
 std::string 
-Properties::getValue( const std::string& key, std::string def )
+Properties::getValue( const std::string& key, std::string def ) const
 {
     std::string nkey = normalize( key );
     for( Properties::const_iterator i = begin(); i != end(); i++ )

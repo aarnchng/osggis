@@ -19,7 +19,7 @@
 
 #include <osgGIS/PagedLayerCompiler>
 #include <osgGIS/Registry>
-#include <osgGIS/Compiler>
+#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/Registry>
 #include <osg/CoordinateSystemNode>
 #include <osg/Notify>
@@ -259,7 +259,7 @@ PagedLayerCompiler::compileGeometry(
         env->setTerrainNode( tile_terrain );
         env->setTerrainSRS( terrain_srs.get() );
         env->setExtent( tile_extent );
-        Compiler compiler( layer, graph ); //, getSession() );
+        SceneGraphCompiler compiler( layer, graph ); //, getSession() );
         out = compiler.compile( env.get() );
     }
     else

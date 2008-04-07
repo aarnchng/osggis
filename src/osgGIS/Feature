@@ -63,6 +63,21 @@ namespace osgGIS
          */
 		virtual GeoShapeList& getShapes() =0;
 		
+		/**
+		 * Returns true if the feature has at least one point in its shape set.
+		 */
+		virtual bool hasShapeData() const =0;
+		
+		/**
+		 * Gets the shape type of this feature.
+		 */
+		virtual GeoShape::ShapeType getShapeType() const =0;
+		
+		/**
+		 * Gets the dimensionality of the geometry in this feature.
+		 */
+		virtual int getShapeDim() const =0;
+		
         /**
          * Gets the 2D minimum bounding rectangle containing all the points in
          * the feature's geodata.
@@ -70,11 +85,21 @@ namespace osgGIS
 		virtual const GeoExtent& getExtent() const =0;
 
         /**
-         * Gets the attribute associated with a key string (read-only).
+         * Gets a copy of the attribute associated with a key string
          * @param key
          *      Name of the attribute to return
          */
         virtual Attribute getAttribute( const std::string& key ) const =0;
+        
+        /**
+         * Gets a (copied) collection of all attributes in this feature.
+         */
+        virtual AttributeList getAttributes() const =0;
+        
+        /**
+         * Gets a copy of the full attribute schema for each attribute.
+         */
+        virtual AttributeSchemaList getAttributeSchemas() const =0;
 
         /**
          * Sets a user-attribute to a string value.
@@ -106,6 +131,9 @@ namespace osgGIS
 
         virtual Attribute getAttribute( const std::string& key ) const;
         
+        virtual AttributeList getAttributes() const;   
+        
+        virtual AttributeSchemaList getAttributeSchemas() const;
         
         virtual void setAttribute( const std::string& key, const std::string& value );
 
@@ -115,6 +143,11 @@ namespace osgGIS
 
         virtual void setAttribute( const std::string& key, bool value );
         
+        virtual bool hasShapeData() const;
+        
+		virtual GeoShape::ShapeType getShapeType() const;
+		
+		virtual int getShapeDim() const;
         
 
     protected:

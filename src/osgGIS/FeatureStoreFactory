@@ -22,6 +22,9 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/FeatureStore>
+#include <osgGIS/GeoShape>
+#include <osgGIS/Attribute>
+#include <osgGIS/Property>
 #include <osg/Referenced>
 #include <string>
 
@@ -30,7 +33,27 @@ namespace osgGIS
 	class OSGGIS_EXPORT FeatureStoreFactory : public osg::Referenced
 	{
 	public:
+	    /**
+	     * Connects to an existing feature store and returns a handle.
+	     */
 		virtual FeatureStore* connectToFeatureStore( const std::string& uri ) =0;
+		
+		/**
+		 * Creates a new feature store and returns a handle.
+		 *
+		 * @param uri
+		 *      Location at which to create the feature store.
+		 * @param shape_type
+		 *      Type of shapes in this feature store.
+		 * @param schema
+		 *      Attribute schema for features in this store.
+		 */
+		virtual FeatureStore* createFeatureStore(
+		    const std::string&         uri,
+		    const GeoShape::ShapeType& type,
+		    const AttributeSchemaList& schema,
+		    int                        dimensionality,
+		    const Properties&          props ) =0;		 
 	};
 }
 

@@ -22,13 +22,16 @@
 
 #include <osgGISProjects/Common>
 #include <osgGISProjects/Project>
+#include <osgGIS/Session>
+
+using namespace osgGIS;
 
 namespace osgGISProjects
 {
     class OSGGISPROJECTS_EXPORT Builder
     {
     public:
-        Builder( Project* project ); //, const std::string& base_uri );
+        Builder( Project* project );
         
         /** 
          * Sets the maximum number of parallel threads to use for
@@ -44,9 +47,9 @@ namespace osgGISProjects
     protected:
         bool build( BuildTarget* target );
         bool build( BuildLayer* layer );
+        bool build( Source* source, Session* session );
 
     private:
-        //std::string base_uri;
         osg::ref_ptr<Project> project;
         int num_threads;
         

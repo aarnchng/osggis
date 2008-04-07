@@ -64,11 +64,18 @@ namespace osgGIS
          * Gets the spatial bounds of this feature.
          */
         const GeoExtent& getExtent() const;
-
+        
         /**
-         * Gets a names attribute from the feature. (override)
+         * Gets a copy of a named attribute from the feature. (override)
          */
         virtual Attribute getAttribute( const std::string& key ) const;
+        
+        /**
+         * Gets a (copied) list of all the attributes in this feature (override)
+         */
+        virtual AttributeList getAttributes() const;
+        
+        virtual AttributeSchemaList getAttributeSchemas() const;
         
     public:
         

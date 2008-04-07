@@ -106,60 +106,8 @@ XmlSerializer::store( Document* doc, std::ostream& out )
 }
 
 
-XmlElement*
-XmlSerializer::encodeFilterGraph( FilterGraph* graph )
-{
-    XmlElement* graph_e = new XmlElement( "graph" );
-
-    for( FilterList::const_iterator i = graph->getFilters().begin(); i != graph->getFilters().end(); i++ )
-    {
-        Filter* f = i->get();
-
-        XmlAttributes attrs;
-        attrs[ "type" ] = f->getFilterType();
-        XmlElement* filter_e = new XmlElement( "filter", attrs );
-        
-        Properties props = f->getProperties();
-        for( Properties::const_iterator i = props.begin(); i != props.end(); i++ )
-        {
-            const Property& prop = *i;
-        }
-
-        graph_e->getChildren().push_back( filter_e );
-    }
-    return graph_e;
-}
-
-FilterGraph*
-XmlSerializer::readFilterGraph( Document* doc )
-{    
-    FilterGraph* result = NULL;
-    if ( doc )
-    {
-        XmlDocument* xml_doc = (XmlDocument*)doc;
-        result = decodeFilterGraph( xml_doc->getSubElement( "graph" ), NULL );
-    }
-    return result;
-}
-
-
-Document*
-XmlSerializer::writeFilterGraph( FilterGraph* graph )
-{
-    XmlDocument* doc = new XmlDocument();
-
-    if ( graph )
-    {
-        XmlElement* graph_e = encodeFilterGraph( graph );
-        doc->getChildren().push_back( graph_e );
-    }
-
-    return doc;
-}
-
-
-FilterGraph*
-XmlSerializer::decodeFilterGraph( XmlElement* e, Project* proj )
+static FilterGraph*
+decodeFilterGraph( XmlElement* e, Project* proj )
 {
     FilterGraph* graph = NULL;
     if ( e )
@@ -218,8 +166,32 @@ XmlSerializer::decodeFilterGraph( XmlElement* e, Project* proj )
     return graph;
 }
 
-Script*
-XmlSerializer::decodeScript( XmlElement* e, Project* proj )
+XmlElement*
+XmlSerializer::encodeFilterGraph( FilterGraph* graph )
+{
+    XmlElement* graph_e = new XmlElement( "graph" );
+
+    for( FilterList::const_iterator i = graph->getFilters().begin(); i != graph->getFilters().end(); i++ )
+    {
+        Filter* f = i->get();
+
+        XmlAttributes attrs;
+        attrs[ "type" ] = f->getFilterType();
+        XmlElement* filter_e = new XmlElement( "filter", attrs );
+        
+        Properties props = f->getProperties();
+        for( Properties::const_iterator i = props.begin(); i != props.end(); i++ )
+        {
+            const Property& prop = *i;
+        }
+
+        graph_e->getChildren().push_back( filter_e );
+    }
+    return graph_e;
+}
+
+static Script*
+decodeScript( XmlElement* e, Project* proj )
 {
     Script* script = NULL;
     if ( e )
@@ -229,8 +201,8 @@ XmlSerializer::decodeScript( XmlElement* e, Project* proj )
     return script;
 }
 
-Resource*
-XmlSerializer::decodeResource( XmlElement* e, Project* proj )
+static Resource*
+decodeResource( XmlElement* e, Project* proj )
 {
     Resource* resource = NULL;
     if ( e )
@@ -265,23 +237,34 @@ XmlSerializer::decodeResource( XmlElement* e, Project* proj )
     return resource;
 }
 
-Source*
-XmlSerializer::decodeSource( XmlElement* e, Project* proj )
+static Source*
+decodeSource( XmlElement* e, Project* proj, int pass )
 {
     Source* source = NULL;
     if ( e )
     {
-        source = new Source();
-        source->setBaseURI( proj->getBaseURI() );
-        source->setName( e->getAttr( "name" ) );
-        source->setURI( e->getSubElementText( "uri" ) );
+        if ( pass == 0 )
+        {
+            // first pass: create the new source record
+            source = new Source();
+            source->setBaseURI( proj->getBaseURI() );
+            source->setName( e->getAttr( "name" ) );
+            source->setURI( e->getSubElementText( "uri" ) );
+            source->setFilterGraph( proj->getFilterGraph( e->getAttr( "graph" ) ) );
+        }
+        else
+        {
+            // second pass: reference other sources
+            source = proj->getSource( e->getAttr( "name" ) );
+            source->setParentSource( proj->getSource( e->getAttr( "parent" ) ) );
+        }
     }
     return source;
 }
 
 
-Terrain*
-XmlSerializer::decodeTerrain( XmlElement* e, Project* proj )
+static Terrain*
+decodeTerrain( XmlElement* e, Project* proj )
 {
     Terrain* terrain = NULL;
     if ( e )
@@ -295,8 +278,8 @@ XmlSerializer::decodeTerrain( XmlElement* e, Project* proj )
 }
 
 
-BuildLayerSlice*
-XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
+static BuildLayerSlice*
+decodeSlice( XmlElement* e, Project* proj )
 {
     BuildLayerSlice* slice = NULL;
     if ( e )
@@ -320,8 +303,8 @@ XmlSerializer::decodeSlice( XmlElement* e, Project* proj )
 }
 
 
-BuildLayer*
-XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
+static BuildLayer*
+decodeLayer( XmlElement* e, Project* proj )
 {
     BuildLayer* layer = NULL;
     if ( e )
@@ -369,8 +352,8 @@ XmlSerializer::decodeLayer( XmlElement* e, Project* proj )
 }
 
 
-BuildTarget*
-XmlSerializer::decodeTarget( XmlElement* e, Project* proj )
+static BuildTarget*
+decodeTarget( XmlElement* e, Project* proj )
 {
     BuildTarget* target = NULL;
     if ( e )
@@ -395,8 +378,8 @@ XmlSerializer::decodeTarget( XmlElement* e, Project* proj )
 }
 
 
-Project*
-XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
+static Project*
+decodeInclude( XmlElement* e, Project* proj )
 {
     if ( e )
     {
@@ -416,8 +399,8 @@ XmlSerializer::decodeInclude( XmlElement* e, Project* proj )
 }
 
 
-Project* 
-XmlSerializer::decodeProject( XmlElement* e, const std::string& source_uri )
+static Project* 
+decodeProject( XmlElement* e, const std::string& source_uri )
 {
     Project* project = NULL;
     if ( e )
@@ -469,13 +452,17 @@ XmlSerializer::decodeProject( XmlElement* e, const std::string& source_uri )
                 project->getTerrains().push_back( terrain );
         }
 
-        // sources
+        // sources - 2 passes, since a source can reference another source
         XmlNodeList sources = e->getSubElements( "source" );
         for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
         {
-            Source* source = decodeSource( static_cast<XmlElement*>( j->get() ), project );
+            Source* source = decodeSource( static_cast<XmlElement*>( j->get() ), project, 0 );
             if ( source )
                 project->getSources().push_back( source );
+        }
+        for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
+        {
+            decodeSource( static_cast<XmlElement*>( j->get() ), project, 1 );
         }
 
         // layers
@@ -506,6 +493,35 @@ XmlSerializer::decodeProject( XmlElement* e, const std::string& source_uri )
     }
     return project;
 }
+
+
+FilterGraph*
+XmlSerializer::readFilterGraph( Document* doc )
+{    
+    FilterGraph* result = NULL;
+    if ( doc )
+    {
+        XmlDocument* xml_doc = (XmlDocument*)doc;
+        result = decodeFilterGraph( xml_doc->getSubElement( "graph" ), NULL );
+    }
+    return result;
+}
+
+
+Document*
+XmlSerializer::writeFilterGraph( FilterGraph* graph )
+{
+    XmlDocument* doc = new XmlDocument();
+
+    if ( graph )
+    {
+        XmlElement* graph_e = encodeFilterGraph( graph );
+        doc->getChildren().push_back( graph_e );
+    }
+
+    return doc;
+}
+
 
 
 Project*

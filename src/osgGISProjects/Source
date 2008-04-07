@@ -21,35 +21,131 @@
 #define _OSGGISPROJECTS_SOURCE_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/Property>
 #include <list>
+
+using namespace osgGIS;
 
 namespace osgGISProjects
 {
+    class OSGGISPROJECTS_EXPORT Source;
+    
     class OSGGISPROJECTS_EXPORT Source : public osg::Referenced
     {
     public:
+        /**
+         * Constructs a new, empty source.
+         */
         Source();
         
+        /**
+         * Constructs a new source that referes to the object at the specified URI.
+         */
         Source( const std::string& uri );
 
+        /**
+         * Destructs the source.
+         */
         virtual ~Source();
         
+        /**
+         * Sets the URI at the base of relative paths used by this source.
+         */
         void setBaseURI( const std::string& base_uri );
         
+        /**
+         * Gets the name of this source, unique within the current build.
+         */
         const std::string& getName() const;
         
+        /**
+         * Sets the name of this source, which must be unique within the current
+         * build.
+         */
         void setName( const std::string& value );
 
+        /**
+         * Gets the URI of the object to which this source refers. The URI might
+         * be absolute or relative.
+         */
         const std::string& getURI() const;
         
+        /**
+         * Gets an absolute reference to the object to which this source refers,
+         * by considering both the URI and the base URI.
+         */
         const std::string getAbsoluteURI() const;
 
+        /**
+         * Sets the URI of the object to which this source record refers.
+         */
         void setURI( const std::string& uri );
+        
+        /**
+         * Accesses a set of appliation-specific properties.
+         */
+        Properties& getProperties();
+        
+        /**
+         * Accesses a set of appliation-specific properties (read-only).
+         */
+        const Properties& getProperties() const;
+        
+        /**
+         * Sets the name of the parent source, i.e. another source from which
+         * this source will be derived. Setting the parent source marks this object
+         * as an intermediate source.
+         */
+        void setParentSource( Source* value );
+        
+        /**
+         * Gets the name of the parent source, if one exists. If a parent source
+         * exists, this source is considered an intermediate source that may
+         * require building or rebuilding.
+         */
+        Source* getParentSource() const;
+        
+        /**
+         * Reflects whether this source has a parent source, and is therefore
+         * an intermediate source that may require building or rebuilding.
+         */
+        bool isIntermediate() const;
+        
+        /**
+         * Sets the name of filter graph that should be used to build this
+         * source (assuming it's an intermediate source with a parent source).
+         */
+        void setFilterGraph( FilterGraph* value );
+        
+        /**
+         * If this is an intermediate source (and has a parent Source),
+         * gets the name of the filter graph that should be used to generate
+         * this source (assuming it's an intermediate source).
+         */
+        FilterGraph* getFilterGraph() const;
+
+        /**
+         * Reflects whether this source needs rebuilding. If this is an
+         * intermediate data source (i.e. it points to a parent source)
+         * then it will need rebuilding if the parent source has changed.
+         */
+        bool needsRefresh() const;   
+        
+        /**
+         * Gets the UTC timestamp of the last-modified date of the object to which
+         * this source refers.
+         */
+        long getTimeLastModified() const;     
 
     private:
         std::string name;
         std::string uri;
         std::string base_uri;
+        Properties props;
+        osg::ref_ptr<Source> parent_source;
+        osg::ref_ptr<FilterGraph> filter_graph;
+        
     };
 
     typedef std::list<osg::ref_ptr<Source> > SourceList;
