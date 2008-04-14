@@ -37,6 +37,8 @@ namespace osgGIS
 	public: // SpatialIndex
 	
 	    FeatureCursor* createCursor( const GeoExtent& extent );
+	    
+	    const GeoExtent& getExtent() const;
 
 	public:
 		virtual ~RTreeSpatialIndex();
@@ -44,6 +46,7 @@ namespace osgGIS
 	private:
 		osg::ref_ptr<FeatureStore> store;		
 		osg::ref_ptr<RTree<FeatureOID> > rtree;
+		GeoExtent extent;
 		
 		bool buildIndex();
 	};

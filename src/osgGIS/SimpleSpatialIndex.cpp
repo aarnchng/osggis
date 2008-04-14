@@ -25,6 +25,8 @@ using namespace osgGIS;
 SimpleSpatialIndex::SimpleSpatialIndex( FeatureStore* _store )
 {
 	store = _store;
+    if ( store.valid() )
+        buildIndex();
 }
 
 
@@ -35,14 +37,15 @@ SimpleSpatialIndex::~SimpleSpatialIndex()
 
 
 FeatureCursor*
-SimpleSpatialIndex::createCursor( const GeoExtent& extent )
+SimpleSpatialIndex::createCursor( const GeoExtent& query_extent )
 {
     FeatureOIDList oids;
     osg::ref_ptr<FeatureCursor> cursor = store->createCursor();
 	while( cursor->hasNext() )
 	{
 		Feature* feature = cursor->next();
-        if ( feature->getExtent().intersects( extent ) )
+        const GeoExtent f_extent = feature->getExtent();
+        if ( f_extent.intersects( query_extent ) )
         {
             oids.push_back( feature->getOID() );
         }
@@ -50,3 +53,23 @@ SimpleSpatialIndex::createCursor( const GeoExtent& extent )
 
     return new FeatureCursorImpl( oids, store.get() );
 }
+
+
+const GeoExtent& 
+SimpleSpatialIndex::getExtent() const
+{
+    return extent;
+}
+
+void
+SimpleSpatialIndex::buildIndex()
+{
+    FeatureOIDList oids;
+    osg::ref_ptr<FeatureCursor> cursor = store->createCursor();
+	while( cursor->hasNext() )
+	{
+		Feature* feature = cursor->next();
+        extent.expandToInclude( feature->getExtent() );
+    }
+}
+

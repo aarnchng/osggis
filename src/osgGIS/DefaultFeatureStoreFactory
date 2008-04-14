@@ -46,8 +46,9 @@ namespace osgGIS
 		    const std::string&         uri,
 		    const GeoShape::ShapeType& type,
 		    const AttributeSchemaList& schema,
-            int   dimensionality,
-            const Properties& props );
+            int                        dimensionality,
+            const SpatialReference*    srs,
+            const Properties&          props );
 	};
 }
 

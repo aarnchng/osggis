@@ -53,6 +53,7 @@ namespace osgGIS
 		    const GeoShape::ShapeType& type,
 		    const AttributeSchemaList& schema,
 		    int                        dimensionality,
+		    const SpatialReference*    srs,
 		    const Properties&          props ) =0;		 
 	};
 }

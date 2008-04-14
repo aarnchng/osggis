@@ -81,12 +81,12 @@ namespace osgGIS
     class ResourceLibrary_Lua
     {
     public:
-        ResourceLibrary_Lua( ResourceLibrary& _lib ) : lib( _lib ) { }
-        SkinResourceQuery newSkinQuery() { return lib.newSkinQuery(); }
-        ResourceList_Lua getSkins() { return ResourceList_Lua( lib.getSkins() ); }
-        ResourceList_Lua getSkins( const SkinResourceQuery& q ) { return lib.getSkins( q ); }
+        ResourceLibrary_Lua( ResourceLibrary* _lib ) : lib( _lib ) { }
+        SkinResourceQuery newSkinQuery() { return lib->newSkinQuery(); }
+        ResourceList_Lua getSkins() { return ResourceList_Lua( lib->getSkins() ); }
+        ResourceList_Lua getSkins( const SkinResourceQuery& q ) { return lib->getSkins( q ); }
     private:
-        ResourceLibrary& lib;
+        osg::ref_ptr<ResourceLibrary> lib;
     };
 }
 

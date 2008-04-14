@@ -92,6 +92,7 @@ WriteFeaturesFilter::process( Feature* input, FilterEnv* env )
                     input->getShapeType(),
                     input->getAttributeSchemas(),
                     input->getShapeDim(),
+                    env->getInputSRS(),
                     Properties() );
 
                 if ( store )

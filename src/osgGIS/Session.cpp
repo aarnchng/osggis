@@ -26,13 +26,27 @@ using namespace osgGIS;
 
 Session::Session()
 {
-    //NOP
+    resources = new ResourceLibrary();
 }
 
 Session::~Session()
 {
     //NOP
 }
+
+
+Session*
+Session::derive()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+
+    Session* result = new Session();
+    result->scripts.insert( result->scripts.end(), scripts.begin(), scripts.end() );
+    result->resources = resources;
+
+    return result;
+}
+
 
 ScriptEngine*
 Session::createScriptEngine()
@@ -58,16 +72,16 @@ Session::addScript( Script* script )
     scripts.push_back( script );
 }
 
-const ResourceLibrary&
+const ResourceLibrary*
 Session::getResources() const
 {
-    return resources;
+    return const_cast<const ResourceLibrary*>( resources.get() );
 }
 
-ResourceLibrary&
+ResourceLibrary*
 Session::getResources()
 {
-    return resources;
+    return resources.get();
 }
 
 FilterEnv*

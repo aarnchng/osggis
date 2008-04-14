@@ -64,11 +64,12 @@ DefaultFeatureStoreFactory::createFeatureStore(const std::string& uri,
                                                const GeoShape::ShapeType& type, 
                                                const AttributeSchemaList& schemas,
                                                int   dimensionality,
+                                               const SpatialReference* srs,
                                                const Properties& props )
 {
     FeatureStore* result = NULL;
 
-    result = new OGR_FeatureStore( uri, type, schemas, dimensionality, props );
+    result = new OGR_FeatureStore( uri, type, schemas, dimensionality, srs, props );
 
     return result;
 }

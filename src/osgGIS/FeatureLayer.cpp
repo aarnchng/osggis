@@ -56,7 +56,7 @@ FeatureLayer::getName() const
 const GeoExtent
 FeatureLayer::getExtent() const
 {
-    return store.valid()? store->getExtent() : GeoExtent::invalid();
+    return index.valid()? index->getExtent() : store.valid()? store->getExtent() : GeoExtent::invalid();
 }
 
 

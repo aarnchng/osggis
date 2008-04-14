@@ -47,6 +47,13 @@ namespace osgGIS
          * Constructs a new, empty session.
          */
         Session();
+        
+        /**
+         * Creates a shallow clone of this session that references
+         * the same scripts and resource library (but not the transient elements
+         * like the properties and used-resource marks.
+         */
+        Session* derive();
 
         /**
          * Creates a new scripting engine that incorporates any
@@ -70,13 +77,13 @@ namespace osgGIS
          * Gets a read-only reference to the  resource library that manages
          * shared resources for this session.
          */
-        const ResourceLibrary& getResources() const;
+        const ResourceLibrary* getResources() const;
         
         /**
          * Gets a reference to the resource library that manages shared
          * resources for this session.
          */
-        ResourceLibrary& getResources();
+        ResourceLibrary* getResources();
 
         /**
          * Stores an indicator that this session used the specified resource.
@@ -113,7 +120,7 @@ namespace osgGIS
 
     private:
         ScriptList scripts;
-        ResourceLibrary resources;
+        osg::ref_ptr<ResourceLibrary> resources;
         OpenThreads::ReentrantMutex session_mtx;
         Properties properties;
         ResourceNames resources_used;

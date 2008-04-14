@@ -59,6 +59,13 @@ OGR_SpatialReference::~OGR_SpatialReference()
 }
 
 
+void*
+OGR_SpatialReference::getHandle() 
+{
+    return handle;
+}
+
+
 SpatialReference* 
 OGR_SpatialReference::cloneWithNewReferenceFrame( const osg::Matrixd& new_rf ) const
 {

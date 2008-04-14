@@ -40,10 +40,10 @@ RTreeSpatialIndex::~RTreeSpatialIndex()
 
 
 FeatureCursor*
-RTreeSpatialIndex::createCursor( const GeoExtent& extent )
+RTreeSpatialIndex::createCursor( const GeoExtent& query_extent )
 {
     //TODO: replace this with an RTree iterator.
-    std::list<FeatureOID> oids = rtree->find( extent );
+    std::list<FeatureOID> oids = rtree->find( query_extent );
 
     FeatureOIDList vec( oids.size() );
     int k = 0;
@@ -62,11 +62,18 @@ RTreeSpatialIndex::buildIndex()
     while( cursor->hasNext() )
     {
         Feature* f = cursor->next();
-        const GeoExtent& extent = f->getExtent();
-        if ( extent.isValid() && !extent.isInfinite() ) //extent.getArea() > 0 )
+        const GeoExtent& f_extent = f->getExtent();
+        if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
         {
-            rtree->insert( f->getExtent(), f->getOID() );
+            rtree->insert( f_extent, f->getOID() );
+            extent.expandToInclude( f_extent );
         }
     }
     return true;
+}
+
+const GeoExtent&
+RTreeSpatialIndex::getExtent() const
+{
+    return extent;
 }
