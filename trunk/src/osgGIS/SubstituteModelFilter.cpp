@@ -264,7 +264,7 @@ registerTextures( osg::Node* node, Session* session )
                         {
                             SkinResource* skin = new SkinResource();
                             skin->setTexturePath( abs_path );
-                            session->getResources().addResource( skin );
+                            session->getResources()->addResource( skin );
                             session->markResourceUsed( skin );
                             //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
                         }
@@ -299,10 +299,10 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
             ScriptResult r = env->getScriptEngine()->run( new Script( getModelExpr() ), env );
             if ( r.isValid() )
             {
-                ModelResource* model = env->getSession()->getResources().getModel( r.asString() );
+                ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
                 if ( model )
                 {
-                    osg::Node* node = env->getSession()->getResources().getNode( model );
+                    osg::Node* node = env->getSession()->getResources()->getNode( model );
                     output.push_back( materializeAndClusterFeatures( input, env, node ) );
                 }
             }
@@ -345,10 +345,10 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( new Script( getModelExpr() ), input, env );
         if ( r.isValid() )
         {
-            ModelResource* model = env->getSession()->getResources().getModel( r.asString() );
+            ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
             if ( model )
             {
-                osg::Node* node = env->getSession()->getResources().getNode( model );
+                osg::Node* node = env->getSession()->getResources()->getNode( model );
                 if ( node )
                 {
                     osg::MatrixTransform* xform = new osg::MatrixTransform(
@@ -370,9 +370,9 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             ModelResource* model = new ModelResource();
             model->setModelPath( r.asString() );
             model->setName( r.asString() );
-            env->getSession()->getResources().addResource( model );
-            osg::Node* node = env->getSession()->getResources().getNode( model );
-//            osg::Node* node = env->getSession()->getResources().getProxyNode( model );
+            env->getSession()->getResources()->addResource( model );
+            osg::Node* node = env->getSession()->getResources()->getNode( model );
+//            osg::Node* node = env->getSession()->getResources()->getProxyNode( model );
             if ( node )
             {
                 osg::MatrixTransform* xform = new osg::MatrixTransform(

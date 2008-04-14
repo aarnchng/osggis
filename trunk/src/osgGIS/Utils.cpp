@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <float.h>
+#include <sys/stat.h>
 
 using namespace osgGIS;
 
@@ -70,6 +71,18 @@ PathUtils::getAbsPath(const std::string& base_path,
         return my_path;
     else
         return combinePaths( base_path, my_path );
+}
+
+
+long
+FileUtils::getFileTimeUTC(const std::string& abs_path)
+{
+    struct stat buf;
+    if ( ::stat( abs_path.c_str(), &buf ) == 0 )
+    {
+        return (long)buf.st_mtime;
+    }
+    return 0L;
 }
 
 

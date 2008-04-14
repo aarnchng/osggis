@@ -41,6 +41,12 @@ namespace osgGIS
             const std::string& right );
     };
     
+    struct OSGGIS_EXPORT FileUtils
+    {
+        static long getFileTimeUTC(
+            const std::string& path );
+    };
+    
     struct OSGGIS_EXPORT GeomUtils
     {
         /**

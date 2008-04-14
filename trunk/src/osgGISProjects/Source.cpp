@@ -19,6 +19,7 @@
 
 #include <osgGISProjects/Source>
 #include <osgGIS/Utils>
+#include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 
 using namespace osgGISProjects;
@@ -127,6 +128,5 @@ Source::needsRefresh() const
 long
 Source::getTimeLastModified() const
 {
-    //TODO
-    return 0L;
+    return FileUtils::getFileTimeUTC( getAbsoluteURI() );
 }

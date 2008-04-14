@@ -79,6 +79,8 @@ namespace osgGIS
             const OGR_SpatialReference* rhs,
             bool& out_crs_equiv,
             bool& out_ref_frame_equiv ) const;
+            
+        void* getHandle();
 		
 		
 	protected:

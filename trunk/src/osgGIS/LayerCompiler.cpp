@@ -374,7 +374,7 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
         const ResourceNames& names = getSession()->getResourcesUsed();
         for( ResourceNames::const_iterator i = names.begin(); i != names.end(); i++ )
         {
-            SkinResource* skin = getSession()->getResources().getSkin( *i );
+            SkinResource* skin = getSession()->getResources()->getSkin( *i );
             if ( skin )
             {
                 osg::ref_ptr<osg::Image> image = osgDB::readImageFile( skin->getAbsoluteTexturePath() );
@@ -408,7 +408,7 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
                 continue;
             }
 
-            ModelResource* model = getSession()->getResources().getModel( *i );
+            ModelResource* model = getSession()->getResources()->getModel( *i );
             if ( model )
             {
                 osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getAbsoluteModelPath() );

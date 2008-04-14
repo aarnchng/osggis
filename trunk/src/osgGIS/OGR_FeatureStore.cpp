@@ -55,6 +55,7 @@ OGR_FeatureStore::OGR_FeatureStore(const std::string&         abs_path,
                                    const GeoShape::ShapeType& shape_type,
                                    const AttributeSchemaList& schemas,
                                    int                        dimensionality,
+                                   const SpatialReference*    srs,
                                    const Properties&          props )
 : extent( GeoExtent::invalid() )
 {
@@ -93,8 +94,22 @@ OGR_FeatureStore::OGR_FeatureStore(const std::string&         abs_path,
                     wkbNone;
             }
 
-            OGRSpatialReferenceH srs_handle = NULL; //TODO
+            // figure out the SRS:
+            OGRSpatialReferenceH srs_handle = NULL;
+            if ( srs )
+            {
+                SpatialReference* nc_srs = const_cast<SpatialReference*>( srs );
+                if ( dynamic_cast<OGR_SpatialReference*>( nc_srs ) )
+                {
+                    srs_handle = static_cast<OGR_SpatialReference*>( nc_srs )->getHandle();
+                }
+                else
+                {
+                    srs_handle = OSRNewSpatialReference( nc_srs->getWKT().c_str() );
+                }
+            }
 
+            // create the new layer:
             layer_handle = OGR_DS_CreateLayer( ds_handle, layer_name.c_str(), srs_handle, geom_type, NULL );
             if ( layer_handle )
             {
@@ -136,18 +151,21 @@ OGR_FeatureStore::OGR_FeatureStore(const std::string&         abs_path,
 
 OGR_FeatureStore::~OGR_FeatureStore()
 {
+    OGR_SCOPE_LOCK();
 	if ( layer_handle )
 	{
+        OGR_L_SyncToDisk( layer_handle );
         // no need to release layer handle (held by ref)
 		layer_handle = NULL;
 	}
 
 	if ( ds_handle )
 	{
-        OGR_SCOPE_LOCK();
 		OGRReleaseDataSource( ds_handle );
 		ds_handle = NULL;
 	}
+
+    osg::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
 }
 
 
@@ -219,15 +237,18 @@ OGR_FeatureStore::createCursor()
     {
         OGR_SCOPE_LOCK();
         unsigned int feature_count = OGR_L_GetFeatureCount( layer_handle, 1 );
-        FeatureOIDList oids( feature_count );
+        FeatureOIDList oids; //( feature_count );
+        if ( feature_count > 0 )
+            oids.reserve( feature_count );
     
         OGR_L_ResetReading( layer_handle );
         void* feature_handle;
-        int iter = 0;
+        //int iter = 0;
         while( (feature_handle = OGR_L_GetNextFeature( layer_handle )) != NULL )
         {
             FeatureOID oid = (FeatureOID)OGR_F_GetFID( feature_handle );
-            oids[iter++] = oid;
+            oids.push_back( oid );
+            //oids[iter++] = oid;
             OGR_F_Destroy( feature_handle );
         }
     
@@ -367,43 +388,65 @@ OGR_FeatureStore::insertFeature( Feature* input )
         // assign the geometry:
         OGRFeatureDefnH def = ::OGR_L_GetLayerDefn( layer_handle );
 
-        OGRwkbGeometryType singleton_type = OGR_FD_GetGeomType( def );
+        OGRwkbGeometryType reported_type = OGR_FD_GetGeomType( def );
 
         OGRwkbGeometryType group_type = 
-            singleton_type == wkbPolygon? wkbMultiPolygon : 
-            singleton_type == wkbPolygon25D? wkbMultiPolygon25D :
-            wkbGeometryCollection;
+            reported_type == wkbPolygon? wkbMultiPolygon : 
+            reported_type == wkbPolygon25D? wkbMultiPolygon25D :
+            wkbNone;
 
         OGRwkbGeometryType shape_type =
-            singleton_type == wkbPolygon? wkbPolygon :
-            singleton_type == wkbPolygon25D? wkbPolygon25D :
-            singleton_type == wkbLineString? wkbMultiLineString :
-            singleton_type == wkbLineString25D? wkbMultiLineString25D :
-            singleton_type == wkbPoint? wkbMultiPoint :
-            singleton_type == wkbPoint25D? wkbMultiPoint25D :
+            reported_type == wkbPolygon || reported_type == wkbMultiPolygon ? wkbPolygon :
+            reported_type == wkbPolygon25D || reported_type == wkbMultiPolygon25D? wkbPolygon25D :
+            reported_type == wkbLineString || reported_type == wkbMultiLineString? wkbMultiLineString :
+            reported_type == wkbLineString25D || reported_type == wkbMultiLineString25D? wkbMultiLineString25D :
+            reported_type == wkbPoint || reported_type == wkbMultiPoint? wkbMultiPoint :
+            reported_type == wkbPoint25D || reported_type == wkbMultiPoint25D? wkbMultiPoint25D :
             wkbNone;
 
         OGRwkbGeometryType part_type =
-            singleton_type == wkbPolygon? wkbLinearRing :
-            singleton_type == wkbPolygon25D? wkbLinearRing :
-            singleton_type;
+            shape_type == wkbPolygon || shape_type == wkbPolygon25D? wkbLinearRing :
+            shape_type == wkbMultiLineString? wkbLineString :
+            shape_type == wkbMultiLineString25D? wkbLineString25D :
+            shape_type == wkbMultiPoint? wkbPoint :
+            shape_type == wkbMultiPoint25D? wkbPoint25D :
+            wkbNone;
 
-        OGRGeometryH group_handle = OGR_G_CreateGeometry( group_type );
 
-        for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
+        if ( group_type != wkbNone )
         {
-            OGRGeometryH shape_handle = encodeShape( *j, shape_type, part_type );
+            OGRGeometryH group_handle = OGR_G_CreateGeometry( group_type );
+            for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
+            {
+                OGRGeometryH shape_handle = encodeShape( *j, shape_type, part_type );
+                if ( shape_handle )
+                {
+                    if ( OGR_G_AddGeometryDirectly( group_handle, shape_handle ) != OGRERR_NONE )
+                    {
+                        osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_G_AddGeometryDirectly failed!" << std::endl;
+                    }
+                }
+            }
+
+            // transfers ownership to the feature:
+            if ( OGR_F_SetGeometryDirectly( feature_handle, group_handle ) != OGRERR_NONE )
+            {
+                osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
+            }
+        }
+        else if ( input->getShapes().size() > 0 )
+        {
+            const GeoShape& shape = *input->getShapes().begin();
+            OGRGeometryH shape_handle = encodeShape( shape, shape_type, part_type );
             if ( shape_handle )
             {
-                if ( OGR_G_AddGeometryDirectly( group_handle, shape_handle ) != OGRERR_NONE )
+                // transfers ownership to the feature:
+                if ( OGR_F_SetGeometryDirectly( feature_handle, shape_handle ) != OGRERR_NONE )
                 {
-                    osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_G_AddGeometryDirectly failed!" << std::endl;
+                    osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
                 }
             }
         }
-
-        // transfers ownership to the feature:
-        OGR_F_SetGeometryDirectly( feature_handle, group_handle );
 
         if ( OGR_L_CreateFeature( layer_handle, feature_handle ) != OGRERR_NONE )
         {

@@ -39,7 +39,7 @@ namespace osgGIS
      *
      * This class is thread-safe.
      */
-    class OSGGIS_EXPORT ResourceLibrary
+    class OSGGIS_EXPORT ResourceLibrary : public osg::Referenced
     {
     public:
         ResourceLibrary();

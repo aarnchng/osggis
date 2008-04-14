@@ -40,6 +40,11 @@ namespace osgGIS
          *      Query area of interest
          */
 		virtual FeatureCursor* createCursor( const GeoExtent& extent ) =0;
+		
+		/**
+		 * Gets the full spatial extent of the indexed features.
+		 */
+	    virtual const GeoExtent& getExtent() const =0;
 	};
 }
 

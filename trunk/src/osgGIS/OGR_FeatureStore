@@ -37,6 +37,7 @@ namespace osgGIS
             const GeoShape::ShapeType& shape_type,
             const AttributeSchemaList& schemas,
             int                        dimensionality,
+            const SpatialReference*    srs,
             const Properties&          props );
 		
 	public: // osgGIS::FeatureStore

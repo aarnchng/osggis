@@ -429,7 +429,7 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), f, env );
         if ( r.isValid() )
         {
-            skin = env->getSession()->getResources().getSkin( r.asString() );
+            skin = env->getSession()->getResources()->getSkin( r.asString() );
         }
          //   skin = dynamic_cast<SkinResource*>( r.asRef() );
     }
@@ -495,7 +495,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         {      
             if ( skin )
             {
-                walls->setStateSet( env->getSession()->getResources().getStateSet( skin ) );
+                walls->setStateSet( env->getSession()->getResources()->getStateSet( skin ) );
                 env->getSession()->markResourceUsed( skin );
                 //walls->getOrCreateStateSet()->setTextureAttributeAndModes( 0, skin->getSt.get(), osg::StateAttribute::ON );
                 //walls->getOrCreateStateSet()->setTextureAttribute( 0, active_texenv.get(), osg::StateAttribute::ON );

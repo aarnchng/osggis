@@ -37,12 +37,17 @@ namespace osgGIS
 	public: // SpatialIndex
 	
 	    FeatureCursor* createCursor( const GeoExtent& extent );
+	    
+	    const GeoExtent& getExtent() const;
 
 	public:
 		virtual ~SimpleSpatialIndex();
 
 	private:
 		osg::ref_ptr<FeatureStore> store;
+		GeoExtent extent;
+		
+		void buildIndex();
 	};
 }
 

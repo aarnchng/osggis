@@ -161,21 +161,28 @@ Builder::build( Source* source, Session* session )
     // only need to build intermediate sources.
     if ( !source->isIntermediate() )
     {
-        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building." << std::endl;
+        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (not intermediate)." << std::endl;
         return true;
     }
 
     Source* parent = source->getParentSource();
     if ( !parent )
     {
-        osg::notify(osg::WARN) << "No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osg::notify(osg::WARN) << "...ERROR: No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
+    }
+
+    // check whether a rebuild is required:
+    if ( parent->getTimeLastModified() < source->getTimeLastModified() )
+    {
+        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (newer than parent)." << std::endl;
+        return true;
     }
 
     // build it's parent first:
     if ( !build( parent, session ) )
     {
-        osg::notify(osg::WARN) << "Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
+        osg::notify(osg::WARN) << "...ERROR: Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -183,7 +190,7 @@ Builder::build( Source* source, Session* session )
     FilterGraph* graph = source->getFilterGraph();
     if ( !graph )
     {
-        osg::notify(osg::WARN) << "No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osg::notify(osg::WARN) << "...ERROR: No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -192,23 +199,28 @@ Builder::build( Source* source, Session* session )
         parent->getAbsoluteURI() );
     if ( !feature_layer.valid() )
     {
-        osg::notify( osg::WARN ) << "Cannot access source \"" << source->getName() << "\"" << std::endl;
+        osg::notify( osg::WARN ) << "...ERROR: Cannot access source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
     //TODO: should we allow terrains for a source compile?? No. Because we would need to transform
     // the source into terrain SRS space, which we do not want to do until we're building nodes.
 
-    // initialize a source data compiler:
-    osg::ref_ptr<FilterEnv> source_env = session->createFilterEnv();
+    // initialize a source data compiler. we use a temporary session because this source build
+    // is unrelated to the current "master" build. If we used the same session, the new feature
+    // store would hang around and not get properly closed out for use in the next round.
+    osg::ref_ptr<Session> temp_session = session->derive();
+    osg::ref_ptr<FilterEnv> source_env = temp_session->createFilterEnv();
 
     FeatureStoreCompiler compiler( feature_layer.get(), graph );
 
     if ( !compiler.compile( source->getAbsoluteURI(), source_env.get() ) )
     {
-        osg::notify( osg::WARN ) << "Error compiling source \"" << source->getName() << "\"" << std::endl;
+        osg::notify( osg::WARN ) << "...ERROR: failure compiling source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
+
+    osg::notify(osg::NOTICE) << "...done compiling source \"" << source->getName() << "\"" << std::endl;
 
     return true;
 }
@@ -229,7 +241,7 @@ Builder::build( BuildLayer* layer )
 
     // add shared resources to the session:
     for( ResourceList::iterator i = project->getResources().begin(); i != project->getResources().end(); i++ )
-        session->getResources().addResource( i->get() );
+        session->getResources()->addResource( i->get() );
 
     // now establish the source data record form this layer and open a feature layer
     // that connects to that source.
@@ -309,6 +321,7 @@ Builder::build( BuildLayer* layer )
         num_threads > 1? new TaskManager( num_threads ) :
         num_threads < 1? new TaskManager() :
         NULL;
+
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
     if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
