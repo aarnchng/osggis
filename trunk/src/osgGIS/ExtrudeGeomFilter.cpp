@@ -33,7 +33,7 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 
 
-#define FRAND (((double)(rand()%100))/100.0)
+//#define FRAND (((double)(rand()%100))/100.0)
 
 #define PROP_BATCH "ExtrudeGeomFilter::batch"
 #define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
@@ -43,28 +43,7 @@ OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()
 {
-    options = 0;
-    min_height = 1.0;
-    max_height = 2.0;
     tex_index = 0;
-    randomize_facade_textures = false;
-    use_vbos = DEFAULT_USE_VBOS;
-}
-
-
-ExtrudeGeomFilter::ExtrudeGeomFilter( const int& _options )
-{
-    options = _options;
-}
-
-
-ExtrudeGeomFilter::ExtrudeGeomFilter(const osg::Vec4f& color,
-                                     double height )
-{
-    overall_color  = color;
-    options        = 0;
-    min_height     = 1.0;
-    max_height     = 2.0;
 }
 
 
@@ -74,126 +53,36 @@ ExtrudeGeomFilter::~ExtrudeGeomFilter()
 }
 
 void
-ExtrudeGeomFilter::setHeightExpr( const std::string& value )
+ExtrudeGeomFilter::setHeightScript( Script* value )
 {
-    height_expr = value;
-    height_functor = NULL;
+    height_script = value;
 }
 
-const std::string&
-ExtrudeGeomFilter::getHeightExpr() const
+Script*
+ExtrudeGeomFilter::getHeightScript() const
 {
-    return height_expr;
-}
-
-//void
-//ExtrudeGeomFilter::setRandomizeHeights( bool value )
-//{
-//    options = value?
-//        options | RANDOMIZE_HEIGHTS :
-//        options & ~RANDOMIZE_HEIGHTS;
-//
-//    if ( value )
-//    { 
-//        struct RandomHeightFunctor : FeatureFunctor<double> {
-//            RandomHeightFunctor( ExtrudeGeomFilter* _e ) : e( _e ) { }
-//            double get( Feature* f ) {
-//                return e->getMinHeight() + FRAND * ( e->getMaxHeight() - e->getMinHeight() );
-//            }
-//            ExtrudeGeomFilter* e;
-//        };
-//
-//        height_functor = new RandomHeightFunctor( this );
-//    }
-//    else
-//    {
-//        height_functor = NULL;
-//    }
-//}
-//
-//bool
-//ExtrudeGeomFilter::getRandomizeHeights() const
-//{
-//    return ( options & RANDOMIZE_HEIGHTS ) != 0;
-//}
-//
-//void
-//ExtrudeGeomFilter::setMinHeight( double value )
-//{
-//    min_height = value;
-//}
-//
-//double
-//ExtrudeGeomFilter::getMinHeight() const
-//{
-//    return min_height;
-//}
-//
-//void
-//ExtrudeGeomFilter::setMaxHeight( double value )
-//{
-//    max_height = value;
-//}
-//
-//double
-//ExtrudeGeomFilter::getMaxHeight() const
-//{
-//    return max_height;
-//}
-//
-//void
-//ExtrudeGeomFilter::setRandomizeFacadeTextures( bool value )
-//{
-//    randomize_facade_textures = value;
-//}
-//
-//bool
-//ExtrudeGeomFilter::getRandomizeFacadeTextures() const
-//{
-//    return randomize_facade_textures;
-//}
-
-void
-ExtrudeGeomFilter::setWallSkinExpr( const std::string& value )
-{
-    wall_skin_expr = value;
-}
-
-const std::string&
-ExtrudeGeomFilter::getWallSkinExpr() const
-{
-    return wall_skin_expr;
-}
-
-bool
-ExtrudeGeomFilter::getUseVBOs() const
-{
-    return use_vbos;
+    return height_script.get();
 }
 
 void
-ExtrudeGeomFilter::setUseVBOs( bool value )
+ExtrudeGeomFilter::setWallSkinScript( Script* value )
 {
-    use_vbos = value;
+    wall_skin_script = value;
+}
+
+Script*
+ExtrudeGeomFilter::getWallSkinScript() const
+{
+    return wall_skin_script.get();
 }
 
 void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
-        setHeightExpr( p.getValue() );
-    //else if ( p.getName() == "min_height" )
-    //    setMinHeight( p.getDoubleValue( getMinHeight() ) );
-    //else if ( p.getName() == "max_height" )
-    //    setMaxHeight( p.getDoubleValue( getMaxHeight() ) );
-    //else if ( p.getName() == "randomize_heights" )
-    //    setRandomizeHeights( p.getBoolValue( getRandomizeHeights() ) );
-    //else if ( p.getName() == "randomize_facade_textures" )
-    //    setRandomizeFacadeTextures( p.getBoolValue( getRandomizeFacadeTextures() ) );
+        setHeightScript( new Script( p.getValue() ) );
     else if ( p.getName() == "wall_skin" )
-        setWallSkinExpr( p.getValue() );
-    else if ( p.getName() == "use_vbos" )
-        setUseVBOs( p.getBoolValue( getUseVBOs() ) );
+        setWallSkinScript( new Script( p.getValue() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -202,21 +91,13 @@ Properties
 ExtrudeGeomFilter::getProperties() const
 {
     Properties p = BuildGeomFilter::getProperties();
-    if ( getHeightExpr().length() > 0 )
-        p.push_back( Property( "height", getHeightExpr() ) );
-    //p.push_back( Property( "randomize_heights", getRandomizeHeights() ) );
-    //p.push_back( Property( "min_height", getMinHeight() ) );
-    //p.push_back( Property( "max_height", getMaxHeight() ) );
-    //p.push_back( Property( "randomize_facade_textures", getRandomizeFacadeTextures() ) );
-    if ( getWallSkinExpr().length() > 0 )
-        p.push_back( Property( "wall_skin", getWallSkinExpr() ) );
-    if ( getUseVBOs() != DEFAULT_USE_VBOS )
-        p.push_back( Property( "use_vbos", getUseVBOs() ) );
+    if ( getHeightScript() )
+        p.push_back( Property( "height", getHeightScript()->getCode() ) );
+    if ( getWallSkinScript() )
+        p.push_back( Property( "wall_skin", getWallSkinScript()->getCode() ) );
     return p;
 }
 
-//#define TEX_WIDTH_M 3
-//#define TEX_HEIGHT_M 4
 
 static bool
 extrudeWallsUp(const GeoShape&         shape, 
@@ -424,14 +305,13 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
     {
         skin = dynamic_cast<SkinResource*>( env->getProperties().getRefValue( PROP_WALL_SKIN ) );
     }
-    else if ( getWallSkinExpr().length() > 0 )
+    else if ( getWallSkinScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), f, env );
+        ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), f, env );
         if ( r.isValid() )
         {
             skin = env->getSession()->getResources()->getSkin( r.asString() );
         }
-         //   skin = dynamic_cast<SkinResource*>( r.asRef() );
     }
     return skin;
 }
@@ -442,9 +322,9 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
     bool batch = input.size() > 1;
     env->setProperty( Property( PROP_BATCH, batch ) );
 
-    if ( batch && getWallSkinExpr().length() > 0 )
+    if ( batch && getWallSkinScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( new Script( getWallSkinExpr() ), env );
+        ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), env );
         if ( r.isValid() )
             env->setProperty( Property( PROP_WALL_SKIN, r.asRef() ) );
     }
@@ -458,6 +338,11 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
 {
     DrawableList output;
 
+    // calcuate feature extent in the SRS, which we'll need for texture coordinates.
+    GeoExtent abs_feature_extent(
+        input->getExtent().getSouthwest().getAbsolute(),
+        input->getExtent().getNortheast().getAbsolute() );
+
     osg::Vec4 color = getColorForFeature( input, env );
 
     for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
@@ -467,17 +352,10 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         double height = 0.0;
         
         // first try the height expression (takes precedence)
-        if ( height_expr.length() > 0 )
+        if ( getHeightScript() )
         {
-            osg::ref_ptr<Script> script = new Script( height_expr );
-            ScriptResult r = env->getScriptEngine()->run( script.get(), input, env );
+            ScriptResult r = env->getScriptEngine()->run( getHeightScript(), input, env );
             height = r.isValid()? r.asDouble( height ) : height;
-        }
-
-        // next try the functor.. this may eventually go away as well..
-        else if ( height_functor.valid() )
-        {
-            height = height_functor->get( input );
         }
 
         // establish the wall skin resource:
@@ -497,17 +375,12 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             {
                 walls->setStateSet( env->getSession()->getResources()->getStateSet( skin ) );
                 env->getSession()->markResourceUsed( skin );
-                //walls->getOrCreateStateSet()->setTextureAttributeAndModes( 0, skin->getSt.get(), osg::StateAttribute::ON );
-                //walls->getOrCreateStateSet()->setTextureAttribute( 0, active_texenv.get(), osg::StateAttribute::ON );
             }
 
             // generate per-vertex normals
             // todo: replace this nonsense
             osgUtil::SmoothingVisitor smoother;
-            smoother.smooth( *(walls.get()) );   
-
-            if ( use_vbos )
-                walls->setUseVertexBufferObjects( true );
+            smoother.smooth( *(walls.get()) ); 
 
             output.push_back( walls.get() );
 
@@ -518,10 +391,15 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
                 tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
                 tess.retessellatePolygons( *(rooflines.get()) );
+
+                // generate/smooth the normals.. TODO: replace this maybe
                 smoother.smooth( *(rooflines.get()) );
 
-                if ( use_vbos )
-                    rooflines->setUseVertexBufferObjects( true );
+                // texture the rooflines if necessary
+                applyOverlayTexturing( rooflines.get(), input, env );
+
+                //genTextureCoords( rooflines.get(), abs_feature_extent, env );
+                //applyRasterTexture( rooflines.get(), abs_feature_extent, input, env );
 
                 output.push_back( rooflines.get() );
             }

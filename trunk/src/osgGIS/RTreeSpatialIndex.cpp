@@ -19,8 +19,12 @@
 
 #include <osgGIS/RTreeSpatialIndex>
 #include <osgGIS/FeatureCursorImpl>
+#include <osgGIS/Registry>
+#include <osgGIS/Utils>
 #include <osg/Notify>
+#include <osgDB/FileNameUtils>
 #include <algorithm>
+#include <fstream>
 
 using namespace osgGIS;
 
@@ -57,19 +61,59 @@ RTreeSpatialIndex::createCursor( const GeoExtent& query_extent )
 bool
 RTreeSpatialIndex::buildIndex()
 {
-    rtree = new RTree<FeatureOID>();
-    osg::ref_ptr<FeatureCursor> cursor = store->createCursor();
-    while( cursor->hasNext() )
+    bool loaded = false;
+
+    bool cache_index = Registry::instance()->hasWorkDirectory();
+    std::string index_name = osgDB::getSimpleFileName( store->getName() ) + "_spatialindex";
+
+    if ( cache_index )
     {
-        Feature* f = cursor->next();
-        const GeoExtent& f_extent = f->getExtent();
-        if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
+        std::string cache_path = PathUtils::combinePaths(
+            Registry::instance()->getWorkDirectory(),
+            index_name );
+
+        std::ifstream input( cache_path.c_str() );
+        if ( input.is_open() )
         {
-            rtree->insert( f_extent, f->getOID() );
-            extent.expandToInclude( f_extent );
-        }
+            rtree = new RTree<FeatureOID>();
+            loaded = rtree->readFrom( input, store->getSRS(), extent );
+            input.close();
+            if ( loaded )
+                osg::notify(osg::NOTICE) << "Loaded cached spatial index OK..";
+        }    
     }
-    return true;
+    
+    if ( !loaded )
+    {
+        rtree = new RTree<FeatureOID>();
+
+        osg::ref_ptr<FeatureCursor> cursor = store->createCursor();
+        while( cursor->hasNext() )
+        {
+            Feature* f = cursor->next();
+            const GeoExtent& f_extent = f->getExtent();
+            if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
+            {
+                rtree->insert( f_extent, f->getOID() );
+                extent.expandToInclude( f_extent );
+            }
+        }
+
+        if ( cache_index )
+        {
+            std::string cache_path = PathUtils::combinePaths(
+                Registry::instance()->getWorkDirectory(),
+                index_name );
+
+            std::ofstream output( cache_path.c_str() );
+            rtree->writeTo( output, extent );
+            output.close();
+        }
+
+        loaded = true;
+    }
+
+    return loaded;
 }
 
 const GeoExtent&

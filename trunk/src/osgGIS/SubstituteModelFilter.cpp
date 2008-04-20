@@ -254,7 +254,7 @@ registerTextures( osg::Node* node, Session* session )
             osg::StateSet* ss = node.getStateSet();
             if ( ss )
             {
-                for( int i=0; i<ss->getTextureAttributeList().size(); i++ )
+                for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
                 {
                     osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
                     if ( tex && tex->getImage() )
@@ -263,7 +263,7 @@ registerTextures( osg::Node* node, Session* session )
                         if ( abs_path.length() > 0 )
                         {
                             SkinResource* skin = new SkinResource();
-                            skin->setTexturePath( abs_path );
+                            skin->setURI( abs_path );
                             session->getResources()->addResource( skin );
                             session->markResourceUsed( skin );
                             //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
@@ -368,7 +368,7 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
         {
             // create a new resource on the fly..
             ModelResource* model = new ModelResource();
-            model->setModelPath( r.asString() );
+            model->setURI( r.asString() );
             model->setName( r.asString() );
             env->getSession()->getResources()->addResource( model );
             osg::Node* node = env->getSession()->getResources()->getNode( model );

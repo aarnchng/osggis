@@ -143,6 +143,9 @@ namespace osgGIS
          * Transforms a shape into this SRS (modifying the input data).
          */
         virtual bool transformInPlace( GeoShape& input ) const;
+        
+        
+        virtual GeoExtent transform( const GeoExtent& input ) const;
 
 
     public:        

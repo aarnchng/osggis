@@ -123,7 +123,7 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
     // compile away.
     std::string result = compileAll( layer, top_extent );
 
-    finalizeLayer( output_dir );
+    localizeResources( output_dir );
 
     return result;
 }

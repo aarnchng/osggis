@@ -23,10 +23,11 @@
 #include <OpenThreads/ScopedLock>
 
 using namespace osgGIS;
+using namespace OpenThreads;
 
 Session::Session()
 {
-    resources = new ResourceLibrary();
+    resources = new ResourceLibrary( session_mtx );
 }
 
 Session::~Session()
@@ -38,7 +39,7 @@ Session::~Session()
 Session*
 Session::derive()
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
 
     Session* result = new Session();
     result->scripts.insert( result->scripts.end(), scripts.begin(), scripts.end() );
@@ -53,7 +54,7 @@ Session::createScriptEngine()
 {
     // sessions are shared across compilations that might be in 
     // separate threads.
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
 
     // get an empty scripting engine from the registry's factory
     ScriptEngine* engine = Registry::instance()->createScriptEngine();
@@ -68,7 +69,7 @@ Session::createScriptEngine()
 void
 Session::addScript( Script* script )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
     scripts.push_back( script );
 }
 
@@ -93,14 +94,14 @@ Session::createFilterEnv()
 void 
 Session::setProperty( const Property& prop )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
     properties.set( prop );
 }
 
 Property
 Session::getProperty( const std::string& name )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
     return properties.get( name );
 }
 
@@ -113,12 +114,25 @@ Session::getSessionMutex()
 void
 Session::markResourceUsed( Resource* r )
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> sl( session_mtx );
-    resources_used.insert( r->getName() );
+    ScopedLock<ReentrantMutex> sl( session_mtx );
+    if ( std::find( resources_used.begin(), resources_used.end(), r ) == resources_used.end() )
+        resources_used.push_back( r );
 }
 
-const ResourceNames& 
-Session::getResourcesUsed() const
+ResourceList
+Session::getResourcesUsed( bool reset )
 {
-    return resources_used;
+    ScopedLock<ReentrantMutex> sl( session_mtx );
+
+    ResourceList list;
+    list.reserve( resources_used.size() );
+    for( ResourceList::const_iterator i = resources_used.begin(); i != resources_used.end(); i++ )
+    {
+        list.push_back( i->get() );
+    }
+
+    if ( reset )
+        resources_used.clear();
+
+    return list;
 }

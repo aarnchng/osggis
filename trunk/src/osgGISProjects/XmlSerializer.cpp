@@ -217,8 +217,10 @@ decodeResource( XmlElement* e, Project* proj )
         if ( resource )
         {
             resource->setBaseURI( proj->getBaseURI() );
+
             resource->setName( e->getAttr( "name" ) );
             resource->addTag( e->getAttr( "tags" ) );
+            resource->setURI( e->getSubElementText( "uri" ) );
 
             XmlNodeList prop_els = e->getSubElements( "property" );
             for( XmlNodeList::const_iterator k = prop_els.begin(); k != prop_els.end(); k++ )
@@ -249,6 +251,7 @@ decodeSource( XmlElement* e, Project* proj, int pass )
             source = new Source();
             source->setBaseURI( proj->getBaseURI() );
             source->setName( e->getAttr( "name" ) );
+            source->setType( e->getAttr( "type" ) == "raster"? Source::TYPE_RASTER : Source::TYPE_FEATURE );
             source->setURI( e->getSubElementText( "uri" ) );
             source->setFilterGraph( proj->getFilterGraph( e->getAttr( "graph" ) ) );
         }

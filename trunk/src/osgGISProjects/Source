@@ -34,6 +34,13 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT Source : public osg::Referenced
     {
     public:
+        enum Type
+        {
+            TYPE_FEATURE,
+            TYPE_RASTER
+        };
+        
+    public:
         /**
          * Constructs a new, empty source.
          */
@@ -64,6 +71,16 @@ namespace osgGISProjects
          * build.
          */
         void setName( const std::string& value );
+        
+        /**
+         * Gets the source type (TYPE_FEATURE or TYPE_RASTER).
+         */
+        const Type& getType() const;
+        
+        /**
+         * Sets the source type to TYPE_FEATURE or TYPE_RASTER.
+         */
+        void setType( const Type& type );
 
         /**
          * Gets the URI of the object to which this source refers. The URI might
@@ -140,6 +157,7 @@ namespace osgGISProjects
 
     private:
         std::string name;
+        Type type;
         std::string uri;
         std::string base_uri;
         Properties props;

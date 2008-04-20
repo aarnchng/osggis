@@ -38,12 +38,9 @@ namespace osgGIS
     public:
         SkinResource();
         SkinResource( const std::string& name );
+        SkinResource( osg::Image* image );
 
     public: // properties
-
-        void setTexturePath( const std::string& value );
-        const std::string& getTexturePath() const;
-        std::string getAbsoluteTexturePath() const;
 
         void setTextureWidthMeters( double value );
         double getTextureWidthMeters() const;
@@ -65,10 +62,12 @@ namespace osgGIS
 
         void setColor( const osg::Vec4& value );
         const osg::Vec4& getColor() const;
-
+        
     public:
 
         osg::StateSet* createStateSet();
+        
+        osg::Image* getImage();
 
     public: 
 
@@ -80,13 +79,13 @@ namespace osgGIS
         virtual ~SkinResource();
 
     private:
-        std::string tex_path;
         double tex_width_m;
         double tex_height_m;
         double min_tex_height_m;
         double max_tex_height_m;
         bool repeats_vertically;
         osg::Vec4 color;
+        osg::ref_ptr<osg::Image> image;
 
         void init();
     };

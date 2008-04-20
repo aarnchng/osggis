@@ -55,7 +55,7 @@ void
 ModelResource::setProperty( const Property& prop )
 {
     if ( prop.getName() == "model_path" || prop.getName() == "path" )
-        setModelPath( prop.getValue() );
+        setURI( prop.getValue() ); // backwards compat - use <uri>
     else
         Resource::setProperty( prop );
 }
@@ -64,32 +64,14 @@ Properties
 ModelResource::getProperties() const
 {
     Properties props = Resource::getProperties();
-    props.push_back( Property( "model_path", getModelPath() ) );
+    //props.push_back( Property( "model_path", getModelPath() ) );
     return props;
-}
-
-void 
-ModelResource::setModelPath( const std::string& value )
-{
-    path = value;
-}
-
-const std::string& 
-ModelResource::getModelPath() const
-{
-    return path;
-}
-
-std::string
-ModelResource::getAbsoluteModelPath() const
-{
-    return PathUtils::getAbsPath( getBaseURI(), path );
 }
 
 osg::Node*
 ModelResource::createNode()
 {
-    osg::Node* node = osgDB::readNodeFile( getAbsoluteModelPath() );
+    osg::Node* node = osgDB::readNodeFile( getAbsoluteURI() );
     return node;
 };
 
@@ -104,7 +86,7 @@ ModelResource::createProxyNode()
     //return proxy;
 
     osg::PagedLOD* plod = new osg::PagedLOD();
-    plod->addChild( dummy, 0.0f, 15000.0f, getAbsoluteModelPath() );
+    plod->addChild( dummy, 0.0f, 15000.0f, getAbsoluteURI() );
     return plod;
 }
 

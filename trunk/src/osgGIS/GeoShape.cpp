@@ -113,6 +113,7 @@ GeoShape::getPart( unsigned int i )
 GeoPartList&
 GeoShape::getParts()
 {
+    extent_cache = GeoExtent::invalid();
     return parts;
 }
 
@@ -167,8 +168,11 @@ GeoShape::getExtent() const
     if ( !extent_cache.isValid() )
     {
         struct ExtentVisitor : public GeoPointVisitor {
+            ExtentVisitor() : e( GeoExtent::invalid() ) { }
             GeoExtent e;
             bool visitPoint( const GeoPoint& p ) {
+                if ( !e.isValid() && p.isValid() )
+                    e = GeoExtent();
                 e.expandToInclude( p );
                 return true;
             }
@@ -178,7 +182,7 @@ GeoShape::getExtent() const
         accept( vis );
 
         // cast to non-const is OK for caching only
-        ((GeoShape*)this)->extent_cache = vis.e;
+        const_cast<GeoShape*>(this)->extent_cache = vis.e;
     }
     return extent_cache;
 }

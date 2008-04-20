@@ -23,6 +23,7 @@
 #include <osgGIS/DrawableFilter>
 #include <osgGIS/NodeFilter>
 #include <osgGIS/Registry>
+#include <osgGIS/Utils>
 #include <osg/Notify>
 
 using namespace osgGIS;
@@ -74,7 +75,7 @@ SceneGraphCompiler::compile()
 osg::Group*
 SceneGraphCompiler::compile( FilterEnv* env_template )
 {
-    osg::Group* result = new osg::Group();
+    osg::ref_ptr<osg::Group> result = new osg::Group();
 
     // Set up the initial filter environment:
     osg::ref_ptr<FilterEnv> env;
@@ -92,8 +93,7 @@ SceneGraphCompiler::compile( FilterEnv* env_template )
     env->setOutputSRS( layer->getSRS() );
 
     // Get the input feature set:
-    osg::ref_ptr<FeatureCursor> cursor = layer->createCursor( 
-        env->getExtent() );
+    osg::ref_ptr<FeatureCursor> cursor = layer->createCursor(  env->getExtent() );
 
     // Run the filter graph.
     osg::NodeList output;
@@ -104,5 +104,7 @@ SceneGraphCompiler::compile( FilterEnv* env_template )
         for( osg::NodeList::const_iterator i = output.begin(); i != output.end(); i++ )
             result->addChild( i->get() );
     }
-    return result;
+
+    // if there's no geometry, just return NULL.
+    return GeomUtils::getNumGeodes( result.get() ) > 0? result.release() : NULL;
 }

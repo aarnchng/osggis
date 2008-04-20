@@ -24,6 +24,7 @@
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/SpatialReferenceFactory>
 #include <osgGIS/FeatureStoreFactory>
+#include <osgGIS/RasterStoreFactory>
 #include <osgGIS/Filter>
 #include <osgGIS/Resource>
 #include <osgGIS/ScriptEngine>
@@ -88,7 +89,16 @@ namespace osgGIS
          *      New feature store factory implementation.
          */
 		void setFeatureStoreFactory( FeatureStoreFactory* factory );
+		
+		/**
+		 * Gets the interface for creating raster store connections.
+		 */
+		RasterStoreFactory* getRasterStoreFactory();
 
+        /**
+         * Sets the interface for creating raster store connections.
+         */
+        void setRasterStoreFactory( RasterStoreFactory* factory );
         
         ScriptEngine* createScriptEngine();
 		
@@ -102,13 +112,33 @@ namespace osgGIS
 
         bool addResourceType( const std::string& type, ResourceFactory* factory );
         
+        
+        /**
+         * Sets the absolute path of a directory in which system components can
+         * store temporarily or other build-related files.
+         */
+        void setWorkDirectory( const std::string& abs_path );
+        
+        /**
+         * Gets the absolute path of a directory in which system components can
+         * store temporarily or other build-related files.
+         */
+        const std::string& getWorkDirectory() const;
+        
+        /**
+         * Returns true is a work directory is set.
+         */
+        bool hasWorkDirectory() const;
+        
 	private:
 		Registry();
 		
 		osg::ref_ptr<SpatialReferenceFactory> spatial_ref_factory;
 		osg::ref_ptr<FeatureStoreFactory>     feature_store_factory;
+		osg::ref_ptr<RasterStoreFactory>      raster_store_factory;
         FilterFactoryMap                      filter_factories;
         ResourceFactoryMap                    resource_factories;
+        std::string                           work_dir;
 
 		static Registry* singleton;
 		

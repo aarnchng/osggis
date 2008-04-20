@@ -64,6 +64,8 @@ namespace osgGIS
          */
         static bool isPolygonCW(
             const GeoPointList& polygon );
+            
+        static int getNumGeodes( osg::Node* node );
     };
 }
 

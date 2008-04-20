@@ -72,6 +72,8 @@ namespace osgGIS
 		virtual GeoShape transform( const GeoShape& input ) const;
 
         virtual bool transformInPlace( GeoShape& input ) const;
+        
+        virtual GeoExtent transform( const GeoExtent& input ) const;
 
 
     public:

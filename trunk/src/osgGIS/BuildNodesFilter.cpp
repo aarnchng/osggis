@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/BuildNodesFilter>
+#include <osgGIS/Utils>
 #include <osg/Geode>
 #include <osg/Depth>
 #include <osg/LineWidth>
@@ -32,6 +33,7 @@
 #include <osg/Geometry>
 #include <osg/TriangleFunctor>
 #include <osgUtil/Optimizer>
+#include <sstream>
 
 using namespace osgGIS;
 
@@ -173,6 +175,30 @@ BuildNodesFilter::getDrawClusterCullingNormals() const
 }
 
 void
+BuildNodesFilter::setRasterOverlayScript( Script* value )
+{
+    raster_overlay_script = value;
+}
+        
+Script*
+BuildNodesFilter::getRasterOverlayScript() const
+{
+    return raster_overlay_script.get();
+}
+
+void
+BuildNodesFilter::setMaxRasterOverlaySize( int value )
+{
+    max_raster_overlay_size = value;
+}
+
+int
+BuildNodesFilter::getMaxRasterOverlaySize() const
+{
+    return max_raster_overlay_size;
+}
+
+void
 BuildNodesFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "optimize" )
@@ -191,6 +217,10 @@ BuildNodesFilter::setProperty( const Property& p )
         setPointSize( p.getFloatValue( getPointSize() ) );
     else if ( p.getName() == "draw_cluster_culling_normals" )
         setDrawClusterCullingNormals( p.getBoolValue( getDrawClusterCullingNormals() ) );
+    else if ( p.getName() == "raster_overlay" )
+        setRasterOverlayScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "max_raster_overlay_size" )
+        setMaxRasterOverlaySize( p.getIntValue( getMaxRasterOverlaySize() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -208,6 +238,9 @@ BuildNodesFilter::getProperties() const
     p.push_back( Property( "line_width", getLineWidth() ) );
     p.push_back( Property( "point_size", getPointSize() ) );
     p.push_back( Property( "draw_cluster_culling_normals", getDrawClusterCullingNormals() ) );
+    if ( getRasterOverlayScript() )
+        p.push_back( Property( "raster_overlay", getRasterOverlayScript()->getCode() ) );
+    p.push_back( Property( "max_raster_overlay_size", getMaxRasterOverlaySize() ) );
     return p;
 }
 
@@ -231,7 +264,8 @@ BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
 osg::NodeList
 BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
 {
-    osg::Node* result = NULL;
+    osg::ref_ptr<osg::Node> result;
+
     if ( input.size() > 1 )
     {
         result = new osg::Group();
@@ -243,6 +277,12 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
         result = input[0].get();
     }
     else
+    {
+        return osg::NodeList();
+    }
+
+    // if there are no geodes, toss it.
+    if ( GeomUtils::getNumGeodes( result.get() ) == 0 )
     {
         return osg::NodeList();
     }
@@ -259,7 +299,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
         osg::Vec3d centroid_abs = centroid * irf;
         osg::MatrixTransform* xform = new osg::MatrixTransform( irf );
 
-        xform->addChild( result );
+        xform->addChild( result.get() );
         result = xform;
 
         if ( getApplyClusterCulling() && input_srs->isGeocentric() )
@@ -331,6 +371,29 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
             osg::StateAttribute::ON );
     }
 
+    if ( getRasterOverlayScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getRasterOverlayScript(), env );
+        if ( r.isValid() )
+        {
+            RasterResource* raster = env->getSession()->getResources()->getRaster( r.asString() );
+            if ( raster )
+            {
+                osg::Image* image = NULL;
+                int x = (int)env->getExtent().getCentroid().x();
+                int y = (int)env->getExtent().getCentroid().y();
+                std::stringstream builder;
+                builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
+                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getMaxRasterOverlaySize(), builder.str(), &image ) )
+                {
+                    // add this as a skin resource so the compiler can properly localize and deploy it.
+                    SkinResource* skin = new SkinResource( image );
+                    env->getSession()->markResourceUsed( skin );
+                }
+            }
+        }
+    }
+
     if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
@@ -348,10 +411,10 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
         opt_mask |= env->getOptimizerHints().getIncludedOptions();
         opt_mask &= ~( env->getOptimizerHints().getExcludedOptions() );
 
-        opt.optimize( result, opt_mask );
+        opt.optimize( result.get(), opt_mask );
     }
 
     osg::NodeList output;
-    output.push_back( result );
+    output.push_back( result.get() );
     return output;
 }

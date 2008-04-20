@@ -27,6 +27,7 @@
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Resource>
 #include <osgGIS/FeatureStoreCompiler>
+#include <osgGIS/Utils>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -228,7 +229,21 @@ Builder::build( Source* source, Session* session )
 
 bool
 Builder::build( BuildLayer* layer )
-{        
+{
+    // create a project work directory for intermediate/temporary files
+    std::string proj_name = project->getName().length() > 0?
+        (project->getName() + "_work") :
+        "osggis_work";
+
+    std::string work_dir = PathUtils::combinePaths( 
+        project->getBaseURI(),
+        proj_name );
+
+    if ( osgDB::makeDirectory( work_dir ) )
+    {
+        Registry::instance()->setWorkDirectory( work_dir );
+    }
+
     VERBOSE_OUT <<
         "Building layer \"" << layer->getName() << "\"." << std::endl;
 
@@ -295,11 +310,20 @@ Builder::build( BuildLayer* layer )
             << std::endl;
         return false;
     }
+
+    // whether to include textures in IVE files:
+    bool inline_ive_textures = layer->getProperties().getBoolValue( "inline_textures", false );
     
-//    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( 
-//        "noWriteExternalReferenceFiles useOriginalExternalReferences" );
-    osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options( 
-        "noTexturesInIVEFile noWriteExternalReferenceFiles useOriginalExternalReferences" );
+    osgDB::ReaderWriter::Options* options;
+    if ( inline_ive_textures )
+    {
+        options = new osgDB::ReaderWriter::Options( "noWriteExternalReferenceFiles useOriginalExternalReferences" );
+    }
+    else
+    {
+        options = new osgDB::ReaderWriter::Options( "noTexturesInIVEFile noWriteExternalReferenceFiles useOriginalExternalReferences" );
+    }
+    
     osgDB::Registry::instance()->setOptions( options );
 
 

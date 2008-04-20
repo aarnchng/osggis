@@ -18,6 +18,9 @@
  */
 
 #include <osgGISProjects/Project>
+#include <osgGIS/Registry>
+#include <osgGIS/FeatureStore>
+#include <osgGIS/RasterStore>
 #include <osgDB/FileNameUtils>
 #include <algorithm>
 
@@ -213,4 +216,41 @@ ResourceList&
 Project::getResources()
 {
     return resources;
+}
+
+bool
+Project::testSources() const
+{
+    for( SourceList::const_iterator i = getSources().begin(); i != getSources().end(); i++ )
+    {
+        Source* source = i->get();
+
+        osg::notify(osg::NOTICE) << "Source: \"" << source->getName() << "\":" << std::endl;
+
+        if ( source->isIntermediate() )
+        {
+            osg::notify(osg::WARN) << "Source is intermediate; skipping." << std::endl;
+            continue;
+        }
+
+        osg::ref_ptr<osg::Referenced> store;
+        
+        if ( source->getType() == Source::TYPE_FEATURE )
+        {
+            store = Registry::instance()->getFeatureStoreFactory()->connectToFeatureStore( source->getAbsoluteURI() );
+        }
+        else if ( source->getType() == Source::TYPE_RASTER )
+        {
+            store = Registry::instance()->getRasterStoreFactory()->connectToRasterStore( source->getAbsoluteURI() );
+        }
+
+        if ( !store.valid() )
+        {
+            osg::notify(osg::WARN) << "*** FAILED TO CONNECT TO " << source->getAbsoluteURI() << std::endl;
+        }
+
+        osg::notify(osg::NOTICE) << std::endl;
+    }
+
+    return true;
 }

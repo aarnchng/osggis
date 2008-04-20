@@ -23,28 +23,18 @@
 #include <osgGIS/Common>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/SkinResource>
-//#include <osg/StateSet>
+#include <osgGIS/Script>
 #include <osg/Texture>
 #include <osg/TexEnv>
 
 namespace osgGIS
 {
     /**
-     * Work in progress.
      * Extrudes vector footprints into 3D geometries.
      */
     class OSGGIS_EXPORT ExtrudeGeomFilter : public BuildGeomFilter
     {
         OSGGIS_META_FILTER( ExtrudeGeomFilter );  
-
-    public:
-        enum Options
-        {
-            RANDOMIZE_COLORS  = 0x01,
-            RANDOMIZE_HEIGHTS = 0x02,
-            HEIGHT_IS_RELATIVE_TO_SEA_LEVEL = 0x04,
-            HEIGHT_IS_RELATIVE_TO_TERRAIN   = 0x08,
-        };
 
 
     public:
@@ -58,33 +48,13 @@ namespace osgGIS
         
     public: //properties
 
-        void setHeightExpr( const std::string& expr );
+        void setHeightScript( Script* script );
 
-        const std::string& getHeightExpr() const;
-
-//        void setMinHeight( double value );
+        Script* getHeightScript() const;
         
-//        double getMinHeight() const;
+        void setWallSkinScript( Script* script );
         
-//        void setMaxHeight( double value );
-        
-//        double getMaxHeight() const;
-        
-//        void setRandomizeHeights( bool value );
-        
-//        bool getRandomizeHeights() const;
-
-//        void setRandomizeFacadeTextures( bool value );
-        
-//        bool getRandomizeFacadeTextures() const;
-
-        void setWallSkinExpr( const std::string& expr );
-
-        const std::string& getWallSkinExpr() const;
-        
-        void setUseVBOs( bool value );
-        
-        bool getUseVBOs() const;
+        Script* getWallSkinScript() const;
         
 
     protected:
@@ -95,16 +65,11 @@ namespace osgGIS
         virtual Properties getProperties() const;
         
     private:
-        std::string height_expr;
-        double min_height;
-        double max_height;
-        osg::ref_ptr< FeatureFunctor<double> > height_functor;
+        osg::ref_ptr<Script> height_script;
+        osg::ref_ptr<Script> wall_skin_script;
         int tex_index;
-        bool randomize_facade_textures;
         osg::ref_ptr<osg::Texture> active_tex;
         osg::ref_ptr<osg::TexEnv> active_texenv;
-        std::string wall_skin_expr;
-        bool use_vbos;
         
         SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
     };

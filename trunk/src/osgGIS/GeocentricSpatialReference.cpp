@@ -190,3 +190,12 @@ GeocentricSpatialReference::transformInPlace( GeoShape& input ) const
         return false;
     }
 }
+
+
+GeoExtent
+GeocentricSpatialReference::transform( const GeoExtent& input ) const
+{
+    return GeoExtent(
+        transform( input.getSouthwest() ),
+        transform( input.getNortheast() ) );        
+}

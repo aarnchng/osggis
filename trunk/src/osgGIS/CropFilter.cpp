@@ -725,6 +725,11 @@ CropFilter::process( Feature* input, FilterEnv* env )
         input->getShapes().swap( new_shapes );
     }
 
-    output.push_back( input );
+    // verify that the feature still has data before sending it along
+    if ( input->getExtent().isValid() )
+    {
+        output.push_back( input );
+    }
+
     return output;
 }

@@ -23,6 +23,7 @@
 #include <osgGIS/FadeHelper>
 #include <osgGIS/Task>
 #include <osgGIS/TaskManager>
+#include <osgGIS/Utils>
 #include <osg/Node>
 #include <osg/LOD>
 #include <osg/PagedLOD>
@@ -200,41 +201,49 @@ public:
             }
         }
 
-        if ( compiler.getPaged() )
-        {
-            osg::PagedLOD* plod = new osg::PagedLOD();
-            std::stringstream str;
-            str << output_prefix << "_x" << col << "_y" << row  << "." << output_extension;
-            std::string tile_filename = str.str();
-            plod->setFileName( 0, tile_filename );
-            plod->setRange( 0, min_range, max_range );
-            plod->setCenter( lod->getBound().center() );
-            plod->setRadius( lod->getBound().radius() );
-            
-            compiler.localizeResourceReferences( lod.get() );
 
-            if ( compiler.getArchive() )
+        if ( GeomUtils::getNumGeodes( lod.get() ) > 0 )
+        {
+            if ( compiler.getPaged() )
             {
-                // archive has a serializer mutex, so this is ok:
-                compiler.getArchive()->writeNode( 
-                    *(lod.get()), 
-                    tile_filename,
-                    osgDB::Registry::instance()->getOptions() );
+                osg::PagedLOD* plod = new osg::PagedLOD();
+                std::stringstream str;
+                str << output_prefix << "_x" << col << "_y" << row  << "." << output_extension;
+                std::string tile_filename = str.str();
+                plod->setFileName( 0, tile_filename );
+                plod->setRange( 0, min_range, max_range );
+                plod->setCenter( lod->getBound().center() );
+                plod->setRadius( lod->getBound().radius() );
+                
+                compiler.localizeResourceReferences( lod.get() );
+
+                if ( compiler.getArchive() )
+                {
+                    // archive has a serializer mutex, so this is ok:
+                    compiler.getArchive()->writeNode( 
+                        *(lod.get()), 
+                        tile_filename,
+                        osgDB::Registry::instance()->getOptions() );
+                }
+                else
+                {
+                    std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
+                    osgDB::writeNodeFile(
+                        *(lod.get()),
+                        tile_path,
+                        osgDB::Registry::instance()->getOptions() );
+                }
+
+                result = plod;
             }
             else
             {
-                std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
-                osgDB::writeNodeFile(
-                    *(lod.get()),
-                    tile_path,
-                    osgDB::Registry::instance()->getOptions() );
+                result = lod.get();
             }
-
-            result = plod;
         }
         else
         {
-            result = lod.get();
+            result = NULL;
         }
     }
 
@@ -389,6 +398,10 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     if ( node )
                     {
                         root->addChild( node );
+
+                        // need to do this each time a task completes so that we don't collect
+                        // gobs of resources in memory
+                        localizeResources( osgDB::getFilePath( output_file ) );
                     }
                 }        
             }
@@ -397,7 +410,6 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
 
     // write any textures to the archive:
     localizeResourceReferences( root );
-    finalizeLayer( osgDB::getFilePath( output_file ) );
 
     // finally we organize the root graph better
     osgUtil::Optimizer opt;

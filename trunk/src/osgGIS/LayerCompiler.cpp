@@ -31,13 +31,14 @@
 #include <osg/NodeVisitor>
 #include <osg/Texture2D>
 #include <osg/ProxyNode>
+#include <OpenThreads/ScopedLock>
 #include <map>
 #include <string>
 #include <queue>
+#include <sstream>
 
 using namespace osgGIS;
-
-
+using namespace OpenThreads;
 
 
 LayerCompiler::LayerCompiler()
@@ -51,6 +52,7 @@ LayerCompiler::LayerCompiler()
     aoi_xmax = DBL_MIN;
     aoi_ymax = DBL_MIN;
     localize_resources = true;
+    paged = false;
 }
 
 void
@@ -275,11 +277,33 @@ LayerCompiler::setProperties( Properties& input )
     setRenderOrder( input.getIntValue( "render_order", getRenderOrder() ) );
     setPreCompileExpr( input.getValue( "pre_script", getPreCompileExpr() ) );
     setLocalizeResources( input.getBoolValue( "localize_resources", getLocalizeResources() ) );
+    setOverlayRasterName( input.getValue( "overlay_raster", "" ) );
 
     aoi_xmin = input.getDoubleValue( "aoi_xmin", DBL_MAX );
     aoi_ymin = input.getDoubleValue( "aoi_ymin", DBL_MAX );
     aoi_xmax = input.getDoubleValue( "aoi_xmax", DBL_MIN );
     aoi_ymax = input.getDoubleValue( "aoi_ymax", DBL_MIN );
+}
+
+
+void
+LayerCompiler::generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent )
+{
+    RasterResource* raster = getSession()->getResources()->getRaster( overlay_raster_name );
+    if ( raster )
+    {
+        osg::Image* image = NULL;
+        int x = (int)tile_extent.getCentroid().x();
+        int y = (int)tile_extent.getCentroid().y();
+        std::stringstream builder;
+        builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
+        if ( raster->applyToStateSet( node->getOrCreateStateSet(), tile_extent, 0, builder.str(), &image ) )
+        {
+            // add this as a skin resource so the compiler can properly localize and deploy it.
+            SkinResource* skin = new SkinResource( image );
+            getSession()->markResourceUsed( skin );
+        }
+    }
 }
 
 
@@ -306,7 +330,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 
         virtual void apply( osg::Geode& geode )
         {
-            for( int i=0; i<geode.getNumDrawables(); i++ )
+            for( unsigned int i=0; i<geode.getNumDrawables(); i++ )
             {
                 osg::StateSet* ss = geode.getDrawable( i )->getStateSet();
                 if ( ss ) rewrite( ss );
@@ -326,7 +350,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 
         void rewrite( osg::StateSet* ss )
         {
-            for( int i=0; i<ss->getTextureAttributeList().size(); i++ )
+            for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
             {
                 osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
                 if ( tex && tex->getImage() )
@@ -347,7 +371,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
                     {
                         std::string simple = osgDB::getSimpleFileName( name );
                         tex->getImage()->setFileName( simple );
-                        osg::notify( osg::INFO ) << "  Rewrote " << name << " as " << simple << std::endl;
+                        osg::notify( osg::INFO ) << "  LayerCompiler::localizeResourceRefs, Rewrote " << name << " as " << simple << std::endl;
                     }
                 }
             }
@@ -363,24 +387,29 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 
 
 void
-LayerCompiler::finalizeLayer( const std::string& output_folder )
+LayerCompiler::localizeResources( const std::string& output_folder )
 {
     if ( getLocalizeResources() )
     {   
-        osg::notify(osg::INFO) << "LayerCompiler: finalizing layer/localizing resources" << std::endl;
+        ResourceList resources_to_localize = getSession()->getResourcesUsed( true );
+
+        //osg::notify(osg::INFO) << "LayerCompiler: finalizing layer/localizing resources" << std::endl;
 
         osg::ref_ptr<osgDB::ReaderWriter::Options> local_options = new osgDB::ReaderWriter::Options;
 
-        const ResourceNames& names = getSession()->getResourcesUsed();
-        for( ResourceNames::const_iterator i = names.begin(); i != names.end(); i++ )
+
+        for( ResourceList::const_iterator i = resources_to_localize.begin(); i != resources_to_localize.end(); i++ )
         {
-            SkinResource* skin = getSession()->getResources()->getSkin( *i );
-            if ( skin )
+            Resource* resource = i->get();
+
+            if ( dynamic_cast<SkinResource*>( resource ) )
             {
-                osg::ref_ptr<osg::Image> image = osgDB::readImageFile( skin->getAbsoluteTexturePath() );
+                SkinResource* skin = static_cast<SkinResource*>( resource );
+
+                osg::ref_ptr<osg::Image> image = skin->getImage();
                 if ( image.valid() )
                 {
-                    std::string filename = osgDB::getSimpleFileName( skin->getAbsoluteTexturePath() );
+                    std::string filename = osgDB::getSimpleFileName( image->getFileName() );
 
                     if ( getArchive() && !getArchive()->fileExists( filename ) )
                     {
@@ -405,16 +434,16 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
                         }
                     }
                 }
-                continue;
             }
 
-            ModelResource* model = getSession()->getResources()->getModel( *i );
-            if ( model )
+            else if ( dynamic_cast<ModelResource*>( resource ) )
             {
-                osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getAbsoluteModelPath() );
+                ModelResource* model = static_cast<ModelResource*>( resource );
+
+                osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getAbsoluteURI() );
                 if ( node.valid() )
                 {
-                    std::string filename = osgDB::getSimpleFileName( model->getAbsoluteModelPath() );
+                    std::string filename = osgDB::getSimpleFileName( model->getAbsoluteURI() );
                     if ( getArchive() )
                     {
                         osgDB::ReaderWriter::WriteResult r = getArchive()->writeNode( *(node.get()), filename, local_options.get() );
@@ -438,7 +467,12 @@ LayerCompiler::finalizeLayer( const std::string& output_folder )
                         }
                     }
                 }
-                continue;
+            }
+
+            // now remove any non-shared resources.
+            if ( resource->isSingleUse() )
+            {
+                getSession()->getResources()->removeResource( resource );
             }
         }
     }

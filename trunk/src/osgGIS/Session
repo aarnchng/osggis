@@ -91,10 +91,10 @@ namespace osgGIS
         void markResourceUsed( Resource* resource );
 
         /**
-         * Gets a collection of the names of the resources that have been
+         * Gets a collection of the resources that have been
          * marked as "used" in this session (by calling markResourceUsed).
          */
-        const ResourceNames& getResourcesUsed() const;
+        ResourceList getResourcesUsed( bool reset =false );
         
         /**
          * Accesses the session-wide mutex. Filter can use this to perform
@@ -123,7 +123,8 @@ namespace osgGIS
         osg::ref_ptr<ResourceLibrary> resources;
         OpenThreads::ReentrantMutex session_mtx;
         Properties properties;
-        ResourceNames resources_used;
+        ResourceList resources_used;
+        //ResourceNames resources_used;
     };
 }
 

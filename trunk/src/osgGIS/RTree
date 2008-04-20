@@ -28,6 +28,7 @@
 #include <float.h>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 // Simple block-based R-Tree implementation. It is block-based so that we can easily
 // adapt it to use a disk-block backing store in the future.
@@ -80,8 +81,8 @@ namespace osgGIS
         
         inline std::list<DATA> find( const GeoExtent& extent );
 
-        //inline bool writeTo( std::ostream& out );
-        //inline bool readFrom( std::istream& in, SpatialReference* srs );
+        inline bool writeTo( std::ostream& out, const GeoExtent& extent );
+        inline bool readFrom( std::istream& in, SpatialReference* srs, GeoExtent& out_extent );
 
     private:
         inline void insert( const RtNodeId&, const GeoExtent&, const DATA& );

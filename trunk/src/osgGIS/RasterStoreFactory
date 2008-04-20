@@ -17,31 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
-#include <gdal_priv.h>
+#ifndef _OSGGIS_RASTER_STORE_FACTORY_H_
+#define _OSGGIS_RASTER_STORE_FACTORY_H_ 1
 
-using namespace osgGIS;
+#include <osgGIS/Common>
+#include <osgGIS/RasterStore>
+#include <osg/Referenced>
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+namespace osgGIS
 {
-	if ( !is_registered )
+	class OSGGIS_EXPORT RasterStoreFactory : public osg::Referenced
 	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-        GDALAllRegister();
-		is_registered = true;
-	}
+	public:
+	    /**
+	     * Connects to an existing raster store and returns a handle.
+	     */
+		virtual RasterStore* connectToRasterStore( const std::string& uri ) =0;		
+	};
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}
+
+#endif // _OSGGIS_RASTER_STORE_FACTORY_H_

@@ -47,6 +47,11 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
             supports_random_read = OGR_L_TestCapability( layer_handle, OLCRandomRead ) == TRUE;
         }
 	}
+
+    if ( isReady() )
+    {
+        osg::notify(osg::NOTICE) << "Opened feature store at " << getName() << std::endl;
+    }
 }
 
 
@@ -165,7 +170,7 @@ OGR_FeatureStore::~OGR_FeatureStore()
 		ds_handle = NULL;
 	}
 
-    osg::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
+    //osg::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
 }
 
 

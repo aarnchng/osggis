@@ -33,31 +33,14 @@ namespace osgGIS
         OSGGIS_META_FILTER( BuildGeomFilter );
 
     public:
-        enum Options {
-            RANDOMIZE_COLORS = 0x01
-        };
-
-    public:
         /**
          * Constructs a new filter for converting features into geometry.
          */
         BuildGeomFilter();
 
-        /**
-         * Constructs a new filter for converting features into geometry.
-         * @param color
-         *      Color to assign to all the geometry
-         */
-        BuildGeomFilter( const osg::Vec4f& color );
-
-        /**
-         * Constructs a new filter for converting features into geometry.
-         * @param options
-         *      Options to apply to the process (see Options enum)
-         */
-        BuildGeomFilter( const int& options );
 
     public: //properties
+    
         /**
          * Sets the overall color to assign to generated primitives.
          * @param color
@@ -71,24 +54,42 @@ namespace osgGIS
         const osg::Vec4f& getColor() const;
 
         /**
-         * Sets the expression that evaluates to the color to use.
+         * Sets the script that evalutes to the color to apply to the geometry.
          */
-        void setColorExpr( const std::string& expr );
+        void setColorScript( Script* script );
 
         /**
-         * Gets the expression that evaluates to color to use.
+         * Gets the script that evaluates to the color to apply to the 
+         * geometry.
          */
-        const std::string& getColorExpr() const;
-
-        /**
-         * Sets whether to assign random colors to the geometry.
-         */
-        void setRandomizeColors( bool enabled );
+        Script* getColorScript() const;
         
         /**
-         * Gets whether to assign random colors to the geometry.
+         * Sets the script that evaluates to the name of the RasterResource
+         * to use to texture the geometry.
          */
-        bool getRandomizeColors() const;
+        void setRasterScript( Script* script );
+        
+        /**
+         * Gets the script that evaluates to the name of the RasterResource
+         * to use to texture the geometry.
+         */
+        Script* getRasterScript() const;
+        
+        /**
+         * Sets the maximum size (width or height) of a texture created from
+         * the raster referenced by the raster script. Set this to 0 to disable
+         * the capping.
+         */
+        void setMaxRasterSize( int max_size );
+        
+        /**
+         * Gets the maximum size (width or height) or a texture created from
+         * the raster referenced by the raster script. A value less than or
+         * equal to 0 means no capping.
+         */
+        int getMaxRasterSize() const;
+        
         
     public:
     
@@ -102,15 +103,17 @@ namespace osgGIS
         
     protected:
         virtual osg::Vec4 getColorForFeature( Feature* input, FilterEnv* env );
-        virtual osg::Vec4 getRandomColor();
+        void applyOverlayTexturing( osg::Geometry* geom, Feature* input, FilterEnv* env );
+        //void genTextureCoords( osg::Geometry* geom, const GeoExtent& abs_feature_ext, FilterEnv* env );
+        //void applyRasterTexture( osg::Geometry* geom, const GeoExtent& abs_feature_ext, Feature* input, FilterEnv* env );
 
         virtual ~BuildGeomFilter();
         
     protected:
-        int         options;
-        std::string color_expr;
-        osg::Vec4   overall_color;
-//        osg::Vec4   active_color;
+        osg::ref_ptr<Script> color_script;
+        osg::ref_ptr<Script> raster_script;
+        osg::Vec4            overall_color;
+        int                  max_raster_size;
     };
 }
 

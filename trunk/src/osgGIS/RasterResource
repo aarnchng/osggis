@@ -17,30 +17,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_MODEL_RESOURCE_H_
-#define _OSGGIS_MODEL_RESOURCE_H_ 1
+#ifndef _OSGGIS_RASTER_RESOURCE_H_
+#define _OSGGIS_RASTER_RESOURCE_H_ 1
 
 #include <osgGIS/Common>
 #include <osgGIS/Resource>
+#include <osgGIS/RasterStore>
+#include <osg/Vec4>
+#include <osg/StateSet>
 
 namespace osgGIS
 {
     /**
-     * Defines a "model" - an externally references 3D file.
+     * Defines a georeference raster that can be used as a texture.
      */
-    class OSGGIS_EXPORT ModelResource : public Resource
+    class OSGGIS_EXPORT RasterResource : public Resource
     {
-        OSGGIS_META_RESOURCE(ModelResource);
+        OSGGIS_META_RESOURCE(RasterResource);
 
     public:
-        ModelResource();
-        ModelResource( const std::string& name );
-        
+        RasterResource();
+        RasterResource( const std::string& name );
+
     public:
 
-        osg::Node* createNode();
-        
-        osg::Node* createProxyNode();
+        bool applyToStateSet( 
+            osg::StateSet*     state_set,
+            const GeoExtent&   aoi,
+            int                max_pixels,
+            const std::string& image_name ="",
+            osg::Image**       out_image =0L );
 
     public: 
 
@@ -49,30 +55,15 @@ namespace osgGIS
 
     protected:
 
-        virtual ~ModelResource();
+        virtual ~RasterResource();
 
     private:
+        osg::ref_ptr<RasterStore> store;
 
         void init();
     };
-
-    typedef std::vector< osg::ref_ptr<ModelResource> > ModelResourceVec;
-
-    class OSGGIS_EXPORT ModelResourceQuery : public osg::Referenced
-    {
-    public:
-        ModelResourceQuery();
-
-        void addTag( const char* tag );
-        const TagList& getTags() const;
-
-        const std::string& getHashCode();
-
-    private:
-        TagList tags;
-
-        std::string hash_code;
-    };
+    
+    typedef std::vector< osg::ref_ptr<RasterResource> > RasterResourceVec;
 }
 
-#endif // _OSGGIS_MODEL_RESOURCE_H_
+#endif // _OSGGIS_RASTER_RESOURCE_H_

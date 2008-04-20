@@ -172,6 +172,13 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     return result;
 }
 
+GeoExtent
+OGR_SpatialReference::transform( const GeoExtent& input ) const
+{
+    GeoPoint sw = transform( input.getSouthwest() );
+    GeoPoint ne = transform( input.getNortheast() );
+    return GeoExtent( sw, ne );
+}
 
 
 GeoShape
@@ -215,11 +222,36 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
         }
     }
     
+    //struct XformVisitor : public GeoPointVisitor {
+    //    XformVisitor( void* _h, const osg::Matrixd& _src_rf, const osg::Matrixd& _to_rf )
+    //        : handle( _h ), src_rf(_src_rf), to_rf(_to_rf) { }
+    //    void* handle;
+    //    osg::Matrixd src_rf, to_rf;
+
+    //    bool visitPoint( GeoPoint& p )
+    //    {
+    //        bool ok = true;
+
+    //        // pull it out of the source reference frame:
+    //        p.set( p * src_rf );
+
+    //        // reproject it:
+    //        if ( handle )
+    //            ok = OCTTransform( handle, 1, &p.x(), &p.y(), &p.z() ) != 0;
+
+    //        // push it into the new reference frame:
+    //        p.set( p * to_rf );
+
+    //        return ok;
+    //    }
+    //};
+    
     struct XformVisitor : public GeoPointVisitor {
-        XformVisitor( void* _h, const osg::Matrixd& _src_rf, const osg::Matrixd& _to_rf )
-            : handle( _h ), src_rf(_src_rf), to_rf(_to_rf) { }
+        XformVisitor( void* _h, const osg::Matrixd& _src_rf, const SpatialReference* _to_srs )
+            : handle( _h ), src_rf(_src_rf), to_srs(_to_srs) { }
         void* handle;
-        osg::Matrixd src_rf, to_rf;
+        osg::Matrixd src_rf;
+        const osgGIS::SpatialReference* to_srs;
 
         bool visitPoint( GeoPoint& p )
         {
@@ -233,7 +265,9 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
                 ok = OCTTransform( handle, 1, &p.x(), &p.y(), &p.z() ) != 0;
 
             // push it into the new reference frame:
-            p.set( p * to_rf );
+            p.set( p * to_srs->getReferenceFrame() );
+
+            p = p.getDim() == 2? GeoPoint( p.x(), p.y(), to_srs ) : GeoPoint( p.x(), p.y(), p.z(), to_srs );
 
             return ok;
         }
@@ -244,7 +278,8 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
     XformVisitor visitor( 
         xform_handle, 
         input_sr->getInverseReferenceFrame(),
-        this->getReferenceFrame() );
+        this );
+        //this->getReferenceFrame() );
 
     if ( input.accept( visitor ) )
     {

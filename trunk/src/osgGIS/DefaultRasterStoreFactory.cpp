@@ -17,31 +17,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#include <osgGIS/DefaultRasterStoreFactory>
+#include <osgGIS/GDAL_RasterStore>
 #include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
-#include <gdal_priv.h>
+#include <osgGIS/Registry>
+#include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
+#include <osg/Notify>
 
 using namespace osgGIS;
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+DefaultRasterStoreFactory::DefaultRasterStoreFactory()
 {
-	if ( !is_registered )
+	OGR_Utils::registerAll();
+}
+
+DefaultRasterStoreFactory::~DefaultRasterStoreFactory()
+{
+	//NOP
+}
+
+
+RasterStore*
+DefaultRasterStoreFactory::connectToRasterStore( const std::string& uri )
+{
+	RasterStore* result = NULL;
+
+    result = new GDAL_RasterStore( uri );
+
+	if ( !result )
 	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-        GDALAllRegister();
-		is_registered = true;
+		osg::notify( osg::WARN ) << "Cannot find an appropriate raster store to handle URI: " << uri << std::endl;
 	}
+	else if ( !result->isReady() )
+	{
+		osg::notify( osg::WARN ) << "Unable to initialize raster store for URI: " << uri << std::endl;
+		result->unref();
+		result = NULL;
+	}
+
+	return result;
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}

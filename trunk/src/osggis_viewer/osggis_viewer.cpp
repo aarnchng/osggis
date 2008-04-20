@@ -43,6 +43,7 @@
 #include <osg/TexEnv>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
+#include <osgDB/ReaderWriter>
 #include <osgViewer/Viewer>
 #include <osgSim/OverlayNode>
 #include <osgGA/TerrainManipulator>
