@@ -22,6 +22,7 @@
 #include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/FilterEnv>
 #include <osgGIS/FadeHelper>
+#include <osgGIS/Utils>
 #include <osg/Group>
 #include <osg/LOD>
 #include <osg/Notify>
@@ -53,14 +54,14 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
 osg::Node*
 SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_file )
 {
-    osg::Node* result = NULL;
+    osg::ref_ptr<osg::Node> result = NULL;
 
     if ( !layer ) {
         osg::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
-        return result;
+        return NULL;
     }
     
-    osg::LOD* lod = new osg::LOD();
+    osg::ref_ptr<osg::LOD> lod = new osg::LOD();
 
     if ( getFadeLODs() )
     {
@@ -82,23 +83,28 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
         }
     }
 
-
-    result = lod;
-
-    if ( getOverlay() )
+    if ( GeomUtils::getNumGeodes( lod.get() ) > 0 )
     {
-        result = convertToOverlay( lod );
+        if ( getOverlay() )
+        {
+            result = convertToOverlay( lod.get() );
+        }
+        else
+        {
+            result = lod.get();
+        }
+
+        if ( getRenderOrder() >= 0 )
+        {
+            const std::string& bin_name = result->getOrCreateStateSet()->getBinName();
+            result->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
+            result->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
+        }
+
+        generateOverlayRaster( result.get(), getAreaOfInterest( layer ) );
+        localizeResourceReferences( result.get() );
+        localizeResources( osgDB::getFilePath( output_file ) );
     }
 
-    if ( getRenderOrder() >= 0 )
-    {
-        const std::string& bin_name = result->getOrCreateStateSet()->getBinName();
-        result->getOrCreateStateSet()->setRenderBinDetails( getRenderOrder(), bin_name );
-        result->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
-    }
-
-    localizeResourceReferences( result );
-    finalizeLayer( osgDB::getFilePath( output_file ) );
-
-    return result;
+    return result.valid()? result.release() : NULL;
 }

@@ -25,6 +25,7 @@ SET(LIB_PUBLIC_HEADERS
     CropFilter
     DecimateFilter
     DefaultFeatureStoreFactory
+    DefaultRasterStoreFactory
     DensifyFilter
     DisperseFilter
     DisperseFilterState
@@ -46,6 +47,7 @@ SET(LIB_PUBLIC_HEADERS
     FilterGraph
     FilterState
     FilterEnv
+    GDAL_RasterStore
     GeocentricSpatialReference
     GeoExtent
     GeoPoint
@@ -69,6 +71,9 @@ SET(LIB_PUBLIC_HEADERS
     PagedLayerCompiler
     Property
     RandomGroupingFilter
+    RasterResource
+    RasterStore
+    RasterStoreFactory
     Registry
     RemoveHolesFilter
     Resource
@@ -119,6 +124,7 @@ ADD_LIBRARY(${LIB_NAME}
     CropFilter.cpp
     DecimateFilter.cpp
     DefaultFeatureStoreFactory.cpp
+    DefaultRasterStoreFactory.cpp
     DensifyFilter.cpp
     DisperseFilter.cpp
     DisperseFilterState.cpp
@@ -137,6 +143,7 @@ ADD_LIBRARY(${LIB_NAME}
     FilterGraph.cpp
     FilterState.cpp
     FilterEnv.cpp
+    GDAL_RasterStore.cpp
     GeocentricSpatialReference.cpp
     GeoExtent.cpp
     GeoPoint.cpp
@@ -160,6 +167,7 @@ ADD_LIBRARY(${LIB_NAME}
     PagedLayerCompiler.cpp
     Property.cpp
     RandomGroupingFilter.cpp
+    RasterResource.cpp
     Registry.cpp
     RemoveHolesFilter.cpp
     Resource.cpp

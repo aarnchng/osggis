@@ -24,11 +24,15 @@
 #include <osg/Texture2D>
 #include <osg/Image>
 #include <osg/TexEnv>
+#include <OpenThreads/ScopedLock>
 
 using namespace osgGIS;
+using namespace OpenThreads;
 
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_RESOURCE(SkinResource);
+
+static std::string EMPTY_STRING = "";
 
 
 SkinResource::SkinResource()
@@ -40,6 +44,13 @@ SkinResource::SkinResource( const std::string& _name )
 : Resource( _name )
 {
     init();
+}
+
+SkinResource::SkinResource( osg::Image* _image )
+{
+    image = _image;
+    init();
+    setSingleUse( true );
 }
 
 void
@@ -74,7 +85,7 @@ SkinResource::setProperty( const Property& prop )
     else if ( prop.getName() == "repeats_vertically" )
         setRepeatsVertically( prop.getBoolValue( getRepeatsVertically() ) );
     else if ( prop.getName() == "texture_path" )
-        setTexturePath( prop.getValue() );
+        setURI( prop.getValue() ); // for backwards compat... use <uri> instead
     else
         Resource::setProperty( prop );
 }
@@ -83,7 +94,6 @@ Properties
 SkinResource::getProperties() const
 {
     Properties props = Resource::getProperties();
-    props.push_back( Property( "texture_path", getTexturePath() ) );
     props.push_back( Property( "texture_width", getTextureWidthMeters() ) );
     props.push_back( Property( "texture_height", getTextureHeightMeters() ) );
     props.push_back( Property( "min_texture_height", getMinTextureHeightMeters() ) );
@@ -91,24 +101,6 @@ SkinResource::getProperties() const
     props.push_back( Property( "color", getColor() ) );
     props.push_back( Property( "repeats_vertically", getRepeatsVertically() ) );
     return props;
-}
-
-void 
-SkinResource::setTexturePath( const std::string& value )
-{
-    tex_path = value;
-}
-
-const std::string& 
-SkinResource::getTexturePath() const
-{
-    return tex_path;
-}
-
-std::string
-SkinResource::getAbsoluteTexturePath() const
-{
-    return PathUtils::getAbsPath( getBaseURI(), tex_path );
 }
 
 void 
@@ -188,7 +180,7 @@ osg::StateSet*
 SkinResource::createStateSet()
 {
     osg::Image* image = new osg::Image();
-    image->setFileName( getAbsoluteTexturePath() );
+    image->setFileName( getAbsoluteURI() );
 
     osg::Texture* tex = new osg::Texture2D( image );
     tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
@@ -205,9 +197,19 @@ SkinResource::createStateSet()
     return state_set;
 }
 
-
-
-
+osg::Image*
+SkinResource::getImage()
+{
+    if ( !image.valid() )
+    {
+        ScopedLock<ReentrantMutex> lock( getMutex() );
+        if ( !image.valid() ) // check again in case the image was created before obtaining the lock
+        {
+            const_cast<SkinResource*>(this)->image = osgDB::readImageFile( getAbsoluteURI() );
+        }
+    }
+    return image.get();
+}
 
 SkinResourceQuery::SkinResourceQuery()
 {
@@ -311,5 +313,5 @@ const std::string&
 SkinResourceQuery::getHashCode()
 {
     //TODO
-    return "";
+    return EMPTY_STRING;
 }

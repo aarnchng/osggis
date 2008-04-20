@@ -18,7 +18,8 @@ normalize( const std::string& input )
 
 
 
-ResourceLibrary::ResourceLibrary()
+ResourceLibrary::ResourceLibrary( ReentrantMutex& _mut )
+: mut( _mut )
 {
     //NOP
 }
@@ -26,23 +27,78 @@ ResourceLibrary::ResourceLibrary()
 void
 ResourceLibrary::addResource( Resource* resource )
 {
-    ScopedLock<ReentrantMutex> sl( mut );
     if ( resource )
     {
+        ScopedLock<ReentrantMutex> sl( mut );
+
         if ( dynamic_cast<SkinResource*>( resource ) )
         {
             SkinResource* skin = static_cast<SkinResource*>( resource );
             skins.push_back( skin );
-            osg::notify( osg::INFO ) << "...added skin " << skin->getAbsoluteTexturePath() << std::endl;
+            osg::notify( osg::INFO ) << "...added skin " << skin->getAbsoluteURI() << std::endl;
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
             ModelResource* model = static_cast<ModelResource*>( resource );
             models.push_back( model );
-            osg::notify( osg::INFO ) << "...added model " << model->getAbsoluteModelPath() << std::endl;
+            osg::notify( osg::INFO ) << "...added model " << model->getAbsoluteURI() << std::endl;
 
             osgDB::Registry::instance()->getDataFilePathList().push_back(
-                osgDB::getFilePath( model->getAbsoluteModelPath() ) );
+                osgDB::getFilePath( model->getAbsoluteURI() ) );
+        }
+        else if ( dynamic_cast<RasterResource*>( resource ) )
+        {
+            RasterResource* raster = static_cast<RasterResource*>( resource );
+            rasters.push_back( raster );
+            osg::notify( osg::INFO ) << "...added raster " << raster->getAbsoluteURI() << std::endl;
+        }
+
+        resource->setMutex( mut );
+    }
+}
+
+void
+ResourceLibrary::removeResource( Resource* resource )
+{
+    if ( resource )
+    {
+        ScopedLock<ReentrantMutex> sl( mut );
+
+        if ( dynamic_cast<SkinResource*>( resource ) )
+        {
+            for( SkinResourceVec::iterator i = skins.begin(); i != skins.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    skins.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed skin \"" << resource->getName() << "\"" << std::endl;
+                    break;
+                }
+            }
+        }
+        else if ( dynamic_cast<ModelResource*>( resource ) )
+        {
+            for( ModelResourceVec::iterator i = models.begin(); i != models.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    models.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed model \"" << resource->getName() << "\"" << std::endl;
+                    break;
+                }
+            }
+        }
+        else if ( dynamic_cast<RasterResource*>( resource ) )
+        {
+            for( RasterResourceVec::iterator i = rasters.begin(); i != rasters.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    rasters.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed raster \"" << resource->getName() << "\"" << std::endl;
+                    break;
+                }
+            }
         }
     }
 }
@@ -55,6 +111,7 @@ ResourceLibrary::getResource( const std::string& name )
     Resource* result = NULL;
     result = getSkin( name );
     if ( !result ) result = getModel( name );
+    if ( !result ) result = getRaster( name );
     return result;
 }
 
@@ -243,4 +300,18 @@ SkinResourceQuery
 ResourceLibrary::newSkinQuery()
 {
     return SkinResourceQuery();
+}
+
+
+RasterResource*
+ResourceLibrary::getRaster( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( RasterResourceVec::const_iterator i = rasters.begin(); i != rasters.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get();
+    }
+    return NULL;
 }

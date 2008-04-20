@@ -65,6 +65,8 @@ namespace osgGISProjects
         SourceList& getSources();
 
         Source* getSource( const std::string& name );
+        
+        bool testSources() const;
 
 
         const TerrainList& getTerrains() const;

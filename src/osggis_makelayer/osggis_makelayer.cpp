@@ -72,6 +72,7 @@
 
 
 // Variables that are set by command line arguments:
+std::string temp;
 std::string input_file;
 std::string output_file;
 std::string terrain_file;
@@ -82,8 +83,7 @@ bool correlated = false;
 bool gridded = false;
 int grid_rows = 1;
 int grid_cols = 1;
-osg::Vec4f color(1,1,1,1);
-std::string color_expr;
+osg::ref_ptr<osgGIS::Script> color_script;
 bool include_grid = false;
 bool preview = false;
 osgGIS::GeoExtent terrain_extent( 
@@ -93,7 +93,7 @@ osgGIS::GeoShape::ShapeType shape_type = osgGIS::GeoShape::TYPE_UNSPECIFIED;
 bool lighting = true;
 bool geocentric = false;
 bool extrude = false;
-std::string extrude_height_expr;
+osg::ref_ptr<osgGIS::Script> extrude_height_script;
 double decimate_threshold = 0.0;
 float priority_offset = 0.0;
 bool convex_hull = false;
@@ -267,14 +267,15 @@ parseCommandLine( int argc, char** argv )
         }
     }
 
-    while( arguments.read( "--color", color_expr ) );
+    while( arguments.read( "--color", temp ) )
+        color_script = new osgGIS::Script( temp );
 
     while( arguments.read( "--random-colors" ) )
-        color.a() = 0.0;
+        color_script = new osgGIS::Script( "vec4(math.random(),math.random(),math.random(),1)" );
 
-    while( arguments.read( "--extrude-height", str ) ) {
+    while( arguments.read( "--extrude-height", temp ) ) {
         extrude = true;
-        extrude_height_expr = str;
+        extrude_height_script = new osgGIS::Script( temp );
     }
 
     while( arguments.read( "--decimate", str ) )
@@ -361,23 +362,14 @@ createFilterGraph()
     if ( extrude )
     {
         osgGIS::ExtrudeGeomFilter* gf = new osgGIS::ExtrudeGeomFilter();
-        //gf->setRandomizeColors( color.a() == 0 );
-        if ( extrude_height_expr.length() > 0 ) {
-            gf->setHeightExpr( extrude_height_expr );
-        }
-        gf->setColorExpr( color_expr );
-        if ( color.a() == 0 )
-            gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
-
+        gf->setHeightScript( extrude_height_script.get() );
+        gf->setColorScript( color_script.get() );
         graph->appendFilter( gf );
     }
     else
     {
         osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
-        //gf->setRandomizeColors( color.a() == 0 );
-        gf->setColorExpr( color_expr );
-        if ( color.a() == 0 )
-            gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
+        gf->setColorScript( color_script.get() );
         graph->appendFilter( gf );
     }
 

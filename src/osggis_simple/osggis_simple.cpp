@@ -142,7 +142,7 @@ createFilterGraph()
     osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();
     gf->setColor( color );
     if ( color.a() == 0 )
-        gf->setColorExpr( "vec4(math.random(),math.random(),math.random(),1)" );
+        gf->setColorScript( new osgGIS::Script( "vec4(math.random(),math.random(),math.random(),1)" ) );
     //gf->setRandomizeColors( color.a() == 0 );
     graph->appendFilter( gf );
 

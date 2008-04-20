@@ -47,6 +47,7 @@
 std::string project_file = "project.xml";
 std::string target_name = "";
 bool list_targets = false;
+bool test_sources = false;
 int num_threads = 0; // defaults to logical proc count
 
 int
@@ -106,6 +107,11 @@ parseCommandLine( int argc, char** argv )
         list_targets = true;
     }
 
+    if ( arguments.read( "--test-sources" ) )
+    {
+        test_sources = true;
+    }
+
     if ( arguments.read( "--threads", temp ) )
     {
         sscanf( temp.c_str(), "%d", &num_threads );
@@ -141,6 +147,11 @@ main(int argc, char* argv[])
         {
             std::cout << "Target: " << i->get()->getName() << std::endl;
         }
+    }
+
+    else if ( test_sources )
+    {
+        project->testSources();
     }
 
     else // build the requested target.

@@ -133,3 +133,28 @@ GeomUtils::isPolygonCW( const GeoPointList& points )
     //TODO: need to rotate into ref frame - for now just use this filter before xforming
     return cp.z() > 0;
 }
+
+
+struct GeodeCounter : public osg::NodeVisitor {
+    GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
+    void apply( osg::Geode& geode ) {
+        count++;
+        // no traverse required
+    }
+    int count;
+};
+
+int
+GeomUtils::getNumGeodes( osg::Node* node )
+{
+    if ( node )
+    {
+        GeodeCounter c;
+        node->accept( c );
+        return c.count;
+    }
+    else
+    {
+        return 0;
+    }
+}

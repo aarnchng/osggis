@@ -17,31 +17,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/OGR_Utils>
-#include <ogr_api.h>
-#include <gdal_priv.h>
+#ifndef _OSGGIS_DEFAULT_RASTER_STORE_FACTORY_H_
+#define _OSGGIS_DEFAULT_RASTER_STORE_FACTORY_H_ 1
 
-using namespace osgGIS;
+#include <osgGIS/RasterStoreFactory>
+#include <osgGIS/Property>
 
-bool OGR_Utils::is_registered = false;
-OpenThreads::ReentrantMutex* OGR_Utils::ogr_mutex = NULL;
-
-void
-OGR_Utils::registerAll()
+namespace osgGIS
 {
-	if ( !is_registered )
+    /**
+     * The object that creates new raster store connections by default.
+     */
+	class DefaultRasterStoreFactory : public RasterStoreFactory
 	{
-        OGR_SCOPE_LOCK();
-		OGRRegisterAll();
-        GDALAllRegister();
-		is_registered = true;
-	}
+	public:
+		DefaultRasterStoreFactory();
+		
+		virtual ~DefaultRasterStoreFactory();
+
+
+	public: // RasterStoreFactory
+
+		RasterStore* connectToRasterStore( const std::string& uri );
+	};
 }
 
-OpenThreads::ReentrantMutex&
-OGR_Utils::getMutex()
-{
-    if ( !ogr_mutex )
-        ogr_mutex = new OpenThreads::ReentrantMutex();
-    return *ogr_mutex;
-}
+
+#endif // _OSGGIS_DEFAULT_RASTER_STORE_FACTORY_H_

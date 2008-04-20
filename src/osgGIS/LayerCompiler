@@ -206,20 +206,22 @@ namespace osgGIS
         void setPreCompileExpr( const std::string& expr );        
         const std::string& getPreCompileExpr() const;
         
+        
+        void setOverlayRasterName( const std::string& raster ) { }
+        
+        const std::string& getOverlayRasterName() const { return ""; }
+        
+        
     public:
         virtual Properties getProperties();
         virtual void setProperties( Properties& props );    
         
-        // rewrites any texture image or proxy node file references so that they
-        // reference files we've moved inside the archive.
+        /* builds and applies an overlay raster. */
+        void generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent );
+        
+        /* rewrites any texture image or proxy node file references so that they
+           reference files we've moved inside the archive. */
         void localizeResourceReferences( osg::Node* );
-    
-        /**
-         * Sets whether to re-write image filenames for images stored in archives
-         * so that they include the archive name as a prefix.
-         */
-        //void setRewriteArchiveImageRefs( bool value );
-        //bool getRewriteArchiveImageRefs() const;
         
     protected:
         FilterGraphRangeList            graph_ranges;
@@ -238,10 +240,11 @@ namespace osgGIS
         std::string                     pre_compile_expr;
         double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
         bool                            localize_resources;
+        std::string                     overlay_raster_name;
 
     protected:
 
-        void finalizeLayer( const std::string& output_folder );
+        void localizeResources( const std::string& output_folder );
 
         osg::Node* convertToOverlay( osg::Node* input );
         

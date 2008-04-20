@@ -20,6 +20,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/DefaultFeatureStoreFactory>
 #include <osgGIS/OGR_SpatialReferenceFactory>
+#include <osgGIS/DefaultRasterStoreFactory>
 #include <osgGIS/Lua_ScriptEngine>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
@@ -44,6 +45,7 @@ Registry::Registry()
 {
 	setSRSFactory( new OGR_SpatialReferenceFactory() );
 	setFeatureStoreFactory( new DefaultFeatureStoreFactory() );
+    setRasterStoreFactory( new DefaultRasterStoreFactory() );
 }
 
 
@@ -143,6 +145,19 @@ Registry::setFeatureStoreFactory( FeatureStoreFactory* _factory )
 }
 
 
+RasterStoreFactory*
+Registry::getRasterStoreFactory()
+{
+    return raster_store_factory.get();
+}
+
+void
+Registry::setRasterStoreFactory( RasterStoreFactory* value )
+{
+    raster_store_factory = value;
+}
+
+
 Filter* 
 Registry::createFilterByType( const std::string& type )
 {
@@ -183,4 +198,22 @@ ScriptEngine*
 Registry::createScriptEngine()
 {
     return new Lua_ScriptEngine();
+}
+
+void
+Registry::setWorkDirectory( const std::string& value )
+{
+    work_dir = value;
+}
+
+const std::string&
+Registry::getWorkDirectory() const
+{
+    return work_dir;
+}
+
+bool
+Registry::hasWorkDirectory() const
+{
+    return work_dir.length() > 0;
 }

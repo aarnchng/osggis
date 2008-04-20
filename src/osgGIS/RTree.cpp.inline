@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+ 
 
 // constants from Guttman84
 #define CONST_M 64
@@ -264,15 +265,7 @@ RTree<DATA>::adjustTree( RtNode<DATA>* N, RtNode<DATA>* NN )
 template<typename DATA>
 void
 RTree<DATA>::insert( const RtNodeId& node_id, const GeoExtent& extent, const DATA& data )
-{
-//    GeoExtent index_extent = extent;
-//    if ( index_extent.getArea() == 0 )
-//    {
-//        GeoPoint c = index_extent.getCentroid();
-//        index_extent.expandToInclude( GeoPoint( c.x()-0.5, c.y()-0.5, index_extent.getSRS() ) );
-//        index_extent.expandToInclude( GeoPoint( c.x()+0.5, c.y()+0.5, index_extent.getSRS() ) );
-//    }
-    
+{    
     // I1
     RtNode<DATA>* L = chooseLeaf( node_id, extent );
     RtNode<DATA>* LL = NULL;
@@ -325,12 +318,13 @@ RTree<DATA>::find( const GeoExtent& extent )
 }
 
 
-/*
+
 template<typename DATA>
 bool 
-RTree<DATA>::writeTo( std::ostream& out )
+RTree<DATA>::writeTo( std::ostream& out, const GeoExtent& extent )
 {
-    out << root_id << ' ' << node_id_gen << std::endl;
+    out << "OSGGIS_RTREE_1.0" << std::endl;
+    out << root_id << ' ' << node_id_gen << ' ' << std::setprecision(10) << extent.getXMin() << ' ' << extent.getYMin() << ' ' << extent.getXMax() << ' ' << extent.getYMax() << std::endl;
     for( typename RtNodeMap<DATA>::iterator i = node_table.begin(); i != node_table.end(); i++ )
     {
         RtNode<DATA>* node = i->second.get();
@@ -338,11 +332,11 @@ RTree<DATA>::writeTo( std::ostream& out )
         for( typename RtEntryList<DATA>::iterator j = node->entries.begin(); j != node->entries.end(); j++ )
         {
             RtEntry<DATA>& entry = *j;
-            out << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
+            out << std::setprecision(10) << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
             if ( node->isLeaf() )
-                 out << entry.data;
+                out << entry.data << ' ';
             else
-                out << entry.child_id;
+                out << entry.child_id << ' ';
         }
         out << std::endl;
     }
@@ -351,12 +345,16 @@ RTree<DATA>::writeTo( std::ostream& out )
 
 template<typename DATA>
 bool
-RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs )
+RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs, GeoExtent& out_extent )
 {
+    double xmin, ymin, xmax, ymax;
     std::string line;
     std::getline( in, line );
+    if ( line != "OSGGIS_RTREE_1.0" ) return false;
+    std::getline( in, line );
     std::stringstream strin( line );
-    strin >> root_id >> node_id_gen;
+    strin >> root_id >> node_id_gen >> xmin >> ymin >> xmax >> ymax;
+    out_extent = GeoExtent( xmin, ymin, xmax, ymax, srs );
     std::getline( in, line );
     while( line.length() > 0 )
     {
@@ -366,7 +364,6 @@ RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs )
         strin >> node->id >> node->parent_id >> node->is_leaf >> num_entries;
         for( int i=0; i<num_entries; i++ )
         {
-            double xmin, ymin, xmax, ymax;
             strin >> xmin >> ymin >> xmax >> ymax;
             RtEntry<DATA> entry;
             entry.extent = GeoExtent( xmin, ymin, xmax, ymax, srs );
@@ -374,9 +371,11 @@ RTree<DATA>::readFrom( std::istream& in, SpatialReference* srs )
                 strin >> entry.data;
             else
                 strin >> entry.child_id;
+            node->entries.push_back( entry );
         }
+        node_table[node->id] = node;
+        
         std::getline( in, line );
     }
     return true;
 }
-*/

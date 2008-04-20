@@ -27,6 +27,7 @@ namespace osgGIS
 {
 	class GeoPoint;
 	class GeoShape;
+	class GeoExtent;
 	
     /**
      * Describes how to interpret a 2D or 3D point in space.
@@ -124,6 +125,11 @@ namespace osgGIS
          * Transforms a shape into this SRS (modifying the input data).
          */
         virtual bool transformInPlace( GeoShape& input ) const =0;
+        
+        /**
+         * Transforms an extent into this srs.
+         */
+        virtual GeoExtent transform( const GeoExtent& input ) const =0;
 
         /**
          * Gets whether this and other SRS are mathematically equivalent.

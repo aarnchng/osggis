@@ -58,6 +58,18 @@ Source::getName() const
     return name;
 }
 
+const Source::Type&
+Source::getType() const
+{
+    return type;
+}
+
+void
+Source::setType( const Source::Type& value )
+{
+    type = value;
+}
+
 void
 Source::setURI( const std::string& value )
 {

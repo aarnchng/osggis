@@ -25,7 +25,7 @@
 #include <osgText/Text>
 #include <sstream>
 
-#define RANDCOL ((((float)(::rand()%255)))/255.0f)
+//#define RANDCOL ((((float)(::rand()%255)))/255.0f)
 
 #define PROP_COLOR "BuildGeomFilter::color"
 #define PROP_BATCH "BuildGeomFilter::batch" 
@@ -36,43 +36,17 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( BuildGeomFilter );
 
 
-// pseudo-random color table
-std::vector<osg::Vec4d> color_table;
-const int num_colors = 1024;
-void buildColorMap( unsigned int seed, float alpha )
-{
-    ::srand( seed );
-    for( int i=0; i<1024; i++ )
-    {
-        color_table.push_back( osg::Vec4f( RANDCOL, RANDCOL, RANDCOL, alpha ) );
-    }
-}
-
-
 
 BuildGeomFilter::BuildGeomFilter()
 {
-    options = 0;
     overall_color = osg::Vec4f(1,1,1,1);
-}
-
-
-BuildGeomFilter::BuildGeomFilter( const int& _options )
-{
-    options = _options;
-    overall_color = osg::Vec4f(1,1,1,1);
-}
-
-
-BuildGeomFilter::BuildGeomFilter( const osg::Vec4f& color )
-{
-    options = 0;
-    overall_color = color;
+    max_raster_size = 0;
 }
 
 
 BuildGeomFilter::~BuildGeomFilter()
 {
+    //NOP
 }
 
 
@@ -89,42 +63,50 @@ BuildGeomFilter::getColor() const
 }
 
 void
-BuildGeomFilter::setColorExpr( const std::string& _expr )
+BuildGeomFilter::setColorScript( Script* value )
 {
-    color_expr = _expr;
+    color_script = value;
 }
 
-const std::string&
-BuildGeomFilter::getColorExpr() const
+Script*
+BuildGeomFilter::getColorScript() const
 {
-    return color_expr;
+    return color_script.get();
 }
-
 
 void
-BuildGeomFilter::setRandomizeColors( bool on_off )
+BuildGeomFilter::setRasterScript( Script* value )
 {
-    if ( on_off )
-        options |= RANDOMIZE_COLORS;
-    else
-        options &= ~RANDOMIZE_COLORS;
+    raster_script = value;
 }
 
-bool
-BuildGeomFilter::getRandomizeColors() const
+Script*
+BuildGeomFilter::getRasterScript() const
 {
-    return options & RANDOMIZE_COLORS;
+    return const_cast<BuildGeomFilter*>(this)->raster_script.get();
 }
 
+void
+BuildGeomFilter::setMaxRasterSize( int value )
+{
+    max_raster_size = value;
+}
+
+int
+BuildGeomFilter::getMaxRasterSize() const
+{
+    return max_raster_size;
+}
 
 void
 BuildGeomFilter::setProperty( const Property& prop )
 {
     if ( prop.getName() == "color" )
-        setColorExpr( prop.getValue() );
-        //setColorExpr( prop.getVec4fValue() );
-    if ( prop.getName() == "randomize_colors" )
-        setRandomizeColors( prop.getBoolValue( getRandomizeColors() ) );
+        setColorScript( new Script( prop.getValue() ) );
+    else if ( prop.getName() == "raster" )
+        setRasterScript( new Script( prop.getValue() ) );
+    else if ( prop.getName() == "max_raster_size" )
+        setMaxRasterSize( prop.getIntValue( 0 ) );
 
     DrawableFilter::setProperty( prop );
 }
@@ -134,8 +116,12 @@ Properties
 BuildGeomFilter::getProperties() const
 {
     Properties p = DrawableFilter::getProperties();
-    p.push_back( Property( "color", getColorExpr() ) );
-    p.push_back( Property( "randomize_colors", getRandomizeColors() ) );
+    if ( getColorScript() )
+        p.push_back( Property( "color", getColorScript()->getCode() ) );
+    if ( getRasterScript() )
+        p.push_back( Property( "raster", getRasterScript()->getCode() ) );
+    if ( getMaxRasterSize() > 0 )
+        p.push_back( Property( "max_raster_size", getMaxRasterSize() ) );
     return p;
 }
 
@@ -147,21 +133,15 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
     osg::Vec4 color = overall_color;
     bool batch = input.size() > 1;
 
-    if ( batch && getColorExpr().length() > 0 )
+    if ( batch && getColorScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run(
-            new Script( getColorExpr() ),
-            env );
-
+        ScriptResult r = env->getScriptEngine()->run( getColorScript(), env );
         if ( r.isValid() )
             color = r.asVec4();
     }
 
     env->setProperty( Property( PROP_COLOR, color ) );
     env->setProperty( Property( PROP_BATCH, batch ) );
-
-    //if ( getRandomizeColors() )
-    //    active_color = getRandomColor();
 
     return DrawableFilter::process( input, env );
 }
@@ -172,6 +152,11 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
     //osg::notify( osg::ALWAYS )
     //    << "Feature (" << input->getOID() << ") extent = " << input->getExtent().toString()
     //    << std::endl;
+
+    // calcuate feature extent in the SRS, which we'll need for texture coordinates.
+    //GeoExtent abs_feature_extent(
+    //    input->getExtent().getSouthwest().getAbsolute(),
+    //    input->getExtent().getNortheast().getAbsolute() );
 
     DrawableList output;
 
@@ -231,23 +216,35 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
             geom->addPrimitiveSet( new osg::DrawArrays( prim_type, part_ptr, vert_ptr-part_ptr ) );
         }
     }
-
-    output.push_back( geom );
     
     // tessellate all polygon geometries. Tessellating each geometry separately
     // with TESS_TYPE_GEOMETRY is much faster than doing the whole bunch together
     // using TESS_TYPE_DRAWABLE.
     if ( needs_tessellation )
     {
-        for( DrawableList::iterator i = output.begin(); i != output.end(); i++ )
-        {
-            osg::Geometry* geom = static_cast<osg::Geometry*>( i->get() );
-            osgUtil::Tessellator tess;
-            tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
-            tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
-            tess.retessellatePolygons( *geom );
-        }
+        osgUtil::Tessellator tess;
+        tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+        tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+        tess.retessellatePolygons( *geom );
+
+        applyOverlayTexturing( geom, input, env );
+        //genTextureCoords( geom, abs_feature_extent, env );
+        //applyRasterTexture( geom, abs_feature_extent, input, env );
     }
+
+    //    for( DrawableList::iterator i = output.begin(); i != output.end(); i++ )
+    //    {
+    //        osg::Geometry* drawable = static_cast<osg::Geometry*>( i->get() );
+    //        osgUtil::Tessellator tess;
+    //        tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+    //        tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+    //        tess.retessellatePolygons( *drawable );
+
+    //        genTextureCoords( drawable, abs_feature_extent, env );
+    //    }
+    //}
+
+    output.push_back( geom );
 
     return output;
 }
@@ -262,30 +259,136 @@ BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
     {
         result = env->getProperties().getVec4Value( PROP_COLOR );
     }
-    else if ( getColorExpr().length() > 0 )
+    else if ( getColorScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run(
-            new Script( getColorExpr() ),
-            feature,
-            env );
-
+        ScriptResult r = env->getScriptEngine()->run( getColorScript(), feature, env );
         if ( r.isValid() )
             result = r.asVec4();
     }
 
     return result;
-
-    //err...address this later
-    //return getRandomizeColors()? active_color : overall_color;
 }
 
-osg::Vec4
-BuildGeomFilter::getRandomColor()
+
+void
+BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, FilterEnv* env )
 {
-    if ( color_table.size() == 0 )
-        buildColorMap( 123, 1.0f ); // TODO: make this user-provided
+    GeoExtent tex_extent;
 
-    //unsigned int index = ((int)f->getOID())%color_table.size();
-    unsigned int index = ((int)::rand())%color_table.size();
-    return color_table[index];
+    if ( getRasterScript() )
+    {
+        // if there's a raster script for this filter, we're applying textures per-feature:
+        tex_extent = GeoExtent(
+            input->getExtent().getSouthwest().getAbsolute(),
+            input->getExtent().getNortheast().getAbsolute() );
+    }
+    else
+    {
+        // otherwise prepare the geometry for an overlay texture covering the entire working extent:
+        tex_extent = env->getExtent();
+    }
+
+    float width  = (float)tex_extent.getWidth();
+    float height = (float)tex_extent.getHeight();
+
+    // now visit the verts and calculate texture coordinates for each one.
+    osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
+    if ( verts )
+    {
+        osg::Vec2Array* texcoords = new osg::Vec2Array( verts->size() );
+        for( unsigned int j=0; j<verts->size(); j++ )
+        {
+            // xform back to raw SRS w.o. ref frame:
+            GeoPoint vert( (*verts)[j], env->getInputSRS() );
+            GeoPoint vert_map = vert.getAbsolute();
+            float tu = (vert_map.x() - tex_extent.getXMin()) / width;
+            float tv = (vert_map.y() - tex_extent.getYMin()) / height;
+            (*texcoords)[j].set( tu, tv );
+        }
+        geom->setTexCoordArray( 0, texcoords );
+    }
+
+    // if we are applying the raster per-feature, do so now.
+    if ( getRasterScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getRasterScript(), input, env );
+        if ( r.isValid() )
+        {
+            RasterResource* raster = env->getSession()->getResources()->getRaster( r.asString() );
+            if ( raster )
+            {
+                osg::Image* image = NULL;
+                std::stringstream builder;
+                builder << "rtex_" << input->getOID() << ".jpg"; //TODO: dds with DXT1 compression
+
+                osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
+                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getMaxRasterSize(), builder.str(), &image ) )
+                {
+                    geom->setStateSet( raster_ss.get() );
+
+                    // add this as a skin resource so the compiler can properly localize and deploy it.
+                    SkinResource* skin = new SkinResource( image );
+                    env->getSession()->markResourceUsed( skin );
+                }
+            }
+        }
+    }
 }
+//
+//
+//void
+//BuildGeomFilter::genTextureCoords( osg::Geometry* geom, const GeoExtent& abs_feature_extent, FilterEnv* env )
+//{
+//    if ( getRasterScript() )
+//    {
+//        float width  = (float)abs_feature_extent.getWidth();
+//        float height = (float)abs_feature_extent.getHeight();
+//
+//        // now visit the verts and calculate texture coordinates for each one.
+//        osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
+//        if ( verts )
+//        {
+//            osg::Vec2Array* texcoords = new osg::Vec2Array( verts->size() );
+//            for( unsigned int j=0; j<verts->size(); j++ )
+//            {
+//                // xform back to raw SRS w.o. ref frame:
+//                GeoPoint vert( (*verts)[j], env->getInputSRS() );
+//                GeoPoint vert_map = vert.getAbsolute();
+//                float tu = (vert_map.x() - abs_feature_extent.getXMin()) / width;
+//                float tv = (vert_map.y() - abs_feature_extent.getYMin()) / height;
+//                (*texcoords)[j].set( tu, tv );
+//            }
+//            geom->setTexCoordArray( 0, texcoords );
+//        }
+//    }
+//}
+//
+//void
+//BuildGeomFilter::applyRasterTexture( osg::Geometry* geom, const GeoExtent& abs_feature_extent, Feature* input, FilterEnv* env )
+//{
+//    // apply a geo-raster texture if necessary:
+//    if ( getRasterScript() )
+//    {
+//        ScriptResult r = env->getScriptEngine()->run( getRasterScript(), input, env );
+//        if ( r.isValid() )
+//        {
+//            RasterResource* raster = env->getSession()->getResources()->getRaster( r.asString() );
+//            if ( raster )
+//            {
+//                osg::Image* image = NULL;
+//                std::stringstream builder;
+//                builder << "rtex_" << input->getOID() << ".jpg"; //TODO: dds with DXT1 compression
+//
+//                osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
+//                if ( raster->applyToStateSet( raster_ss.get(), abs_feature_extent, getMaxRasterSize(), builder.str(), &image ) )
+//                {
+//                    geom->setStateSet( raster_ss.get() );
+//
+//                    // add this as a skin resource so the compiler can properly localize and deploy it.
+//                    SkinResource* skin = new SkinResource( image );
+//                    env->getSession()->markResourceUsed( skin );
+//                }
+//            }
+//        }
+//    }
+//}

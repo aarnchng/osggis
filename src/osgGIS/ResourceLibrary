@@ -24,6 +24,7 @@
 #include <osgGIS/Resource>
 #include <osgGIS/SkinResource>
 #include <osgGIS/ModelResource>
+#include <osgGIS/RasterResource>
 #include <osg/StateSet>
 #include <osg/Node>
 #include <OpenThreads/ReentrantMutex>
@@ -42,10 +43,13 @@ namespace osgGIS
     class OSGGIS_EXPORT ResourceLibrary : public osg::Referenced
     {
     public:
-        ResourceLibrary();
+        ResourceLibrary( OpenThreads::ReentrantMutex& mutex_to_use );
 
     public:
         void addResource( Resource* resource );
+        
+        void removeResource( Resource* resource );
+        
 
         Resource* getResource( const std::string& name );
 
@@ -73,7 +77,12 @@ namespace osgGIS
         osg::Node* getNode( ModelResource* model );
         
         osg::Node* getProxyNode( ModelResource* model );
-
+        
+        
+        RasterResource* getRaster( const std::string& name );
+        
+        
+        
     private:
         SkinResourceVec skins;
         typedef std::map< SkinResource*, osg::ref_ptr<osg::StateSet> > SkinStateSets;
@@ -82,8 +91,10 @@ namespace osgGIS
         ModelResourceVec models;
         typedef std::map< ModelResource*, osg::ref_ptr<osg::Node> > ModelNodes;
         ModelNodes model_nodes;
+        
+        RasterResourceVec rasters;
 
-        OpenThreads::ReentrantMutex mut;
+        OpenThreads::ReentrantMutex& mut;
     };
 }
 

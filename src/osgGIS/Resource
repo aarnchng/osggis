@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Property>
 #include <osgGIS/Tags>
+#include <OpenThreads/ReentrantMutex>
 #include <list>
 #include <set>
 #include <vector>
@@ -48,6 +49,13 @@ namespace osgGIS
          */
         void setName( const std::string& name );
         
+        const std::string& getURI() const;
+        
+        void setURI( const std::string& uri );
+        
+        const std::string getAbsoluteURI() const;
+        
+        
         /**
          * Sets the base URI path to which relative paths should be appended
          */
@@ -58,6 +66,13 @@ namespace osgGIS
          */
         const std::string& getBaseURI() const;
         
+        /**
+         * Gets true if this is marked as a "single-use" resource; i.e. it is unique to
+         * a specific application within the build. The layer compiler will remove
+         * single-use resources from memory once them are localized. An example would be
+         * a rooftop-ortho texture, which is applied one time and never shared.
+         */
+        bool isSingleUse() const;
 
 
     public: 
@@ -75,9 +90,24 @@ namespace osgGIS
 
         virtual ~Resource();
         
+        /**
+         * Sets the resource as being "single-use" or not. By default, resources are
+         * not single-use; i.e. they are multi-use.
+         */
+        void setSingleUse( bool value );
+        
+        OpenThreads::ReentrantMutex& getMutex();
+        
     private:
         std::string name;
+        std::string uri;
         std::string base_uri;
+        bool single_use;
+        
+        OpenThreads::ReentrantMutex* mutex;
+        bool owns_mutex;
+        friend class ResourceLibrary;
+        void setMutex( OpenThreads::ReentrantMutex& _m );
     };
     
     typedef std::vector< osg::ref_ptr<Resource> > ResourceList;
