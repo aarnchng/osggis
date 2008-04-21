@@ -154,8 +154,12 @@ GeoPoint::toString() const
 GeoPoint
 GeoPoint::getAbsolute() const
 {
-    osg::ref_ptr<SpatialReference> new_srs = 
-        getSRS()->cloneWithNewReferenceFrame( osg::Matrixd() );
+    //osg::ref_ptr<SpatialReference> new_srs = 
+    //    getSRS()->cloneWithNewReferenceFrame( osg::Matrixd() );
 
-    return new_srs->transform( *this );
+    //return new_srs->transform( *this );
+
+    return GeoPoint(
+        (*this) * getSRS()->getInverseReferenceFrame(),
+        getSRS()->cloneWithNewReferenceFrame( osg::Matrix::identity() ) );
 }

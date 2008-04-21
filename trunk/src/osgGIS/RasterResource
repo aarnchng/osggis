@@ -58,7 +58,7 @@ namespace osgGIS
         virtual ~RasterResource();
 
     private:
-        osg::ref_ptr<RasterStore> store;
+        //osg::ref_ptr<RasterStore> store;
 
         void init();
     };
