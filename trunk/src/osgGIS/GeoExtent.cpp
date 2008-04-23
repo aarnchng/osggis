@@ -121,6 +121,11 @@ GeoExtent::recalc()
         se = GeoPoint( ne.x(), sw.y(), sw.getSRS() );
         nw = GeoPoint( sw.x(), ne.y(), sw.getSRS() );
     }
+
+    if ( sw.x() > ne.x() || sw.y() > ne.y() )
+    {
+        is_valid = false;
+    }
 }
 
 

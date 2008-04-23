@@ -58,6 +58,14 @@ Ellipsoid::latLongToGeocentric(const osg::Vec3d& input_deg ) const
     return osg::Vec3d( X, Y, Z );
 }
 
+osg::Vec3d
+Ellipsoid::geocentricToLatLong( const osg::Vec3d& input ) const
+{
+    double x = input.x(), y = input.y(), z = input.z();
+    double lat_rad = 0, lon_rad = 0, height_m = 0;
+    xyzToLatLonHeight( x, y, z, lat_rad, lon_rad, height_m );
+    return osg::Vec3d( osg::RadiansToDegrees( lon_rad ), osg::RadiansToDegrees( lat_rad ), height_m );
+}
 
 void
 Ellipsoid::xyzToLatLonHeight( double X, double Y, double Z, double& lat_rad, double& lon_rad, double& height ) const
