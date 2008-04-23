@@ -67,6 +67,19 @@ namespace osgGIS
             
         static int getNumGeodes( osg::Node* node );
     };
+    
+    struct OSGGIS_EXPORT ImageUtils
+    {
+        static osg::Image* convertRGBAtoDDS( 
+            osg::Image* in_rgba );
+            
+        static unsigned long roundUpToPowerOf2( 
+            unsigned long n,
+            unsigned long cap =0 );
+        
+        static unsigned long roundToNearestPowerOf2( 
+            unsigned long n );
+    };
 }
 
 #endif //_OSGGIS_TERRAIN_UTILS_H_

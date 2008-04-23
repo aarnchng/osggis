@@ -195,6 +195,12 @@ FilterEnv::getProperty( const char* name ) const
     return properties.get( std::string( name ) );
 }
 
+Property
+FilterEnv::getProperty( const std::string& name ) const
+{
+    return properties.get( name );
+}
+
 OptimizerHints&
 FilterEnv::getOptimizerHints()
 {

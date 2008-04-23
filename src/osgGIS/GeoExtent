@@ -262,6 +262,16 @@ namespace osgGIS
 	    GeoExtent( bool is_valid, bool is_infinite );	
 	    void recalc();
 	};
+	
+	
+	class OSGGIS_EXPORT RefGeoExtent : public GeoExtent, public osg::Referenced
+	{
+	    public:
+	        RefGeoExtent( const GeoExtent& rhs ) : GeoExtent( rhs ) { }
+	        
+	    protected:
+	        virtual ~RefGeoExtent() { }
+	};
 }
 
 #endif // _OSGGIS_GEOEXTENT_H_

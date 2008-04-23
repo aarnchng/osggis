@@ -53,6 +53,7 @@ LayerCompiler::LayerCompiler()
     aoi_ymax = DBL_MIN;
     localize_resources = true;
     paged = false;
+    compress_textures = false;
 }
 
 void
@@ -164,7 +165,6 @@ LayerCompiler::getFadeLODs() const
     return fade_lods;
 }
 
-
 void
 LayerCompiler::setPaged( bool value )
 {
@@ -187,6 +187,18 @@ bool
 LayerCompiler::getOverlay() const
 {
     return overlay;
+}
+
+void
+LayerCompiler::setCompressTextures( bool value )
+{
+    compress_textures = value;
+}
+
+bool
+LayerCompiler::getCompressTextures() const
+{
+    return compress_textures;
 }
 
 osg::Node*
@@ -277,7 +289,7 @@ LayerCompiler::setProperties( Properties& input )
     setRenderOrder( input.getIntValue( "render_order", getRenderOrder() ) );
     setPreCompileExpr( input.getValue( "pre_script", getPreCompileExpr() ) );
     setLocalizeResources( input.getBoolValue( "localize_resources", getLocalizeResources() ) );
-    setOverlayRasterName( input.getValue( "overlay_raster", "" ) );
+    setCompressTextures( input.getBoolValue( "compress_textures", getCompressTextures() ) );
 
     aoi_xmin = input.getDoubleValue( "aoi_xmin", DBL_MAX );
     aoi_ymin = input.getDoubleValue( "aoi_ymin", DBL_MAX );
@@ -286,25 +298,25 @@ LayerCompiler::setProperties( Properties& input )
 }
 
 
-void
-LayerCompiler::generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent )
-{
-    RasterResource* raster = getSession()->getResources()->getRaster( overlay_raster_name );
-    if ( raster )
-    {
-        osg::Image* image = NULL;
-        int x = (int)tile_extent.getCentroid().x();
-        int y = (int)tile_extent.getCentroid().y();
-        std::stringstream builder;
-        builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
-        if ( raster->applyToStateSet( node->getOrCreateStateSet(), tile_extent, 0, builder.str(), &image ) )
-        {
-            // add this as a skin resource so the compiler can properly localize and deploy it.
-            SkinResource* skin = new SkinResource( image );
-            getSession()->markResourceUsed( skin );
-        }
-    }
-}
+//void
+//LayerCompiler::generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent )
+//{
+//    RasterResource* raster = getSession()->getResources()->getRaster( overlay_raster_name );
+//    if ( raster )
+//    {
+//        osg::Image* image = NULL;
+//        int x = (int)tile_extent.getCentroid().x();
+//        int y = (int)tile_extent.getCentroid().y();
+//        std::stringstream builder;
+//        builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
+//        if ( raster->applyToStateSet( node->getOrCreateStateSet(), tile_extent, 0, builder.str(), &image ) )
+//        {
+//            // add this as a skin resource so the compiler can properly localize and deploy it.
+//            SkinResource* skin = new SkinResource( image );
+//            getSession()->markResourceUsed( skin );
+//        }
+//    }
+//}
 
 
 void
@@ -312,14 +324,16 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 {
     struct RewriteImageVisitor : public osg::NodeVisitor 
     {
-        RewriteImageVisitor( const std::string& _archive_name )
+        RewriteImageVisitor( const std::string& _archive_name, bool _compress_textures )
             : archive_name( osgDB::getSimpleFileName( _archive_name ) ),
+              compress_textures( _compress_textures ),
               osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN )
         { 
             osg::notify( osg::INFO ) << "LayerCompiler: Localizing resources references" << std::endl;
         }
         
         std::string archive_name;
+        bool compress_textures;
 
         virtual void apply( osg::Node& node )
         {
@@ -370,6 +384,12 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
                     //else
                     {
                         std::string simple = osgDB::getSimpleFileName( name );
+                        
+                        if ( compress_textures )
+                        {
+                            simple = osgDB::getNameLessExtension( simple ) + ".dds";
+                        }
+
                         tex->getImage()->setFileName( simple );
                         osg::notify( osg::INFO ) << "  LayerCompiler::localizeResourceRefs, Rewrote " << name << " as " << simple << std::endl;
                     }
@@ -380,7 +400,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 
     if ( node && getLocalizeResources() )
     {
-        RewriteImageVisitor v( getArchiveFileName() );
+        RewriteImageVisitor v( getArchiveFileName(), getCompressTextures() );
         node->accept( v );
     }    
 }
@@ -411,9 +431,17 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                 {
                     std::string filename = osgDB::getSimpleFileName( image->getFileName() );
 
+                    osg::ref_ptr<osg::Image> output_image = image.get();
+                    if ( getCompressTextures() )
+                    {
+                        output_image = ImageUtils::convertRGBAtoDDS( image.get() );
+                        filename = osgDB::getNameLessExtension( filename ) + ".dds";
+                        output_image->setFileName( filename );
+                    }
+
                     if ( getArchive() && !getArchive()->fileExists( filename ) )
                     {
-                        osgDB::ReaderWriter::WriteResult r = getArchive()->writeImage( *(image.get()), filename, local_options.get() );
+                        osgDB::ReaderWriter::WriteResult r = getArchive()->writeImage( *(output_image.get()), filename, local_options.get() );
                         if ( r.error() )
                         {
                             osg::notify( osg::WARN ) << "  Failure to copy image " << filename << " into the archive" << std::endl;
@@ -423,7 +451,7 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                     {
                         if ( osgDB::fileExists( output_folder ) )
                         {
-                            if ( !osgDB::writeImageFile( *(image.get()), PathUtils::combinePaths( output_folder, filename ), local_options.get() ) )
+                            if ( !osgDB::writeImageFile( *(output_image.get()), PathUtils::combinePaths( output_folder, filename ), local_options.get() ) )
                             {
                                 osg::notify( osg::WARN ) << "  FAILED to copy image " << filename << " into the folder " << output_folder << std::endl;
                             }

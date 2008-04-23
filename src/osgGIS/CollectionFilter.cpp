@@ -26,15 +26,13 @@ using namespace osgGIS;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( CollectionFilter );
 
+#define DEFAULT_METERING 0
+//#define DEFAULT_RECALCULATE_EXTENT false
+
 CollectionFilter::CollectionFilter()
 {
-    setMetering( 0 );
-}
-
-
-CollectionFilter::CollectionFilter( int _metering )
-{
-    setMetering( _metering );
+    setMetering( DEFAULT_METERING );
+    //setRecalculateExtent( DEFAULT_RECALCULATE_EXTENT );
 }
 
 
@@ -53,7 +51,7 @@ void
 CollectionFilter::setProperty( const Property& prop )
 {
     if ( prop.getName() == "metering" )
-        setMetering( prop.getIntValue( 0 ) );
+        setMetering( prop.getIntValue( DEFAULT_METERING ) );
     Filter::setProperty( prop );
 }
 
@@ -61,7 +59,7 @@ Properties
 CollectionFilter::getProperties() const
 {
     Properties p = Filter::getProperties();
-    p.push_back( Property( "metering", getMetering() ) );
+    if ( getMetering() != DEFAULT_METERING )
+        p.push_back( Property( "metering", getMetering() ) );
     return p;
 }
-

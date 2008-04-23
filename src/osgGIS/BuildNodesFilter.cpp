@@ -40,6 +40,8 @@ using namespace osgGIS;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 
+#define DEFAULT_RASTER_OVERLAY_MAX_SIZE 0
+
 
 BuildNodesFilter::BuildNodesFilter()
 {
@@ -63,6 +65,7 @@ BuildNodesFilter::init( int _options )
     line_width = 0.0f;
     point_size = 0.0f;
     draw_cluster_culling_normals = false;
+    raster_overlay_max_size = DEFAULT_RASTER_OVERLAY_MAX_SIZE;
 }
 
 
@@ -187,15 +190,15 @@ BuildNodesFilter::getRasterOverlayScript() const
 }
 
 void
-BuildNodesFilter::setMaxRasterOverlaySize( int value )
+BuildNodesFilter::setRasterOverlayMaxSize( int value )
 {
-    max_raster_overlay_size = value;
+    raster_overlay_max_size = value;
 }
 
 int
-BuildNodesFilter::getMaxRasterOverlaySize() const
+BuildNodesFilter::getRasterOverlayMaxSize() const
 {
-    return max_raster_overlay_size;
+    return raster_overlay_max_size;
 }
 
 void
@@ -219,8 +222,8 @@ BuildNodesFilter::setProperty( const Property& p )
         setDrawClusterCullingNormals( p.getBoolValue( getDrawClusterCullingNormals() ) );
     else if ( p.getName() == "raster_overlay" )
         setRasterOverlayScript( new Script( p.getValue() ) );
-    else if ( p.getName() == "max_raster_overlay_size" )
-        setMaxRasterOverlaySize( p.getIntValue( getMaxRasterOverlaySize() ) );
+    else if ( p.getName() == "raster_overlay_max_size" )
+        setRasterOverlayMaxSize( p.getIntValue( getRasterOverlayMaxSize() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -240,16 +243,14 @@ BuildNodesFilter::getProperties() const
     p.push_back( Property( "draw_cluster_culling_normals", getDrawClusterCullingNormals() ) );
     if ( getRasterOverlayScript() )
         p.push_back( Property( "raster_overlay", getRasterOverlayScript()->getCode() ) );
-    p.push_back( Property( "max_raster_overlay_size", getMaxRasterOverlaySize() ) );
+    if ( getRasterOverlayMaxSize() != DEFAULT_RASTER_OVERLAY_MAX_SIZE )
+        p.push_back( Property( "raster_overlay_max_size", getRasterOverlayMaxSize() ) );
     return p;
 }
-
 
 osg::NodeList
 BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
 {
-    //osg::Node* result = NULL;
-
     osg::Geode* geode = new osg::Geode();
     for( DrawableList::iterator i = input.begin(); i != input.end(); i++ )
     {
@@ -383,8 +384,9 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
                 int x = (int)env->getExtent().getCentroid().x();
                 int y = (int)env->getExtent().getCentroid().y();
                 std::stringstream builder;
-                builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
-                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getMaxRasterOverlaySize(), builder.str(), &image ) )
+                builder << "gtex_" << x << "x" << y << ".jpg";
+
+                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
                     // add this as a skin resource so the compiler can properly localize and deploy it.
                     SkinResource* skin = new SkinResource( image );

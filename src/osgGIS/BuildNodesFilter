@@ -140,10 +140,10 @@ namespace osgGIS
         
         Script* getRasterOverlayScript() const;
         
-        void setMaxRasterOverlaySize( int size );
+        void setRasterOverlayMaxSize( int size );
         
-        int getMaxRasterOverlaySize() const;
-                
+        int getRasterOverlayMaxSize() const;
+        
     public:
     
         virtual void setProperty( const Property& );
@@ -160,7 +160,7 @@ namespace osgGIS
         float point_size;
         bool  draw_cluster_culling_normals;
         osg::ref_ptr<Script> raster_overlay_script;
-        int max_raster_overlay_size;
+        int raster_overlay_max_size;
 
         void init( int options );
     };

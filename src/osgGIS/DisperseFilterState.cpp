@@ -35,14 +35,18 @@ DisperseFilterState::DisperseFilterState( DisperseFilter* _filter )
 void 
 DisperseFilterState::push( const FeatureList& input )
 {
-    features.insert( features.end(), input.begin(), input.end() );
+    for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
+        if ( i->get()->hasShapeData() )
+            features.push_back( i->get() );
+    //features.insert( features.end(), input.begin(), input.end() );
 }
 
 
 void
 DisperseFilterState::push( Feature* input )
 {
-    features.push_back( input );
+    if ( input && input->hasShapeData() )
+        features.push_back( input );
 }
 
 

@@ -59,7 +59,10 @@ namespace osgGIS
          * Extracts and returns a raster image from the store. This method
          * will automatically clip, up/downsample, and convert formats as needed.
          */
-        virtual osg::Image* getImage( const GeoExtent& extent, int max_span_pixels ) const =0;
+        virtual osg::Image* getImage( 
+            const GeoExtent& extent,
+            int max_span_pixels,
+            bool force_power_of_2_dimensions ) const =0;
 	};
 }
 
