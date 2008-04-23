@@ -74,6 +74,7 @@ SET(LIB_PUBLIC_HEADERS
     RasterResource
     RasterStore
     RasterStoreFactory
+    RecalculateExtentFilter
     Registry
     RemoveHolesFilter
     Resource
@@ -168,6 +169,7 @@ ADD_LIBRARY(${LIB_NAME}
     Property.cpp
     RandomGroupingFilter.cpp
     RasterResource.cpp
+    RecalculateExtentFilter.cpp
     Registry.cpp
     RemoveHolesFilter.cpp
     Resource.cpp

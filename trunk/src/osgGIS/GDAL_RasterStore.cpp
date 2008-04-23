@@ -156,14 +156,15 @@ GDAL_RasterStore::calcExtent()
 // the bulk of code in this method is adapted from VPB::SourceData::readImage().
 osg::Image*
 GDAL_RasterStore::getImage(const GeoExtent& requested_aoi,
-                           int max_span_pixels ) const
+                           int max_span_pixels,
+                           bool force_power_of_2_dimensions ) const
 {
     if ( !getSRS() )
     {
         osg::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, getImage() failed" << std::endl;
         return NULL;
     }
-    
+
     // transform the requested AOI into the local SRS:
     GeoExtent output_aoi(
         getSRS()->transform( requested_aoi.getSouthwest() ),
@@ -178,7 +179,11 @@ GDAL_RasterStore::getImage(const GeoExtent& requested_aoi,
 
     // calculate the optimum width/height of the output image:
     if ( max_span_pixels <= 0 )
-        max_span_pixels = 2048; //TODO: configurable to max supported texture size
+        max_span_pixels = 1024; //TODO: configurable to max supported texture size
+
+    if ( force_power_of_2_dimensions )
+        max_span_pixels = ImageUtils::roundToNearestPowerOf2( max_span_pixels );
+
 
     double aspect_ratio = output_aoi.getWidth()/output_aoi.getHeight();
     int max_pixels_x = output_aoi.getWidth() / osg::absolute( geo_transform[1] ); // gt[1] == x-resolution
@@ -198,6 +203,13 @@ GDAL_RasterStore::getImage(const GeoExtent& requested_aoi,
     image_width = osg::maximum( 1, image_width );
     image_height = osg::maximum( 1, image_height );
 
+    // round to nearest power of 2 in each dimension:
+    if ( force_power_of_2_dimensions )
+    {
+        image_width = ImageUtils::roundUpToPowerOf2( image_width, max_span_pixels );
+        image_height = ImageUtils::roundUpToPowerOf2( image_height, max_span_pixels );
+    }
+
     if ( !output_aoi.isValid() )
     {
         osg::notify(osg::WARN) << "GDAL_RasterSource::getImage failed, cannot reproject requested AOI" << std::endl;
@@ -216,7 +228,7 @@ GDAL_RasterStore::getImage(const GeoExtent& requested_aoi,
     double xoffset = d_bb.getXMin() < s_bb.getXMin() && d_bb.getSRS()->isGeographic()? -360.0 : 0.0;
     unsigned int numXChecks = d_bb.getSRS()->isGeographic()? 2 : 1;
 
-
+    //TODO: move this so that it wraps the GDAL calls more tightly
     OGR_SCOPE_LOCK();
 
     for( unsigned int ic=0; ic < numXChecks; ++ic, xoffset += 360.0 )

@@ -17,40 +17,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_COLLECTION_FILTER_STATE_H_
-#define _OSGGIS_COLLECTION_FILTER_STATE_H_ 1
+#ifndef _OSGGIS_RECALCULATE_EXTENT_FILTER_H_
+#define _OSGGIS_RECALCULATE_EXTENT_FILTER_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/FilterState>
 #include <osgGIS/CollectionFilter>
-#include <osg/Node>
-#include <map>
 
 namespace osgGIS
 {
-    class CollectionFilterState : public FilterState
+    /**
+     * A filter that re-calculates the FilterEnv's working extent based on
+     * a collection of features.
+     */
+    class OSGGIS_EXPORT RecalculateExtentFilter : public CollectionFilter
     {
+        OSGGIS_META_FILTER( RecalculateExtentFilter );  
+
     public:
-        CollectionFilterState( CollectionFilter* filter );
+        /**
+         * Constructs a new filter.
+         */
+        RecalculateExtentFilter();
+    
+    public:
 
-        bool traverse( FilterEnv* );
-        virtual bool signalCheckpoint();
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
 
-        void push( Feature* input );
-        void push( const FeatureList& input );
-        void push( osg::Drawable* input );
-        void push( const DrawableList& input );
-        void push( osg::Node* );
-        void push( const osg::NodeList& nodes );
-
-    protected:
-        osg::ref_ptr<CollectionFilter> filter;
-        osg::ref_ptr<FilterEnv> saved_env;
+    public:
         
-        FeatureList features;
-        DrawableList drawables;
-        osg::NodeList nodes;
+        virtual void preMeter( FeatureList& features, FilterEnv* );
+
+        virtual ~RecalculateExtentFilter();
     };
 }
 
-#endif // _OSGGIS_COLLECTION_FILTER_STATE_H_
+
+#endif // _OSGGIS_RECALCULATE_EXTENT_FILTER_H_

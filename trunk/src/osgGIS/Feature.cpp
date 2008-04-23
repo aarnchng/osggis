@@ -64,10 +64,10 @@ FeatureBase::getUserAttrs() const
 bool
 FeatureBase::hasShapeData() const
 {
-    return
-        getShapes().size() > 0 &&
-        (*getShapes().begin()).getPartCount() > 0 &&
-        (*getShapes().begin()).getPart(0).size() > 0;
+    return getExtent().isValid();
+        //getShapes().size() > 0 &&
+        //(*getShapes().begin()).getPartCount() > 0 &&
+        //(*getShapes().begin()).getPart(0).size() > 0;
 }
 
 GeoShape::ShapeType

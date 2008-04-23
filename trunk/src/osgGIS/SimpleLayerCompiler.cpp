@@ -54,7 +54,8 @@ SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
 osg::Node*
 SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_file )
 {
-    osg::ref_ptr<osg::Node> result = NULL;
+    osg::Node* result = NULL;
+    //osg::ref_ptr<osg::Node> result = NULL;
 
     if ( !layer ) {
         osg::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
@@ -91,7 +92,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
         }
         else
         {
-            result = lod.get();
+            result = lod.release();
         }
 
         if ( getRenderOrder() >= 0 )
@@ -101,10 +102,10 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
             result->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
         }
 
-        generateOverlayRaster( result.get(), getAreaOfInterest( layer ) );
-        localizeResourceReferences( result.get() );
+        //generateOverlayRaster( result, getAreaOfInterest( layer ) );
+        localizeResourceReferences( result );
         localizeResources( osgDB::getFilePath( output_file ) );
     }
 
-    return result.valid()? result.release() : NULL;
+    return result;
 }

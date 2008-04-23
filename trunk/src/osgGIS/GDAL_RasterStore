@@ -43,7 +43,10 @@ namespace osgGIS
 		
 		const GeoExtent& getExtent() const;
 
-        osg::Image* getImage( const GeoExtent& extent, int max_span_pixels ) const;
+        osg::Image* getImage( 
+            const GeoExtent& extent, 
+            int max_span_pixels,
+            bool force_power_of_2_dimensions ) const;
 		
 	public:
 		virtual ~GDAL_RasterStore();

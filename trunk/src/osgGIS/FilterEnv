@@ -38,6 +38,11 @@ namespace osgGIS
      * Filters are meant to be generic with respect to the spatial environment.
      * By passing that environment information to a filter in this class, the
      * filter can modify its operation based on this contextual data.
+     *
+     * A FilterEnv belongs to one compilation, which by definition exists in one
+     * thread -- so you can get/set properties without a mutex. References to objects
+     * above the scope of the FilterEnv (like the Session, Terrain node, etc.) are
+     * not necessarily thread-safe however.
      */
     class OSGGIS_EXPORT FilterEnv : public osg::Referenced
     {
@@ -167,6 +172,7 @@ namespace osgGIS
         virtual void setProperty( const Property& prop );
         virtual Properties& getProperties();
         virtual Property getProperty( const char* name ) const;
+        virtual Property getProperty( const std::string& name ) const;
 
     protected:
                 

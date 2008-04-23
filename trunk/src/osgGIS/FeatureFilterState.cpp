@@ -36,13 +36,17 @@ FeatureFilterState::FeatureFilterState( FeatureFilter* _filter )
 void
 FeatureFilterState::push( Feature* input )
 {
-    in_features.push_back( input );
+    if ( input && input->hasShapeData() )
+        in_features.push_back( input );
 }
 
 void
 FeatureFilterState::push( const FeatureList& input )
 {
-    in_features.insert( in_features.end(), input.begin(), input.end() );
+    for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
+        if ( i->get()->hasShapeData() )
+            in_features.push_back( i->get() );
+    //in_features.insert( in_features.end(), input.begin(), input.end() );
 }
 
 bool

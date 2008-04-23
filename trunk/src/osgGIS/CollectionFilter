@@ -61,22 +61,11 @@ namespace osgGIS
          */
         CollectionFilter();
 
-        /**
-         * Constructs a new collection filter.
-         * 
-         * @param metering
-         *      The filter will collect elements and then pass them on in
-         *      batches no larger than this number of elements.
-         */
-        CollectionFilter( int metering );
-
 
     public: // properties
 
         void setMetering( int value ) { metering = value; }
-
         int getMetering() const { return metering; }
-
     
     public:
 
@@ -94,10 +83,18 @@ namespace osgGIS
         virtual std::string assign( Feature*, FilterEnv* ) { return ""; }
         virtual std::string assign( osg::Drawable*, FilterEnv* ) { return ""; }
         virtual std::string assign( osg::Node*, FilterEnv* ) { return ""; }
+        
+    public:
+    
+        virtual void preMeter( FeatureList& features, FilterEnv* ) { }
+        virtual void preMeter( DrawableList& drawables, FilterEnv* ) { }
+        virtual void preMeter( osg::NodeList& nodes, FilterEnv* ) { }
 
     private:
 
         int metering;
+        
+        friend class CollectionFilterState;
     };
 }
 
