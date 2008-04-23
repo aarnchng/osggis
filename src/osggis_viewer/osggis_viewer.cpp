@@ -160,66 +160,61 @@ main(int argc, char* argv[])
     bool no_pre_compile = args.read( "--no-pre-compile" );
 
     bool unlit_terrain = args.read( "--unlit-terrain" );
-
-    osg::NodeList overlays;
-    while( args.read( "--overlay", str ) )
-    {
-        osg::Node* o_node = osgDB::readNodeFile( str );
-        if ( o_node )
-        {
-            osgSim::OverlayNode* ov = new osgSim::OverlayNode( osgSim::OverlayNode::VIEW_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
-            ov->setOverlaySubgraph( o_node );
-            ov->setOverlayTextureSizeHint( 1024 );
-            overlays.push_back( ov );
-        }
-    }
-
     osg::Node* terrain_node = NULL;
+    bool file_is_overlay = false;
+
     osgGA::MatrixManipulator* manip = new osgGA::TerrainManipulator();
     for( int i=1; i<argc; i++ )
     {
         std::string arg = argv[i];
+
+        if ( arg == "--overlay" )
+        {
+            file_is_overlay = true;
+            continue;
+        }
+
         osg::Node* node = osgDB::readNodeFile( arg );
         if ( node ) 
         {
-            group->addChild( node );
-
-            if ( !terrain_node )
+            if ( file_is_overlay )
             {
-                terrain_node = node;
-                
-                terrain_node->getOrCreateStateSet()->setAttributeAndModes(
-                    new osg::PolygonOffset( po_factor, po_units ),
-                    osg::StateAttribute::ON );
-
-                if ( unlit_terrain )
+                osgSim::OverlayNode* ov = new osgSim::OverlayNode( osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
+                ov->setOverlaySubgraph( node );
+                ov->setOverlayTextureSizeHint( 2048 );
+                if ( group->getNumChildren() > 0 )
                 {
-                    terrain_node->getOrCreateStateSet()->setMode(
-                        GL_LIGHTING,
-                        osg::StateAttribute::OFF );
+                    osg::Node* last_child = group->getChild( group->getNumChildren()-1 );
+                    ov->addChild( last_child );
+                    group->replaceChild( last_child, ov );
                 }
+                file_is_overlay = false;
+            }
 
-                if ( overlays.size() > 0 )
+            else
+            {
+                group->addChild( node );
+
+                if ( !terrain_node )
                 {
-                    osg::Group* csn = terrain_node->asGroup();
-                        
-                    for( int i=0; i<csn->getNumChildren(); i++ )
+                    terrain_node = node;
+                    
+                    terrain_node->getOrCreateStateSet()->setAttributeAndModes(
+                        new osg::PolygonOffset( po_factor, po_units ),
+                        osg::StateAttribute::ON );
+
+                    if ( unlit_terrain )
                     {
-                        for( int j=0; j<overlays.size(); j++ )
-                        {
-                            overlays[i].get()->asGroup()->addChild( csn->getChild( i ) );
-                        }
-                    }
-                    csn->removeChildren( 0, csn->getNumChildren() );
-                    for( int i=0; i<overlays.size(); i++ )
-                    {
-                        csn->addChild( overlays[i].get() );
+                        terrain_node->getOrCreateStateSet()->setMode(
+                            GL_LIGHTING,
+                            osg::StateAttribute::OFF );
                     }
                 }
             }
         }
     }
 
+                   
     viewer.setSceneData( group.get() );    
     viewer.setCameraManipulator( manip );
     

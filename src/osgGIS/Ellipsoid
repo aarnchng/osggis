@@ -57,6 +57,12 @@ namespace osgGIS
          */
         osg::Vec3d latLongToGeocentric( 
             const osg::Vec3d& input_degrees ) const;
+            
+        /**
+         * Converts XYZ ECEF coordinates to lat/long/height (degrees/meters).
+         */
+        osg::Vec3d geocentricToLatLong(
+            const osg::Vec3d& input_xyz ) const;
 
         /**
          * Creates a matrix that you can use to transform a localized point from

@@ -113,8 +113,16 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
         return false;
     }
 
-    osg::Vec3d input_vec = input;
+    // first check whether the input point is geocentric - and if so, pre-convert it to geographic:
+    if ( input_sr->isGeocentric() )
+    {
+        input.set( input * input_sr->getInverseReferenceFrame() );
+        osg::Vec3 temp = input_sr->getBasisEllipsoid().geocentricToLatLong( input );
+        input = GeoPoint( temp, input_sr->getBasisSRS() ); 
+        input_sr = static_cast<OGR_SpatialReference*>( input.getSRS() );
+    }
 
+    osg::Vec3d input_vec = input;
     bool crs_equiv = false;
     bool mat_equiv = false;
     testEquivalence( input_sr, /*out*/crs_equiv, /*out*/mat_equiv );
@@ -131,7 +139,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     {
         OGR_SCOPE_LOCK();
 
-	    void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
+        void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
             osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
                 << "    From => " << input_sr->getName() << std::endl

@@ -378,6 +378,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     if ( task->getResult() )
                     {
                         root->addChild( task->getResult() );
+                        localizeResources( osgDB::getFilePath( output_file ) );
                     }
 
                     osg::notify(osg::NOTICE) << "completed" << std::endl;

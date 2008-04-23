@@ -228,21 +228,7 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
         tess.retessellatePolygons( *geom );
 
         applyOverlayTexturing( geom, input, env );
-        //genTextureCoords( geom, abs_feature_extent, env );
-        //applyRasterTexture( geom, abs_feature_extent, input, env );
     }
-
-    //    for( DrawableList::iterator i = output.begin(); i != output.end(); i++ )
-    //    {
-    //        osg::Geometry* drawable = static_cast<osg::Geometry*>( i->get() );
-    //        osgUtil::Tessellator tess;
-    //        tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
-    //        tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
-    //        tess.retessellatePolygons( *drawable );
-
-    //        genTextureCoords( drawable, abs_feature_extent, env );
-    //    }
-    //}
 
     output.push_back( geom );
 
@@ -295,14 +281,34 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
     osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
     if ( verts )
     {
+        // if we are dealing with geocentric data, we will need to xform back to a real
+        // projection in order to determine texture coords:
+        GeoExtent tex_extent_geo;
+        if ( env->getInputSRS()->isGeocentric() )
+        {
+            tex_extent_geo = GeoExtent(
+                tex_extent.getSRS()->getBasisSRS()->transform( tex_extent.getSouthwest() ),
+                tex_extent.getSRS()->getBasisSRS()->transform( tex_extent.getNortheast() ) );
+        }
+
         osg::Vec2Array* texcoords = new osg::Vec2Array( verts->size() );
         for( unsigned int j=0; j<verts->size(); j++ )
         {
             // xform back to raw SRS w.o. ref frame:
             GeoPoint vert( (*verts)[j], env->getInputSRS() );
             GeoPoint vert_map = vert.getAbsolute();
-            float tu = (vert_map.x() - tex_extent.getXMin()) / width;
-            float tv = (vert_map.y() - tex_extent.getYMin()) / height;
+            float tu, tv;
+            if ( env->getInputSRS()->isGeocentric() )
+            {
+                tex_extent_geo.getSRS()->transformInPlace( vert_map );
+                tu = (vert_map.x() - tex_extent_geo.getXMin()) / width;
+                tv = (vert_map.y() - tex_extent_geo.getYMin()) / height;
+            }
+            else
+            {
+                tu = (vert_map.x() - tex_extent.getXMin()) / width;
+                tv = (vert_map.y() - tex_extent.getYMin()) / height;
+            }
             (*texcoords)[j].set( tu, tv );
         }
         geom->setTexCoordArray( 0, texcoords );
@@ -334,61 +340,3 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
         }
     }
 }
-//
-//
-//void
-//BuildGeomFilter::genTextureCoords( osg::Geometry* geom, const GeoExtent& abs_feature_extent, FilterEnv* env )
-//{
-//    if ( getRasterScript() )
-//    {
-//        float width  = (float)abs_feature_extent.getWidth();
-//        float height = (float)abs_feature_extent.getHeight();
-//
-//        // now visit the verts and calculate texture coordinates for each one.
-//        osg::Vec3Array* verts = dynamic_cast<osg::Vec3Array*>( geom->getVertexArray() );
-//        if ( verts )
-//        {
-//            osg::Vec2Array* texcoords = new osg::Vec2Array( verts->size() );
-//            for( unsigned int j=0; j<verts->size(); j++ )
-//            {
-//                // xform back to raw SRS w.o. ref frame:
-//                GeoPoint vert( (*verts)[j], env->getInputSRS() );
-//                GeoPoint vert_map = vert.getAbsolute();
-//                float tu = (vert_map.x() - abs_feature_extent.getXMin()) / width;
-//                float tv = (vert_map.y() - abs_feature_extent.getYMin()) / height;
-//                (*texcoords)[j].set( tu, tv );
-//            }
-//            geom->setTexCoordArray( 0, texcoords );
-//        }
-//    }
-//}
-//
-//void
-//BuildGeomFilter::applyRasterTexture( osg::Geometry* geom, const GeoExtent& abs_feature_extent, Feature* input, FilterEnv* env )
-//{
-//    // apply a geo-raster texture if necessary:
-//    if ( getRasterScript() )
-//    {
-//        ScriptResult r = env->getScriptEngine()->run( getRasterScript(), input, env );
-//        if ( r.isValid() )
-//        {
-//            RasterResource* raster = env->getSession()->getResources()->getRaster( r.asString() );
-//            if ( raster )
-//            {
-//                osg::Image* image = NULL;
-//                std::stringstream builder;
-//                builder << "rtex_" << input->getOID() << ".jpg"; //TODO: dds with DXT1 compression
-//
-//                osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
-//                if ( raster->applyToStateSet( raster_ss.get(), abs_feature_extent, getMaxRasterSize(), builder.str(), &image ) )
-//                {
-//                    geom->setStateSet( raster_ss.get() );
-//
-//                    // add this as a skin resource so the compiler can properly localize and deploy it.
-//                    SkinResource* skin = new SkinResource( image );
-//                    env->getSession()->markResourceUsed( skin );
-//                }
-//            }
-//        }
-//    }
-//}
