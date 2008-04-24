@@ -17,37 +17,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_DISPERSE_FILTER_STATE_H_
-#define _OSGGIS_DISPERSE_FILTER_STATE_H_ 1
+#ifndef _OSGGIS_FRAGMENT_H_
+#define _OSGGIS_FRAGMENT_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/FilterState>
-#include <osgGIS/DisperseFilter>
-#include <osg/Node>
+#include <osgGIS/Attribute>
+#include <osg/Drawable>
+#include <vector>
+#include <list>
 
 namespace osgGIS
 {
-    class DisperseFilterState : public FilterState
-    {
-    public:
-        DisperseFilterState( DisperseFilter* filter );
+    /**
+     * An osg::Drawable paired with an attribute set.
+     */
+	class OSGGIS_EXPORT Fragment : public AttributedBase
+	{
+	public:
+	    Fragment();
+	    Fragment( osg::Drawable* );
+	    
+	public:	
+        osg::Drawable* getDrawable() const;
 
-        bool traverse( FilterEnv* );
-
-        void push( Feature* input );
-        void push( const FeatureList& input );
-        void push( Fragment* input );
-        void push( const FragmentList& input );
-        void push( osg::Node* );
-        void push( const osg::NodeList& nodes );
+        void setDrawable( osg::Drawable* );
 
     protected:
-        osg::ref_ptr<DisperseFilter> filter;
-        
-        FeatureList features;
-        FragmentList fragments;
-        osg::NodeList nodes;
-    };
+	    virtual ~Fragment();
+
+    private:
+        osg::ref_ptr<osg::Drawable> drawable;
+	};
+	
+	
+    /** A list of osg::Drawable references. */
+    typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
+
+	/** A list of reference-counted features. */
+	typedef std::vector< osg::ref_ptr<Fragment> > FragmentList;
 }
 
-#endif // _OSGGIS_DISPERSE_FILTER_STATE_H_
+#endif // _OSGGIS_FRAGMENT_H_

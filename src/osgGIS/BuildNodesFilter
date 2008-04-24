@@ -150,7 +150,7 @@ namespace osgGIS
         virtual Properties getProperties() const;
         
     protected:
-        virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
+        virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
         virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
 
     private:

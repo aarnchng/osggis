@@ -27,10 +27,6 @@ SET(LIB_PUBLIC_HEADERS
     DefaultFeatureStoreFactory
     DefaultRasterStoreFactory
     DensifyFilter
-    DisperseFilter
-    DisperseFilterState
-    DrawableFilter
-    DrawableFilterState
     Ellipsoid
     Export
     ExtrudeGeomFilter
@@ -47,6 +43,9 @@ SET(LIB_PUBLIC_HEADERS
     FilterGraph
     FilterState
     FilterEnv
+    Fragment
+    FragmentFilter
+    FragmentFilterState
     GDAL_RasterStore
     GeocentricSpatialReference
     GeoExtent
@@ -127,10 +126,6 @@ ADD_LIBRARY(${LIB_NAME}
     DefaultFeatureStoreFactory.cpp
     DefaultRasterStoreFactory.cpp
     DensifyFilter.cpp
-    DisperseFilter.cpp
-    DisperseFilterState.cpp
-    DrawableFilter.cpp
-    DrawableFilterState.cpp
     Ellipsoid.cpp
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp
@@ -143,7 +138,10 @@ ADD_LIBRARY(${LIB_NAME}
     Filter.cpp
     FilterGraph.cpp
     FilterState.cpp
-    FilterEnv.cpp
+    FilterEnv.cpp    
+    Fragment.cpp
+    FragmentFilter.cpp
+    FragmentFilterState.cpp
     GDAL_RasterStore.cpp
     GeocentricSpatialReference.cpp
     GeoExtent.cpp

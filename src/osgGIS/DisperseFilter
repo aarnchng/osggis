@@ -23,7 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Filter>
 #include <osgGIS/Feature>
-#include <osg/Drawable>
+#include <osgGIS/Fragment>
 #include <osg/Node>
 
 namespace osgGIS

@@ -17,32 +17,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_DRAWABLE_FILTER_STATE_H_
-#define _OSGGIS_DRAWABLE_FILTER_STATE_H_ 1
+#include <osgGIS/Fragment>
 
-#include <osgGIS/Common>
-#include <osgGIS/FilterState>
-#include <osgGIS/DrawableFilter>
+using namespace osgGIS;
 
-namespace osgGIS
+Fragment::Fragment()
 {
-    class DrawableFilterState : public FilterState
-    {
-    public:
-        DrawableFilterState( DrawableFilter* filter );
-
-        bool traverse( FilterEnv* );
-
-        void push( Feature* input );
-        void push( const FeatureList& input );
-        void push( osg::Drawable* input );
-        void push( const FragmentList& input );
-
-    protected:
-        osg::ref_ptr<DrawableFilter> filter;
-        FeatureList in_features;
-        FragmentList in_fragments;
-    };
+    //NOP
 }
 
-#endif // _OSGGIS_DRAWABLE_FILTER_STATE_H_
+Fragment::Fragment( osg::Drawable* dr )
+{
+    if ( dr )
+        setDrawable( dr );
+}
+
+Fragment::~Fragment()
+{
+    //NOP
+}
+
+void
+Fragment::setDrawable( osg::Drawable* value )
+{
+    drawable = value;
+}
+
+osg::Drawable*
+Fragment::getDrawable() const
+{
+    return drawable.get();
+}

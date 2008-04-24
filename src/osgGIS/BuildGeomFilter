@@ -21,14 +21,14 @@
 #define _OSGGIS_BUILD_GEOM_FILTER_H_ 1
 
 #include <osgGIS/Common>
-#include <osgGIS/DrawableFilter>
+#include <osgGIS/FragmentFilter>
 
 namespace osgGIS
 {
     /**
-     * Assembles feature data into basic osg::Drawable objects.
+     * Assembles feature data into basic fragments.
      */
-    class OSGGIS_EXPORT BuildGeomFilter : public DrawableFilter
+    class OSGGIS_EXPORT BuildGeomFilter : public FragmentFilter
     {
         OSGGIS_META_FILTER( BuildGeomFilter );
 
@@ -90,6 +90,9 @@ namespace osgGIS
          */
         int getMaxRasterSize() const;
         
+//        void setFeatureNameScript( Script* script );
+        
+//        Script* getFeatureNameScript() const;
         
     public:
     
@@ -98,14 +101,12 @@ namespace osgGIS
 
     protected:
 
-        virtual DrawableList process( FeatureList& input, FilterEnv* env );
-        virtual DrawableList process( Feature* input, FilterEnv* env );
+        virtual FragmentList process( FeatureList& input, FilterEnv* env );
+        virtual FragmentList process( Feature* input, FilterEnv* env );
         
     protected:
         virtual osg::Vec4 getColorForFeature( Feature* input, FilterEnv* env );
         void applyOverlayTexturing( osg::Geometry* geom, Feature* input, FilterEnv* env );
-        //void genTextureCoords( osg::Geometry* geom, const GeoExtent& abs_feature_ext, FilterEnv* env );
-        //void applyRasterTexture( osg::Geometry* geom, const GeoExtent& abs_feature_ext, Feature* input, FilterEnv* env );
 
         virtual ~BuildGeomFilter();
         

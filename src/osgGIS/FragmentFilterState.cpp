@@ -17,30 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/NodeFilterState>
+#include <osgGIS/FragmentFilterState>
 #include <osgGIS/CollectionFilterState>
 //#include <osgGIS/DisperseFilterState>
+#include <osgGIS/NodeFilterState>
 #include <osg/Notify>
-#include <osg/Group>
-#include <osg/Geode>
 
 using namespace osgGIS;
 
-
-NodeFilterState::NodeFilterState( NodeFilter* _filter )
+FragmentFilterState::FragmentFilterState( FragmentFilter* _filter )
 {
     filter = _filter;
 }
 
 void
-NodeFilterState::push( Feature* input )
+FragmentFilterState::push( Feature* input )
 {
     if ( input && input->hasShapeData() )
         in_features.push_back( input );
 }
 
 void
-NodeFilterState::push( FeatureList& input )
+FragmentFilterState::push( const FeatureList& input )
 {
     for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
         if ( i->get()->hasShapeData() )
@@ -48,82 +46,58 @@ NodeFilterState::push( FeatureList& input )
 }
 
 void
-NodeFilterState::push( Fragment* input )
+FragmentFilterState::push( Fragment* input )
 {
     in_fragments.push_back( input );
 }
 
 void
-NodeFilterState::push( FragmentList& input )
+FragmentFilterState::push( const FragmentList& input )
 {
     in_fragments.insert( in_fragments.end(), input.begin(), input.end() );
 }
 
-void
-NodeFilterState::push( osg::Node* input )
-{
-    in_nodes.push_back( input );
-}
-
-void
-NodeFilterState::push( osg::NodeList& input )
-{
-    in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
-}
-
 bool
-NodeFilterState::traverse( FilterEnv* in_env )
+FragmentFilterState::traverse( FilterEnv* in_env )
 {
     bool ok = true;
 
     osg::ref_ptr<FilterEnv> env = in_env->advance();
 
-    if ( in_features.size() > 0 )
-    {
-        out_nodes = filter->process( in_features, env.get() );
-    }
-    else if ( in_fragments.size() > 0 )
-    {
-        out_nodes = filter->process( in_fragments, env.get() );
-    }
-    else if ( in_nodes.size() > 0 )
-    {
-        out_nodes = filter->process( in_nodes, env.get() );
-    }
-    
     FilterState* next = getNextState();
-    if ( next && out_nodes.size() > 0 )
+    if ( next )
     {
+        FragmentList output =
+            in_features.size() > 0? filter->process( in_features, env.get() ) :
+            in_fragments.size() > 0? filter->process( in_fragments, env.get() ) :
+            FragmentList();
+        
         if ( dynamic_cast<NodeFilterState*>( next ) )
         {
             NodeFilterState* state = static_cast<NodeFilterState*>( next );
-            state->push( out_nodes );
+            state->push( output );
+        }
+        else if ( dynamic_cast<FragmentFilterState*>( next ) )
+        {
+            FragmentFilterState* state = static_cast<FragmentFilterState*>( next );
+            state->push( output );
         }
         else if ( dynamic_cast<CollectionFilterState*>( next ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
-            state->push( out_nodes );
+            state->push( output );
         }
         //else if ( dynamic_cast<DisperseFilterState*>( next ) )
         //{
         //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
-        //    state->push( out_nodes );
+        //    state->push( output );
         //}
 
-        out_nodes.clear();
         ok = next->traverse( env.get() );
     }
 
     in_features.clear();
     in_fragments.clear();
-    in_nodes.clear();
 
     return ok;
 }
-
-osg::NodeList&
-NodeFilterState::getOutput()
-{
-    return out_nodes;
-}
-

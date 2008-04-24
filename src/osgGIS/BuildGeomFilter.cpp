@@ -108,14 +108,14 @@ BuildGeomFilter::setProperty( const Property& prop )
     else if ( prop.getName() == "max_raster_size" )
         setMaxRasterSize( prop.getIntValue( 0 ) );
 
-    DrawableFilter::setProperty( prop );
+    FragmentFilter::setProperty( prop );
 }
 
 
 Properties
 BuildGeomFilter::getProperties() const
 {
-    Properties p = DrawableFilter::getProperties();
+    Properties p = FragmentFilter::getProperties();
     if ( getColorScript() )
         p.push_back( Property( "color", getColorScript()->getCode() ) );
     if ( getRasterScript() )
@@ -125,7 +125,7 @@ BuildGeomFilter::getProperties() const
     return p;
 }
 
-DrawableList
+FragmentList
 BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
     // if features are arriving in batch, resolve the color here.
@@ -143,10 +143,10 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
     env->setProperty( Property( PROP_COLOR, color ) );
     env->setProperty( Property( PROP_BATCH, batch ) );
 
-    return DrawableFilter::process( input, env );
+    return FragmentFilter::process( input, env );
 }
 
-DrawableList
+FragmentList
 BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input, FilterEnv* env )
 {
     //osg::notify( osg::ALWAYS )
@@ -158,7 +158,7 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
     //    input->getExtent().getSouthwest().getAbsolute(),
     //    input->getExtent().getNortheast().getAbsolute() );
 
-    DrawableList output;
+    FragmentList output;
 
     // LIMITATION: this filter assumes all feature's shapes are the same
     // shape type! TODO: sort into bins of shape type and create a separate
@@ -230,7 +230,7 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
         applyOverlayTexturing( geom, input, env );
     }
 
-    output.push_back( geom );
+    output.push_back( new Fragment( geom ) );
 
     return output;
 }

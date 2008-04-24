@@ -41,6 +41,8 @@
 #include <osg/LineWidth>
 #include <osg/Camera>
 #include <osg/TexEnv>
+#include <osg/Geometry>
+#include <osg/Geode>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/ReaderWriter>
@@ -49,6 +51,7 @@
 #include <osgGA/TerrainManipulator>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/StateSetManipulator>
+#include <osgUtil/Tessellator>
 #include <osgViewer/ViewerEventHandlers>
 #include <OpenThreads/Thread>
 #include <iostream>
@@ -179,9 +182,10 @@ main(int argc, char* argv[])
         {
             if ( file_is_overlay )
             {
+                // an "overlay" graph will decorate the previously graph only:
                 osgSim::OverlayNode* ov = new osgSim::OverlayNode( osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
                 ov->setOverlaySubgraph( node );
-                ov->setOverlayTextureSizeHint( 2048 );
+                ov->setOverlayTextureSizeHint( 1024 );
                 if ( group->getNumChildren() > 0 )
                 {
                     osg::Node* last_child = group->getChild( group->getNumChildren()-1 );

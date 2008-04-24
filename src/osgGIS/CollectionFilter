@@ -23,7 +23,7 @@
 #include <osgGIS/Common>
 #include <osgGIS/Filter>
 #include <osgGIS/Feature>
-#include <osg/Drawable>
+#include <osgGIS/Fragment>
 #include <osg/Node>
 
 namespace osgGIS
@@ -31,7 +31,7 @@ namespace osgGIS
     /**
      * A filter that collects incoming data and meters it out in batches.
      *
-     * Normally, data (such as features or drawables) passes through a graph
+     * Normally, data (such as features or fragments) passes through a graph
      * one element at a time. A collection filter will "collect" elements,
      * wait until a checkpoint is reached, and then meter the collected
      * elements out in batches.
@@ -81,13 +81,13 @@ namespace osgGIS
     public:
 
         virtual std::string assign( Feature*, FilterEnv* ) { return ""; }
-        virtual std::string assign( osg::Drawable*, FilterEnv* ) { return ""; }
+        virtual std::string assign( Fragment*, FilterEnv* ) { return ""; }
         virtual std::string assign( osg::Node*, FilterEnv* ) { return ""; }
         
     public:
     
         virtual void preMeter( FeatureList& features, FilterEnv* ) { }
-        virtual void preMeter( DrawableList& drawables, FilterEnv* ) { }
+        virtual void preMeter( FragmentList& drawables, FilterEnv* ) { }
         virtual void preMeter( osg::NodeList& nodes, FilterEnv* ) { }
 
     private:

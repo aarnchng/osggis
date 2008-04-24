@@ -18,8 +18,7 @@
  */
 
 #include <osgGIS/CollectionFilterState>
-#include <osgGIS/DisperseFilterState>
-#include <osgGIS/DrawableFilterState>
+#include <osgGIS/FragmentFilterState>
 #include <osgGIS/FeatureFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
@@ -28,7 +27,7 @@ using namespace osgGIS;
 
         
 typedef std::map<std::string,FeatureList>   FeatureGroups;
-typedef std::map<std::string,DrawableList>  DrawableGroups;
+typedef std::map<std::string,FragmentList>  FragmentGroups;
 typedef std::map<std::string,osg::NodeList> NodeGroups;
 
 
@@ -55,16 +54,16 @@ CollectionFilterState::push( Feature* input )
 
 
 void 
-CollectionFilterState::push( const DrawableList& input )
+CollectionFilterState::push( const FragmentList& input )
 {
-    drawables.insert( drawables.end(), input.begin(), input.end() );
+    fragments.insert( fragments.end(), input.begin(), input.end() );
 }
 
 
 void
-CollectionFilterState::push( osg::Drawable* input )
+CollectionFilterState::push( Fragment* input )
 {
-    drawables.push_back( input );
+    fragments.push_back( input );
 }
 
 
@@ -164,9 +163,9 @@ CollectionFilterState::signalCheckpoint()
                 ok = false;
             }
         }
-        else if ( dynamic_cast<DrawableFilterState*>( next ) )
+        else if ( dynamic_cast<FragmentFilterState*>( next ) )
         {
-            DrawableFilterState* state = static_cast<DrawableFilterState*>( next );
+            FragmentFilterState* state = static_cast<FragmentFilterState*>( next );
             if ( !features.empty() )
             {
                 FeatureGroups groups;
@@ -174,10 +173,10 @@ CollectionFilterState::signalCheckpoint()
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
-            else if ( !drawables.empty() )
+            else if ( !fragments.empty() )
             {
-                DrawableGroups groups;
-                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                FragmentGroups groups;
+                for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
@@ -196,10 +195,10 @@ CollectionFilterState::signalCheckpoint()
                     feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), feature_groups, state, metering, saved_env.get() );
             }
-            else if ( !drawables.empty() )
+            else if ( !fragments.empty() )
             {
-                DrawableGroups groups;
-                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                FragmentGroups groups;
+                for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
@@ -225,10 +224,10 @@ CollectionFilterState::signalCheckpoint()
                     feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), feature_groups, state, metering, saved_env.get() );
             }
-            else if ( !drawables.empty() )
+            else if ( !fragments.empty() )
             {
-                DrawableGroups groups;
-                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
+                FragmentGroups groups;
+                for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
@@ -244,35 +243,35 @@ CollectionFilterState::signalCheckpoint()
                 ok = false;         
             }
         }
-        else if ( dynamic_cast<DisperseFilterState*>( next ) )
-        {
-            DisperseFilterState* state = static_cast<DisperseFilterState*>( next );   
-            if ( !features.empty() )
-            {
-                FeatureGroups feature_groups;
-                for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), feature_groups, state, metering, saved_env.get() );
-            }
-            else if ( !drawables.empty() )
-            {
-                DrawableGroups groups;
-                for( DrawableList::const_iterator i = drawables.begin(); i != drawables.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
-            }
-            else if ( !nodes.empty() )
-            {
-                NodeGroups groups;
-                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
-            }
-            else
-            {
-                ok = false;         
-            }
-        }
+        //else if ( dynamic_cast<DisperseFilterState*>( next ) )
+        //{
+        //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );   
+        //    if ( !features.empty() )
+        //    {
+        //        FeatureGroups feature_groups;
+        //        for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
+        //            feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+        //        ok = meterGroups( filter.get(), feature_groups, state, metering, saved_env.get() );
+        //    }
+        //    else if ( !fragments.empty() )
+        //    {
+        //        FragmentGroups groups;
+        //        for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
+        //            groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+        //        ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
+        //    }
+        //    else if ( !nodes.empty() )
+        //    {
+        //        NodeGroups groups;
+        //        for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+        //            groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+        //        ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
+        //    }
+        //    else
+        //    {
+        //        ok = false;         
+        //    }
+        // }
 
         if ( ok )
         {
@@ -282,7 +281,7 @@ CollectionFilterState::signalCheckpoint()
 
     // clean up the input:
     features.clear();
-    drawables.clear();
+    fragments.clear();
     nodes.clear();
     saved_env = NULL;
 

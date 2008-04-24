@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_BUILD_FILTER_H_
-#define _OSGGIS_BUILD_FILTER_H_ 1
+#ifndef _OSGGIS_FRAGMENT_FILTER_H_
+#define _OSGGIS_FRAGMENT_FILTER_H_ 1
 
 #include <osgGIS/Common>
 #include <osgGIS/Filter>
@@ -28,23 +28,23 @@
 namespace osgGIS
 {    
     /**
-     * A filter that generates osg::Drawable instances. 
+     * A filter that generates fragments.
      *
-     * A DrawableFilter can accept either features or drawables as input (i.e.,
-     * you can append a DrawableFilter, a FeatureFilter, or a CollectionFilter.)
+     * A FragmentFilter can accept either features or other fragments as input (i.e.,
+     * you can append a FragmentFilter, a FeatureFilter, or a CollectionFilter.)
      *
      * The subclass implementation should override either one/both of the
-     * feature-based process() methods, or one/both of the drawable-based
+     * feature-based process() methods, or one/both of the fragment-based
      * process() methods(). The compiler will call the appropriate method based
      * on the preceding filter in the graph.
      */
-    class OSGGIS_EXPORT DrawableFilter : public Filter
+    class OSGGIS_EXPORT FragmentFilter : public Filter
     {        
     public: 
     
         /**
-         * Processes a single feature into drawables. Override this method in
-         * your implementation to convert individual features into drawables.         
+         * Processes a single feature into fragment(s). Override this method in
+         * your implementation to convert individual features into fragments.         
          *
          * @param input
          *      Input feature
@@ -58,9 +58,9 @@ namespace osgGIS
 
 
         /**
-         * Processes a collection of features into drawables. Override this
+         * Processes a collection of features into fragments. Override this
          * method in your implementation to convert batches of features into
-         * drawables.
+         * fragments.
          *
          * @param input
          *      Batch of features to convert into drawables
@@ -74,27 +74,27 @@ namespace osgGIS
 
 
         /**
-         * Processes a single drawable into drawables. Override this method
+         * Processes a single fragment into fragment(s). Override this method
          * in your implementation to process individual drawables into more
-         * drawables.
+         * fragments.
          *
          * @param input
-         *      Single drawable to convert
+         *      Single fragment to convert
          * @param env
          *      Contextual compilation information
          * @return
          *      The converted input data. The default implementation of this
          *      method returns the input data.
          */
-        virtual FragmentList process( osg::Drawable* input, FilterEnv* env );
+        virtual FragmentList process( Fragment* input, FilterEnv* env );
 
 
         /**
-         * Processes a collection of drawables into drawables. Override this
-         * method in your implementation to process batches of drawables.
+         * Processes a collection of fragments into fragments. Override this
+         * method in your implementation to process batches of fragments.
          *
          * @param input
-         *      Batch of drawables to process
+         *      Batch of fragments to process
          * @param env
          *      Contextual compilation information
          * @return
@@ -110,9 +110,9 @@ namespace osgGIS
 
     protected:        
 
-        DrawableFilter();
-        virtual ~DrawableFilter();
+        FragmentFilter();
+        virtual ~FragmentFilter();
     };
 }
 
-#endif // _OSGGIS_BUILD_FILTER_H_
+#endif // _OSGGIS_FRAGMENT_FILTER_H_

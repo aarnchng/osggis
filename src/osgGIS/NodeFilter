@@ -22,7 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/CollectionFilter>
-#include <osgGIS/DrawableFilter>
+#include <osgGIS/FragmentFilter>
 #include <osgGIS/FeatureFilter>
 #include <osg/Node>
 
@@ -59,24 +59,24 @@ namespace osgGIS
         virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
 
         /**
-         * Processes a single drawable into a collection of nodes.
+         * Processes a single fragment into a collection of nodes.
          *
          * @param input
-         *      Individual drawable to process
+         *      Individual fragment to process
          * @param env
          *      Contextual compilation environment
          */
-        virtual osg::NodeList process( osg::Drawable* input, FilterEnv* env );
+        virtual osg::NodeList process( Fragment* input, FilterEnv* env );
         
         /**
-         * Processes a collection of drawables into a collection of nodes.
+         * Processes a collection of fragments into a collection of nodes.
          *
          * @param input
-         *      Batch of drawables to process
+         *      Batch of fragments to process
          * @param env
          *      Contextual compilation environment
          */
-        virtual osg::NodeList process( DrawableList& input, FilterEnv* env );
+        virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
         
         /**
          * Processes a single node into a collection of nodes.

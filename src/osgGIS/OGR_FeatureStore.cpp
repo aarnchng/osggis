@@ -50,7 +50,8 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
 
     if ( isReady() )
     {
-        osg::notify(osg::NOTICE) << "Opened feature store at " << getName() << std::endl;
+        osg::notify(osg::NOTICE) << "Opened feature store at " << getName() << std::endl
+            << "   Extent = " << getExtent().toString() << std::endl;
     }
 }
 

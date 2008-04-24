@@ -19,7 +19,7 @@
 
 #include <osgGIS/FilterGraph>
 #include <osgGIS/FeatureFilterState>
-#include <osgGIS/DrawableFilterState>
+#include <osgGIS/FragmentFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osgGIS/CollectionFilterState>
 #include <osgGIS/WriteFeaturesFilter>
@@ -234,9 +234,9 @@ FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList&
                 ok = state->signalCheckpoint();
             }
         }
-        else if ( dynamic_cast<DrawableFilterState*>( first.get() ) )
+        else if ( dynamic_cast<FragmentFilterState*>( first.get() ) )
         {
-            DrawableFilterState* state = static_cast<DrawableFilterState*>( first.get() );
+            FragmentFilterState* state = static_cast<FragmentFilterState*>( first.get() );
             while( ok && cursor->hasNext() )
             {
                 state->push( cursor->next() );
