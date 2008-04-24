@@ -19,9 +19,9 @@
 
 #include <osgGIS/FeatureFilterState>
 #include <osgGIS/FeatureFilter>
-#include <osgGIS/DrawableFilterState>
+#include <osgGIS/FragmentFilterState>
 #include <osgGIS/CollectionFilterState>
-#include <osgGIS/DisperseFilterState>
+//#include <osgGIS/DisperseFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
 
@@ -69,9 +69,9 @@ FeatureFilterState::traverse( FilterEnv* in_env )
                 FeatureFilterState* state = static_cast<FeatureFilterState*>( next );
                 state->push( output );
             }
-            else if ( dynamic_cast<DrawableFilterState*>( next ) )
+            else if ( dynamic_cast<FragmentFilterState*>( next ) )
             {
-                DrawableFilterState* state = static_cast<DrawableFilterState*>( next );
+                FragmentFilterState* state = static_cast<FragmentFilterState*>( next );
                 state->push( output );
             }
             else if ( dynamic_cast<NodeFilterState*>( next ) )
@@ -84,11 +84,11 @@ FeatureFilterState::traverse( FilterEnv* in_env )
                 CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
                 state->push( output );
             }
-            else if ( dynamic_cast<DisperseFilterState*>( next ) )
-            {
-                DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
-                state->push( output );
-            }
+            //else if ( dynamic_cast<DisperseFilterState*>( next ) )
+            //{
+            //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
+            //    state->push( output );
+            //}
 
             ok = next->traverse( env.get() );
         }

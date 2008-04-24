@@ -17,40 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_COLLECTION_FILTER_STATE_H_
-#define _OSGGIS_COLLECTION_FILTER_STATE_H_ 1
+#ifndef _OSGGIS_FRAGMENT_FILTER_STATE_H_
+#define _OSGGIS_FRAGMENT_FILTER_STATE_H_ 1
 
 #include <osgGIS/Common>
 #include <osgGIS/FilterState>
-#include <osgGIS/CollectionFilter>
-#include <osg/Node>
-#include <map>
+#include <osgGIS/FragmentFilter>
 
 namespace osgGIS
 {
-    class CollectionFilterState : public FilterState
+    class FragmentFilterState : public FilterState
     {
     public:
-        CollectionFilterState( CollectionFilter* filter );
+        FragmentFilterState( FragmentFilter* filter );
 
         bool traverse( FilterEnv* );
-        virtual bool signalCheckpoint();
 
         void push( Feature* input );
         void push( const FeatureList& input );
         void push( Fragment* input );
         void push( const FragmentList& input );
-        void push( osg::Node* );
-        void push( const osg::NodeList& nodes );
 
     protected:
-        osg::ref_ptr<CollectionFilter> filter;
-        osg::ref_ptr<FilterEnv> saved_env;
-        
-        FeatureList features;
-        FragmentList fragments;
-        osg::NodeList nodes;
+        osg::ref_ptr<FragmentFilter> filter;
+        FeatureList in_features;
+        FragmentList in_fragments;
     };
 }
 
-#endif // _OSGGIS_COLLECTION_FILTER_STATE_H_
+#endif // _OSGGIS_FRAGMENT_FILTER_STATE_H_

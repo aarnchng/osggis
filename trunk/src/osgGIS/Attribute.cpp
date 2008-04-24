@@ -193,3 +193,66 @@ AttributeSchema::getProperties() const
 {
     return props;
 }
+
+
+/***************************************************************************/
+
+
+Attribute
+AttributedBase::getAttribute( const std::string& key ) const
+{
+    AttributeTable::const_iterator i = user_attrs.find( key );
+    return i != user_attrs.end()? i->second : Attribute::invalid();
+}
+
+AttributeList
+AttributedBase::getAttributes() const
+{
+    AttributeList result;
+    for( AttributeTable::const_iterator i = user_attrs.begin(); i != user_attrs.end(); i++ )
+        result.push_back( i->second );
+    return result;
+}
+
+AttributeSchemaList
+AttributedBase::getAttributeSchemas() const
+{
+    AttributeSchemaList result;
+
+    for( AttributeTable::const_iterator i = user_attrs.begin(); i != user_attrs.end(); i++ )
+    {
+        result.push_back( AttributeSchema( i->first, i->second.getType(), Properties() ) );
+    }
+
+    return result;
+}
+
+void 
+AttributedBase::setAttribute( const std::string& key, const std::string& value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void 
+AttributedBase::setAttribute( const std::string& key, int value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void 
+AttributedBase::setAttribute( const std::string& key, double value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+void
+AttributedBase::setAttribute( const std::string& key, bool value )
+{
+    user_attrs[key] = Attribute( key, value );
+}
+
+const AttributeTable&
+AttributedBase::getUserAttrs() const
+{
+    return user_attrs;
+}

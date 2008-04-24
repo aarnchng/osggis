@@ -29,7 +29,7 @@ namespace osgGIS
     /**
      * Feature loaded from an GDAL/OGR driver.
      */
-	class OGR_Feature : public osgGIS::FeatureBase
+	class OGR_Feature : public FeatureBase
 	{
 	public:
         /**

@@ -20,7 +20,7 @@
 #include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/Filter>
 #include <osgGIS/FeatureFilter>
-#include <osgGIS/DrawableFilter>
+#include <osgGIS/FragmentFilter>
 #include <osgGIS/NodeFilter>
 #include <osgGIS/Registry>
 #include <osgGIS/Utils>

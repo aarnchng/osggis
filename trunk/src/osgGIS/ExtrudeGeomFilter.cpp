@@ -316,7 +316,7 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
     return skin;
 }
 
-DrawableList
+FragmentList
 ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
     bool batch = input.size() > 1;
@@ -333,10 +333,10 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 }
 
 
-DrawableList
+FragmentList
 ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
 {
-    DrawableList output;
+    FragmentList output;
 
     // calcuate feature extent in the SRS, which we'll need for texture coordinates.
     GeoExtent abs_feature_extent(
@@ -382,7 +382,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             osgUtil::SmoothingVisitor smoother;
             smoother.smooth( *(walls.get()) ); 
 
-            output.push_back( walls.get() );
+            output.push_back( new Fragment( walls.get() ) );
 
             // tessellate and add the roofs if necessary:
             if ( rooflines.valid() )
@@ -401,7 +401,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 //genTextureCoords( rooflines.get(), abs_feature_extent, env );
                 //applyRasterTexture( rooflines.get(), abs_feature_extent, input, env );
 
-                output.push_back( rooflines.get() );
+                output.push_back( new Fragment( rooflines.get() ) );
             }
         }   
     }

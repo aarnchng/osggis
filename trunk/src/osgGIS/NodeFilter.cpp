@@ -65,10 +65,10 @@ NodeFilter::process( Feature* input, FilterEnv* env )
 
 
 osg::NodeList 
-NodeFilter::process( DrawableList& input, FilterEnv* env )
+NodeFilter::process( FragmentList& input, FilterEnv* env )
 {
     osg::NodeList output;
-    for( DrawableList::iterator i = input.begin(); i != input.end(); i++ )
+    for( FragmentList::iterator i = input.begin(); i != input.end(); i++ )
     {
         osg::NodeList interim = process( i->get(), env );
         output.insert( output.end(), interim.begin(), interim.end() );
@@ -78,11 +78,11 @@ NodeFilter::process( DrawableList& input, FilterEnv* env )
 
 
 osg::NodeList 
-NodeFilter::process( osg::Drawable* input, FilterEnv* env )
+NodeFilter::process( Fragment* input, FilterEnv* env )
 {
     osg::NodeList output;
     osg::Geode* geode = new osg::Geode();
-    geode->addDrawable( input );
+    geode->addDrawable( input->getDrawable() );
     output.push_back( geode );
     return output;
 }

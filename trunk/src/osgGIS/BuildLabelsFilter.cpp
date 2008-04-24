@@ -105,17 +105,17 @@ BuildLabelsFilter::getProperties() const
 }
 
 
-DrawableList
+FragmentList
 BuildLabelsFilter::process( FeatureList& input, FilterEnv* env )
 {
     return BuildGeomFilter::process( input, env );
 }
 
 
-DrawableList
+FragmentList
 BuildLabelsFilter::process( Feature* input, FilterEnv* env )
 {
-    DrawableList output;
+    FragmentList output;
 
     osg::Vec4 color = getColorForFeature( input, env );
 
@@ -138,7 +138,7 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
     t->setBackdropColor( osg::Vec4(0,0,0,1) );
     t->getOrCreateStateSet()->setAttribute( new osg::Depth( osg::Depth::ALWAYS, 0, 1, false ), osg::StateAttribute::ON );
 
-    output.push_back( t );
+    output.push_back( new Fragment( t ) );
 
     return output;
 }

@@ -66,8 +66,8 @@ namespace osgGIS
 
     protected:
 
-        virtual DrawableList process( FeatureList& input, FilterEnv* env );
-        virtual DrawableList process( Feature* input, FilterEnv* env );
+        virtual FragmentList process( FeatureList& input, FilterEnv* env );
+        virtual FragmentList process( Feature* input, FilterEnv* env );
 
         virtual ~BuildLabelsFilter();
         

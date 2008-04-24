@@ -45,14 +45,14 @@ namespace osgGIS
         void push( FeatureList& input );
 
         /**
-         * Pushes a drawable onto this filter's input data queue.
+         * Pushes a Fragment onto this filter's input data queue.
          */
-        void push( osg::Drawable* input );
+        void push( Fragment* input );
 
         /**
-         * Pushes a collection of drawables onto this filter's input data queue.
+         * Pushes a collection of Fragments onto this filter's input data queue.
          */
-        void push( DrawableList& input );
+        void push( FragmentList& input );
 
         /**
          * Pushes a single node onto this filter's input data queue.
@@ -75,7 +75,7 @@ namespace osgGIS
     protected:
         osg::ref_ptr<NodeFilter> filter;
         FeatureList in_features;
-        DrawableList in_drawables;
+        FragmentList in_fragments;
         osg::NodeList in_nodes;
         osg::NodeList out_nodes;
     };

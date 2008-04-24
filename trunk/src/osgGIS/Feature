@@ -38,7 +38,7 @@ namespace osgGIS
      * system. It consists of two parts: geospatial data (the "shapes") and
      * attributes (a set of arbitrary name/value pairs).
      */
-	class OSGGIS_EXPORT Feature : public osg::Referenced
+	class OSGGIS_EXPORT Feature : public AttributedBase
 	{
 	public:		
         /**
@@ -89,28 +89,28 @@ namespace osgGIS
          * @param key
          *      Name of the attribute to return
          */
-        virtual Attribute getAttribute( const std::string& key ) const =0;
+        //virtual Attribute getAttribute( const std::string& key ) const =0;
         
         /**
          * Gets a (copied) collection of all attributes in this feature.
          */
-        virtual AttributeList getAttributes() const =0;
+        //virtual AttributeList getAttributes() const =0;
         
         /**
          * Gets a copy of the full attribute schema for each attribute.
          */
-        virtual AttributeSchemaList getAttributeSchemas() const =0;
+        //virtual AttributeSchemaList getAttributeSchemas() const =0;
 
         /**
          * Sets a user-attribute to a string value.
          */
-        virtual void setAttribute( const std::string& key, const std::string& value ) =0;
+        //virtual void setAttribute( const std::string& key, const std::string& value ) =0;
 
-        virtual void setAttribute( const std::string& key, int value ) =0;
+        //virtual void setAttribute( const std::string& key, int value ) =0;
 
-        virtual void setAttribute( const std::string& key, double value ) =0;
+        //virtual void setAttribute( const std::string& key, double value ) =0;
 
-        virtual void setAttribute( const std::string& key, bool value ) =0;
+        //virtual void setAttribute( const std::string& key, bool value ) =0;
 	};
 	
 
@@ -129,19 +129,19 @@ namespace osgGIS
     {
     public:
 
-        virtual Attribute getAttribute( const std::string& key ) const;
+        //virtual Attribute getAttribute( const std::string& key ) const;
         
-        virtual AttributeList getAttributes() const;   
+        //virtual AttributeList getAttributes() const;   
         
-        virtual AttributeSchemaList getAttributeSchemas() const;
+        //virtual AttributeSchemaList getAttributeSchemas() const;
         
-        virtual void setAttribute( const std::string& key, const std::string& value );
+        //virtual void setAttribute( const std::string& key, const std::string& value );
 
-        virtual void setAttribute( const std::string& key, int value );
+        //virtual void setAttribute( const std::string& key, int value );
 
-        virtual void setAttribute( const std::string& key, double value );
+        //virtual void setAttribute( const std::string& key, double value );
 
-        virtual void setAttribute( const std::string& key, bool value );
+        //virtual void setAttribute( const std::string& key, bool value );
         
         virtual bool hasShapeData() const;
         
@@ -150,13 +150,13 @@ namespace osgGIS
 		virtual int getShapeDim() const;
         
 
-    protected:
+    //protected:
 
-        const AttributeTable& getUserAttrs() const;
+        //const AttributeTable& getUserAttrs() const;
 
-    private:
+    //private:
         
-        AttributeTable  user_attrs;
+        //AttributeTable  user_attrs;
     };
 	
 	

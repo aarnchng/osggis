@@ -250,12 +250,12 @@ BuildNodesFilter::getProperties() const
 }
 
 osg::NodeList
-BuildNodesFilter::process( DrawableList& input, FilterEnv* env )
+BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
 {
     osg::Geode* geode = new osg::Geode();
-    for( DrawableList::iterator i = input.begin(); i != input.end(); i++ )
+    for( FragmentList::iterator i = input.begin(); i != input.end(); i++ )
     {
-        geode->addDrawable( i->get() );
+        geode->addDrawable( i->get()->getDrawable() );
     }
 
     osg::NodeList nodes;
