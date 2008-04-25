@@ -252,14 +252,40 @@ BuildNodesFilter::getProperties() const
 osg::NodeList
 BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
 {
-    osg::Geode* geode = new osg::Geode();
-    for( FragmentList::iterator i = input.begin(); i != input.end(); i++ )
+    osg::NodeList nodes;
+
+    osg::Geode* geode = NULL;
+    for( FragmentList::const_iterator i = input.begin(); i != input.end(); i++ )
     {
-        geode->addDrawable( i->get()->getDrawable() );
+        Fragment* frag = i->get();
+
+        if ( !geode )
+        {
+            geode = new osg::Geode();
+            nodes.push_back( geode );
+        }
+
+        for( DrawableList::const_iterator d = frag->getDrawables().begin(); d != frag->getDrawables().end(); d++ )
+        {
+            geode->addDrawable( d->get() );
+        }
+
+        // if a fragment name is set, apply it and reset the geode point so that the next fragment
+        // gets placed in a new geode.
+        Attribute a = frag->getAttribute( ".fragment-name" );
+        if ( a.isValid() )
+        {
+            geode->setName( a.asString() );
+            geode = NULL;
+        }
     }
 
-    osg::NodeList nodes;
-    nodes.push_back( geode );
+    // with multiple geodes, disable geode combining in order to preserve fragment names:
+    if ( nodes.size() > 1 )
+    {
+        env->getOptimizerHints().exclude( osgUtil::Optimizer::MERGE_GEODES );
+    }
+
     return process( nodes, env );
 }
 

@@ -29,7 +29,7 @@ Fragment::Fragment()
 Fragment::Fragment( osg::Drawable* dr )
 {
     if ( dr )
-        setDrawable( dr );
+        getDrawables().push_back( dr );
 }
 
 Fragment::~Fragment()
@@ -37,14 +37,21 @@ Fragment::~Fragment()
     //NOP
 }
 
-void
-Fragment::setDrawable( osg::Drawable* value )
+const DrawableList&
+Fragment::getDrawables() const
 {
-    drawable = value;
+    return drawables;
 }
 
-osg::Drawable*
-Fragment::getDrawable() const
+DrawableList&
+Fragment::getDrawables()
 {
-    return drawable.get();
+    return drawables;
 }
+
+void
+Fragment::addDrawable( osg::Drawable* d )
+{
+    drawables.push_back( d );
+}
+

@@ -98,6 +98,19 @@ BuildGeomFilter::getMaxRasterSize() const
     return max_raster_size;
 }
 
+void 
+BuildGeomFilter::setFeatureNameScript( Script* script )
+{
+    feature_name_script = script;
+}
+
+Script*
+BuildGeomFilter::getFeatureNameScript() const
+{
+    return feature_name_script.get();
+}
+
+
 void
 BuildGeomFilter::setProperty( const Property& prop )
 {
@@ -107,6 +120,8 @@ BuildGeomFilter::setProperty( const Property& prop )
         setRasterScript( new Script( prop.getValue() ) );
     else if ( prop.getName() == "max_raster_size" )
         setMaxRasterSize( prop.getIntValue( 0 ) );
+    else if ( prop.getName() == "feature_name" )
+        setFeatureNameScript( new Script( prop.getValue() ) );
 
     FragmentFilter::setProperty( prop );
 }
@@ -122,6 +137,8 @@ BuildGeomFilter::getProperties() const
         p.push_back( Property( "raster", getRasterScript()->getCode() ) );
     if ( getMaxRasterSize() > 0 )
         p.push_back( Property( "max_raster_size", getMaxRasterSize() ) );
+    if ( getFeatureNameScript() )
+        p.push_back( Property( "feature_name", getFeatureNameScript() ) );
     return p;
 }
 
@@ -147,17 +164,8 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
 }
 
 FragmentList
-BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input, FilterEnv* env )
+BuildGeomFilter::process( Feature* input, FilterEnv* env )
 {
-    //osg::notify( osg::ALWAYS )
-    //    << "Feature (" << input->getOID() << ") extent = " << input->getExtent().toString()
-    //    << std::endl;
-
-    // calcuate feature extent in the SRS, which we'll need for texture coordinates.
-    //GeoExtent abs_feature_extent(
-    //    input->getExtent().getSouthwest().getAbsolute(),
-    //    input->getExtent().getNortheast().getAbsolute() );
-
     FragmentList output;
 
     // LIMITATION: this filter assumes all feature's shapes are the same
@@ -230,7 +238,11 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env ) //FeatureList& input,
         applyOverlayTexturing( geom, input, env );
     }
 
-    output.push_back( new Fragment( geom ) );
+    Fragment* frag = new Fragment( geom );
+
+    applyFragmentName( frag, input, env );
+
+    output.push_back( frag );
 
     return output;
 }
@@ -253,6 +265,20 @@ BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
     }
 
     return result;
+}
+
+
+void
+BuildGeomFilter::applyFragmentName( Fragment* frag, Feature* feature, FilterEnv* env )
+{
+    if ( getFeatureNameScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), feature, env );
+        if ( r.isValid() )
+        {
+            frag->setAttribute( ".fragment-name", r.asString() );
+        }
+    }
 }
 
 

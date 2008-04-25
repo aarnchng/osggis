@@ -382,7 +382,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             osgUtil::SmoothingVisitor smoother;
             smoother.smooth( *(walls.get()) ); 
 
-            output.push_back( new Fragment( walls.get() ) );
+            Fragment* new_fragment = new Fragment( walls.get() );
 
             // tessellate and add the roofs if necessary:
             if ( rooflines.valid() )
@@ -398,11 +398,12 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 // texture the rooflines if necessary
                 applyOverlayTexturing( rooflines.get(), input, env );
 
-                //genTextureCoords( rooflines.get(), abs_feature_extent, env );
-                //applyRasterTexture( rooflines.get(), abs_feature_extent, input, env );
-
-                output.push_back( new Fragment( rooflines.get() ) );
+                new_fragment->addDrawable( rooflines.get() );
             }
+
+            applyFragmentName( new_fragment, input, env );
+
+            output.push_back( new_fragment );
         }   
     }
 

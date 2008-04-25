@@ -90,9 +90,9 @@ namespace osgGIS
          */
         int getMaxRasterSize() const;
         
-//        void setFeatureNameScript( Script* script );
+        void setFeatureNameScript( Script* script );
         
-//        Script* getFeatureNameScript() const;
+        Script* getFeatureNameScript() const;
         
     public:
     
@@ -106,6 +106,7 @@ namespace osgGIS
         
     protected:
         virtual osg::Vec4 getColorForFeature( Feature* input, FilterEnv* env );
+        void applyFragmentName( Fragment*, Feature*, FilterEnv* );
         void applyOverlayTexturing( osg::Geometry* geom, Feature* input, FilterEnv* env );
 
         virtual ~BuildGeomFilter();
@@ -113,8 +114,9 @@ namespace osgGIS
     protected:
         osg::ref_ptr<Script> color_script;
         osg::ref_ptr<Script> raster_script;
+        osg::ref_ptr<Script> feature_name_script;
         osg::Vec4            overall_color;
-        int                  max_raster_size;
+        int                  max_raster_size;        
     };
 }
 
