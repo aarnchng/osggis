@@ -424,7 +424,7 @@ PagedLayerCompiler::compileTile(
             osgDB::writeNodeFile( *(top.get()), new_abs_path );
 
         // Finally, walk through any new PLODs we created and compile the subtiles.
-        for( int i=0, j=0; i<top->getNumChildren(); i++ )
+        for( unsigned int i=0, j=0; i<top->getNumChildren(); i++ )
         {
             const GeoExtent& sub_extent = sub_extents[i];
 

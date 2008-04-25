@@ -28,6 +28,9 @@
 
 namespace osgGIS
 {
+    /** A list of osg::Drawable references. */
+    typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
+
     /**
      * An osg::Drawable paired with an attribute set.
      */
@@ -37,22 +40,21 @@ namespace osgGIS
 	    Fragment();
 	    Fragment( osg::Drawable* );
 	    
-	public:	
-        osg::Drawable* getDrawable() const;
+	public:
+	    DrawableList& getDrawables();
+	    
+	    const DrawableList&	getDrawables() const;
 
-        void setDrawable( osg::Drawable* );
+        void addDrawable( osg::Drawable* d );
 
     protected:
 	    virtual ~Fragment();
 
     private:
-        osg::ref_ptr<osg::Drawable> drawable;
+        DrawableList drawables;
 	};
 	
 	
-    /** A list of osg::Drawable references. */
-    typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
-
 	/** A list of reference-counted features. */
 	typedef std::vector< osg::ref_ptr<Fragment> > FragmentList;
 }

@@ -82,7 +82,8 @@ NodeFilter::process( Fragment* input, FilterEnv* env )
 {
     osg::NodeList output;
     osg::Geode* geode = new osg::Geode();
-    geode->addDrawable( input->getDrawable() );
+    for( DrawableList::const_iterator i = input->getDrawables().begin(); i != input->getDrawables().end(); i++ )
+        geode->addDrawable( i->get() );
     output.push_back( geode );
     return output;
 }
