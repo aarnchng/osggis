@@ -100,7 +100,6 @@ SET(LIB_PUBLIC_HEADERS
     Task
     TaskManager
     TerrainUtils
-    TierifyPolygonsFilter
     TransformFilter
     Utils
     WriteFeaturesFilter
@@ -186,7 +185,6 @@ ADD_LIBRARY(${LIB_NAME}
     Task.cpp
     TaskManager.cpp
     TerrainUtils.cpp
-    TierifyPolygonsFilter.cpp
     TransformFilter.cpp
     Utils.cpp
     WriteFeaturesFilter.cpp
