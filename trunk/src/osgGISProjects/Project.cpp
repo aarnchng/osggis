@@ -21,6 +21,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/FeatureStore>
 #include <osgGIS/RasterStore>
+#include <osgGIS/Utils>
 #include <osgDB/FileNameUtils>
 #include <algorithm>
 
@@ -65,6 +66,24 @@ const std::string&
 Project::getName() const
 {
     return name;
+}
+
+const std::string&
+Project::getWorkingDirectory() const
+{
+    return work_dir;
+}
+
+const std::string
+Project::getAbsoluteWorkingDirectory() const
+{
+    return PathUtils::combinePaths( getBaseURI(), getWorkingDirectory() );
+}
+
+void
+Project::setWorkingDirectory( const std::string& value )
+{
+    work_dir = value;
 }
 
 void
@@ -201,6 +220,29 @@ Project::getTarget( const std::string& key )
     for( BuildTargetList::const_iterator i = targets.begin(); i != targets.end(); i++ )
     {
         if ( i->get()->getName() == key )
+            return i->get();
+    }
+    return NULL;
+}
+
+MapList&
+Project::getMaps()
+{
+    return maps;
+}
+
+const MapList&
+Project::getMaps() const
+{
+    return maps;
+}
+
+Map*
+Project::getMap( const std::string& name )
+{
+    for( MapList::const_iterator i = maps.begin(); i != maps.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
             return i->get();
     }
     return NULL;

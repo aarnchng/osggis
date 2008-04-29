@@ -81,31 +81,11 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    [terrain file] [feature file...]  - Files to view (put terrain first for polygon offset)" << ENDL;
     NOUT << ENDL;
     NOUT << "Optional:"<< ENDL;
-    NOUT << "    --overlay <filename>       - Loads a compiled feature layer as a projected overlay" << ENDL;
-    NOUT << "    --point-size <num>         - Sets the point size (default = 1)" << ENDL;
-    NOUT << "    --line-width <num>         - Sets the line width (default = 1)" << ENDL;
-    NOUT << "    --polygon-offset <f,u>     - Sets the polygon offset for the terrain (default = 1,1)" << ENDL;
-    NOUT << "    --frame-rate <fps>         - Sets the target frame rate, disabling VSYNC (default = 60)" << ENDL;
     NOUT << "    --unlit-terrain            - Disables lighting on the first model loaded (the terrain)" << ENDL;
+    NOUT << "    --overlay <filename>       - Loads a compiled feature layer as a projected overlay" << ENDL;
     NOUT << "" << ENDL;
     NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
-
-
-typedef bool (APIENTRY *VSYNCFUNC)(int);
-struct ToggleVsyncOperation : public osg::Operation
-{
-    ToggleVsyncOperation( bool _enable ) : osg::Operation( "ToggleVsync", true ), enable(_enable) { }
-    bool enable;
-    void operator()( osg::Object* gc ) {
-        if ( osg::isGLExtensionSupported( 0, "WGL_EXT_swap_control" ) ) {
-            VSYNCFUNC fp = (VSYNCFUNC)osg::getGLExtensionFuncPtr( "wglSwapIntervalEXT" );
-            if ( fp ) fp( enable? 1 : 0 );
-        }
-    }
-};
-
-
 
 
 int
@@ -125,42 +105,6 @@ main(int argc, char* argv[])
         usage( argv[0], "Usage" );
         exit(0);
     }
-    
-    // A polygon offset for the terrain (first file loaded)
-    float po_units = 1.0f;
-    float po_factor = 1.0f;
-    while( args.read( "--polygon-offset", str ) )
-    {
-        sscanf( str.c_str(), "%f,%f", &po_factor, &po_units );
-    }
-
-    // opengl point size
-    while( args.read( "--point-size", str ) )
-    {
-        float point_size = 1.0f;    
-        sscanf( str.c_str(), "%f", &point_size );
-        osg::Point* point = new osg::Point();
-        point->setSize( point_size );
-        group->getOrCreateStateSet()->setAttribute( point, osg::StateAttribute::ON );
-    }
-
-    while( args.read( "--line-width", str ) )
-    {
-        float line_width = 1.0f;
-        sscanf( str.c_str(), "%f", &line_width );
-        group->getOrCreateStateSet()->setAttribute( 
-            new osg::LineWidth( line_width ), osg::StateAttribute::ON );
-    }
-
-    double fps = 0.0;
-    while( args.read( "--frame-rate", str ) )
-    {
-        sscanf( str.c_str(), "%lf", &fps );        
-    }
-    osg::Timer_t min_frame_time = (osg::Timer_t)
-        ((1.0/fps)/(double)osg::Timer::instance()->getSecondsPerTick());
-
-    bool no_pre_compile = args.read( "--no-pre-compile" );
 
     bool unlit_terrain = args.read( "--unlit-terrain" );
     osg::Node* terrain_node = NULL;
@@ -199,14 +143,17 @@ main(int argc, char* argv[])
             {
                 group->addChild( node );
 
+                // Consider the first loaded file to be the terrain:
                 if ( !terrain_node )
                 {
                     terrain_node = node;
                     
+                    // Apply a polygon offset so that clamped vector layers display properly:
                     terrain_node->getOrCreateStateSet()->setAttributeAndModes(
-                        new osg::PolygonOffset( po_factor, po_units ),
+                        new osg::PolygonOffset( 1.0, 1.0 ),
                         osg::StateAttribute::ON );
 
+                    // Optionally disable lighting on the terrain:
                     if ( unlit_terrain )
                     {
                         terrain_node->getOrCreateStateSet()->setMode(
@@ -227,38 +174,14 @@ main(int argc, char* argv[])
     viewer.addEventHandler( new osgViewer::StatsHandler() );
     viewer.addEventHandler( new osgGA::StateSetManipulator( viewer.getCamera()->getOrCreateStateSet()) );
 
-    if ( no_pre_compile )
-    {
-        viewer.getScene()->getDatabasePager()->setDoPreCompile( false );
-    }
-
-    // for a target frame rate, disable VSYNC if possible
-    if ( fps > 0.0 )
-    {
-        viewer.setRealizeOperation( new ToggleVsyncOperation( false ) );
-    }
-
-
     viewer.realize();
     viewer.frame();
+
+    // Must wait until after the first frame to do this, otherwise it doesn't work
     if ( terrain_node )
         manip->setNode( terrain_node );
     
-    while( !viewer.done() )
-    {
-        osg::Timer_t t0 = osg::Timer::instance()->tick();
-
-        viewer.frame();
-
-        if ( fps > 0.0 )
-        {
-            osg::Timer_t t1 = osg::Timer::instance()->tick();
-            osg::Timer_t frame_time = t1 - t0;
-            int gap_us = osg::Timer::instance()->delta_u( frame_time, min_frame_time );
-            if ( gap_us > 0 )
-                OpenThreads::Thread::CurrentThread()->microSleep( gap_us );
-        }
-    }
+    viewer.run();
 
 	return 0;
 }

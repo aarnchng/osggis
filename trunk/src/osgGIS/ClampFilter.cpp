@@ -222,6 +222,10 @@ clampLinePart(GeoPointList&           in_part,
         GeoPoint& p0 = *i;
         GeoPoint& p1 = *(i+1);
 
+        // if the points are equals, move along; TODO: use an epsilon
+        if ( p0 == p1 )
+            continue;
+
         double z = ignore_z? 0.0 : p0.z();
 
         osg::Vec3d p0_world = p0 * srs->getInverseReferenceFrame();
@@ -235,6 +239,10 @@ clampLinePart(GeoPointList&           in_part,
             
             osg::Vec3d p0_normal = p1_world-p0_world;
             double seg_length = p0_normal.length();
+
+            // check again for "equivalent" points. TODO: use an epsilon
+            if ( seg_length <= 0.0 )
+                continue;
 
             p0_normal.normalize();
             planes[0] = osg::Plane( p0_normal, p0_world );

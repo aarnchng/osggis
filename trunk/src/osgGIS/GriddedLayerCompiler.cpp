@@ -372,7 +372,10 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                 }
                 else
                 {
-                    osg::notify(osg::NOTICE) << task->getName() << ": building..." << std::flush;
+                    osg::notify(osg::NOTICE) 
+                        << task->getName() << ": building... " 
+                        << sub_extent.toString() << "..."
+                        << std::flush;
 
                     task->run();
                     if ( task->getResult() )

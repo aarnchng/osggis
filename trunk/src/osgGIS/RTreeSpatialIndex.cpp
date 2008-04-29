@@ -46,8 +46,12 @@ RTreeSpatialIndex::~RTreeSpatialIndex()
 FeatureCursor*
 RTreeSpatialIndex::createCursor( const GeoExtent& query_extent )
 {
+    GeoExtent ex(
+        store->getSRS()->transform( query_extent.getSouthwest() ),
+        store->getSRS()->transform( query_extent.getNortheast() ) );
+        
     //TODO: replace this with an RTree iterator.
-    std::list<FeatureOID> oids = rtree->find( query_extent );
+    std::list<FeatureOID> oids = rtree->find( ex );
 
     FeatureOIDList vec( oids.size() );
     int k = 0;

@@ -17,6 +17,8 @@ SET(LIB_PUBLIC_HEADERS
     Common
     Document
     Export
+    Map
+    MapLayer
     Project
     Serializer
     Source
@@ -35,6 +37,8 @@ ADD_LIBRARY(${LIB_NAME}
     BuildLayerSlice.cpp
     BuildTarget.cpp
     Document.cpp
+    Map.cpp
+    MapLayer.cpp
     Project.cpp
     Serializer.cpp
     Source.cpp

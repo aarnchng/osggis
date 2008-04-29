@@ -17,53 +17,61 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGISProjects/BuildTarget>
+#include <osgGISProjects/MapLayer>
 
 using namespace osgGISProjects;
+using namespace osgGIS;
 
-BuildTarget::BuildTarget()
+MapLayer::MapLayer()
 {
-    //NOP
-}
-
-BuildTarget::BuildTarget( const std::string& _name )
-{
-    setName( _name );
-}
-
-const std::string&
-BuildTarget::getName() const
-{
-    return name;
+    searchable = false;
+    visible = true;
 }
 
 void
-BuildTarget::setName( const std::string& _name )
+MapLayer::setBuildLayer( BuildLayer* value )
 {
-    name = _name;
+    build_layer = value;
 }
 
-Terrain*
-BuildTarget::getTerrain() const
+BuildLayer*
+MapLayer::getBuildLayer()
 {
-    return terrain.get();
-}
-
-void
-BuildTarget::setTerrain( Terrain* value )
-{
-    terrain = value;
+    return build_layer.get();
 }
 
 void
-BuildTarget::addLayer( BuildLayer* _layer )
+MapLayer::setSearchLayer( BuildLayer* value )
 {
-    layers.push_back( _layer );
+    search_layer = value;
 }
 
-
-const BuildLayerList&
-BuildTarget::getLayers() const
+BuildLayer*
+MapLayer::getSearchLayer()
 {
-    return layers;
+    return search_layer.valid()? search_layer.get() : getBuildLayer();
+}
+
+void
+MapLayer::setSearchable( bool value )
+{
+    searchable = value;
+}
+
+bool
+MapLayer::getSearchable() const
+{
+    return searchable;
+}
+
+void
+MapLayer::setVisible( bool value )
+{
+    visible = value;
+}
+
+bool
+MapLayer::getVisible() const
+{
+    return visible;
 }

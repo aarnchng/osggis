@@ -25,6 +25,7 @@
 #include <osgGISProjects/BuildLayer>
 #include <osgGISProjects/BuildTarget>
 #include <osgGISProjects/Terrain>
+#include <osgGISProjects/Map>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Script>
 #include <osgGIS/ResourceLibrary>
@@ -48,6 +49,12 @@ namespace osgGISProjects
         const std::string& getName() const;
 
         void setName( const std::string& name );
+
+        const std::string& getWorkingDirectory() const;
+
+        const std::string getAbsoluteWorkingDirectory() const;
+
+        void setWorkingDirectory( const std::string& );
         
         void merge( class Project* from );
 
@@ -88,6 +95,13 @@ namespace osgGISProjects
         BuildTargetList& getTargets();
 
         BuildTarget* getTarget( const std::string& name );
+
+
+        const MapList& getMaps() const;
+
+        MapList& getMaps();
+
+        Map* getMap( const std::string& name );
         
 
         const ResourceList& getResources() const;
@@ -103,11 +117,13 @@ namespace osgGISProjects
     protected:
         std::string     source_uri;
         std::string     name;
+        std::string     work_dir;
         FilterGraphList graphs;
         SourceList      sources;
         TerrainList     terrains;
         BuildLayerList  layers;
         BuildTargetList targets;
+        MapList         maps;
         ScriptList      scripts;
         ResourceList    resources;
         
