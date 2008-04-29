@@ -17,46 +17,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGISPROJECTS_BUILD_TARGET_H_
-#define _OSGGISPROJECTS_BUILD_TARGET_H_ 1
+#ifndef _OSGGISPROJECTS_MAP_LAYER_H_
+#define _OSGGISPROJECTS_MAP_LAYER_H_ 1
 
 #include <osgGISProjects/Common>
 #include <osgGISProjects/BuildLayer>
-#include <osgGISProjects/Terrain>
 #include <list>
 
 namespace osgGISProjects
 {
-    /**
-     * A build target is a unit of operation in the build process, from
-     * the "user's" perspective. 
-     */
-    class OSGGISPROJECTS_EXPORT BuildTarget : public osg::Referenced
+    class OSGGISPROJECTS_EXPORT MapLayer : public osg::Referenced
     {
     public:
-        BuildTarget();
+        MapLayer();
 
-        BuildTarget( const std::string& name );
+        BuildLayer* getBuildLayer();
 
-        const std::string& getName() const;
+        void setBuildLayer( BuildLayer* );
 
-        void setName( const std::string& name );
+        bool getSearchable() const;
 
-        Terrain* getTerrain() const;
+        void setSearchable( bool value );
 
-        void setTerrain( Terrain* );
+        BuildLayer* getSearchLayer();
 
-        void addLayer( BuildLayer* layer );
+        void setSearchLayer( BuildLayer* );
 
-        const BuildLayerList& getLayers() const;        
+        bool getVisible() const;
 
+        void setVisible( bool value );
+        
     private:
-        std::string    name;
-        BuildLayerList layers;
-        osg::ref_ptr<Terrain> terrain;
+        bool searchable;
+        bool visible;
+        osg::ref_ptr<BuildLayer> build_layer;
+        osg::ref_ptr<BuildLayer> search_layer;
     };
     
-    typedef std::list<osg::ref_ptr<BuildTarget> > BuildTargetList;
+    typedef std::list<osg::ref_ptr<MapLayer> > MapLayerList;
 }
 
-#endif // _OSGGISPROJECTS_BUILD_TARGET_H_
+#endif // _OSGGISPROJECTS_BUILD_LAYER_H_

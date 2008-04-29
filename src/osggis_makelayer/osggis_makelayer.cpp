@@ -129,7 +129,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --terrain <filename>      - Terrain data file to which to clamp vectors" << ENDL;
     NOUT << "    --terrain-extent <long_min,lat_min,long_max,lat_max>" << ENDL;
     NOUT << "                               - Extent of terrain in long/lat degrees (default is whole earth)" << ENDL;
-    NOUT << "    --terrain-srs              - File (usually .prj) containing projection of terain" << ENDL;
+    NOUT << "    --terrain-srs              - File (usually .prj) containing projection of terrain" << ENDL;
     NOUT << "    --geocentric               - Generate geocentric output geometry to match a PagedLOD globe" << ENDL;
     NOUT << "    --threads <num>            - Number of parallel compiler threads (default = # of logical procs)" << ENDL;
     NOUT << ENDL;
@@ -139,7 +139,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --grid-cols                - Number of columns to generate (implies --gridded)" << ENDL;
     NOUT << "    --paged                    - Generate PagedLOD output" << ENDL;
     NOUT << "    --overlay                  - Hints that the output will be used in an osgSim::OverlayNode (disables clamping)" << ENDL;
-    NOUT << "    --correlated               - Generate PagedLODs that correlate one-to-one with terrain PagedLODs (forces --paged)" << ENDL;
+    //NOUT << "    --correlated               - Generate PagedLODs that correlate one-to-one with terrain PagedLODs (forces --paged)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Geometry options:" << ENDL;
     NOUT << "    --points                   - Treat the vector data as points" << ENDL;

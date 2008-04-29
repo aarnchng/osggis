@@ -230,14 +230,13 @@ Builder::build( Source* source, Session* session )
 bool
 Builder::build( BuildLayer* layer )
 {
-    // create a project work directory for intermediate/temporary files
-    std::string proj_name = project->getName().length() > 0?
-        (project->getName() + "_work") :
-        "osggis_work";
+    std::string work_dir_name = project->getAbsoluteWorkingDirectory();
+    if ( work_dir_name.length() == 0 )
+        work_dir_name = ".osggis-" + project->getName();
 
     std::string work_dir = PathUtils::combinePaths( 
         project->getBaseURI(),
-        proj_name );
+        work_dir_name );
 
     if ( osgDB::makeDirectory( work_dir ) )
     {

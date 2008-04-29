@@ -8,4 +8,5 @@ ADD_SUBDIRECTORY(osggis_build)
 ADD_SUBDIRECTORY(osggis_makelayer)
 ADD_SUBDIRECTORY(osggis_simple)
 ADD_SUBDIRECTORY(osggis_viewer)
+ADD_SUBDIRECTORY(osggis_mapper)
 

@@ -105,6 +105,44 @@ XmlSerializer::store( Document* doc, std::ostream& out )
     osg::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
 }
 
+static MapLayer*
+decodeMapLayer( XmlElement* e, Project* proj )
+{
+    MapLayer* layer = NULL;
+    if ( e )
+    {
+        layer = new MapLayer();
+        layer->setBuildLayer( proj->getLayer( e->getAttr( "layer" ) ) );
+        layer->setSearchLayer( proj->getLayer( e->getAttr( "searchlayer" ) ) );
+        if ( e->getAttr( "searchable" ) == "true" )
+            layer->setSearchable( true );
+        if ( e->getAttr( "visible" ) == "false" )
+            layer->setVisible( false );
+    }
+    return layer;
+}
+
+static Map*
+decodeMap( XmlElement* e, Project* proj )
+{
+    Map* map = NULL;
+    if ( e )
+    {
+        map = new Map();
+        map->setName( e->getAttr( "name" ) );
+        map->setTerrain( proj->getTerrain( e->getAttr( "terrain" ) ) );
+        
+        XmlNodeList map_layers = e->getSubElements( "maplayer" );
+        for( XmlNodeList::const_iterator i = map_layers.begin(); i != map_layers.end(); i++ )
+        {
+            XmlElement* e2 = (XmlElement*)i->get();
+            MapLayer* map_layer = decodeMapLayer( e2, proj );
+            if ( map_layer )
+                map->getMapLayers().push_back( map_layer );
+        }
+    }
+    return map;
+}
 
 static FilterGraph*
 decodeFilterGraph( XmlElement* e, Project* proj )
@@ -363,8 +401,11 @@ decodeTarget( XmlElement* e, Project* proj )
     {
         target = new BuildTarget();
         target->setName( e->getAttr( "name" ) );
+        
+        Terrain* terrain = proj->getTerrain( e->getAttr( "terrain" ) );
+        target->setTerrain( terrain );
 
-        XmlNodeList layers = e->getSubElements( "depends-on-layer" );
+        XmlNodeList layers = e->getSubElements( "layer" );
         for( XmlNodeList::const_iterator i = layers.begin(); i != layers.end(); i++ )
         {
             XmlElement* e = static_cast<XmlElement*>( i->get() );
@@ -411,6 +452,7 @@ decodeProject( XmlElement* e, const std::string& source_uri )
         project = new Project();
         project->setSourceURI( source_uri );
         project->setName( e->getAttr( "name" ) );
+        project->setWorkingDirectory( e->getAttr( "workdir" ) );
 
         // includes
         XmlNodeList includes = e->getSubElements( "include" );
@@ -492,6 +534,15 @@ decodeProject( XmlElement* e, const std::string& source_uri )
             BuildTarget* target = decodeTarget( static_cast<XmlElement*>( j->get() ), project );
             if ( target )
                 project->getTargets().push_back( target );
+        }
+
+        // maps
+        XmlNodeList maps = e->getSubElements( "map" );
+        for( XmlNodeList::const_iterator j = maps.begin(); j != maps.end(); j++ )
+        {
+            Map* map = decodeMap( static_cast<XmlElement*>( j->get() ), project );
+            if ( map )
+                project->getMaps().push_back( map );
         }
     }
     return project;

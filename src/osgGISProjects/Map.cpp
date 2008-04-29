@@ -17,53 +17,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGISProjects/BuildTarget>
+#include <osgGISProjects/Map>
 
 using namespace osgGISProjects;
+using namespace osgGIS;
 
-BuildTarget::BuildTarget()
+Map::Map()
 {
     //NOP
 }
 
-BuildTarget::BuildTarget( const std::string& _name )
+void
+Map::setName( const std::string& value )
 {
-    setName( _name );
+    name = value;
 }
 
 const std::string&
-BuildTarget::getName() const
+Map::getName() const
 {
     return name;
 }
 
 void
-BuildTarget::setName( const std::string& _name )
-{
-    name = _name;
-}
-
-Terrain*
-BuildTarget::getTerrain() const
-{
-    return terrain.get();
-}
-
-void
-BuildTarget::setTerrain( Terrain* value )
+Map::setTerrain( Terrain* value )
 {
     terrain = value;
 }
 
-void
-BuildTarget::addLayer( BuildLayer* _layer )
+Terrain*
+Map::getTerrain() const
 {
-    layers.push_back( _layer );
+    return terrain.get();
 }
 
-
-const BuildLayerList&
-BuildTarget::getLayers() const
+MapLayerList&
+Map::getMapLayers()
 {
-    return layers;
+    return map_layers;
+}
+
+const MapLayerList&
+Map::getMapLayers() const
+{
+    return map_layers;
 }

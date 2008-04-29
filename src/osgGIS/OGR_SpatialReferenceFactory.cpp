@@ -123,8 +123,8 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
     SpatialReference* result = NULL;
 
     struct CSNodeVisitor : public osg::NodeVisitor {
-        osg::ref_ptr<osg::CoordinateSystemNode> result;
-        CSNodeVisitor() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ) { }
+        osg::CoordinateSystemNode* result;
+        CSNodeVisitor() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), result(NULL) { }
         void apply( osg::CoordinateSystemNode& csnode ) {
             result = &csnode;
             //no traverse; end when found
@@ -135,7 +135,7 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
     {
         CSNodeVisitor v;
         node->accept( v );
-        if ( v.result.valid() )
+        if ( v.result )
         {
             if ( v.result->getFormat() == "WKT" )
                 result = createSRSfromWKT( v.result->getCoordinateSystem() );

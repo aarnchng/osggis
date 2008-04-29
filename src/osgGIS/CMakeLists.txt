@@ -96,7 +96,6 @@ SET(LIB_PUBLIC_HEADERS
     SpatialReferenceFactory
     StubSpatialIndex
     SubstituteModelFilter
-    SuperFeature
     Tags
     Task
     TaskManager
