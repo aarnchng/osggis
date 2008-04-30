@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/Feature>
+#include <osgGIS/FeatureCursor>
 #include <osgGIS/GeoExtent>
 
 namespace osgGIS
@@ -32,18 +33,26 @@ namespace osgGIS
 	class OSGGIS_EXPORT SpatialIndex : public osg::Referenced
 	{
 	public:
+
         /**
-         * Creates a cursor that will iterate over all the features in
-         * a feature store that intersect a spatial area of interest.
+         * Queries the index for features that intersect a spatial extent.
          *
-         * @param extent
-         *      Query area of interest
+         * @extent
+         *    Spatial extent within which to query.
+         *
+         * @match_exactly
+         *    If true, the cursor will return only features whose shape data intersects
+         *    the given extent. If false, the cursor will return features whose bounding-
+         *    box extents intersect the search extent.
+         *
+         * @return
+         *    A cursor that can iterate over the search results.
          */
-		virtual FeatureCursor* createCursor( const GeoExtent& extent ) =0;
-		
-		/**
-		 * Gets the full spatial extent of the indexed features.
-		 */
+	    virtual FeatureCursor getCursor( const GeoExtent& extent, bool match_exactly =false ) =0;
+	    
+        /**
+         * Gets the full extents of the data indexed by this data structure.
+         */
 	    virtual const GeoExtent& getExtent() const =0;
 	};
 }

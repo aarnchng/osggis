@@ -99,7 +99,7 @@ getLineIntersection( Segment& s0, Segment& s1, osg::Vec3& output )
     }
     else
     {
-        output.set( (p4.x()+p1.x())/2.0, (p4.y()+p1.y())/2.0, p2.z() );
+        output.set( p2 );
     }
     return true;
 }

@@ -161,6 +161,10 @@ namespace osgGIS
 
     public:
 
+        bool intersects( const GeoExtent& ex ) const;
+
+    public:
+
         virtual ~GeoShape();
 
     private:
@@ -174,5 +178,15 @@ namespace osgGIS
         void setSpatialReference( const SpatialReference* sr );	
     };
 
-    typedef std::vector<GeoShape> GeoShapeList;
+    class OSGGIS_EXPORT GeoShapeList : public std::vector<GeoShape>
+    {
+    public:
+        GeoShapeList() { }
+        GeoShapeList( int capacity ) : std::vector<GeoShape>( capacity ) { }
+
+    public:
+        //TODO: geometry functions.
+        bool intersects( const GeoExtent& extent ) const;
+    };
+    //typedef std::vector<GeoShape> GeoShapeList;
 }

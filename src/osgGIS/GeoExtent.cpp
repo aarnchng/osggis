@@ -112,6 +112,11 @@ GeoExtent::~GeoExtent()
 	//NOP
 }
 
+bool
+GeoExtent::isPoint() const
+{
+    return isValid() && !isInfinite() && sw.isValid() && ne.isValid() && sw == ne;
+}
 
 void
 GeoExtent::recalc()

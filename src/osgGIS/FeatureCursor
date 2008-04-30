@@ -17,30 +17,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_FEATURECURSORIMPL_H_
-#define _OSGGIS_FEATURECURSORIMPL_H_
+#ifndef _OSGGIS_FEATURE_CURSOR_H_
+#define _OSGGIS_FEATURE_CURSOR_H_
 
-#include <osgGIS/FeatureStore>
+#include <osgGIS/Feature>
 
 namespace osgGIS
 {
+    class FeatureStore;
+
     /**
      * Simple feature cursor implementation that uses a list of OIDs
      * to iterate over a feature store.
-     *
-     * to be deprecated
      */
-    class FeatureCursorImpl : public FeatureCursor
+    class OSGGIS_EXPORT FeatureCursor
     {
     public:
-        FeatureCursorImpl( 
+        /**
+         * Constructs a feature cursor that will iterator over a set of features.
+         */
+        FeatureCursor( 
             const FeatureOIDList& oids,
-            FeatureStore*         store );
+            FeatureStore*         store,
+            const GeoExtent&      search_extent,
+            bool                  match_exactly );
+
+        /**
+         * Constructs a feature cursor that will return no elements.
+         */
+        FeatureCursor();
+
+        virtual ~FeatureCursor();
 
     public:
-        virtual ~FeatureCursorImpl();
-
-    public: // FeatureCursor interface
 
         void reset();
         
@@ -54,7 +63,13 @@ namespace osgGIS
         unsigned int               iter;
         osg::ref_ptr<FeatureStore> store;
         osg::ref_ptr<Feature>      last_result;
+        osg::ref_ptr<Feature>      next_result;
+        GeoExtent                  search_extent;
+        bool                       match_exactly;
+
+    private:
+        void prefetch();
     };
 }
 
-#endif // _OSGGIS_FEATURECURSORIMPL_H_
+#endif // _OSGGIS_FEATURE_CURSOR_H_

@@ -37,7 +37,7 @@ namespace osgGIS
         virtual ~AttributeIndex();
 
     public:		
-		virtual FeatureCursor* createCursor( const T& value );
+		virtual FeatureCursor getCursor( const T& value );
 
     private:
         inline buildIndex();
@@ -68,11 +68,11 @@ namespace osgGIS
     }
 
     template<typename T>
-    FeatureCursor*
-    AttributeIndex::createCursor( const T& value )
+    FeatureCursor
+    AttributeIndex::getCursor( const T& value )
     {
         std::map<T,FeatureOIDList>::iterator i = table.find( value );
-        return new FeatureCursorImpl( i != table.end()? (*i).second() : FeatureOIDList() );
+        return FeatureCursor( i != table.end()? (*i).second() : FeatureOIDList() );
     }
     
     template<typename T>

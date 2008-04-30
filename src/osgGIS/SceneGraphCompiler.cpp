@@ -93,12 +93,12 @@ SceneGraphCompiler::compile( FilterEnv* env_template )
     env->setOutputSRS( layer->getSRS() );
 
     // Get the input feature set:
-    osg::ref_ptr<FeatureCursor> cursor = layer->createCursor(  env->getExtent() );
+    FeatureCursor cursor = layer->getCursor( env->getExtent() );
 
     // Run the filter graph.
     osg::NodeList output;
 
-    FilterGraphResult r = graph->computeNodes( cursor.get(), env.get(), output );
+    FilterGraphResult r = graph->computeNodes( cursor, env.get(), output );
     if ( r.isOK() )
     {
         for( osg::NodeList::const_iterator i = output.begin(); i != output.end(); i++ )
@@ -111,7 +111,7 @@ SceneGraphCompiler::compile( FilterEnv* env_template )
 
 
 osg::Group*
-SceneGraphCompiler::compile( FeatureCursor* cursor )
+SceneGraphCompiler::compile( FeatureCursor& cursor )
 {
     osg::ref_ptr<osg::Group> result = new osg::Group();
 
@@ -123,9 +123,9 @@ SceneGraphCompiler::compile( FeatureCursor* cursor )
 
     // compute the extent
     GeoExtent extent;
-    for( cursor->reset(); cursor->hasNext(); )
+    for( cursor.reset(); cursor.hasNext(); )
     {
-        Feature* f = cursor->next();
+        Feature* f = cursor.next();
         if ( !extent.isValid() )
             extent = f->getExtent();
         else 
@@ -133,7 +133,7 @@ SceneGraphCompiler::compile( FeatureCursor* cursor )
     }
     env->setExtent( extent );
 
-    cursor->reset();
+    cursor.reset();
 
     // Run the filter graph.
     osg::NodeList output;

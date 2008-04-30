@@ -28,6 +28,8 @@
 
 namespace osgGIS
 {
+    class GeoExtent;
+
     /**
      * A 2D or 3D georeferenced point in space.
      */
@@ -139,7 +141,16 @@ namespace osgGIS
         void setSpatialReference( const SpatialReference* sr );
     };
 
-    typedef std::vector<GeoPoint> GeoPointList;
+    class GeoPointList : public std::vector<GeoPoint>
+    {
+    public:
+        GeoPointList() { }
+        GeoPointList( int cap ) : std::vector<GeoPoint>( cap ) { }
+
+    public:
+        bool intersects( const GeoExtent& e ) const;
+    };
+    //typedef std::vector<GeoPoint> GeoPointList;
 
     class GeoPointVisitor
     {

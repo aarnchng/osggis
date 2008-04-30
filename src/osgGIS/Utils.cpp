@@ -13,7 +13,7 @@ StringUtils::startsWith(const std::string& input,
                         const std::string& prefix,
                         bool case_sensitive )
 {
-    int prefix_len = prefix.length();
+    unsigned int prefix_len = prefix.length();
     std::string input_p = input;
     std::string prefix_p = prefix;
     if ( !case_sensitive ) {
@@ -28,7 +28,7 @@ StringUtils::endsWith(const std::string& input,
                       const std::string& suffix,
                       bool case_sensitive )
 {
-    int suffix_len = suffix.length();
+    unsigned int suffix_len = suffix.length();
     std::string input_p = input;
     std::string suffix_p = suffix;
     if ( !case_sensitive ) {
@@ -90,18 +90,7 @@ bool
 GeomUtils::isPointInPolygon(const GeoPoint& point,
                             const GeoPointList& polygon )
 {
-    int i, j;
-    bool result = false;
-    for( i=0, j=polygon.size()-1; i<polygon.size(); j = i++ )
-    {
-        if ((((polygon[i].y() <= point.y()) && (point.y() < polygon[j].y())) ||
-             ((polygon[j].y() <= point.y()) && (point.y() < polygon[i].y()))) &&
-            (point.x() < (polygon[j].x()-polygon[i].x()) * (point.y()-polygon[i].y())/(polygon[j].y()-polygon[i].y())+polygon[i].x()))
-        {
-            result = !result;
-        }
-    }
-    return result;
+    return polygon.intersects( GeoExtent( point, point ) );
 }
 
 
@@ -112,7 +101,7 @@ GeomUtils::isPolygonCW( const GeoPointList& points )
 {
     // find the ymin point:
     double ymin = DBL_MAX;
-    int i_lowest = 0;
+    unsigned int i_lowest = 0;
 
     for( GeoPointList::const_iterator i = points.begin(); i != points.end(); i++ )
     {

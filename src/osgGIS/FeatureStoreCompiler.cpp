@@ -82,10 +82,9 @@ FeatureStoreCompiler::compile( const std::string& output_uri, FilterEnv* env_tem
     env->setOutputSRS( layer->getSRS() );
 
     // Get the input feature set:
-    osg::ref_ptr<FeatureCursor> cursor = layer->createCursor( 
-        env->getExtent() );
+    FeatureCursor cursor = layer->getCursor( env->getExtent() );
 
     // Run the filter graph.
-    FilterGraphResult r = graph->computeFeatureStore( cursor.get(), env.get(), output_uri );
+    FilterGraphResult r = graph->computeFeatureStore( cursor, env.get(), output_uri );
     return r.isOK();
 }

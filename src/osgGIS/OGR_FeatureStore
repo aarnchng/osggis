@@ -50,7 +50,7 @@ namespace osgGIS
 	
 		Feature* getFeature( const FeatureOID& oid );
 		
-		FeatureCursor* createCursor();
+		FeatureCursor getCursor();
 		
 		int getFeatureCount() const;
 		
