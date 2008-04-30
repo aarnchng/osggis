@@ -29,6 +29,7 @@
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/BuildNodesFilter>
 #include <osgGIS/TransformFilter>
+#include <osgGIS/BufferFilter>
 #include <osgGIS/FadeHelper>
 #include <osgGIS/ScriptEngine>
 
@@ -51,6 +52,7 @@ std::string input_file;
 std::string output_file;
 osg::Vec4f color(1,1,1,1);
 bool fade_lods = false;
+float buffer = 0.0;
 
 int
 die( const std::string& msg )
@@ -118,6 +120,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--fade-lods" ) )
         fade_lods = true;
 
+    while( arguments.read( "--buffer", str ) )
+        sscanf( str.c_str(), "%f", &buffer );
+
     // validate arguments:
     if ( input_file.length() == 0 )
     {
@@ -137,6 +142,10 @@ createFilterGraph()
     // The FilterGraph is a series of filters that will transform the GIS
     // feature data into a scene graph.
     osgGIS::FilterGraph* graph = new osgGIS::FilterGraph();
+
+    // Buffer if necessary:
+    if ( buffer != 0.0f )
+        graph->appendFilter( new osgGIS::BufferFilter( buffer ) );
 
     // Construct osg::Drawable's from the incoming feature batches:
     osgGIS::BuildGeomFilter* gf = new osgGIS::BuildGeomFilter();

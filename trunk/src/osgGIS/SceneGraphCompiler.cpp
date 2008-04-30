@@ -108,3 +108,43 @@ SceneGraphCompiler::compile( FilterEnv* env_template )
     // if there's no geometry, just return NULL.
     return GeomUtils::getNumGeodes( result.get() ) > 0? result.release() : NULL;
 }
+
+
+osg::Group*
+SceneGraphCompiler::compile( FeatureCursor* cursor )
+{
+    osg::ref_ptr<osg::Group> result = new osg::Group();
+
+    // Set up the initial filter environment:
+    osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
+
+    env->setInputSRS( layer->getSRS() );
+    env->setOutputSRS( layer->getSRS() );
+
+    // compute the extent
+    GeoExtent extent;
+    for( cursor->reset(); cursor->hasNext(); )
+    {
+        Feature* f = cursor->next();
+        if ( !extent.isValid() )
+            extent = f->getExtent();
+        else 
+            extent.expandToInclude( f->getExtent() );
+    }
+    env->setExtent( extent );
+
+    cursor->reset();
+
+    // Run the filter graph.
+    osg::NodeList output;
+
+    FilterGraphResult r = graph->computeNodes( cursor, env.get(), output );
+    if ( r.isOK() )
+    {
+        for( osg::NodeList::const_iterator i = output.begin(); i != output.end(); i++ )
+            result->addChild( i->get() );
+    }
+
+    // if there's no geometry, just return NULL.
+    return GeomUtils::getNumGeodes( result.get() ) > 0? result.release() : NULL;
+}

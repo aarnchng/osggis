@@ -65,6 +65,11 @@ namespace osgGIS
          *      Scene graph containing the compiled feature layer
          */
         osg::Group* compile( FilterEnv* env );
+
+        /**
+         * Compiles the specified features from the feature layer into a scene graph.
+         */
+        osg::Group* compile( FeatureCursor* cursor );
         
 
     public:
