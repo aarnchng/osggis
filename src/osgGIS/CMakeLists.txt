@@ -12,6 +12,7 @@ SET(LIB_PUBLIC_HEADERS
     Attribute
     AttributeIndex
     AutoResetBlock
+    BufferFilter
     BuildGeomFilter
     BuildLabelsFilter
     BuildNodesFilter
@@ -110,6 +111,7 @@ ADD_LIBRARY(${LIB_NAME}
     ${OSGGIS_USER_DEFINED_DYNAMIC_OR_STATIC}
     ${LIB_PUBLIC_HEADERS}
     Attribute.cpp
+    BufferFilter.cpp
     BuildGeomFilter.cpp
     BuildLabelsFilter.cpp
     BuildNodesFilter.cpp

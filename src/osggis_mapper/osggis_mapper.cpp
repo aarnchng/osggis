@@ -71,6 +71,13 @@
 #include <iostream>
 #include <osgGIS/Utils>
 #include <osgGIS/Registry>
+#include <osgGIS/ChangeShapeTypeFilter>
+#include <osgGIS/BufferFilter>
+#include <osgGIS/TransformFilter>
+#include <osgGIS/BuildGeomFilter>
+#include <osgGIS/CollectionFilter>
+#include <osgGIS/BuildNodesFilter>
+#include <osgGIS/SceneGraphCompiler>
 #include <osgGISProjects/Project>
 #include <osgGISProjects/XmlSerializer>
 
@@ -101,8 +108,8 @@ static void usage( const char* prog, const char* msg )
 class FeatureLayerQueryHandler : public osgGA::GUIEventHandler
 {
 public:
-    FeatureLayerQueryHandler( osg::Node* _root, osgGIS::FeatureLayer* _layer, osgGIS::SpatialReference* _terrain_srs ) 
-        : root( _root ), layer( _layer ), terrain_srs( _terrain_srs ) { }
+    FeatureLayerQueryHandler( osg::Node* _root, osgGIS::FeatureLayer* _layer, osgGIS::SpatialReference* _terrain_srs, osgSim::OverlayNode* _overlay ) 
+        : root( _root ), layer( _layer ), terrain_srs( _terrain_srs ), overlay( _overlay ) { }
 
 public:
     bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa )
@@ -124,7 +131,9 @@ public:
 
                 int count = 0;
                 osg::ref_ptr<osgGIS::FeatureCursor> c = layer->createCursor( osgGIS::GeoExtent( result, result ) );
-                while( c->hasNext() )
+                highlight( c.get() );
+
+                for( c->reset(); c->hasNext(); )
                 {
                     osgGIS::Feature* f = c->next();
                     if ( count++ == 0 )
@@ -132,17 +141,56 @@ public:
                         osg::notify( osg::ALWAYS ) 
                             << result.x() << ", " << result.y() << " (" << terrain_srs->getName() << ") "
                             << " Layer " << layer->getName() << ": OIDS=";
-                        osg::notify( osg::ALWAYS ) << " " << f->getOID() << std::endl;
                     }
+                    osg::notify( osg::ALWAYS ) << " " << f->getOID();
                 }
+                if ( count > 0 )
+                    osg::notify( osg::ALWAYS ) << std::endl;
             }
         }
 
         return false; // never "handled"
     }
 
+    void highlight( osgGIS::FeatureCursor* cursor )
+    {
+        osgGIS::FilterGraph* graph = new osgGIS::FilterGraph();
+
+        osgGIS::ChangeShapeTypeFilter* change = new osgGIS::ChangeShapeTypeFilter();
+        change->setNewShapeType( osgGIS::GeoShape::TYPE_POLYGON );
+        graph->appendFilter( change );
+
+        osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( .00002 );
+        graph->appendFilter( buffer );
+        
+        osgGIS::TransformFilter* xform = new osgGIS::TransformFilter();
+        xform->setSRS( terrain_srs.get() );
+        xform->setLocalize( true );
+        graph->appendFilter( xform );
+
+        osgGIS::BuildGeomFilter* geom = new osgGIS::BuildGeomFilter();
+        geom->setColorScript( new osgGIS::Script( "vec4(1,1,0,.5)" ) );
+        graph->appendFilter( geom );
+
+        graph->appendFilter( new osgGIS::CollectionFilter() );
+
+        osgGIS::BuildNodesFilter* nodes = new osgGIS::BuildNodesFilter();
+        nodes->setDisableLighting( true );
+        graph->appendFilter( nodes );
+
+        osgGIS::SceneGraphCompiler compiler( layer.get(), graph );
+        osg::Group* result = compiler.compile( cursor );
+
+        if ( result )
+        {
+            overlay->setOverlaySubgraph( result );
+            overlay->dirtyOverlayTexture();
+        }
+    }
+
 private:
     osg::ref_ptr<osg::Node> root;
+    osg::ref_ptr<osgSim::OverlayNode> overlay;
     osg::ref_ptr<osgGIS::FeatureLayer> layer;
     osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 };
@@ -217,8 +265,7 @@ main(int argc, char* argv[])
 
     // Load up all the content by scanning the project contents:
 
-    osg::ref_ptr<osg::Group> root = new osg::Group();
-
+    osg::ref_ptr<osg::Group> map_node = new osg::Group();
 
     // Start by loading up the terrain:
     osgGISProjects::Terrain* terrain = map->getTerrain();
@@ -245,8 +292,21 @@ main(int argc, char* argv[])
             osg::StateAttribute::OFF );
     }
 
-    root->addChild( terrain_node );
+    map_node->addChild( terrain_node );
 
+    // construct an overlay node for highlighting:
+    osgSim::OverlayNode* overlay = new osgSim::OverlayNode( osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );
+    overlay->setOverlaySubgraph( NULL );
+    overlay->setOverlayTextureSizeHint( 1024 );
+    overlay->addChild( map_node.get() );
+
+    // replicate the terrain's CSN above the overlay:
+    osg::Group* root = overlay;
+    if ( dynamic_cast<osg::CoordinateSystemNode*>( terrain_node ) )
+    {
+        root = new osg::CoordinateSystemNode( *static_cast<osg::CoordinateSystemNode*>( terrain_node ) );
+        root->addChild( overlay );
+    }        
 
     // Now find and load each feature layer. For each feature layer, install an event handler
     // that will perform the spatial lookup when you click on the map.
@@ -262,7 +322,7 @@ main(int argc, char* argv[])
             {
                 osg::Node* node = osgDB::readNodeFile( layer->getAbsoluteTargetPath() );
                 if ( node )
-                    root->addChild( node );
+                    map_node->addChild( node );
             }
 
             if ( map_layer->getSearchable() && map_layer->getSearchLayer()->getSource() )
@@ -275,13 +335,12 @@ main(int argc, char* argv[])
                     node = terrain_node;
 
                 if ( feature_layer )
-                    viewer.addEventHandler( new FeatureLayerQueryHandler( node, feature_layer, terrain_srs.get() ) );
+                    viewer.addEventHandler( new FeatureLayerQueryHandler( node, feature_layer, terrain_srs.get(), overlay ) );
             }
         }
     }
 
-       
-    viewer.setSceneData( root.get() );    
+    viewer.setSceneData( root );
 
     osgDB::Registry::instance()->getOrCreateSharedStateManager();
 
