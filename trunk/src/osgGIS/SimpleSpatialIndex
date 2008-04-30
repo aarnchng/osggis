@@ -36,7 +36,7 @@ namespace osgGIS
 		
 	public: // SpatialIndex
 	
-	    FeatureCursor* createCursor( const GeoExtent& extent );
+	    FeatureCursor getCursor( const GeoExtent& extent, bool match_exactly =false );
 	    
 	    const GeoExtent& getExtent() const;
 

@@ -43,8 +43,8 @@ RTreeSpatialIndex::~RTreeSpatialIndex()
 }
 
 
-FeatureCursor*
-RTreeSpatialIndex::createCursor( const GeoExtent& query_extent )
+FeatureCursor
+RTreeSpatialIndex::getCursor( const GeoExtent& query_extent, bool match_exactly )
 {
     GeoExtent ex(
         store->getSRS()->transform( query_extent.getSouthwest() ),
@@ -58,7 +58,7 @@ RTreeSpatialIndex::createCursor( const GeoExtent& query_extent )
     for( std::list<FeatureOID>::iterator i = oids.begin(); i != oids.end(); i++ )
         vec[k++] = *i;
 
-    return new FeatureCursorImpl( vec, store.get() );
+    return FeatureCursor( vec, store.get(), ex, match_exactly );
 }
 
 
@@ -91,10 +91,9 @@ RTreeSpatialIndex::buildIndex()
     {
         rtree = new RTree<FeatureOID>();
 
-        osg::ref_ptr<FeatureCursor> cursor = store->createCursor();
-        while( cursor->hasNext() )
+        for( FeatureCursor cursor = store->getCursor(); cursor.hasNext(); )
         {
-            Feature* f = cursor->next();
+            Feature* f = cursor.next();
             const GeoExtent& f_extent = f->getExtent();
             if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
             {

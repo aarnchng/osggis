@@ -235,10 +235,9 @@ OGR_FeatureStore::getFeature( const FeatureOID& oid )
 }
 
 
-FeatureCursor*
-OGR_FeatureStore::createCursor()
+FeatureCursor
+OGR_FeatureStore::getCursor()
 {
-    FeatureCursor* result = NULL;
     if ( layer_handle )
     {
         OGR_SCOPE_LOCK();
@@ -254,13 +253,15 @@ OGR_FeatureStore::createCursor()
         {
             FeatureOID oid = (FeatureOID)OGR_F_GetFID( feature_handle );
             oids.push_back( oid );
-            //oids[iter++] = oid;
             OGR_F_Destroy( feature_handle );
         }
     
-        result = new FeatureCursorImpl( oids, this );
+        return FeatureCursor( oids, this, GeoExtent::infinite(), false );
     }
-    return result;
+    else
+    {
+        return FeatureCursor(); // empty
+    }
 }
 
 
@@ -307,10 +308,9 @@ OGR_FeatureStore::calcExtent()
 
 	if ( extent.isValid() && extent.isEmpty() )
 	{
-        osg::ref_ptr<FeatureCursor> cursor = createCursor();
-		while( cursor->hasNext() )
+        for( FeatureCursor cursor = getCursor(); cursor.hasNext(); )
 		{
-			Feature* feature = cursor->next();
+			Feature* feature = cursor.next();
             const GeoShapeList& shapes = feature->getShapes();
             for( GeoShapeList::const_iterator i = shapes.begin(); i != shapes.end(); i++ )
             {

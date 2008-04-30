@@ -72,7 +72,9 @@
 #include <osgGIS/Utils>
 #include <osgGIS/Registry>
 #include <osgGIS/ChangeShapeTypeFilter>
+#include <osgGIS/RemoveHolesFilter>
 #include <osgGIS/BufferFilter>
+#include <osgGIS/ClampFilter>
 #include <osgGIS/TransformFilter>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/CollectionFilter>
@@ -130,12 +132,12 @@ public:
                 osgGIS::GeoPoint result = terrain_srs->getBasisSRS()->transform( world );
 
                 int count = 0;
-                osg::ref_ptr<osgGIS::FeatureCursor> c = layer->createCursor( osgGIS::GeoExtent( result, result ) );
-                highlight( c.get() );
+                osgGIS::FeatureCursor cursor = layer->getCursor( result );
+                highlight( cursor );
 
-                for( c->reset(); c->hasNext(); )
+                for( cursor.reset(); cursor.hasNext(); )
                 {
-                    osgGIS::Feature* f = c->next();
+                    osgGIS::Feature* f = cursor.next();
                     if ( count++ == 0 )
                     {
                         osg::notify( osg::ALWAYS ) 
@@ -152,7 +154,9 @@ public:
         return false; // never "handled"
     }
 
-    void highlight( osgGIS::FeatureCursor* cursor )
+    // Builds an overlay subgraph to project down onto the scene. This is the highlighting
+    // geometry for the selected feature.
+    void highlight( osgGIS::FeatureCursor& cursor )
     {
         osgGIS::FilterGraph* graph = new osgGIS::FilterGraph();
 
@@ -160,7 +164,10 @@ public:
         change->setNewShapeType( osgGIS::GeoShape::TYPE_POLYGON );
         graph->appendFilter( change );
 
-        osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( .00002 );
+        graph->appendFilter( new osgGIS::RemoveHolesFilter() );
+
+        double distance = terrain_srs->isProjected()? 1.2 : 0.00002;
+        osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( distance );
         graph->appendFilter( buffer );
         
         osgGIS::TransformFilter* xform = new osgGIS::TransformFilter();
@@ -292,7 +299,7 @@ main(int argc, char* argv[])
             osg::StateAttribute::OFF );
     }
 
-    map_node->addChild( terrain_node );
+    map_node->addChild( terrain_node->asGroup()->getChild(0) );
 
     // construct an overlay node for highlighting:
     osgSim::OverlayNode* overlay = new osgSim::OverlayNode( osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY );

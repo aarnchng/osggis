@@ -110,28 +110,42 @@ FeatureLayer::getFeatureStore()
 }
 
 
-FeatureCursor*
-FeatureLayer::createCursor()
+FeatureCursor
+FeatureLayer::getCursor()
 {
-    return store.valid()? store->createCursor() : NULL;
+    return store.valid()? store->getCursor() : FeatureCursor();
 }
 
 
-FeatureCursor*
-FeatureLayer::createCursor( const GeoExtent& extent )
+FeatureCursor
+FeatureLayer::getCursor( const GeoExtent& extent )
 {
     if ( extent.isInfinite() )
     {
-        return createCursor();
+        return getCursor();
     }
     else if ( index.valid() )
     {
-        return index->createCursor( extent );
+        return index->getCursor( extent );
     }
     else 
     {
         osg::notify( osg::WARN )
             << "osgGIS::FeatureLayer::createCursor, no spatial index available" << std::endl;
-        return NULL;
+        return FeatureCursor();
+    }
+}
+
+
+FeatureCursor
+FeatureLayer::getCursor( const GeoPoint& point )
+{
+    if ( point.isValid() )
+    {
+        return index->getCursor( GeoExtent( point, point ), true );
+    }
+    else
+    {
+        return FeatureCursor(); // empty
     }
 }

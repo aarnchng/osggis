@@ -219,3 +219,36 @@ GeoShape::accept( GeoPointVisitor& visitor ) const
     }
     return true;
 }
+
+bool
+GeoShape::intersects( const GeoExtent& ex ) const
+{
+    if ( ex.isInfinite() )
+        return true;
+
+    for( GeoPartList::const_iterator i = getParts().begin(); i != getParts().end(); i++ )
+    {
+        const GeoPointList& part = *i;
+        if ( part.intersects( ex ) )
+            return true;
+    }
+    return false;
+}
+
+/**************************************************************************/
+
+
+bool
+GeoShapeList::intersects( const GeoExtent& ex ) const
+{
+    if ( ex.isInfinite() )
+        return true;
+
+    for( GeoShapeList::const_iterator i = begin(); i != end(); i++ )
+    {
+        const GeoShape& shape = *i;
+        if ( shape.intersects( ex ) )
+            return true;
+    }
+    return false;
+}

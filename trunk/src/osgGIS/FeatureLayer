@@ -111,16 +111,22 @@ namespace osgGIS
         /**
          * Gets a cursor that will iterate over ALL the features in the layer.
          */
-		FeatureCursor* createCursor();
+		FeatureCursor getCursor();
 		
         /**
-         * Gets a cursor that will iterator over all the features that intersect
-         * a spatial area of interest.
+         * Gets a cursor that will iterate over all the features whose extents
+         * intersect the specified extent.
          * 
          * @param extent
          *      Spatial area of interest to query
          */
-		FeatureCursor* createCursor( const GeoExtent& extent );
+		FeatureCursor getCursor( const GeoExtent& extent );
+
+        /**
+         * Gets a cursor that will iterate over all the features whose shapes
+         * intersect the specified point.
+         */
+        FeatureCursor getCursor( const GeoPoint& point );
 		
     public:
 		

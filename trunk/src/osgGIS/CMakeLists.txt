@@ -33,7 +33,7 @@ SET(LIB_PUBLIC_HEADERS
     ExtrudeGeomFilter
     FadeHelper
     Feature
-    FeatureCursorImpl
+    FeatureCursor
     FeatureFilter
     FeatureFilterState
     FeatureLayer
@@ -130,7 +130,7 @@ ADD_LIBRARY(${LIB_NAME}
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp
     Feature.cpp
-    FeatureCursorImpl.cpp
+    FeatureCursor.cpp
     FeatureFilter.cpp
     FeatureFilterState.cpp
     FeatureLayer.cpp

@@ -113,7 +113,7 @@ FilterGraph::getFilter( const std::string& name )
 
 
 FilterGraphResult
-FilterGraph::computeFeatureStore(FeatureCursor*     cursor,
+FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
                                  FilterEnv*         env,
                                  const std::string& output_uri )
 {
@@ -165,9 +165,9 @@ FilterGraph::computeFeatureStore(FeatureCursor*     cursor,
     env->setOutputSRS( env->getInputSRS() );
 
     FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
-    while( ok && cursor->hasNext() )
+    while( ok && cursor.hasNext() )
     {
-        state->push( cursor->next() );
+        state->push( cursor.next() );
         ok = state->traverse( env );
         count++;
     }
@@ -185,7 +185,7 @@ FilterGraph::computeFeatureStore(FeatureCursor*     cursor,
 }
 
 FilterGraphResult
-FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList& output )
+FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList& output )
 {
     bool ok = false;
 
@@ -223,9 +223,9 @@ FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList&
         if ( dynamic_cast<FeatureFilterState*>( first.get() ) )
         {
             FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
+            while( ok && cursor.hasNext() )
             {
-                state->push( cursor->next() );
+                state->push( cursor.next() );
                 ok = state->traverse( env );
                 count++;
             }
@@ -237,9 +237,9 @@ FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList&
         else if ( dynamic_cast<FragmentFilterState*>( first.get() ) )
         {
             FragmentFilterState* state = static_cast<FragmentFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
+            while( ok && cursor.hasNext() )
             {
-                state->push( cursor->next() );
+                state->push( cursor.next() );
                 ok = state->traverse( env );
                 count++;           
             }
@@ -251,9 +251,9 @@ FilterGraph::computeNodes( FeatureCursor* cursor, FilterEnv* env, osg::NodeList&
         else if ( dynamic_cast<CollectionFilterState*>( first.get() ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( first.get() );
-            while( ok && cursor->hasNext() )
+            while( ok && cursor.hasNext() )
             {
-                state->push( cursor->next() );
+                state->push( cursor.next() );
                 ok = state->traverse( env );
                 count++;           
             }

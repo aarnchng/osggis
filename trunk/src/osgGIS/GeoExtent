@@ -87,6 +87,11 @@ namespace osgGIS
         bool isFinite() const;
 
         /**
+         * Checks whether the extent represents a single point (area == 0).
+         */
+        bool isPoint() const;
+
+        /**
          * Gets the spatial reference system of the extent points.
          */
 		const SpatialReference* getSRS() const;

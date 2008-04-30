@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/Feature>
+#include <osgGIS/FeatureCursor>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/GeoExtent>
 
@@ -81,7 +82,7 @@ namespace osgGIS
          * Creates a cursor that will iterator over ALL the features in
          * the backing store, in no particular order.
          */
-		virtual FeatureCursor* createCursor() =0;
+		virtual FeatureCursor getCursor() =0;
 		
 		/**
 		 * Writes a feature to the feature store.

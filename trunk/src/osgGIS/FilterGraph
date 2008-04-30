@@ -109,14 +109,14 @@ namespace osgGIS
          *      True if the filter chain completed without error; false otherwise.
          */
         FilterGraphResult computeNodes( 
-            FeatureCursor* cursor, 
+            FeatureCursor& cursor, 
             FilterEnv*     env,
             osg::NodeList& output );
         
         FilterGraphResult computeFeatureStore(
-            FeatureCursor*              cursor,
-            FilterEnv*                  env,
-            const std::string&          output_uri );
+            FeatureCursor&     cursor, 
+            FilterEnv*         env,
+            const std::string& output_uri );
 
         /**
          * Finds a filter by its name. 
