@@ -42,27 +42,27 @@ namespace osgGIS
     public: //properties
 
         /**
-         * Sets the expression that evaluates to the model resource to use.
+         * Sets the script that evaluates to the model resource to use.
          */
-        void setModelExpr( const std::string& expr );
+        void setModelScript( Script* script );
 
         /**
-         * Gets the expression that evaluates to the model resource to use.
+         * Gets the script that evaluates to the model resource to use.
          */
-        const std::string& getModelExpr() const;
+        Script* getModelScript() const;
         
         /**
-         * Sets the expression that evaluates to the absolute pathname of the model
+         * Sets the script that evaluates to the absolute pathname of the model
          * to use (rather than specifying a resource name expression as you do with
          * setModelExpr).
          */
-        void setModelPathExpr( const std::string& expr );
+        void setModelPathScript( Script* script );
         
         /**
-         * Gets the xpression that evaluates to the absolute pathname of the model
+         * Gets the script that evaluates to the absolute pathname of the model
          * to use. 
          */
-        const std::string& getModelPathExpr() const;
+        Script* getModelPathScript() const;
         
         /**
          * Sets whether to materialize models within the generated scene graph. If true,
@@ -75,22 +75,38 @@ namespace osgGIS
          * extref to a tree model, just precede this filter with a CollectionFilter and
          * this filter will inline, localize, and optimize the tree references for you.
          *
-         * (NOTE: at the moment, "Materialize" only works when this filter is preceded
-         * by a CollectionFilter.)
+         * NOTE: clustering only works when this filter is preceded by a Collection filter
+         * that batches features together.
          */
-        void setMaterialize( bool value );
+        void setCluster( bool value );
         
         /**
-         * Gets whether to materialize/inline model references. See setMaterialize() for
-         * details.
+         * Gets whether to cluster materialized model references. See setCluster() for details.
          */
-        bool getMaterialize() const;
+        bool getCluster() const;
         
-        //TODO: comment
-        void setModelScaleExpr( const std::string& value );
+        /**
+         * Sets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         */
+        void setModelScaleScript( Script* script );
         
-        //TODO: comment
-        const std::string& getModelScaleExpr() const;
+        /**
+         * Gets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         */
+        Script* getModelScaleScript() const;
+
+        /**
+         * Sets a script that evaluates to a string that will be set as the model instance's
+         * node name. (Note: Setting a feature name will disable clustering, since each feature
+         * will need to be in its own group.)
+         */
+        void setFeatureNameScript( Script* script );
+
+        /**
+         * Gets a script that evaluates to a string that will be set as the model instance's
+         * node name.
+         */
+        Script* getFeatureNameScript() const;
         
     public:
     
@@ -109,11 +125,13 @@ namespace osgGIS
         
     private:
         osg::Node* materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model );
+        void assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env );
     
-        std::string model_expr;
-        std::string model_path_expr;
-        std::string model_scale_expr;
-        bool materialize;
+        osg::ref_ptr<Script> model_script;
+        osg::ref_ptr<Script> model_path_script;
+        osg::ref_ptr<Script> model_scale_script;
+        osg::ref_ptr<Script> feature_name_script;
+        bool cluster;
     };
 }
 
