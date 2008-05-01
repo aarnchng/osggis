@@ -36,12 +36,12 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
-#define DEFAULT_MATERIALIZE false
+#define DEFAULT_CLUSTER true
 
 
 SubstituteModelFilter::SubstituteModelFilter()
 {
-    materialize = DEFAULT_MATERIALIZE;
+    setCluster( DEFAULT_CLUSTER );
 }
 
 
@@ -51,63 +51,78 @@ SubstituteModelFilter::~SubstituteModelFilter()
 }
 
 void
-SubstituteModelFilter::setModelExpr( const std::string& value )
+SubstituteModelFilter::setModelScript( Script* value )
 {
-    model_expr = value;
+    model_script = value;
 }
 
-const std::string&
-SubstituteModelFilter::getModelExpr() const
+Script*
+SubstituteModelFilter::getModelScript() const
 {
-    return model_expr;
-}
-
-void SubstituteModelFilter::setModelPathExpr( const std::string& value )
-{
-    model_path_expr = value;
-}
-
-const std::string&
-SubstituteModelFilter::getModelPathExpr() const
-{
-    return model_path_expr;
+    return model_script.get();
 }
 
 void
-SubstituteModelFilter::setMaterialize( bool value )
+SubstituteModelFilter::setModelPathScript( Script* value )
 {
-    materialize = value;
+    model_path_script = value;
+}
+
+Script*
+SubstituteModelFilter::getModelPathScript() const
+{
+    return model_path_script.get();
+}
+
+void
+SubstituteModelFilter::setCluster( bool value )
+{
+    cluster = value;
 }
 
 bool
-SubstituteModelFilter::getMaterialize() const
+SubstituteModelFilter::getCluster() const
 {
-    return materialize;
+    return cluster;
 }
 
 void
-SubstituteModelFilter::setModelScaleExpr( const std::string& value )
+SubstituteModelFilter::setModelScaleScript( Script* value )
 {
-    model_scale_expr = value;
+    model_scale_script = value;
 }
 
-const std::string&
-SubstituteModelFilter::getModelScaleExpr() const
+Script*
+SubstituteModelFilter::getModelScaleScript() const
 {
-    return model_scale_expr;
+    return model_scale_script.get();
+}
+
+void
+SubstituteModelFilter::setFeatureNameScript( Script* value )
+{
+    feature_name_script = value;
+}
+
+Script*
+SubstituteModelFilter::getFeatureNameScript() const
+{
+    return feature_name_script.get();
 }
 
 void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
-        setModelExpr( p.getValue() );
+        setModelScript( new Script( p.getValue() ) );
     else if ( p.getName() == "model_path" )
-        setModelPathExpr( p.getValue() );
-    else if ( p.getName() == "materialize" )
-        setMaterialize( p.getBoolValue( getMaterialize() ) );
+        setModelPathScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "cluster" )
+        setCluster( p.getBoolValue( getCluster() ) );
     else if ( p.getName() == "model_scale" )
-        setModelScaleExpr( p.getValue() );
+        setModelScaleScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "feature_name" )
+        setFeatureNameScript( new Script( p.getValue() ) );
     NodeFilter::setProperty( p );
 }
 
@@ -116,14 +131,16 @@ Properties
 SubstituteModelFilter::getProperties() const
 {
     Properties p = NodeFilter::getProperties();
-    if ( getModelExpr().length() > 0 )
-        p.push_back( Property( "model", getModelExpr() ) );
-    if ( getModelPathExpr().length() > 0 )
-        p.push_back( Property( "model_path", getModelPathExpr() ) );
-    if ( getMaterialize() != DEFAULT_MATERIALIZE )
-        p.push_back( Property( "materialize", getMaterialize() ) );
-    if ( getModelScaleExpr().length() > 0 )
-        p.push_back( Property( "model_", getModelScaleExpr() ) );
+    if ( getModelScript() )
+        p.push_back( Property( "model", getModelScript()->getCode() ) );
+    if ( getModelPathScript() )
+        p.push_back( Property( "model_path", getModelPathScript()->getCode() ) );
+    if ( getCluster() != DEFAULT_CLUSTER )
+        p.push_back( Property( "cluster", getCluster() ) );
+    if ( getModelScaleScript() )
+        p.push_back( Property( "model_scale", getModelScaleScript()->getCode() ) );
+    if ( getFeatureNameScript() )
+        p.push_back( Property( "feature_name", getFeatureNameScript()->getCode() ) );
     return p;
 }
 
@@ -183,9 +200,9 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
 
                             // get the scaler if there is one:
                             osg::Vec3 scaler( 1, 1, 1 );
-                            if ( filter->getModelScaleExpr().length() > 0 )
+                            if ( filter->getModelScaleScript() )
                             {
-                                ScriptResult r = env->getScriptEngine()->run( new Script( filter->getModelScaleExpr() ), j->get(), env );
+                                ScriptResult r = env->getScriptEngine()->run( filter->getModelScaleScript(), j->get(), env );
                                 if ( r.isValid() )
                                     scaler = r.asVec3();
                             }
@@ -249,9 +266,8 @@ registerTextures( osg::Node* node, Session* session )
         ImageFinder( Session* _session )
             : session(_session), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
 
-        void apply( osg::Node& node )
+        void processStateSet( osg::StateSet* ss )
         {
-            osg::StateSet* ss = node.getStateSet();
             if ( ss )
             {
                 for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
@@ -271,7 +287,22 @@ registerTextures( osg::Node* node, Session* session )
                     }
                 }
             }
+        }
+
+        void apply( osg::Node& node )
+        {
+            processStateSet( node.getStateSet() );
             osg::NodeVisitor::apply( node ); // up the tree
+        }
+
+        void apply( osg::Geode& geode )
+        {
+            for( unsigned int i=0; i<geode.getNumDrawables(); i++ )
+            {
+                osg::Drawable* d = geode.getDrawable( i );
+                processStateSet( d->getStateSet() );
+            }
+            osg::NodeVisitor::apply( geode );
         }
 
         Session* session;
@@ -287,16 +318,16 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
     osg::NodeList output;
 
-    if ( input.size() > 0 && getMaterialize() )
+    if ( input.size() > 0 && getCluster() && !getFeatureNameScript() )
     {
         // There is a bug, or an order-of-ops problem, with "FLATTEN" that causes grid
         // cell features to be improperly offset...especially with SubstituteModelFilter
         // TODO: investigate this later.
         env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
 
-        if ( getModelExpr().length() > 0 )
+        if ( getModelScript() )
         {
-            ScriptResult r = env->getScriptEngine()->run( new Script( getModelExpr() ), env );
+            ScriptResult r = env->getScriptEngine()->run( getModelScript(), env );
             if ( r.isValid() )
             {
                 ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
@@ -307,9 +338,9 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 }
             }
         }
-        else if ( getModelPathExpr().length() > 0 )
+        else if ( getModelPathScript() )
         {
-            ScriptResult r = env->getScriptEngine()->run( new Script( getModelPathExpr() ), env );
+            ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), env );
             if ( r.isValid() )
             {
                 osg::Node* node = osgDB::readNodeFile( r.asString() );
@@ -334,15 +365,25 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
     return output;
 }
 
+void
+SubstituteModelFilter::assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env )
+{
+    if ( getFeatureNameScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), input, env );
+        if ( r.isValid() )
+            node->setName( r.asString() );
+    }
+}
 
 osg::NodeList
 SubstituteModelFilter::process( Feature* input, FilterEnv* env )
 {
     osg::NodeList output;
 
-    if ( getModelExpr().length() > 0 )
+    if ( getModelScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( new Script( getModelExpr() ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getModelScript(), input, env );
         if ( r.isValid() )
         {
             ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
@@ -355,15 +396,16 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                         osg::Matrix::translate( input->getExtent().getCentroid() ) );
                     xform->addChild( node );
                     xform->setDataVariance( osg::Object::STATIC );
+                    assignFeatureName( xform, input, env );
                     output.push_back( xform );
                     env->getSession()->markResourceUsed( model );
                 }
             }
         }
     }
-    else if ( getModelPathExpr().length() > 0 )
+    else if ( getModelPathScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( new Script( getModelPathExpr() ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), input, env );
         if ( r.isValid() )
         {
             // create a new resource on the fly..
@@ -379,6 +421,7 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                     osg::Matrix::translate( input->getExtent().getCentroid() ) );
                 xform->addChild( node );
                 xform->setDataVariance( osg::Object::STATIC );
+                assignFeatureName( xform, input, env );
                 output.push_back( xform );
             }
             env->getSession()->markResourceUsed( model );

@@ -21,7 +21,6 @@
 #include <osgGIS/OGR_Feature>
 #include <osgGIS/OGR_SpatialReference>
 #include <osgGIS/OGR_Utils>
-#include <osgGIS/FeatureCursorImpl>
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
 #include <ogr_api.h>

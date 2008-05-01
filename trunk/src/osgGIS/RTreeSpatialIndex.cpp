@@ -18,7 +18,6 @@
  */
 
 #include <osgGIS/RTreeSpatialIndex>
-#include <osgGIS/FeatureCursorImpl>
 #include <osgGIS/Registry>
 #include <osgGIS/Utils>
 #include <osg/Notify>

@@ -32,7 +32,7 @@ FeatureCursor::FeatureCursor(const FeatureOIDList& _oids,
     store = _store;
     search_extent = _search_extent;
     match_exactly = _match_exactly;
-    iter  = 0;
+    reset();
 }
 
 FeatureCursor::FeatureCursor()
