@@ -65,10 +65,12 @@
 #include <osgGA/TerrainManipulator>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/StateSetManipulator>
+#include <osgText/Text>
 #include <osgUtil/Tessellator>
 #include <osgViewer/ViewerEventHandlers>
 #include <OpenThreads/Thread>
 #include <iostream>
+#include <sstream>
 #include <osgGIS/Utils>
 #include <osgGIS/Registry>
 #include <osgGIS/ChangeShapeTypeFilter>
@@ -85,7 +87,7 @@
 
 #define NOUT osg::notify(osg::NOTICE)
 #define ENDL std::endl
-
+#define TEXT_SIZE 14.0f
 
 int
 die( const std::string& msg )
@@ -107,11 +109,21 @@ static void usage( const char* prog, const char* msg )
 }
 
 
+/*****************************************************************************/
+
+// The event handler that will process clicks and highlight features
+
 class FeatureLayerQueryHandler : public osgGA::GUIEventHandler
 {
 public:
-    FeatureLayerQueryHandler( osg::Node* _root, osgGIS::FeatureLayer* _layer, osgGIS::SpatialReference* _terrain_srs, osgSim::OverlayNode* _overlay ) 
-        : root( _root ), layer( _layer ), terrain_srs( _terrain_srs ), overlay( _overlay ) { }
+    FeatureLayerQueryHandler(
+        osg::Node*                _root, 
+        osgGIS::FeatureLayer*     _layer,
+        osgGIS::SpatialReference* _terrain_srs, 
+        osgSim::OverlayNode*      _overlay,
+        osgText::Text*            _hud_text )
+
+        : root( _root ), layer( _layer ), terrain_srs( _terrain_srs ), overlay( _overlay ), hud_text(_hud_text) { }
 
 public:
     bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa )
@@ -128,26 +140,40 @@ public:
             if ( view->computeIntersections( ea.getX(), ea.getY(), hits ) )
             {
                 osgUtil::LineSegmentIntersector::Intersection& first = *hits.begin();
-                osgGIS::GeoPoint world( first.getWorldIntersectPoint(), terrain_srs.get() );
+                osg::Vec3 hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
+                osgGIS::GeoPoint world( hit, terrain_srs.get() );
+                //osgGIS::GeoPoint world( first.getWorldIntersectPoint(), terrain_srs.get() );
                 osgGIS::GeoPoint result = terrain_srs->getBasisSRS()->transform( world );
 
                 int count = 0;
                 osgGIS::FeatureCursor cursor = layer->getCursor( result );
                 highlight( cursor );
 
+                std::stringstream buf;
                 for( cursor.reset(); cursor.hasNext(); )
                 {
                     osgGIS::Feature* f = cursor.next();
-                    if ( count++ == 0 )
+                    osgGIS::AttributeList attrs = f->getAttributes();
+                    for( osgGIS::AttributeList::const_iterator i = attrs.begin(); i != attrs.end(); i++ )
                     {
-                        osg::notify( osg::ALWAYS ) 
-                            << result.x() << ", " << result.y() << " (" << terrain_srs->getName() << ") "
-                            << " Layer " << layer->getName() << ": OIDS=";
+                        std::string key = i->getKey();
+                        if ( key.length() > 0 )
+                        {
+                            buf << key << " : " << i->asString() << std::endl;
+                            count++;
+                        }
                     }
-                    osg::notify( osg::ALWAYS ) << " " << f->getOID();
+                    break;
                 }
-                if ( count > 0 )
-                    osg::notify( osg::ALWAYS ) << std::endl;
+
+                if ( buf.str().length() == 0 )
+                {
+                    buf << "Control-Left-Click to query a feature";
+                    count = 1;
+                }
+                hud_text->setText( buf.str() );
+                hud_text->setPosition( osg::Vec3( 10, count*TEXT_SIZE*1.1f, 0 ) );
+                hud_text->dirtyDisplayList();
             }
         }
 
@@ -188,11 +214,8 @@ public:
         osgGIS::SceneGraphCompiler compiler( layer.get(), graph );
         osg::Group* result = compiler.compile( cursor );
 
-        if ( result )
-        {
-            overlay->setOverlaySubgraph( result );
-            overlay->dirtyOverlayTexture();
-        }
+        overlay->setOverlaySubgraph( result );
+        overlay->dirtyOverlayTexture();
     }
 
 private:
@@ -200,7 +223,45 @@ private:
     osg::ref_ptr<osgSim::OverlayNode> overlay;
     osg::ref_ptr<osgGIS::FeatureLayer> layer;
     osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
+    osg::ref_ptr<osgText::Text> hud_text;
 };
+
+
+
+/*****************************************************************************/
+
+// Creates the heads-up display that will show feature attributes and coordinates
+
+osg::Camera*
+createHUD( osgText::Text* text )
+{
+    osg::Camera* cam = new osg::Camera();
+    cam->setProjectionMatrix( osg::Matrix::ortho2D( 0, 1280, 0, 1024 ) );
+    cam->setReferenceFrame( osg::Transform::ABSOLUTE_RF );
+    cam->setViewMatrix( osg::Matrix::identity() );
+    cam->setClearMask( GL_DEPTH_BUFFER_BIT );
+    cam->setRenderOrder( osg::Camera::POST_RENDER );
+
+    osg::Geode* geode = new osg::Geode();
+    text->setPosition( osg::Vec3( 10, 10, 0 ) );
+    text->setColor( osg::Vec4( 1, 1, 0, 1 ) );
+    text->setBackdropColor( osg::Vec4( 0, 0, 0, 1 ) );
+    text->setBackdropType( osgText::Text::DROP_SHADOW_BOTTOM_RIGHT );
+    text->setLineSpacing( 0.1f );
+    text->setFont( osgText::readFontFile( "arialbd.ttf" ) );
+    text->setCharacterSize( TEXT_SIZE );
+    text->setDataVariance( osg::Object::DYNAMIC );
+    text->setText( "Control-Left-Click to query a feature" );
+    geode->addDrawable( text );
+    geode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+    geode->setDataVariance( osg::Object::DYNAMIC );
+    cam->addChild( geode );
+
+    return cam;
+}
+
+
+/*****************************************************************************/
 
 
 int
@@ -210,6 +271,7 @@ main(int argc, char* argv[])
     std::string map_name;
     std::string temp;
     bool unlit_terrain = false;
+    osg::ref_ptr<osgText::Text> text = new osgText::Text();
 
     // Begin by parsing the command-line arguments:
     osg::ArgumentParser args( &argc, argv );
@@ -342,10 +404,17 @@ main(int argc, char* argv[])
                     node = terrain_node;
 
                 if ( feature_layer )
-                    viewer.addEventHandler( new FeatureLayerQueryHandler( node, feature_layer, terrain_srs.get(), overlay ) );
+                {
+                    viewer.addEventHandler( new FeatureLayerQueryHandler( 
+                        node, feature_layer, terrain_srs.get(), overlay, text.get() ) );
+                }
             }
         }
     }
+
+    // Attach the HUD for feature attribute readout:
+    root->addChild( createHUD( text.get() ) );
+
 
     viewer.setSceneData( root );
 

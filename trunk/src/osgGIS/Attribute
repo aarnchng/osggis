@@ -54,18 +54,20 @@ namespace osgGIS
         Attribute( const std::string& key, double value );
         
         Attribute( const std::string& key, bool value );
+
+        const std::string& getKey() const;
         
         bool isValid() const;
 
         const Type& getType() const;
 
-        const char* asString();
+        const char* asString() const;
 
-        int asInt();
+        int asInt() const;
          
-        double asDouble();
+        double asDouble() const;
         
-        bool asBool();
+        bool asBool() const;
         
     public:
         static Attribute invalid();
