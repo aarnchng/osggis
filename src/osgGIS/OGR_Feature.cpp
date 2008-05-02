@@ -253,7 +253,7 @@ OGR_Feature::getAttributes() const
     // accumulate the attrs from the store:
     OGR_SCOPE_LOCK();
     int count = OGR_F_GetFieldCount( handle );
-    for( int i=1; i<=count; i++ )
+    for( int i=0; i<count; i++ ) //1; i<=count; i++ )
     {
         void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
         const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
@@ -265,7 +265,7 @@ OGR_Feature::getAttributes() const
         attrs[ (*i).first ] = (*i).second;
 
     // shove it all into a list
-    AttributeList result( attrs.size() );
+    AttributeList result;
     for( AttributeTable::const_iterator i = attrs.begin(); i != attrs.end(); i++ )
         result.push_back( (*i).second );
 

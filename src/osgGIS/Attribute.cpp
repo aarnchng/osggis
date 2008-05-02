@@ -86,6 +86,12 @@ Attribute::isValid() const
     return valid;
 }
 
+const std::string&
+Attribute::getKey() const
+{
+    return key;
+}
+
 const Attribute::Type&
 Attribute::getType() const
 {
@@ -93,7 +99,7 @@ Attribute::getType() const
 }
 
 const char*
-Attribute::asString()
+Attribute::asString() const
 {
     if ( type != TYPE_STRING && string_value.length() == 0 )
     {
@@ -102,13 +108,13 @@ Attribute::asString()
             gen << int_value;
         else if ( type == TYPE_DOUBLE )
             gen << double_value;
-        string_value = gen.str();
+        const_cast<Attribute*>(this)->string_value = gen.str();
     }
     return string_value.c_str();
 }
 
 int
-Attribute::asInt()
+Attribute::asInt() const
 {
     if ( type == TYPE_INT )
         return int_value;
@@ -118,13 +124,13 @@ Attribute::asInt()
         return int_value;
     else {
         int temp;
-        sscanf( string_value.c_str(), "%d", &temp );
+        sscanf( const_cast<Attribute*>(this)->string_value.c_str(), "%d", &temp );
         return temp;
     }
 }
 
 double
-Attribute::asDouble()
+Attribute::asDouble() const
 {
     if ( type == TYPE_DOUBLE )
         return double_value;
@@ -134,13 +140,13 @@ Attribute::asDouble()
         return (double)int_value;
     else {
         double temp;
-        sscanf( string_value.c_str(), "%lf", &temp );
+        sscanf( const_cast<Attribute*>(this)->string_value.c_str(), "%lf", &temp );
         return temp;
     }
 }
 
 bool
-Attribute::asBool()
+Attribute::asBool() const
 {
     if ( type == TYPE_BOOL )
         return int_value != 0;
