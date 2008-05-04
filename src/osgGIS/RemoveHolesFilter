@@ -34,6 +34,8 @@ namespace osgGIS
 
     public:
         RemoveHolesFilter();
+
+        RemoveHolesFilter( const RemoveHolesFilter& rhs );
         
         virtual ~RemoveHolesFilter();
         

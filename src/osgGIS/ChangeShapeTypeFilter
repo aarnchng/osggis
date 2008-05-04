@@ -37,6 +37,8 @@ namespace osgGIS
     public:
         ChangeShapeTypeFilter();
 
+        ChangeShapeTypeFilter( const ChangeShapeTypeFilter& rhs );
+
         /**
          * Constructs a new filter that will change feature shape types
          * to the specified type.

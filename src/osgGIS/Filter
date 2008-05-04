@@ -65,7 +65,12 @@ namespace osgGIS
         /**
          * Creates a new state object that can be used with this filter type.
          */
-        virtual FilterState* newState() =0;
+        virtual FilterState* newState() const =0;
+
+        /**
+         * Creates an exact copy of this instance.
+         */
+        virtual Filter* clone() const =0;
 
     public:
 
@@ -82,6 +87,8 @@ namespace osgGIS
     protected:
 
         Filter();
+
+        Filter( const Filter& rhs );
         
     private:
         std::string name;
@@ -89,11 +96,12 @@ namespace osgGIS
     
     typedef std::vector< osg::ref_ptr<Filter> > FilterList;
 
-    struct FilterFactory : public osg::Referenced {
-        virtual Filter* createFilter() =0;
+    class FilterFactory : public osg::Referenced {
+    public:
+        virtual Filter* createFilter() const =0;
     };
     template<typename T> struct FilterFactoryImpl : public FilterFactory {
-        Filter* createFilter() { return new T(); }
+        Filter* createFilter() const { return new T(); }
     };    
 
     typedef std::map<std::string,osg::ref_ptr<FilterFactory> > FilterFactoryMap;
@@ -101,8 +109,9 @@ namespace osgGIS
 #define OSGGIS_META_FILTER(name) \
     public: \
         virtual std::string getFilterType() { return getStaticFilterType(); } \
+        virtual Filter* clone() const { return new name ( *this ); } \
         static std::string getStaticFilterType() { return #name; } \
-        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }        
+        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }     
 
 #define OSGGIS_DEFINE_FILTER(name) \
     static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )

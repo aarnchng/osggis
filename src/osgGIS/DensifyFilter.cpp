@@ -32,6 +32,12 @@ DensifyFilter::DensifyFilter()
     threshold = 0.0;
 }
 
+DensifyFilter::DensifyFilter( const DensifyFilter& rhs )
+: FeatureFilter( rhs ),
+  threshold( rhs.threshold )
+{
+    //NOP
+}
 
 DensifyFilter::DensifyFilter( double _threshold )
 {

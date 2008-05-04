@@ -32,6 +32,11 @@ ConvexHullFilter::ConvexHullFilter()
     //NOP
 }
 
+ConvexHullFilter::ConvexHullFilter( const ConvexHullFilter& rhs )
+: FeatureFilter( rhs )
+{
+    //NOP
+}
 
 ConvexHullFilter::~ConvexHullFilter()
 {

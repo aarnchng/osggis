@@ -48,6 +48,8 @@ namespace osgGIS
          */
         TransformFilter();
 
+        TransformFilter( const TransformFilter& rhs );
+
         /**
          * Constructs a new transform filter.
          *

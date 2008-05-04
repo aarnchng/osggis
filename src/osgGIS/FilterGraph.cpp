@@ -82,20 +82,20 @@ FilterGraph::setName( const std::string& value )
 const FilterList&
 FilterGraph::getFilters() const
 {
-    return filters;
+    return filter_prototypes;
 }
 
 FilterList&
 FilterGraph::getFilters()
 {
-    return filters;
+    return filter_prototypes;
 }
 
 
 bool 
 FilterGraph::appendFilter( Filter* filter )
 {
-    filters.push_back( filter );
+    filter_prototypes.push_back( filter );
     return true;
 }
 
@@ -103,7 +103,7 @@ FilterGraph::appendFilter( Filter* filter )
 Filter*
 FilterGraph::getFilter( const std::string& name )
 {
-    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
+    for( FilterList::iterator i = filter_prototypes.begin(); i != filter_prototypes.end(); i++ )
     {
         if ( i->get()->getName() == name )
             return i->get();
@@ -122,7 +122,7 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     // first build the filter state chain, validating that there are ONLY feature filters
     // present. No other filter type is permitted when generating a feature store.
     osg::ref_ptr<FilterState> first = NULL;
-    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
+    for( FilterList::iterator i = filter_prototypes.begin(); i != filter_prototypes.end(); i++ )
     {
         Filter* filter = i->get();
 
@@ -191,9 +191,9 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
 
     osg::ref_ptr<NodeFilterState> output_state;
 
-    // first build a new state chain corresponding to our filter chain.
+    // first build a new state chain corresponding to our filter prototype chain.
     osg::ref_ptr<FilterState> first = NULL;
-    for( FilterList::iterator i = filters.begin(); i != filters.end(); i++ )
+    for( FilterList::iterator i = filter_prototypes.begin(); i != filter_prototypes.end(); i++ )
     {
         FilterState* next_state = i->get()->newState();
         if ( !first.valid() )

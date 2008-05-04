@@ -74,7 +74,6 @@
 #include <osgGIS/Utils>
 #include <osgGIS/Registry>
 #include <osgGIS/ChangeShapeTypeFilter>
-#include <osgGIS/RemoveHolesFilter>
 #include <osgGIS/BufferFilter>
 #include <osgGIS/ClampFilter>
 #include <osgGIS/TransformFilter>
@@ -190,8 +189,6 @@ public:
         change->setNewShapeType( osgGIS::GeoShape::TYPE_POLYGON );
         graph->appendFilter( change );
 
-        graph->appendFilter( new osgGIS::RemoveHolesFilter() );
-
         double distance = terrain_srs->isProjected()? 1.2 : 0.00002;
         osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( distance );
         graph->appendFilter( buffer );
@@ -202,7 +199,7 @@ public:
         graph->appendFilter( xform );
 
         osgGIS::BuildGeomFilter* geom = new osgGIS::BuildGeomFilter();
-        geom->setColorScript( new osgGIS::Script( "vec4(1,1,0,.5)" ) );
+        geom->setColorScript( new osgGIS::Script( "vec4(1,1,0,.4)" ) );
         graph->appendFilter( geom );
 
         graph->appendFilter( new osgGIS::CollectionFilter() );

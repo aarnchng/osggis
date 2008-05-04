@@ -38,6 +38,8 @@ namespace osgGIS
          */
         BuildLabelsFilter();
 
+        BuildLabelsFilter( const BuildLabelsFilter& rhs );
+
 
     public: //properties
 

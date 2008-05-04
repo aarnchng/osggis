@@ -30,6 +30,13 @@ ChangeShapeTypeFilter::ChangeShapeTypeFilter()
     new_type = GeoShape::TYPE_LINE;
 }
 
+ChangeShapeTypeFilter::ChangeShapeTypeFilter( const ChangeShapeTypeFilter& rhs )
+: FeatureFilter( rhs ),
+  new_type( rhs.new_type )
+{
+    //NOP
+}
+
 ChangeShapeTypeFilter::ChangeShapeTypeFilter( const GeoShape::ShapeType& _new_type )
 {
     new_type = _new_type;

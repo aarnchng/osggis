@@ -47,6 +47,8 @@ namespace osgGIS
          */
         CropFilter();
 
+        CropFilter( const CropFilter& rhs );
+
         /**
          * Constructs a new cropping filter.
          */

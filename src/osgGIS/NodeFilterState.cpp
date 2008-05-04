@@ -19,7 +19,6 @@
 
 #include <osgGIS/NodeFilterState>
 #include <osgGIS/CollectionFilterState>
-//#include <osgGIS/DisperseFilterState>
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>

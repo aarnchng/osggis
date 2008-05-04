@@ -27,14 +27,18 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( CollectionFilter );
 
 #define DEFAULT_METERING 0
-//#define DEFAULT_RECALCULATE_EXTENT false
 
 CollectionFilter::CollectionFilter()
 {
     setMetering( DEFAULT_METERING );
-    //setRecalculateExtent( DEFAULT_RECALCULATE_EXTENT );
 }
 
+CollectionFilter::CollectionFilter( const CollectionFilter& rhs )
+: Filter( rhs ),
+  metering( rhs.metering )
+{
+    //NOP
+}
 
 CollectionFilter::~CollectionFilter()
 {
@@ -42,9 +46,9 @@ CollectionFilter::~CollectionFilter()
 }
 
 FilterState*
-CollectionFilter::newState()
+CollectionFilter::newState() const
 {
-    return new CollectionFilterState( this );
+    return new CollectionFilterState( static_cast<CollectionFilter*>( clone() ) );
 }
 
 void 

@@ -38,6 +38,8 @@ namespace osgGIS
          */
         BuildGeomFilter();
 
+        BuildGeomFilter( const BuildGeomFilter& rhs );
+
 
     public: //properties
     
@@ -116,7 +118,11 @@ namespace osgGIS
         osg::ref_ptr<Script> raster_script;
         osg::ref_ptr<Script> feature_name_script;
         osg::Vec4            overall_color;
-        int                  max_raster_size;        
+        int                  max_raster_size;   
+
+    private: // transients
+        bool      is_batch;
+        osg::Vec4 batch_feature_color;
     };
 }
 

@@ -49,6 +49,18 @@ BuildNodesFilter::BuildNodesFilter()
     init( OPTIMIZE );
 }
 
+BuildNodesFilter::BuildNodesFilter( const BuildNodesFilter& rhs )
+: NodeFilter( rhs ),
+  options( rhs.options ),
+  optimizer_options( rhs.optimizer_options ),
+  line_width( rhs.line_width ),
+  point_size( rhs.point_size ),
+  draw_cluster_culling_normals( rhs.draw_cluster_culling_normals ),
+  raster_overlay_script( rhs.raster_overlay_script.get() ),
+  raster_overlay_max_size( rhs.raster_overlay_max_size )
+{
+    //NOP
+}
 
 BuildNodesFilter::BuildNodesFilter( int _options )
 {
@@ -275,13 +287,13 @@ BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
         Attribute a = frag->getAttribute( ".fragment-name" );
         if ( a.isValid() )
         {
-            geode->setName( a.asString() );
+            geode->addDescription( a.asString() );
             geode = NULL;
         }
     }
 
-    // with multiple geodes, disable geode combining in order to preserve fragment names:
-    if ( nodes.size() > 1 )
+    // with multiple geodes or fragment names, disable geode combining to preserve the node decription.
+    if ( nodes.size() > 1  )
     {
         env->getOptimizerHints().exclude( osgUtil::Optimizer::MERGE_GEODES );
     }
@@ -337,8 +349,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
             normal.normalize();
             osg::BoundingSphere bs = result->computeBound(); // force it
             float radius = bs.radius();
-            float deviation = 
-                (float) -atan( radius / input_srs->getBasisEllipsoid().getSemiMajorAxis() );
+            float deviation = (float) -atan( radius / input_srs->getBasisEllipsoid().getSemiMajorAxis() );
 
             osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
             ccc->set(

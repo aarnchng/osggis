@@ -32,6 +32,8 @@ namespace osgGIS
     public:
         SelectFilter();
 
+        SelectFilter( const SelectFilter& rhs );
+
         SelectFilter( const std::string& select_expr );
 
         ~SelectFilter();

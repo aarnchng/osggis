@@ -35,6 +35,8 @@ namespace osgGIS
     public:
         LocalizeNodesFilter();
 
+        LocalizeNodesFilter( const LocalizeNodesFilter& rhs );
+
         virtual ~LocalizeNodesFilter();
 
     public:

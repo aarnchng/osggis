@@ -33,6 +33,14 @@ TransformFilter::TransformFilter()
     options = (Options)0;
 }
 
+TransformFilter::TransformFilter( const TransformFilter& rhs )
+: FeatureFilter( rhs ),
+  xform_matrix( rhs.xform_matrix ),
+  options( rhs.options ),
+  srs( rhs.srs.get() )
+{
+    //NOP
+}
 
 TransformFilter::TransformFilter( const int& _options )
 {

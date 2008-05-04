@@ -18,8 +18,14 @@
  */
 
 #include <osgGIS/FilterState>
+#include <osgGIS/Filter>
 
 using namespace osgGIS;
+
+FilterState::FilterState()
+{
+    //NOP
+}
 
 FilterState*
 FilterState::setNextState( FilterState* _next_state )
@@ -56,3 +62,5 @@ FilterState::signalCheckpoint()
     FilterState* next = getNextState();
     return next? next->signalCheckpoint() : true;
 }
+
+

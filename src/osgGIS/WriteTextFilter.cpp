@@ -61,6 +61,15 @@ WriteTextFilter::WriteTextFilter()
     append = DEFAULT_APPEND;
 }
 
+WriteTextFilter::WriteTextFilter( const WriteTextFilter& rhs )
+: FeatureFilter( rhs ),
+  append( rhs.append ),
+  output_file( rhs.output_file ),
+  text_expr( rhs.text_expr )
+{
+    //NOP
+}
+
 void
 WriteTextFilter::setOutputFile( const std::string& value )
 {

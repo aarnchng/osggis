@@ -36,6 +36,14 @@ BuildLabelsFilter::BuildLabelsFilter()
     setTextExpr( "text" );
 }
 
+BuildLabelsFilter::BuildLabelsFilter( const BuildLabelsFilter& rhs )
+: BuildGeomFilter( rhs ),
+  text_expr( rhs.text_expr ),
+  font_size_expr( rhs.font_size_expr ),
+  disable_depth_test( rhs.disable_depth_test )
+{
+    //NOP
+}
 
 BuildLabelsFilter::~BuildLabelsFilter()
 {

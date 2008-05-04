@@ -32,6 +32,12 @@ SelectFilter::SelectFilter()
     select_expr = "";
 }
 
+SelectFilter::SelectFilter( const SelectFilter& rhs )
+: FeatureFilter( rhs ),
+  select_expr( rhs.select_expr )
+{
+    //NOP
+}
 
 SelectFilter::SelectFilter( const std::string& _select_expr )
 {

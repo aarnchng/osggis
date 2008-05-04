@@ -38,6 +38,8 @@ namespace osgGIS
          */
         SubstituteModelFilter();
 
+        SubstituteModelFilter( const SubstituteModelFilter& rhs );
+
 
     public: //properties
 
@@ -107,6 +109,17 @@ namespace osgGIS
          * node name.
          */
         Script* getFeatureNameScript() const;
+
+        /**
+         * Sets whether to run the osgUtil Optimizer on a model before substituting it.
+         * Default is true.
+         */
+        void setOptimizeModel( bool value );
+
+        /**
+         * Gets whether to run the osgUtil Optimizer on a model before substituting it.
+         */
+        bool getOptimizeModel() const;
         
     public:
     
@@ -132,6 +145,7 @@ namespace osgGIS
         osg::ref_ptr<Script> model_scale_script;
         osg::ref_ptr<Script> feature_name_script;
         bool cluster;
+        bool optimize_model;
     };
 }
 

@@ -34,8 +34,10 @@ namespace osgGIS
         OSGGIS_META_FILTER( ConvexHullFilter );
 
     public:
-        ConvexHullFilter();
-        
+        ConvexHullFilter();      
+
+        ConvexHullFilter( const ConvexHullFilter& rhs );
+
         virtual ~ConvexHullFilter();
         
     public:

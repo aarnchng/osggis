@@ -38,6 +38,9 @@ namespace osgGIS
     public:
         WriteFeaturesFilter();
 
+        WriteFeaturesFilter( const WriteFeaturesFilter& rhs );
+
+
     public: //properties
 
         /**

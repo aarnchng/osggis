@@ -38,6 +38,8 @@ namespace osgGIS
          * Constructs a new filter.
          */
         RecalculateExtentFilter();
+
+        RecalculateExtentFilter( const RecalculateExtentFilter& rhs );
     
     public:
 

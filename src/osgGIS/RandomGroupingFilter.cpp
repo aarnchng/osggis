@@ -36,6 +36,13 @@ RandomGroupingFilter::RandomGroupingFilter()
     setSeed( 0 );
 }
 
+RandomGroupingFilter::RandomGroupingFilter( const RandomGroupingFilter& rhs )
+: CollectionFilter( rhs ),
+  num_groups( rhs.num_groups ),
+  seed( rhs.seed )
+{
+    //NOP
+}
 
 RandomGroupingFilter::RandomGroupingFilter( int _num_groups )
 {

@@ -33,17 +33,24 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 
 
-//#define FRAND (((double)(rand()%100))/100.0)
 
-#define PROP_BATCH "ExtrudeGeomFilter::batch"
-#define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
+//#define PROP_BATCH "ExtrudeGeomFilter::batch"
+//#define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
 
 #define DEFAULT_USE_VBOS false
 
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()
 {
-    tex_index = 0;
+    //NOP
+}
+
+ExtrudeGeomFilter::ExtrudeGeomFilter( const ExtrudeGeomFilter& rhs )
+: BuildGeomFilter( rhs ),
+  height_script( rhs.height_script.get() ),
+  wall_skin_script( rhs.wall_skin_script.get() )
+{
+    //NOP
 }
 
 
@@ -299,34 +306,33 @@ extrudeWallsUp(const GeoShape&         shape,
 SkinResource*
 ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
 {
-    SkinResource* skin = NULL;
-    bool batch = env->getProperties().getBoolValue( PROP_BATCH, false );
-    if ( batch )
+    SkinResource* result = NULL;
+    if ( batch_wall_skin.valid() )
     {
-        skin = dynamic_cast<SkinResource*>( env->getProperties().getRefValue( PROP_WALL_SKIN ) );
+        result = batch_wall_skin.get();
     }
     else if ( getWallSkinScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), f, env );
         if ( r.isValid() )
         {
-            skin = env->getSession()->getResources()->getSkin( r.asString() );
+            result = env->getSession()->getResources()->getSkin( r.asString() );
         }
     }
-    return skin;
+    return result;
 }
 
 FragmentList
 ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
-    bool batch = input.size() > 1;
-    env->setProperty( Property( PROP_BATCH, batch ) );
-
-    if ( batch && getWallSkinScript() )
+    batch_wall_skin = NULL;
+    //is_batch = input.size() > 1;
+    
+    if ( input.size() > 1 && getWallSkinScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), env );
         if ( r.isValid() )
-            env->setProperty( Property( PROP_WALL_SKIN, r.asRef() ) );
+            batch_wall_skin = dynamic_cast<SkinResource*>( r.asRef() );
     }
 
     return BuildGeomFilter::process( input, env );

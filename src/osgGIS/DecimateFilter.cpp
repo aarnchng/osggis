@@ -31,6 +31,12 @@ DecimateFilter::DecimateFilter()
     distance_threshold = 0.0;
 }
 
+DecimateFilter::DecimateFilter( const DecimateFilter& rhs )
+: FeatureFilter( rhs ),
+  distance_threshold( rhs.distance_threshold )
+{
+    //NOP
+}
 
 DecimateFilter::DecimateFilter( double _dist_threshold )
 {

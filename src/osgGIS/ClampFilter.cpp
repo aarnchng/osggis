@@ -35,6 +35,15 @@ ClampFilter::ClampFilter()
     ignore_z = false;
 }
 
+ClampFilter::ClampFilter( const ClampFilter& rhs )
+: FeatureFilter( rhs ),
+  technique( rhs.technique ),
+  ignore_z( rhs.ignore_z ),
+  clamped_z_output_attribute( rhs.clamped_z_output_attribute )
+{
+    //NOP
+}
+
 ClampFilter::~ClampFilter()
 {
     //NOP

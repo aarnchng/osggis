@@ -35,6 +35,8 @@ namespace osgGIS
     public:
         WriteTextFilter();
 
+        WriteTextFilter( const WriteTextFilter& rhs );
+
     public:
         void setOutputFile( const std::string& file );
 

@@ -61,6 +61,8 @@ namespace osgGIS
          */
         CollectionFilter();
 
+        CollectionFilter( const CollectionFilter& rhs );
+
 
     public: // properties
 
@@ -69,7 +71,7 @@ namespace osgGIS
     
     public:
 
-        FilterState* newState();
+        FilterState* newState() const;
 
         virtual void setProperty( const Property& prop );
         virtual Properties getProperties() const;
