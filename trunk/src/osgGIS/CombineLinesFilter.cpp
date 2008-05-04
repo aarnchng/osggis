@@ -35,6 +35,11 @@ CombineLinesFilter::CombineLinesFilter()
     //NOP
 }
 
+CombineLinesFilter::CombineLinesFilter( const CombineLinesFilter& rhs )
+: FeatureFilter( rhs )
+{
+    //NOP
+}
 
 CombineLinesFilter::~CombineLinesFilter()
 {

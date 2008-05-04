@@ -33,39 +33,16 @@ RemoveHolesFilter::RemoveHolesFilter()
     //NOP
 }
 
+RemoveHolesFilter::RemoveHolesFilter( const RemoveHolesFilter& rhs )
+: FeatureFilter( rhs )
+{
+    //NOP
+}
 
 RemoveHolesFilter::~RemoveHolesFilter()
 {
     //NOP
 }
-
-
-//static bool
-//isPartCW( GeoPointList& points )
-//{
-//    // find the ymin point:
-//    double ymin = DBL_MAX;
-//    int i_lowest = 0;
-//
-//    for( GeoPointList::iterator i = points.begin(); i != points.end(); i++ )
-//    {
-//        if ( i->y() < ymin ) 
-//        {
-//            ymin = i->y();
-//            i_lowest = i-points.begin();
-//        }
-//    }
-//
-//    // next cross the 2 vector converging at that point:
-//    osg::Vec3d p0 = *( points.begin() + ( i_lowest > 0? i_lowest-1 : points.size()-1 ) );
-//    osg::Vec3d p1 = *( points.begin() + i_lowest );
-//    osg::Vec3d p2 = *( points.begin() + ( i_lowest < points.size()-1? i_lowest+1 : 0 ) );
-//
-//    osg::Vec3d cp = (p1-p0) ^ (p2-p1);
-//
-//    //TODO: need to rotate into ref frame - for now just use this filter before xforming
-//    return cp.z() > 0;
-//}
 
 
 FeatureList

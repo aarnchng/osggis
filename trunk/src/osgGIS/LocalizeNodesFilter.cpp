@@ -42,6 +42,11 @@ LocalizeNodesFilter::LocalizeNodesFilter()
     //NOP
 }
 
+LocalizeNodesFilter::LocalizeNodesFilter( const LocalizeNodesFilter& rhs )
+: NodeFilter( rhs )
+{
+    //NOP
+}
 
 LocalizeNodesFilter::~LocalizeNodesFilter()
 {

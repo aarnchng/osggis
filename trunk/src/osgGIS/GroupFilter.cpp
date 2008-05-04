@@ -32,6 +32,13 @@ GroupFilter::GroupFilter()
     //NOP
 }
 
+GroupFilter::GroupFilter( const GroupFilter& rhs )
+: CollectionFilter( rhs ),
+  group_expr( rhs.group_expr )
+{
+    //NOP
+}
+
 GroupFilter::~GroupFilter()
 {
     //NOP

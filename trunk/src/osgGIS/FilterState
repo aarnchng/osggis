@@ -25,6 +25,9 @@
 
 namespace osgGIS
 {
+    class Filter;
+    class FilterFactory;
+
     class FilterState : public osg::Referenced
     {
     public:
@@ -53,14 +56,11 @@ namespace osgGIS
          */
         FilterState* getNextState();
 
-    protected:       
-        enum ElementType {
-            TYPE_FEATURE,
-            TYPE_DRAWABLE,
-            TYPE_NODE 
-        };
+    protected:    
+        FilterState();
 
         osg::ref_ptr<FilterState> next_state;
+        osg::ref_ptr<Filter> filter_prototype;
         std::string name;
         
         friend class FilterGraph;

@@ -65,7 +65,17 @@ namespace osgGIS
         static bool isPolygonCW(
             const GeoPointList& polygon );
             
+        /**
+         * Counts the number of geodes in a scene graph.
+         */
         static int getNumGeodes( osg::Node* node );
+
+        /**
+         * Sets the data variance for all nodes/drawables in a scene graph.
+         */
+        static void setDataVarianceRecursively(
+            osg::Node* node,
+            const osg::Object::DataVariance& variance );
     };
     
     struct OSGGIS_EXPORT ImageUtils

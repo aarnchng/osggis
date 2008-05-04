@@ -67,7 +67,7 @@ namespace osgGIS
 
     public: // Internal compilation methods
 
-        virtual FilterState* newState();
+        virtual FilterState* newState() const;
         
     protected:
 

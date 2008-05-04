@@ -139,7 +139,7 @@ namespace osgGIS
 
     private:
         std::string name;
-        FilterList filters;
+        FilterList filter_prototypes;
     };
 
     typedef std::list<osg::ref_ptr<FilterGraph> > FilterGraphList;

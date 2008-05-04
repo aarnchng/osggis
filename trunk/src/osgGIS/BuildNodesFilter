@@ -49,6 +49,8 @@ namespace osgGIS
          */
         BuildNodesFilter();
 
+        BuildNodesFilter( const BuildNodesFilter& rhs );
+
         /**
          * Constructs a filter with the specified quick-set options.
          */

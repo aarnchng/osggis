@@ -34,6 +34,12 @@ RecalculateExtentFilter::RecalculateExtentFilter()
     setMetering( 1 );
 }
 
+RecalculateExtentFilter::RecalculateExtentFilter( const RecalculateExtentFilter& rhs )
+: CollectionFilter( rhs )
+{
+    //NOP
+}
+
 RecalculateExtentFilter::~RecalculateExtentFilter()
 {
     //NOP

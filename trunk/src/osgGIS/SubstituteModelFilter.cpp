@@ -37,13 +37,26 @@ OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
 #define DEFAULT_CLUSTER true
+#define DEFAULT_OPTIMIZE_MODEL true
 
 
 SubstituteModelFilter::SubstituteModelFilter()
 {
     setCluster( DEFAULT_CLUSTER );
+    setOptimizeModel( DEFAULT_OPTIMIZE_MODEL );
 }
 
+SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
+: NodeFilter( rhs ),
+  cluster( rhs.cluster ),
+  optimize_model( rhs.optimize_model ),
+  model_script( rhs.model_script.get() ),
+  model_path_script( rhs.model_path_script.get() ),
+  model_scale_script( rhs.model_scale_script.get() ),
+  feature_name_script( rhs.feature_name_script.get() )
+{
+    //NOP
+}
 
 SubstituteModelFilter::~SubstituteModelFilter()
 {
@@ -111,6 +124,18 @@ SubstituteModelFilter::getFeatureNameScript() const
 }
 
 void
+SubstituteModelFilter::setOptimizeModel( bool value )
+{
+    optimize_model = value;
+}
+
+bool
+SubstituteModelFilter::getOptimizeModel() const
+{
+    return optimize_model;
+}
+
+void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
@@ -123,6 +148,8 @@ SubstituteModelFilter::setProperty( const Property& p )
         setModelScaleScript( new Script( p.getValue() ) );
     else if ( p.getName() == "feature_name" )
         setFeatureNameScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "optimize_model" )
+        setOptimizeModel( p.getBoolValue( getOptimizeModel() ) );
     NodeFilter::setProperty( p );
 }
 
@@ -141,6 +168,8 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "model_scale", getModelScaleScript()->getCode() ) );
     if ( getFeatureNameScript() )
         p.push_back( Property( "feature_name", getFeatureNameScript()->getCode() ) );
+    if ( getOptimizeModel() != DEFAULT_OPTIMIZE_MODEL )
+        p.push_back( Property( "optimize_model", getOptimizeModel() ) );
     return p;
 }
 
@@ -333,7 +362,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
                 if ( model )
                 {
-                    osg::Node* node = env->getSession()->getResources()->getNode( model );
+                    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
                     output.push_back( materializeAndClusterFeatures( input, env, node ) );
                 }
             }
@@ -371,8 +400,15 @@ SubstituteModelFilter::assignFeatureName( osg::Node* node, Feature* input, Filte
     if ( getFeatureNameScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), input, env );
-        if ( r.isValid() )
-            node->setName( r.asString() );
+        if ( r.isValid() && r.asString().length() > 0 )
+        {
+            node->addDescription( r.asString() );
+
+            // there's a bug in the OSG optimizer ... it will still flatten a static xform
+            // even if it has descriptions set. This is a workaround for now. TODO: track
+            // this down and submit a bugfix to OSG
+            env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
+        }
     }
 }
 
@@ -389,7 +425,7 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
             if ( model )
             {
-                osg::Node* node = env->getSession()->getResources()->getNode( model );
+                osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
                 if ( node )
                 {
                     osg::MatrixTransform* xform = new osg::MatrixTransform(
@@ -413,7 +449,7 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             model->setURI( r.asString() );
             model->setName( r.asString() );
             env->getSession()->getResources()->addResource( model );
-            osg::Node* node = env->getSession()->getResources()->getNode( model );
+            osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
 //            osg::Node* node = env->getSession()->getResources()->getProxyNode( model );
             if ( node )
             {

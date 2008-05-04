@@ -26,6 +26,8 @@
 namespace osgGIS
 {
     /**
+     * DEPRECATED - use GroupFilter with randomizing script instead
+     *
      * A filter that randomly batches features into a set number of groups.
      *
      * This filter will eventually be deprecated in favor of a scripting-
@@ -37,6 +39,9 @@ namespace osgGIS
 
     public:
         RandomGroupingFilter();
+
+        RandomGroupingFilter( const RandomGroupingFilter& rhs );
+
         RandomGroupingFilter( int num_groups );
 
 

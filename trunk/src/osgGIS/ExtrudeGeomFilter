@@ -40,6 +40,8 @@ namespace osgGIS
     public:
         ExtrudeGeomFilter();
 
+        ExtrudeGeomFilter( const ExtrudeGeomFilter& rhs );
+
         ExtrudeGeomFilter( const osg::Vec4f& color, double height );
 
         ExtrudeGeomFilter( const int& options );
@@ -67,11 +69,12 @@ namespace osgGIS
     private:
         osg::ref_ptr<Script> height_script;
         osg::ref_ptr<Script> wall_skin_script;
-        int tex_index;
-        osg::ref_ptr<osg::Texture> active_tex;
-        osg::ref_ptr<osg::TexEnv> active_texenv;
         
         SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
+
+    private: // transients
+        //bool has_batch_wall_skin;
+        osg::ref_ptr<SkinResource> batch_wall_skin;
     };
 }
 

@@ -106,11 +106,12 @@ namespace osgGIS
 
     public: // Filter overrides (internal)
 
-        virtual FilterState* newState();
+        virtual FilterState* newState() const;
 
     protected:        
 
         FragmentFilter();
+        FragmentFilter( const FragmentFilter& rhs );
         virtual ~FragmentFilter();
     };
 }

@@ -28,17 +28,24 @@ using namespace osgGIS;
 
 NodeFilter::NodeFilter()
 {
+    //NOP
 }
 
+NodeFilter::NodeFilter( const NodeFilter& rhs )
+: Filter( rhs )
+{
+    //NOP
+}
 
 NodeFilter::~NodeFilter()
 {
+    //NOP
 }
 
 FilterState*
-NodeFilter::newState()
+NodeFilter::newState() const
 {
-    return new NodeFilterState( this );
+    return new NodeFilterState( static_cast<NodeFilter*>( clone() ) );
 }
 
 

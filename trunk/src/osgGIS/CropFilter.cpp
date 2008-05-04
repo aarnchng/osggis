@@ -39,6 +39,12 @@ CropFilter::CropFilter()
     options = 0;
 }
 
+CropFilter::CropFilter( const CropFilter& rhs )
+: FeatureFilter( rhs ),
+  options( rhs.options )
+{
+    //NOP
+}
 
 CropFilter::CropFilter( int _options )
 {

@@ -32,6 +32,13 @@ WriteFeaturesFilter::WriteFeaturesFilter()
     //NOP
 }
 
+WriteFeaturesFilter::WriteFeaturesFilter( const WriteFeaturesFilter& rhs )
+: FeatureFilter( rhs ),
+  output_uri( rhs.output_uri )
+{
+    //NOP
+}
+
 WriteFeaturesFilter::~WriteFeaturesFilter()
 {
     //NOP

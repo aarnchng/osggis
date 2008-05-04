@@ -34,9 +34,9 @@ FeatureFilter::~FeatureFilter()
 }
 
 FilterState*
-FeatureFilter::newState()
+FeatureFilter::newState() const
 {
-    return new FeatureFilterState( this );
+    return new FeatureFilterState( static_cast<FeatureFilter*>( clone() ) );
 }
 
 

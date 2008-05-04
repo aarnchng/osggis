@@ -30,6 +30,13 @@ BufferFilter::BufferFilter()
     setDistance( 0.0 );
 }
 
+BufferFilter::BufferFilter( const BufferFilter& rhs )
+: FeatureFilter( rhs ),
+  distance( rhs.distance )
+{
+    //NOP
+}
+
 BufferFilter::BufferFilter( double _distance )
 {
     setDistance( _distance );

@@ -32,6 +32,8 @@ namespace osgGIS
     public:
         CombineLinesFilter();
 
+        CombineLinesFilter( const CombineLinesFilter& rhs );
+
         ~CombineLinesFilter();
 
     public:

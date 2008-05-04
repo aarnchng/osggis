@@ -43,6 +43,16 @@ BuildGeomFilter::BuildGeomFilter()
     max_raster_size = 0;
 }
 
+BuildGeomFilter::BuildGeomFilter( const BuildGeomFilter& rhs )
+: FragmentFilter( rhs ),
+  overall_color( rhs.overall_color ),
+  max_raster_size( rhs.max_raster_size ),
+  color_script( rhs.color_script.get() ),
+  raster_script( rhs.raster_script.get() ),
+  feature_name_script( rhs.feature_name_script.get() )
+{
+    //NOP
+}
 
 BuildGeomFilter::~BuildGeomFilter()
 {
@@ -147,21 +157,18 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
 {
     // if features are arriving in batch, resolve the color here.
     // otherwise we will resolve it later in process(feature,env).
-    osg::Vec4 color = overall_color;
-    bool batch = input.size() > 1;
-
-    if ( batch && getColorScript() )
+    is_batch = input.size() > 1;
+    batch_feature_color = overall_color;
+    if ( is_batch && getColorScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getColorScript(), env );
         if ( r.isValid() )
-            color = r.asVec4();
+            batch_feature_color = r.asVec4();
     }
-
-    env->setProperty( Property( PROP_COLOR, color ) );
-    env->setProperty( Property( PROP_BATCH, batch ) );
 
     return FragmentFilter::process( input, env );
 }
+
 
 FragmentList
 BuildGeomFilter::process( Feature* input, FilterEnv* env )
@@ -251,11 +258,10 @@ osg::Vec4
 BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
 {
     osg::Vec4 result = overall_color;
-    
-    bool batch = env->getProperties().getBoolValue( PROP_BATCH, false );
-    if ( batch )
+
+    if ( is_batch )
     {
-        result = env->getProperties().getVec4Value( PROP_COLOR );
+        result = batch_feature_color;
     }
     else if ( getColorScript() )
     {

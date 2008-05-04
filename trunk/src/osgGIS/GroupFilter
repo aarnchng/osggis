@@ -38,6 +38,8 @@ namespace osgGIS
          */
         GroupFilter();
 
+        GroupFilter( const GroupFilter& rhs );
+
 
     public: // properties
 

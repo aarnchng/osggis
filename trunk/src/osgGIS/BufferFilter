@@ -32,6 +32,8 @@ namespace osgGIS
     public:
         BufferFilter();
 
+        BufferFilter( const BufferFilter& rhs );
+
         BufferFilter( double distance );
 
         ~BufferFilter();

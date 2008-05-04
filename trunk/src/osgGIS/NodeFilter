@@ -100,10 +100,11 @@ namespace osgGIS
         
     public:
 
-        FilterState* newState();
+        FilterState* newState() const;
         
     protected:
         NodeFilter();
+        NodeFilter( const NodeFilter& rhs );
         virtual ~NodeFilter();  
     };
 }

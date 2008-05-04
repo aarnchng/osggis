@@ -1,6 +1,27 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
 #include <osgGIS/ResourceLibrary>
+#include <osgGIS/Utils>
 #include <osgDB/Registry>
 #include <osgDB/FileNameUtils>
+#include <osgUtil/Optimizer>
 #include <OpenThreads/ScopedLock>
 #include <algorithm>
 #include <osg/Notify>
@@ -249,7 +270,7 @@ ResourceLibrary::getModels( const ModelResourceQuery& q )
 
 
 osg::Node*
-ResourceLibrary::getNode( ModelResource* model )
+ResourceLibrary::getNode( ModelResource* model, bool optimize )
 {
     ScopedLock<ReentrantMutex> sl( mut );
 
@@ -261,7 +282,16 @@ ResourceLibrary::getNode( ModelResource* model )
         {
             bool simplify_extrefs = true; //TODO
             result = model->createNode();
-            model_nodes[model] = result;
+            if ( result )
+            {
+                if ( optimize )
+                {
+                    GeomUtils::setDataVarianceRecursively( result, osg::Object::STATIC );
+                    osgUtil::Optimizer o;
+                    o.optimize( result );
+                }
+                model_nodes[model] = result;
+            }
         }
         else
         {

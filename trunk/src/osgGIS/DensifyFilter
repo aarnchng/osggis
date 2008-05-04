@@ -39,6 +39,8 @@ namespace osgGIS
          */
         DensifyFilter();
 
+        DensifyFilter( const DensifyFilter& rhs );
+
         /**
          * Constructs a new densification filter.
          * @param threshold

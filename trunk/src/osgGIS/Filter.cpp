@@ -23,11 +23,18 @@ using namespace osgGIS;
 
 Filter::Filter()
 {
+    //NOP
 }
 
+Filter::Filter( const Filter& rhs )
+: name( rhs.name )
+{
+    //NOP
+}
 
 Filter::~Filter()
 {
+    //NOP
 }
 
 void

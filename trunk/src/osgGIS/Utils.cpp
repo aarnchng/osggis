@@ -1,6 +1,7 @@
 #include <osgGIS/Utils>
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
+#include <osg/NodeVisitor>
 #include <iostream>
 #include <algorithm>
 #include <float.h>
@@ -147,6 +148,33 @@ GeomUtils::getNumGeodes( osg::Node* node )
         return 0;
     }
 }
+
+struct DVSetter : public osg::NodeVisitor {
+    DVSetter( const osg::Object::DataVariance& _dv ) : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), dv( _dv ) { }
+    void apply( osg::Node& node ) {
+        node.setDataVariance( dv );
+        osg::NodeVisitor::apply( node );
+    }
+    void apply( osg::Geode& geode ) {
+        for( unsigned int i=0; i<geode.getNumDrawables(); i++ ) {
+            geode.getDrawable(i)->setDataVariance( dv );
+        }
+        geode.setDataVariance( dv );
+        osg::NodeVisitor::apply( geode );
+    }
+    osg::Object::DataVariance dv;
+};
+
+void
+GeomUtils::setDataVarianceRecursively( osg::Node* node, const osg::Object::DataVariance& dv )
+{
+    if ( node )
+    {
+        DVSetter setter( dv );
+        node->accept( setter );
+    }
+}
+
 
 
 /*************************************************************************/

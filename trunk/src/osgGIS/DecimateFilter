@@ -32,6 +32,8 @@ namespace osgGIS
     public:
         DecimateFilter();
 
+        DecimateFilter( const DecimateFilter& rhs );
+
         DecimateFilter( double distance_threshold );
 
         ~DecimateFilter();

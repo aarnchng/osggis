@@ -25,17 +25,24 @@ using namespace osgGIS;
 
 FragmentFilter::FragmentFilter()
 {
+    //NOP
 }
 
+FragmentFilter::FragmentFilter( const FragmentFilter& rhs )
+: Filter( rhs )
+{
+    //NOP
+}
 
 FragmentFilter::~FragmentFilter()
 {
+    //NOP
 }
 
 FilterState* 
-FragmentFilter::newState()
+FragmentFilter::newState() const
 {
-    return new FragmentFilterState( this );
+    return new FragmentFilterState( static_cast<FragmentFilter*>( clone() ) );
 }
 
 FragmentList
