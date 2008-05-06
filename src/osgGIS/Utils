@@ -64,6 +64,12 @@ namespace osgGIS
          */
         static bool isPolygonCW(
             const GeoPointList& polygon );
+
+        /**
+         * "Opens" a polygon; i.e. removes the endpoint if it matches the
+         * first point.
+         */
+        static void openPolygon( GeoPointList& polygon );
             
         /**
          * Counts the number of geodes in a scene graph.
@@ -82,6 +88,8 @@ namespace osgGIS
     {
         static osg::Image* convertRGBAtoDDS( 
             osg::Image* in_rgba );
+
+        static bool hasAlpha( osg::Image* image );
             
         static unsigned long roundUpToPowerOf2( 
             unsigned long n,

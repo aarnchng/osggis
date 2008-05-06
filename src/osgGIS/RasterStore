@@ -23,6 +23,8 @@
 #include <osgGIS/Common>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/GeoExtent>
+#include <osg/Image>
+#include <osg/Shape>
 
 namespace osgGIS
 {
@@ -56,13 +58,31 @@ namespace osgGIS
 		virtual const GeoExtent& getExtent() const =0;		
 
         /**
-         * Extracts and returns a raster image from the store. This method
-         * will automatically clip, up/downsample, and convert formats as needed.
+         * Extracts an RGBA image from the raster store.
+         *
+         * @param aoi
+         *      Spatial extent of the area of interest to extract
+         * @param max_span_pixels
+         *      Maximum number of pixels in the returned image, in either dimension
+         * @param force_power_of_2_dimensions
+         *      If true, will resize the image so that both dimensions have a span that is
+         *      an exact power of 2.
          */
-        virtual osg::Image* getImage( 
-            const GeoExtent& extent,
+        virtual osg::Image* createImage( 
+            const GeoExtent& extent, 
             int max_span_pixels,
             bool force_power_of_2_dimensions ) const =0;
+
+        /**
+         * Extracts a height field from the raster store.
+         *
+         * @param aoi
+         *      Spatial extent of the area of interest to extract
+         * @return
+         *      An OSG height field
+         */
+        virtual osg::HeightField* createHeightField(
+            const GeoExtent& aoi ) const =0;
 	};
 }
 

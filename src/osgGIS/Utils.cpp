@@ -125,6 +125,14 @@ GeomUtils::isPolygonCW( const GeoPointList& points )
 }
 
 
+void
+GeomUtils::openPolygon( GeoPointList& polygon )
+{
+    while( polygon.size() > 3 && polygon.front() == polygon.back() )
+        polygon.erase( polygon.end()-1 );
+}
+
+
 struct GeodeCounter : public osg::NodeVisitor {
     GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
     void apply( osg::Geode& geode ) {
@@ -1017,4 +1025,14 @@ ImageUtils::roundToNearestPowerOf2( unsigned long x )
   unsigned long n1 = roundUpToPowerOf2( x );
   unsigned long n0 = n1/2;
   return (n1-x) <= (x-n0)? n1 : n0;
+}
+
+
+bool
+ImageUtils::hasAlpha( osg::Image* image )
+{
+    if ( !image ) return false;
+
+    GLenum pf = image->getPixelFormat();
+    return pf == GL_ALPHA || pf == GL_LUMINANCE_ALPHA || pf == GL_RGBA || pf == GL_BGRA;
 }

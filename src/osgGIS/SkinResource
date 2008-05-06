@@ -24,6 +24,7 @@
 #include <osgGIS/Resource>
 #include <osg/Vec4>
 #include <osg/StateSet>
+#include <osg/TexEnv>
 
 namespace osgGIS
 {
@@ -60,6 +61,9 @@ namespace osgGIS
         void setRepeatsVertically( bool value );
         bool getRepeatsVertically() const;
 
+        void setTextureMode( const osg::TexEnv::Mode& mode );
+        const osg::TexEnv::Mode& getTextureMode() const;
+
         void setColor( const osg::Vec4& value );
         const osg::Vec4& getColor() const;
         
@@ -84,6 +88,7 @@ namespace osgGIS
         double min_tex_height_m;
         double max_tex_height_m;
         bool repeats_vertically;
+        osg::TexEnv::Mode texture_mode;
         osg::Vec4 color;
         osg::ref_ptr<osg::Image> image;
 

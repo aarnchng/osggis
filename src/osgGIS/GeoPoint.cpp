@@ -201,6 +201,11 @@ GeoPointList::intersects( const GeoExtent& ex ) const
             else e.expandToInclude( *i );
         }
         return e.intersects( ex );
-    }
-    
+    }    
+}
+
+bool
+GeoPointList::isClosed() const
+{
+    return size() >= 2 && front() == back();
 }

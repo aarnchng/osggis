@@ -76,7 +76,7 @@ RasterResource::applyToStateSet( osg::StateSet* state_set, const GeoExtent& aoi,
     osg::ref_ptr<RasterStore> rstore = Registry::instance()->getRasterStoreFactory()->connectToRasterStore( getAbsoluteURI() );
     if ( rstore.valid() )
     {
-        osg::ref_ptr<osg::Image> image = rstore->getImage( aoi, max_span_pixels, true );
+        osg::ref_ptr<osg::Image> image = rstore->createImage( aoi, max_span_pixels, true );
         if ( image.valid() )
         {
             // handy in case we want to write it out later
@@ -89,7 +89,7 @@ RasterResource::applyToStateSet( osg::StateSet* state_set, const GeoExtent& aoi,
 
             osg::TexEnv* texenv = new osg::TexEnv();
             texenv = new osg::TexEnv();
-            texenv->setMode( osg::TexEnv::MODULATE );
+            texenv->setMode( osg::TexEnv::DECAL );
 
             state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
             state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );

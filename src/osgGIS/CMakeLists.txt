@@ -28,6 +28,8 @@ SET(LIB_PUBLIC_HEADERS
     DefaultFeatureStoreFactory
     DefaultRasterStoreFactory
     DensifyFilter
+    ElevationGrid
+    ElevationResource
     Ellipsoid
     Export
     ExtrudeGeomFilter
@@ -126,6 +128,8 @@ ADD_LIBRARY(${LIB_NAME}
     DefaultFeatureStoreFactory.cpp
     DefaultRasterStoreFactory.cpp
     DensifyFilter.cpp
+    ElevationGrid.cpp
+    ElevationResource.cpp
     Ellipsoid.cpp
     ExtrudeGeomFilter.cpp
     FadeHelper.cpp

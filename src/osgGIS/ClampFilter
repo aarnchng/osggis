@@ -97,6 +97,18 @@ namespace osgGIS
          */
         const std::string& getClampedZOutputAttribute() const;
 
+        /**
+         * Sets the script tha will evaluate to the name of the elevation resource
+         * to use for clamping.
+         */
+        void setElevationResourceScript( Script* script );
+
+        /**
+         * Gets the script that will evaluate to the name of the elevation resource
+         * to use for clamping.
+         */
+        Script* getElevationResourceScript() const;
+
     public:
 
         virtual void setProperty( const Property& p );
@@ -111,6 +123,7 @@ namespace osgGIS
         Technique technique;
         bool ignore_z;
         std::string clamped_z_output_attribute;
+        osg::ref_ptr<Script> elevation_resource_script;
     };
 };
 
