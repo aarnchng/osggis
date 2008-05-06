@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/ExtrudeGeomFilter>
+#include <osgGIS/Utils>
 #include <osg/Geometry>
 #include <osg/Texture2D>
 #include <osg/TexEnv>
@@ -33,22 +34,19 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( ExtrudeGeomFilter );
 
 
-
-//#define PROP_BATCH "ExtrudeGeomFilter::batch"
-//#define PROP_WALL_SKIN "ExtrudeGeomFilter::wall_skin"
-
-#define DEFAULT_USE_VBOS false
+#define DEFAULT_UNIFORM_HEIGHT true
 
 
 ExtrudeGeomFilter::ExtrudeGeomFilter()
 {
-    //NOP
+    setUniformHeight( DEFAULT_UNIFORM_HEIGHT );
 }
 
 ExtrudeGeomFilter::ExtrudeGeomFilter( const ExtrudeGeomFilter& rhs )
 : BuildGeomFilter( rhs ),
   height_script( rhs.height_script.get() ),
-  wall_skin_script( rhs.wall_skin_script.get() )
+  wall_skin_script( rhs.wall_skin_script.get() ),
+  uniform_height( rhs.uniform_height )
 {
     //NOP
 }
@@ -84,12 +82,26 @@ ExtrudeGeomFilter::getWallSkinScript() const
 }
 
 void
+ExtrudeGeomFilter::setUniformHeight( bool value )
+{
+    uniform_height = value;
+}
+
+bool
+ExtrudeGeomFilter::getUniformHeight() const
+{
+    return uniform_height;
+}
+
+void
 ExtrudeGeomFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "height" )
         setHeightScript( new Script( p.getValue() ) );
     else if ( p.getName() == "wall_skin" )
         setWallSkinScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "uniform_height" )
+        setUniformHeight( p.getBoolValue( getUniformHeight() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -102,6 +114,8 @@ ExtrudeGeomFilter::getProperties() const
         p.push_back( Property( "height", getHeightScript()->getCode() ) );
     if ( getWallSkinScript() )
         p.push_back( Property( "wall_skin", getWallSkinScript()->getCode() ) );
+    if ( getUniformHeight() != DEFAULT_UNIFORM_HEIGHT )
+        p.push_back( Property( "uniform_height", getUniformHeight() ) );
     return p;
 }
 
@@ -109,7 +123,8 @@ ExtrudeGeomFilter::getProperties() const
 static bool
 extrudeWallsUp(const GeoShape&         shape, 
                const SpatialReference* srs, 
-               double                  height, 
+               double                  height,
+               bool                    uniform_height,
                osg::Geometry*          walls,
                osg::Geometry*          rooflines,
                const osg::Vec4&        color,
@@ -199,19 +214,32 @@ extrudeWallsUp(const GeoShape&         shape,
                         if ( srs->isGeocentric() )
                         {
                             osg::Vec3d p_vec = m_world;
-                            osg::Vec3d e_vec = p_vec;
-                            e_vec.normalize();
-                            double gap_len = target_len - (p_vec+(e_vec*height)).length();
-
-                            double p_len = p_vec.length();
-                            double ratio = target_len/p_len;
-                            p_vec *= ratio;
+                            
+                            if ( uniform_height )
+                            {
+                                double p_len = p_vec.length();
+                                double ratio = target_len/p_len;
+                                p_vec *= ratio;
+                            }
+                            else
+                            {
+                                osg::Vec3d unit_vec = p_vec; 
+                                unit_vec.normalize();
+                                p_vec = p_vec + unit_vec*height;
+                            }
 
                             extrude_vec = p_vec * srs->getReferenceFrame();
                         }
                         else
                         {
-                            extrude_vec.set( m_world.x(), m_world.y(), target_len );
+                            if ( uniform_height )
+                            {
+                                extrude_vec.set( m_world.x(), m_world.y(), target_len );
+                            }
+                            else
+                            {
+                                extrude_vec.set( m_world.x(), m_world.y(), m_world.z() + height );
+                            }
                             extrude_vec = extrude_vec * srs->getReferenceFrame();
                         }
                     }
@@ -226,7 +254,6 @@ extrudeWallsUp(const GeoShape&         shape,
                         (*roof_verts)[roof_vert_ptr++] = extrude_vec;
                     }
 
-                    //double height = (extrude_vec - *m).length();
                      
                     part_len += wall_vert_ptr > wall_part_ptr?
                         (extrude_vec - (*verts)[wall_vert_ptr-2]).length() :
@@ -257,7 +284,7 @@ extrudeWallsUp(const GeoShape&         shape,
             if ( pass == 1 )
             {
                 // close the wall if it's a poly:
-                if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
+                if ( shape.getShapeType() == GeoShape::TYPE_POLYGON && !part.isClosed() )
                 {
                     part_len += wall_vert_ptr > wall_part_ptr?
                         ((*verts)[wall_part_ptr] - (*verts)[wall_vert_ptr-2]).length() :
@@ -277,7 +304,7 @@ extrudeWallsUp(const GeoShape&         shape,
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = (*verts)[wall_part_ptr];
-                    (*texcoords)[p].set( part_len/tex_width_m, h );
+                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
@@ -351,9 +378,9 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
 
     osg::Vec4 color = getColorForFeature( input, env );
 
-    for( GeoShapeList::const_iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
+    for( GeoShapeList::iterator j = input->getShapes().begin(); j != input->getShapes().end(); j++ )
     {
-        const GeoShape& shape = *j;
+        GeoShape& shape = *j;
 
         double height = 0.0;
         
@@ -374,8 +401,14 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         {
             rooflines = new osg::Geometry();
         }
+        
+        // prep the shapes by making sure all polys are open:
+        for( GeoPartList::iterator i = shape.getParts().begin(); i != shape.getParts().end(); i++ )
+        {
+            GeomUtils::openPolygon( *i );
+        }
 
-        if ( extrudeWallsUp( shape, env->getInputSRS(), height, walls.get(), rooflines.get(), color, skin ) )
+        if ( extrudeWallsUp( shape, env->getInputSRS(), height, getUniformHeight(), walls.get(), rooflines.get(), color, skin ) )
         {      
             if ( skin )
             {

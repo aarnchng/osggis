@@ -318,9 +318,17 @@ public:
 };
 
 
+static void
+scrubPart( GeoPointList& part )
+{
+    while( part.size() >= 0 && part.front() == part.back() )
+        part.erase( part.end()-1 );
+}
+
+
 // poly clipping algorithm Aug 2007
 bool
-cropNonConvexPolygonPart( const GeoPointList& initial_input, const GeoExtent& window, GeoPartList& final_outputs )
+cropPolygonPart( const GeoPointList& initial_input, const GeoExtent& window, GeoPartList& final_outputs )
 {
     // trivial rejection for a non-polygon:
     if ( initial_input.size() < 3 )
@@ -357,7 +365,9 @@ cropNonConvexPolygonPart( const GeoPointList& initial_input, const GeoExtent& wi
         // run against each input part.
         for( GeoPartList::iterator i = inputs.begin(); i != inputs.end(); i++ )
         {
-            GeoPointList& input = *i;
+            //GeoPointList& input = *i;
+            GeoPointList input = *i;
+            scrubPart( input );
 
             // trivially reject a degenerate part (should never happen ;)
             if ( input.size() < 3 )
@@ -653,7 +663,7 @@ cropPart( const GeoPointList& part, const GeoExtent& extent, const GeoShape::Sha
 
     if ( type == GeoShape::TYPE_POLYGON )
     {
-        cropNonConvexPolygonPart( part, extent, outputs );
+        cropPolygonPart( part, extent, outputs );
     }
     else if ( type == GeoShape::TYPE_LINE )
     {

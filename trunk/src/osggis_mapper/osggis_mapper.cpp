@@ -139,7 +139,7 @@ public:
             if ( view->computeIntersections( ea.getX(), ea.getY(), hits ) )
             {
                 osgUtil::LineSegmentIntersector::Intersection& first = *hits.begin();
-                osg::Vec3 hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
+                osg::Vec3d hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
                 osgGIS::GeoPoint world( hit, terrain_srs.get() );
                 //osgGIS::GeoPoint world( first.getWorldIntersectPoint(), terrain_srs.get() );
                 osgGIS::GeoPoint result = terrain_srs->getBasisSRS()->transform( world );

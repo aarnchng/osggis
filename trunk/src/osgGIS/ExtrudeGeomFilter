@@ -24,13 +24,11 @@
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/SkinResource>
 #include <osgGIS/Script>
-#include <osg/Texture>
-#include <osg/TexEnv>
 
 namespace osgGIS
 {
     /**
-     * Extrudes vector footprints into 3D geometries.
+     * Extrudes vector footprint polygons or lines into 3D geometries.
      */
     class OSGGIS_EXPORT ExtrudeGeomFilter : public BuildGeomFilter
     {
@@ -57,6 +55,21 @@ namespace osgGIS
         void setWallSkinScript( Script* script );
         
         Script* getWallSkinScript() const;
+
+        /**
+         * Sets whether to extrude all points on the feature to the same
+         * absolute Z. If true, the points comprising the top of the extruded
+         * feature walls will all be at the same Z (ideal for buildings). If
+         * false, the contour of the top will match the contour of the footprint
+         * (ideal for fences, etc.)
+         */
+        void setUniformHeight( bool value );
+
+        /**
+         * Gets twhether to extrude all points on the feature to the same
+         * absolute Z.
+         */
+        bool getUniformHeight() const;
         
 
     protected:
@@ -69,11 +82,11 @@ namespace osgGIS
     private:
         osg::ref_ptr<Script> height_script;
         osg::ref_ptr<Script> wall_skin_script;
+        bool uniform_height;
         
         SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
 
     private: // transients
-        //bool has_batch_wall_skin;
         osg::ref_ptr<SkinResource> batch_wall_skin;
     };
 }

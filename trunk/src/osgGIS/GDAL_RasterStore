@@ -43,10 +43,13 @@ namespace osgGIS
 		
 		const GeoExtent& getExtent() const;
 
-        osg::Image* getImage( 
+        osg::Image* createImage( 
             const GeoExtent& extent, 
             int max_span_pixels,
             bool force_power_of_2_dimensions ) const;
+
+        osg::HeightField* createHeightField(
+            const GeoExtent& aoi ) const;
 		
 	public:
 		virtual ~GDAL_RasterStore();
@@ -56,7 +59,7 @@ namespace osgGIS
         GDALDataset* dataset;
         double geo_transform[6];
         bool has_geo_transform;
-        int size_x, size_y, num_bands;
+        int size_x, size_y, res_x, res_y, num_bands;
 		osg::ref_ptr<SpatialReference> spatial_ref;
 		GeoExtent extent;
         

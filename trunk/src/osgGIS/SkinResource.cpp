@@ -24,6 +24,7 @@
 #include <osg/Texture2D>
 #include <osg/Image>
 #include <osg/TexEnv>
+#include <osg/BlendFunc>
 #include <OpenThreads/ScopedLock>
 
 using namespace osgGIS;
@@ -33,6 +34,8 @@ using namespace OpenThreads;
 OSGGIS_DEFINE_RESOURCE(SkinResource);
 
 static std::string EMPTY_STRING = "";
+
+#define DEFAULT_TEXTURE_MODE osg::TexEnv::MODULATE
 
 
 SkinResource::SkinResource()
@@ -62,6 +65,7 @@ SkinResource::init()
     setMaxTextureHeightMeters( DBL_MAX );
     setColor( osg::Vec4( 1, 1, 1, 1 ) );
     setRepeatsVertically( true );
+    setTextureMode( DEFAULT_TEXTURE_MODE );
 }
 
 SkinResource::~SkinResource()
@@ -84,6 +88,8 @@ SkinResource::setProperty( const Property& prop )
         setColor( prop.getVec4Value() );
     else if ( prop.getName() == "repeats_vertically" )
         setRepeatsVertically( prop.getBoolValue( getRepeatsVertically() ) );
+    else if ( prop.getName() == "texture_mode" )
+        setTextureMode( prop.getValue()=="decal"? osg::TexEnv::DECAL: prop.getValue()=="replace"? osg::TexEnv::REPLACE: prop.getValue()=="blend"? osg::TexEnv::BLEND : osg::TexEnv::MODULATE );
     else if ( prop.getName() == "texture_path" )
         setURI( prop.getValue() ); // for backwards compat... use <uri> instead
     else
@@ -100,6 +106,8 @@ SkinResource::getProperties() const
     props.push_back( Property( "max_texture_height", getMaxTextureHeightMeters() ) );
     props.push_back( Property( "color", getColor() ) );
     props.push_back( Property( "repeats_vertically", getRepeatsVertically() ) );
+    if ( getTextureMode() != DEFAULT_TEXTURE_MODE )
+        props.push_back( Property( "texture_mode", getTextureMode()==osg::TexEnv::DECAL? "decal" : getTextureMode()==osg::TexEnv::REPLACE? "replace" : getTextureMode()==osg::TexEnv::BLEND? "blend" : "modulate" ) );
     return props;
 }
 
@@ -165,6 +173,18 @@ SkinResource::getRepeatsVertically() const
 }
 
 void
+SkinResource::setTextureMode( const osg::TexEnv::Mode& value )
+{
+    texture_mode = value;
+}
+
+const osg::TexEnv::Mode&
+SkinResource::getTextureMode() const
+{
+    return texture_mode;
+}
+
+void
 SkinResource::setColor( const osg::Vec4& value )
 {
     color = value;
@@ -179,20 +199,25 @@ SkinResource::getColor() const
 osg::StateSet*
 SkinResource::createStateSet()
 {
-    osg::Image* image = new osg::Image();
-    image->setFileName( getAbsoluteURI() );
-
-    osg::Texture* tex = new osg::Texture2D( image );
+    osg::Texture* tex = new osg::Texture2D( getImage() );
     tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
     tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
 
     osg::TexEnv* texenv = new osg::TexEnv();
     texenv = new osg::TexEnv();
-    texenv->setMode( osg::TexEnv::MODULATE );
+    texenv->setMode( getTextureMode() );
 
     osg::StateSet* state_set = new osg::StateSet();
     state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
     state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );
+
+    if ( ImageUtils::hasAlpha( getImage() ) )
+    {
+        osg::BlendFunc* blend_func = new osg::BlendFunc();
+        blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        state_set->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
+        state_set->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+    }
 
     return state_set;
 }

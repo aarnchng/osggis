@@ -120,7 +120,6 @@ BuildGeomFilter::getFeatureNameScript() const
     return feature_name_script.get();
 }
 
-
 void
 BuildGeomFilter::setProperty( const Property& prop )
 {
@@ -217,7 +216,7 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
             shape.getShapeType() == GeoShape::TYPE_POINT? osg::PrimitiveSet::POINTS : 
             shape.getShapeType() == GeoShape::TYPE_LINE?  osg::PrimitiveSet::LINE_STRIP :
             osg::PrimitiveSet::LINE_LOOP;
-
+        
         for( unsigned int pi = 0; pi < shape.getPartCount(); pi++ )
         {
             unsigned int part_ptr = vert_ptr;

@@ -117,7 +117,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     if ( input_sr->isGeocentric() )
     {
         input.set( input * input_sr->getInverseReferenceFrame() );
-        osg::Vec3 temp = input_sr->getBasisEllipsoid().geocentricToLatLong( input );
+        osg::Vec3d temp = input_sr->getBasisEllipsoid().geocentricToLatLong( input );
         input = GeoPoint( temp, input_sr->getBasisSRS() ); 
         input_sr = static_cast<OGR_SpatialReference*>( input.getSRS() );
     }

@@ -20,6 +20,7 @@
 #include <osgGIS/ClampFilter>
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/LineSegmentIntersector2>
+#include <osgGIS/ELevationResource>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/PlaneIntersector>
 
@@ -39,7 +40,8 @@ ClampFilter::ClampFilter( const ClampFilter& rhs )
 : FeatureFilter( rhs ),
   technique( rhs.technique ),
   ignore_z( rhs.ignore_z ),
-  clamped_z_output_attribute( rhs.clamped_z_output_attribute )
+  clamped_z_output_attribute( rhs.clamped_z_output_attribute ),
+  elevation_resource_script( rhs.elevation_resource_script.get() )
 {
     //NOP
 }
@@ -86,6 +88,18 @@ ClampFilter::getClampedZOutputAttribute() const
 }
 
 void
+ClampFilter::setElevationResourceScript( Script* value )
+{
+    elevation_resource_script = value;
+}
+
+Script*
+ClampFilter::getElevationResourceScript() const
+{
+    return elevation_resource_script.get();
+}
+
+void
 ClampFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "technique" ) {
@@ -98,6 +112,8 @@ ClampFilter::setProperty( const Property& p )
         setIgnoreZ( p.getBoolValue( getIgnoreZ() ) );
     else if ( p.getName() == "clamped_z_output_attribute" )
         setClampedZOutputAttribute( p.getValue() );
+    else if ( p.getName() == "elevation" )
+        setElevationResourceScript( new Script( p.getValue() ) );
 
     FeatureFilter::setProperty( p );
 }
@@ -115,6 +131,8 @@ ClampFilter::getProperties() const
 
     if ( getClampedZOutputAttribute().length() > 0 )
         p.push_back( Property( "clamped_z_output_attribute", getClampedZOutputAttribute() ) );
+    if ( getElevationResourceScript() )
+        p.push_back( Property( "elevation", getElevationResourceScript()->getCode() ) );
 
     return p;
 }
@@ -122,13 +140,13 @@ ClampFilter::getProperties() const
 #define ALTITUDE_EXTENSION 250000
 #define DEFAULT_OFFSET_EXTENSION 0
 
-int
-clampPointPart(GeoPointList&           part,
-               osg::Node*              terrain,
-               const SpatialReference* srs,
-               bool                    ignore_z,
-               SmartReadCallback*      read_cache,
-               double&                 out_clamped_z )
+static int
+clampPointPartToTerrain(GeoPointList&           part,
+                        osg::Node*              terrain,
+                        const SpatialReference* srs,
+                        bool                    ignore_z,
+                        SmartReadCallback*      read_cache,
+                        double&                 out_clamped_z )
 {
     int clamps = 0;
     out_clamped_z = DBL_MAX;
@@ -214,13 +232,13 @@ clampPointPart(GeoPointList&           part,
 }
 
 
-void
-clampLinePart(GeoPointList&           in_part,
-              osg::Node*              terrain, 
-              const SpatialReference* srs,
-              bool                    ignore_z,
-              SmartReadCallback*      read_cache,
-              GeoPartList&            out_parts )
+static void
+clampLinePartToTerrain(GeoPointList&           in_part,
+                       osg::Node*              terrain, 
+                       const SpatialReference* srs,
+                       bool                    ignore_z,
+                       SmartReadCallback*      read_cache,
+                       GeoPartList&            out_parts )
 {
     osgUtil::IntersectionVisitor iv;
 
@@ -325,7 +343,7 @@ clampLinePart(GeoPointList&           in_part,
             test[0] = p0;
             test[1] = p1;
             double out_clamped_z = 0.0;
-            if ( clampPointPart( test, target, srs, ignore_z, NULL, out_clamped_z ) < 2 )
+            if ( clampPointPartToTerrain( test, target, srs, ignore_z, NULL, out_clamped_z ) < 2 )
             {
                 target = terrain;
             }
@@ -335,13 +353,13 @@ clampLinePart(GeoPointList&           in_part,
 
         if ( isector->containsIntersections() )
         {
-            GeoPointList new_part;
-
             osgUtil::PlaneIntersector::Intersections& results = isector->getIntersections();
             for( osgUtil::PlaneIntersector::Intersections::iterator k = results.begin();
                 k != results.end();
                 k++ )
-            {                
+            {                       
+                GeoPointList new_part;
+
                 osgUtil::PlaneIntersector::Intersection& isect = *k;
                 for( osgUtil::PlaneIntersector::Intersection::Polyline::iterator j = isect.polyline.begin();
                      j != isect.polyline.end();
@@ -372,9 +390,14 @@ clampLinePart(GeoPointList&           in_part,
                 
                 //TODO: i guess we really need a MRU queue instead..?
                 read_cache->setMruNode( isect.nodePath.back() );
-            }
 
-            out_parts.push_back( new_part );
+                // add the new polyline part to the result set:
+                if ( new_part.size() >= 2 )
+                    out_parts.push_back( new_part );
+
+                //TESTING - just read the first result:
+                //break;
+            }
         }
         else
         {
@@ -387,20 +410,20 @@ clampLinePart(GeoPointList&           in_part,
 }
 
 
-void
-clampPolyPart(GeoPointList&           part,
-              osg::Node*              terrain,
-              const SpatialReference* srs,
-              bool                    ignore_z,
-              SmartReadCallback*      read_cache,
-              double&                 out_clamped_z )
+static void
+clampPolyPartToTerrain(GeoPointList&           part,
+                       osg::Node*              terrain,
+                       const SpatialReference* srs,
+                       bool                    ignore_z,
+                       SmartReadCallback*      read_cache,
+                       double&                 out_clamped_z )
 {
-    clampPointPart( part, terrain, srs, ignore_z, read_cache, out_clamped_z );
+    clampPointPartToTerrain( part, terrain, srs, ignore_z, read_cache, out_clamped_z );
 }
 
 
 // removes coincident points.
-void
+static void
 cleansePart( GeoPointList& part )
 {
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
@@ -443,15 +466,15 @@ ClampFilter::process( Feature* input, FilterEnv* env )
                 switch( shape.getShapeType() )
                 {
                 case GeoShape::TYPE_POINT:
-                    clampPointPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
+                    clampPointPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
                     break;
 
                 case GeoShape::TYPE_LINE:
-                    clampLinePart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), new_parts );
+                    clampLinePartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), new_parts );
                     break;
 
                 case GeoShape::TYPE_POLYGON:
-                    clampPolyPart( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
+                    clampPolyPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
                     break;
                 }
 

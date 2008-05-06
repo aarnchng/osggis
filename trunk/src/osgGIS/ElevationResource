@@ -17,10 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_RASTER_RESOURCE_H_
-#define _OSGGIS_RASTER_RESOURCE_H_ 1
+#ifndef _OSGGIS_ELEVATION_RESOURCE_H_
+#define _OSGGIS_ELEVATION_RESOURCE_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/ElevationGrid>
 #include <osgGIS/Resource>
 #include <osgGIS/RasterStore>
 #include <osg/Vec4>
@@ -29,24 +30,24 @@
 namespace osgGIS
 {
     /**
-     * Defines a georeference raster that can be used as a texture.
+     * Defines a georeferenced elevation grid that can be used for querying
+     * terrain heights.
      */
-    class OSGGIS_EXPORT RasterResource : public Resource
+    class OSGGIS_EXPORT ElevationResource : public Resource
     {
-        OSGGIS_META_RESOURCE(RasterResource);
+        OSGGIS_META_RESOURCE(ElevationResource);
 
     public:
-        RasterResource();
-        RasterResource( const std::string& name );
+        ElevationResource();
+        ElevationResource( const std::string& name );
 
     public:
 
-        bool applyToStateSet( 
-            osg::StateSet*     state_set,
-            const GeoExtent&   aoi,
-            int                max_pixels,
-            const std::string& image_name ="",
-            osg::Image**       out_image =0L );
+        /**
+         * Extracts and creates an elevation grid from the resource that you can then
+         * query for height values.
+         */
+        ElevationGrid* createGrid( const GeoExtent& aoi ) const;
 
     public: 
 
@@ -55,13 +56,13 @@ namespace osgGIS
 
     protected:
 
-        virtual ~RasterResource();
+        virtual ~ElevationResource();
 
     private:
         void init();
     };
     
-    typedef std::vector< osg::ref_ptr<RasterResource> > RasterResourceVec;
+    typedef std::vector< osg::ref_ptr<ElevationResource> > ElevationResourceVec;
 }
 
-#endif // _OSGGIS_RASTER_RESOURCE_H_
+#endif // _OSGGIS_ELEVATION_RESOURCE_H_

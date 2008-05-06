@@ -78,18 +78,19 @@ BufferFilter::getProperties() const
 
 
 struct Segment {
-    Segment( osg::Vec3& _p0, osg::Vec3& _p1 ) : p0(_p0), p1(_p1) { }
-    osg::Vec3 p0, p1;
+    Segment( osg::Vec3d& _p0, osg::Vec3d& _p1 ) : p0(_p0), p1(_p1) { }
+    Segment( const Segment& rhs ) : p0(rhs.p0), p1(rhs.p1) { }
+    osg::Vec3d p0, p1;
 };
 typedef std::vector<Segment> SegmentList;
 
 static bool
-getLineIntersection( Segment& s0, Segment& s1, osg::Vec3& output )
+getLineIntersection( Segment& s0, Segment& s1, osg::Vec3d& output )
 {
-    osg::Vec3& p1 = s0.p0;
-    osg::Vec3& p2 = s0.p1;
-    osg::Vec3& p3 = s1.p0;
-    osg::Vec3& p4 = s1.p1;
+    osg::Vec3d& p1 = s0.p0;
+    osg::Vec3d& p2 = s0.p1;
+    osg::Vec3d& p3 = s1.p0;
+    osg::Vec3d& p4 = s1.p1;
 
     double denom = (p4.y()-p3.y())*(p2.x()-p1.x()) - (p4.x()-p3.x())*(p2.y()-p1.y());
     if ( denom != 0.0 )
@@ -126,13 +127,13 @@ bufferPolygons( const GeoShape& shape, double b, GeoPartList& output )
         SegmentList segments;
         for( GeoPointList::const_iterator j = part.begin(); j != part.end(); j++ )
         {
-            const osg::Vec3& p0 = *j;
-            const osg::Vec3& p1 = (j+1) != part.end()? *(j+1) : *part.begin();
+            const osg::Vec3d& p0 = *j;
+            const osg::Vec3d& p1 = (j+1) != part.end()? *(j+1) : *part.begin();
 
-            osg::Vec3 d = p1-p0; d.normalize();
+            osg::Vec3d d = p1-p0; d.normalize();
 
-            osg::Vec3 b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
-            osg::Vec3 b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
+            osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
+            osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
             segments.push_back( Segment( b0, b1 ) );
         }
 
@@ -142,7 +143,7 @@ bufferPolygons( const GeoShape& shape, double b, GeoPartList& output )
             Segment& s0 = *k;
             Segment& s1 = (k+1) != segments.end()? *(k+1) : *segments.begin();
 
-            osg::Vec3 isect;
+            osg::Vec3d isect;
             if ( getLineIntersection( s0, s1, isect ) )
             {
                 GeoPoint r( isect, part[0].getSRS() );
@@ -156,12 +157,88 @@ bufferPolygons( const GeoShape& shape, double b, GeoPartList& output )
     }
 }
 
+
+static void
+bufferLines( const GeoShape& input, double b, GeoShape& output )
+{
+    // buffering lines turns them into polygons
+    for( GeoPartList::const_iterator i = input.getParts().begin(); i != input.getParts().end(); i++ )
+    {
+        const GeoPointList& part = *i;
+        if ( part.size() < 2 ) continue;
+
+        GeoPointList new_part;
+
+        // collect segments in one direction and then the other.
+        SegmentList segments;
+        for( GeoPointList::const_iterator j = part.begin(); j != part.end()-1; j++ )
+        {
+            const osg::Vec3d& p0 = *j;
+            const osg::Vec3d& p1 = *(j+1);
+
+            osg::Vec3d d = p1-p0; d.normalize();
+
+            osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
+            osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
+            segments.push_back( Segment( b0, b1 ) );
+
+            // after the last seg, add an end-cap:
+            if ( j == part.end()-2 )
+            {
+                osg::Vec3d b2( p1.x() - b*d.y(), p1.y() + b*d.x(), p1.z() );
+                segments.push_back( Segment( b1, b2 ) );
+            }
+        }
+
+        // now back the other way:
+        for( GeoPointList::const_reverse_iterator j = part.rbegin(); j != part.rend()-1; j++ )
+        {
+            const osg::Vec3d& p0 = *j;
+            const osg::Vec3d& p1 = *(j+1);
+
+            osg::Vec3d d = p1-p0; d.normalize();
+
+            osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
+            osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
+            segments.push_back( Segment( b0, b1 ) );
+
+            // after the last seg, add an end-cap:
+            if ( j == part.rend()-2 )
+            {
+                osg::Vec3d b2( p1.x() - b*d.y(), p1.y() + b*d.x(), p1.z() );
+                segments.push_back( Segment( b1, b2 ) );
+            }
+        }
+
+        // then intersect each pair of segments to find the new verts:
+        for( SegmentList::iterator k = segments.begin(); k != segments.end(); k++ )
+        {
+            Segment& s0 = *k;
+            Segment& s1 = (k+1) != segments.end()? *(k+1) : *segments.begin();
+
+            osg::Vec3d isect;
+            if ( getLineIntersection( s0, s1, isect ) )
+            {
+                GeoPoint r( isect, part[0].getSRS() );
+                r.setDim( part[0].getDim() );
+                new_part.push_back( r );
+            }
+        }
+
+        if ( new_part.size() > 2 )
+            output.getParts().push_back( new_part );
+    }
+}
+
 FeatureList
 BufferFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
 
     GeoShapeList& shapes = input->getShapes();
+
+    GeoShapeList new_shapes;
+
     for( GeoShapeList::iterator i = shapes.begin(); i != shapes.end(); i++ )
     {
         GeoPartList new_parts;
@@ -169,12 +246,20 @@ BufferFilter::process( Feature* input, FilterEnv* env )
 
         if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
         {
-            bufferPolygons( shape, getDistance(), new_parts );
+            GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
+            bufferPolygons( shape, getDistance(), new_shape.getParts() );
+            new_shapes.push_back( new_shape );
         }
-
-        if ( new_parts.size() > 0 )
-            shape.getParts().swap( new_parts );
+        else if ( shape.getShapeType() == GeoShape::TYPE_LINE )
+        {
+            GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
+            bufferLines( shape, getDistance(), new_shape );
+            new_shapes.push_back( new_shape );
+        }
     }
+
+    if ( new_shapes.size() > 0 )
+        input->getShapes().swap( new_shapes );
 
     output.push_back( input );
     return output;

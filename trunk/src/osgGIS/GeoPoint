@@ -149,6 +149,12 @@ namespace osgGIS
 
     public:
         bool intersects( const GeoExtent& e ) const;
+
+        /**
+         * Returns true is the point list is "closed", i.e. the last point
+         * is equal to the first (in 2D)
+         */
+        bool isClosed() const;
     };
     //typedef std::vector<GeoPoint> GeoPointList;
 
