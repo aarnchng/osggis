@@ -141,7 +141,6 @@ public:
                 osgUtil::LineSegmentIntersector::Intersection& first = *hits.begin();
                 osg::Vec3d hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
                 osgGIS::GeoPoint world( hit, terrain_srs.get() );
-                //osgGIS::GeoPoint world( first.getWorldIntersectPoint(), terrain_srs.get() );
                 osgGIS::GeoPoint result = terrain_srs->getBasisSRS()->transform( world );
 
                 int count = 0;
@@ -189,8 +188,7 @@ public:
         change->setNewShapeType( osgGIS::GeoShape::TYPE_POLYGON );
         graph->appendFilter( change );
 
-        double distance = terrain_srs->isProjected()? 1.2 : 0.00002;
-        osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( distance );
+        osgGIS::BufferFilter* buffer = new osgGIS::BufferFilter( 1.25 ); //meters
         graph->appendFilter( buffer );
         
         osgGIS::TransformFilter* xform = new osgGIS::TransformFilter();
