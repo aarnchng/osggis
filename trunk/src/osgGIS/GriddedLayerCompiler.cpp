@@ -23,6 +23,7 @@
 #include <osgGIS/FadeHelper>
 #include <osgGIS/Task>
 #include <osgGIS/TaskManager>
+#include <osgGIS/Units>
 #include <osgGIS/Utils>
 #include <osg/Node>
 #include <osg/LOD>
@@ -318,6 +319,15 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
 
         if ( row_size > 0.0 )
         {
+            //if ( aoi.getSRS()->isGeographic() )
+            //{
+            //    osg::Vec2d vec( 0, row_size );
+            //    osg::Vec2d centroid( aoi.getCentroid().x(), aoi.getCentroid().y() );
+            //    osg::Vec2d output;
+            //    Units::convertLinearToAngularVector( vec, Units::METERS, Units::DEGREES, centroid, output );
+            //    row_size = output.y();
+            //}
+
             num_rows = (int) ::ceil( aoi.getHeight()/row_size );
             dy = row_size;
             last_dy = ::fmod( aoi.getHeight(), row_size );
@@ -332,6 +342,15 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
 
         if ( col_size > 0.0 )
         {
+            //if ( aoi.getSRS()->isGeographic() )
+            //{
+            //    osg::Vec2d vec( col_size, 0 );
+            //    osg::Vec2d centroid( aoi.getCentroid().x(), aoi.getCentroid().y() );
+            //    osg::Vec2d output;
+            //    Units::convertLinearToAngularVector( vec, Units::METERS, Units::DEGREES, centroid, output );
+            //    row_size = output.x();
+            //}
+
             num_cols = (int) ::ceil( aoi.getWidth()/col_size );
             dx = col_size;
             last_dx = ::fmod( aoi.getWidth(), col_size );

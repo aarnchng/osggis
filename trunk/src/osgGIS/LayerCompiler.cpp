@@ -298,27 +298,6 @@ LayerCompiler::setProperties( Properties& input )
 }
 
 
-//void
-//LayerCompiler::generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent )
-//{
-//    RasterResource* raster = getSession()->getResources()->getRaster( overlay_raster_name );
-//    if ( raster )
-//    {
-//        osg::Image* image = NULL;
-//        int x = (int)tile_extent.getCentroid().x();
-//        int y = (int)tile_extent.getCentroid().y();
-//        std::stringstream builder;
-//        builder << "gtex_" << x << "x" << y << ".jpg"; //TODO: dds with DXT1 compression
-//        if ( raster->applyToStateSet( node->getOrCreateStateSet(), tile_extent, 0, builder.str(), &image ) )
-//        {
-//            // add this as a skin resource so the compiler can properly localize and deploy it.
-//            SkinResource* skin = new SkinResource( image );
-//            getSession()->markResourceUsed( skin );
-//        }
-//    }
-//}
-
-
 void
 LayerCompiler::localizeResourceReferences( osg::Node* node )
 {

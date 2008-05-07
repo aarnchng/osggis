@@ -1,0 +1,79 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_UNITS_H_
+#define _OSGGIS_UNITS_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/Vec2d>
+
+namespace osgGIS
+{
+    /**
+     * Handles units representation and conversion
+     */
+    class OSGGIS_EXPORT Units
+    {
+    public:
+        static class Units METERS;
+        static class Units FEET;
+        static class Units MILES;
+        static class Units KILOMETERS;
+        static class Units DEGREES;
+        static class Units RADIANS;
+
+    public:
+        enum Type {
+            TYPE_LINEAR,
+            TYPE_ANGULAR
+        };
+
+    public:
+        /**
+         * Converts a value from one unit to another. The "from" and "to" units must be
+         * of the same type (linear or angular).
+         */
+        static bool convert( double value, const Units& from, const Units& to, double& output );
+
+        static bool convertAngularToLinearVector(
+            const osg::Vec2d& p0_in, const osg::Vec2d& p1_in,
+            const Units& from,
+            const Units& to,
+            osg::Vec2d& out_linear_vector );
+
+        static bool convertLinearToAngularVector(
+            const osg::Vec2d& input_in,
+            const Units& from,
+            const Units& to,
+            const osg::Vec2d& angular_p0,
+            osg::Vec2d& out_angular_p1);
+
+        bool isAngular() const;
+        bool isLinear() const;
+        double getBaseline() const;
+        Type getType() const;
+
+    protected:
+        Units( Type, double to_baseline );
+        double to_baseline;
+        Type type;
+    };
+}
+
+#endif // _OSGGIS_UNITS_H_

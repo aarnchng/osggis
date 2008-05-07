@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/BufferFilter>
+#include <osgGIS/Units>
 
 using namespace osgGIS;
 
@@ -84,6 +85,9 @@ struct Segment {
 };
 typedef std::vector<Segment> SegmentList;
 
+// gets the point of intersection between two lines represented by the line
+// segments passed in (note the intersection point may not be on the finite
+// segment). If the lines are parallel, returns a point in the middle
 static bool
 getLineIntersection( Segment& s0, Segment& s1, osg::Vec3d& output )
 {
@@ -239,6 +243,18 @@ BufferFilter::process( Feature* input, FilterEnv* env )
 
     GeoShapeList new_shapes;
 
+    double b = getDistance();
+    if ( env->getInputSRS()->isGeographic() )
+    {
+        //TODO: we SHOULD do this for each and every feature buffer segment, but
+        //  for how this is a shortcut approximation.
+        osg::Vec2d vec( b, b ); vec.normalize();
+        osg::Vec2d p0( input->getExtent().getXMin(), input->getExtent().getYMin() );
+        osg::Vec2d p1;
+        Units::convertLinearToAngularVector( vec, Units::METERS, Units::DEGREES, p0, p1 );
+        b = (p1-p0).length();
+    }
+
     for( GeoShapeList::iterator i = shapes.begin(); i != shapes.end(); i++ )
     {
         GeoPartList new_parts;
@@ -247,13 +263,13 @@ BufferFilter::process( Feature* input, FilterEnv* env )
         if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
         {
             GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
-            bufferPolygons( shape, getDistance(), new_shape.getParts() );
+            bufferPolygons( shape, b, new_shape.getParts() );
             new_shapes.push_back( new_shape );
         }
         else if ( shape.getShapeType() == GeoShape::TYPE_LINE )
         {
             GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
-            bufferLines( shape, getDistance(), new_shape );
+            bufferLines( shape, b, new_shape );
             new_shapes.push_back( new_shape );
         }
     }
