@@ -24,13 +24,13 @@ using namespace osgGIS;
 
 GeocentricSpatialReference::GeocentricSpatialReference( const SpatialReference* _basis )
 {
-    basis = _basis? (SpatialReference*)_basis->getBasisSRS() : NULL;
+    basis = _basis? (SpatialReference*)_basis->getGeographicSRS() : NULL;
 }
 
 GeocentricSpatialReference::GeocentricSpatialReference(const SpatialReference* _basis,
                                                        const osg::Matrixd&     _ref_frame)
 {
-    basis = _basis? (SpatialReference*)_basis->getBasisSRS() : NULL;
+    basis = _basis? (SpatialReference*)_basis->getGeographicSRS() : NULL;
     ref_frame = _ref_frame;
     inv_ref_frame = osg::Matrixd::inverse( _ref_frame );
 }
@@ -73,16 +73,16 @@ GeocentricSpatialReference::isGeocentric() const
 
 
 const SpatialReference*
-GeocentricSpatialReference::getBasisSRS() const
+GeocentricSpatialReference::getGeographicSRS() const
 {
-    return basis->getBasisSRS();
+    return basis->getGeographicSRS();
 }
 
 
 const Ellipsoid&
-GeocentricSpatialReference::getBasisEllipsoid() const
+GeocentricSpatialReference::getEllipsoid() const
 {
-    return basis->getBasisEllipsoid();
+    return basis->getEllipsoid();
 }
 
 
@@ -140,7 +140,7 @@ GeocentricSpatialReference::transformInPlace( GeoPoint& input ) const
     // next transform it to lat/lon, if necessary:
     GeoPoint input_geog = input_srs->isGeographic()? 
         input : 
-        input_srs->getBasisSRS()->transform( input );
+        input_srs->getGeographicSRS()->transform( input );
 
     // next transform it to geocentric:
     // (TODO: use the proper ellipsoid devired from the SRS, not this default one)

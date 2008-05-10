@@ -40,6 +40,21 @@ StringUtils::endsWith(const std::string& input,
 }
 
 
+std::string&
+StringUtils::replaceIn( std::string& s, const std::string& sub, const std::string& other)
+{
+    if ( sub.empty() ) return s;
+    unsigned int b=0;
+    for( ; ; )
+    {
+        b = s.find( sub, b );
+        if ( b == s.npos ) break;
+        s.replace( b, sub.size(), other );
+        b += other.size();
+    }
+    return s;
+}
+
 
 bool
 PathUtils::isAbsPath( const std::string& path )

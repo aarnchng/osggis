@@ -262,7 +262,8 @@ extrudeWallsUp(const GeoShape&         shape,
                     double h;
                     if ( tex_repeats_y ) {
                         h = (extrude_vec - *m).length();
-                        h += (tex_height_m - fmod( h, tex_height_m ) );
+                        double fm = fmod( h, tex_height_m );
+                        h += fm > 0.0? tex_height_m - fm : 0.0;
                     }
                     else {
                         h = tex_height_m;
@@ -290,21 +291,21 @@ extrudeWallsUp(const GeoShape&         shape,
                         ((*verts)[wall_part_ptr] - (*verts)[wall_vert_ptr-2]).length() :
                         0.0;
 
-                    double h;
-                    if ( tex_repeats_y ) {
-                        h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
-                        h += (tex_height_m - fmod( h, tex_height_m ) );
-                    }
-                    else {
-                        h = 1.0;
-                    }
+                    //double h;
+                    //if ( tex_repeats_y ) {
+                    //    h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
+                    //    h += (tex_height_m - fmod( h, tex_height_m ) );
+                    //}
+                    //else {
+                    //    h = tex_height_m; //1.0;
+                    //}
 
                     int p;
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = (*verts)[wall_part_ptr];
-                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
+                    (*texcoords)[p].set( part_len/tex_width_m, (*texcoords)[wall_part_ptr].y() ); //h/tex_height_m );
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;

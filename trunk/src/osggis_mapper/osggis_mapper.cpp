@@ -141,13 +141,17 @@ public:
                 osgUtil::LineSegmentIntersector::Intersection& first = *hits.begin();
                 osg::Vec3d hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
                 osgGIS::GeoPoint world( hit, terrain_srs.get() );
-                osgGIS::GeoPoint result = terrain_srs->getBasisSRS()->transform( world );
+                osgGIS::GeoPoint result = terrain_srs->getGeographicSRS()->transform( world );
 
-                int count = 0;
                 osgGIS::FeatureCursor cursor = layer->getCursor( result );
                 highlight( cursor );
 
                 std::stringstream buf;
+
+                buf << "Location: " << world.toString() << std::endl
+                    << "SRS: " << terrain_srs->getName() << std::endl;
+                int line_count = 2;
+
                 for( cursor.reset(); cursor.hasNext(); )
                 {
                     osgGIS::Feature* f = cursor.next();
@@ -158,7 +162,7 @@ public:
                         if ( key.length() > 0 )
                         {
                             buf << key << " : " << i->asString() << std::endl;
-                            count++;
+                            line_count++;
                         }
                     }
                     break;
@@ -167,10 +171,10 @@ public:
                 if ( buf.str().length() == 0 )
                 {
                     buf << "Control-Left-Click to query a feature";
-                    count = 1;
+                    line_count++;
                 }
                 hud_text->setText( buf.str() );
-                hud_text->setPosition( osg::Vec3( 10, count*TEXT_SIZE*1.1f, 0 ) );
+                hud_text->setPosition( osg::Vec3( 10, line_count*TEXT_SIZE*1.1f, 0 ) );
                 hud_text->dirtyDisplayList();
             }
         }

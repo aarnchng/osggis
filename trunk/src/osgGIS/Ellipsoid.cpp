@@ -99,7 +99,7 @@ Ellipsoid::createGeocentricInvRefFrame( const GeoPoint& input ) const
     if ( !p_srs->isGeocentric() )
     {
         p_srs = osgGIS::Registry::instance()->getSRSFactory()->createGeocentricSRS(
-            p_srs->getBasisSRS() );
+            p_srs->getGeographicSRS() );
 
         p_srs->transformInPlace( p );
     }

@@ -48,6 +48,9 @@ namespace osgGIS
             const std::string& esri,
             const osg::Matrixd& reference_frame );
 
+        SpatialReference* createSRSfromWKTfile(
+            const std::string& abs_path );
+
         SpatialReference* createSRSfromTerrain(
             osg::Node* node );
 
@@ -62,6 +65,9 @@ namespace osgGIS
 
         SpatialReference* createGeocentricSRS(
             const osg::CoordinateSystemNode* cs_node );
+
+        SpatialReference* validateSRS(
+            SpatialReference* srs_to_validate );
     };
 }
 

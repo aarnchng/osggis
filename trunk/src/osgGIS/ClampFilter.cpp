@@ -172,7 +172,7 @@ clampPointPartToTerrain(GeoPointList&           part,
             clamp_vec = p_world;
             clamp_vec.normalize();
             isector = new LineSegmentIntersector2(
-                clamp_vec * srs->getBasisEllipsoid().getSemiMajorAxis() * 1.2,
+                clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
                 osg::Vec3d( 0, 0, 0 ) );
         }
         else
@@ -216,7 +216,7 @@ clampPointPartToTerrain(GeoPointList&           part,
             if ( srs->isGeocentric() )
             {
                 double lat, lon, h;
-                srs->getBasisEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
+                srs->getEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
                 if ( h < out_clamped_z )
                     out_clamped_z = h;
             }

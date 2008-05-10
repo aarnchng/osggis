@@ -104,6 +104,7 @@ SET(LIB_PUBLIC_HEADERS
     TaskManager
     TerrainUtils
     TransformFilter
+    Units
     Utils
     WriteFeaturesFilter
     WriteTextFilter
@@ -128,7 +129,6 @@ ADD_LIBRARY(${LIB_NAME}
     DefaultFeatureStoreFactory.cpp
     DefaultRasterStoreFactory.cpp
     DensifyFilter.cpp
-    ElevationGrid.cpp
     ElevationResource.cpp
     Ellipsoid.cpp
     ExtrudeGeomFilter.cpp
@@ -192,6 +192,7 @@ ADD_LIBRARY(${LIB_NAME}
     TaskManager.cpp
     TerrainUtils.cpp
     TransformFilter.cpp
+    Units.cpp
     Utils.cpp
     WriteFeaturesFilter.cpp
     WriteTextFilter.cpp

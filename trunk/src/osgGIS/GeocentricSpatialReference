@@ -83,13 +83,13 @@ namespace osgGIS
         /**
          * Gets the SRS from which this object derives its reference ellipsoid.
          */
-		virtual const SpatialReference* getBasisSRS() const;
+		virtual const SpatialReference* getGeographicSRS() const;
 
         /**
          * Gets this object's reference ellipsoid, i.e. the approximate shape of
          * the earth that it uses to transform coordinates.
          */
-        virtual const Ellipsoid& getBasisEllipsoid() const;
+        virtual const Ellipsoid& getEllipsoid() const;
 		
         /**
          * Gets the readable name of this SRS.

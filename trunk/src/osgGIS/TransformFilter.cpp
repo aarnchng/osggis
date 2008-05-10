@@ -211,7 +211,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
             // For geocentric datasets, we need a special localizer matrix
             if ( working_srs->isGeocentric() )
             {                    
-                localizer = working_srs->getBasisEllipsoid().createGeocentricInvRefFrame( centroid );
+                localizer = working_srs->getEllipsoid().createGeocentricInvRefFrame( centroid );
                 localizer = osg::Matrixd::inverse( localizer );
             }
             else
