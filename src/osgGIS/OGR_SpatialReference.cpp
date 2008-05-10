@@ -53,7 +53,7 @@ OGR_SpatialReference::~OGR_SpatialReference()
 	if ( handle && owns_handle )
 	{
       OGR_SCOPE_LOCK();
-		OSRDestroySpatialReference( handle );
+      OSRDestroySpatialReference( handle );
 	}
 	handle = NULL;
 }
@@ -69,7 +69,7 @@ OGR_SpatialReference::getHandle()
 SpatialReference* 
 OGR_SpatialReference::cloneWithNewReferenceFrame( const osg::Matrixd& new_rf ) const
 {
-    OGR_SCOPE_LOCK();
+    OGR_SCOPE_LOCK(); //TODO: remove this, not needed?
     return new OGR_SpatialReference( handle, false, new_rf );
 }
 
@@ -117,8 +117,8 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     if ( input_sr->isGeocentric() )
     {
         input.set( input * input_sr->getInverseReferenceFrame() );
-        osg::Vec3d temp = input_sr->getBasisEllipsoid().geocentricToLatLong( input );
-        input = GeoPoint( temp, input_sr->getBasisSRS() ); 
+        osg::Vec3d temp = input_sr->getEllipsoid().geocentricToLatLong( input );
+        input = GeoPoint( temp, input_sr->getGeographicSRS() ); 
         input_sr = static_cast<OGR_SpatialReference*>( input.getSRS() );
     }
 
@@ -142,8 +142,8 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
         void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
             osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
-                << "    From => " << input_sr->getName() << std::endl
-                << "    To   => " << this->getName() << std::endl;
+                << "    From => " << input_sr->getWKT() << std::endl
+                << "    To   => " << this->getWKT() << std::endl;
             return false;
         }
 
@@ -230,30 +230,6 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
         }
     }
     
-    //struct XformVisitor : public GeoPointVisitor {
-    //    XformVisitor( void* _h, const osg::Matrixd& _src_rf, const osg::Matrixd& _to_rf )
-    //        : handle( _h ), src_rf(_src_rf), to_rf(_to_rf) { }
-    //    void* handle;
-    //    osg::Matrixd src_rf, to_rf;
-
-    //    bool visitPoint( GeoPoint& p )
-    //    {
-    //        bool ok = true;
-
-    //        // pull it out of the source reference frame:
-    //        p.set( p * src_rf );
-
-    //        // reproject it:
-    //        if ( handle )
-    //            ok = OCTTransform( handle, 1, &p.x(), &p.y(), &p.z() ) != 0;
-
-    //        // push it into the new reference frame:
-    //        p.set( p * to_rf );
-
-    //        return ok;
-    //    }
-    //};
-    
     struct XformVisitor : public GeoPointVisitor {
         XformVisitor( void* _h, const osg::Matrixd& _src_rf, const SpatialReference* _to_srs )
             : handle( _h ), src_rf(_src_rf), to_srs(_to_srs) { }
@@ -287,7 +263,6 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
         xform_handle, 
         input_sr->getInverseReferenceFrame(),
         this );
-        //this->getReferenceFrame() );
 
     if ( input.accept( visitor ) )
     {
@@ -331,7 +306,7 @@ OGR_SpatialReference::isGeocentric() const
 }
 
 const SpatialReference*
-OGR_SpatialReference::getBasisSRS() const
+OGR_SpatialReference::getGeographicSRS() const
 {
     if ( !basis.valid() )
     {
@@ -347,8 +322,8 @@ OGR_SpatialReference::getBasisSRS() const
 		    int err = OSRCopyGeogCSFrom( new_handle, handle );
 		    if ( err == OGRERR_NONE )
 		    {
-                ((OGR_SpatialReference*)this)->basis = 
-                    new OGR_SpatialReference( new_handle, true, osg::Matrixd() );
+                ((OGR_SpatialReference*)this)->basis = new OGR_SpatialReference( new_handle, true, osg::Matrixd() );
+                ((OGR_SpatialReference*)this)->basis = Registry::SRSFactory()->validateSRS( basis.get() );
 		    }
 		    else
 		    {
@@ -362,7 +337,7 @@ OGR_SpatialReference::getBasisSRS() const
 
 
 const Ellipsoid&
-OGR_SpatialReference::getBasisEllipsoid() const
+OGR_SpatialReference::getEllipsoid() const
 {
     return ellipsoid;
 }

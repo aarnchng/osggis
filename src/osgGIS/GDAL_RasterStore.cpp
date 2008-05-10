@@ -174,7 +174,11 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
     // make sure the requested extent is within the image extent:
     if ( !getExtent().contains( output_aoi ) )
     {
-        osg::notify(osg::WARN) << "GDAL_RasterStore: requested AOI is out of bounds" << std::endl;
+        osg::notify(osg::WARN) 
+            << "GDAL_RasterStore: requested AOI is out of bounds" << std::endl
+            << "    asked for " << output_aoi.toString() << ", but raster is " << getExtent().toString()
+            << std::endl;
+            
         return NULL;
     }
 

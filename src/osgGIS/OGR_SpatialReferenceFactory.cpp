@@ -22,11 +22,14 @@
 #include <osgGIS/OGR_Utils>
 #include <osgGIS/Registry>
 #include <osgGIS/GeocentricSpatialReference>
+#include <osgGIS/Utils>
 #include <osg/Notify>
 #include <osg/NodeVisitor>
 #include <osg/CoordinateSystemNode>
 #include <ogr_api.h>
 #include <ogr_spatialref.h>
+#include <fstream>
+#include <iostream>
 
 using namespace osgGIS;
 
@@ -63,7 +66,7 @@ OGR_SpatialReferenceFactory::createSRSfromWKT(const std::string& wkt,
 {
     OGR_SCOPE_LOCK();
 
-	SpatialReference* result = NULL;
+    osg::ref_ptr<SpatialReference> result = NULL;
 
 	void* handle = OSRNewSpatialReference( NULL );
     char buf[4096];
@@ -71,7 +74,8 @@ OGR_SpatialReferenceFactory::createSRSfromWKT(const std::string& wkt,
 	strcpy( buf, wkt.c_str() );
 	if ( OSRImportFromWkt( handle, &buf_ptr ) == OGRERR_NONE )
 	{
-		result = new OGR_SpatialReference( handle, true, ref_frame );
+        result = new OGR_SpatialReference( handle, true, ref_frame );
+        result = validateSRS( result.get() );
 	}
 	else 
 	{
@@ -79,9 +83,26 @@ OGR_SpatialReferenceFactory::createSRSfromWKT(const std::string& wkt,
 		OSRDestroySpatialReference( handle );
 	}
 
-	return result;
+	return result.release();
 }
 
+SpatialReference*
+OGR_SpatialReferenceFactory::createSRSfromWKTfile( const std::string& abs_path )
+{
+    std::ifstream in( abs_path.c_str() );
+    if ( in.is_open() )
+    {
+        std::string wkt;
+        std::getline( in, wkt );
+        in.close();
+        return createSRSfromWKT( wkt );
+    }
+    else
+    {
+        osg::notify(osg::WARN) << "Failed to load SRS from file " << abs_path << std::endl;
+        return NULL;
+    }
+}
 
 
 SpatialReference*
@@ -97,7 +118,7 @@ OGR_SpatialReferenceFactory::createSRSfromESRI(const std::string& esri,
 {
     OGR_SCOPE_LOCK();
 
-	SpatialReference* result = NULL;
+    osg::ref_ptr<SpatialReference> result = NULL;
 
 	void* handle = OSRNewSpatialReference( NULL );
     char buf[4096];
@@ -106,6 +127,7 @@ OGR_SpatialReferenceFactory::createSRSfromESRI(const std::string& esri,
 	if ( OSRImportFromESRI( handle, &buf_ptr ) == OGRERR_NONE )
 	{
 		result = new OGR_SpatialReference( handle, true, ref_frame );
+        result = validateSRS( result.get() );
 	}
 	else 
 	{
@@ -113,7 +135,7 @@ OGR_SpatialReferenceFactory::createSRSfromESRI(const std::string& esri,
 		OSRDestroySpatialReference( handle );
 	}
 
-	return result;
+	return result.release();
 }
 
 
@@ -152,6 +174,33 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
     }
 
     return result;
+}
+
+
+SpatialReference*
+OGR_SpatialReferenceFactory::validateSRS( SpatialReference* input )
+{
+    OGR_SpatialReference* ogr_srs = dynamic_cast<OGR_SpatialReference*>( input );
+    if ( ogr_srs )
+    {
+        // fix invalid ESRI LCC projections:
+        if ( ogr_srs->getAttrValue( "PROJECTION", 0 ) == "Lambert_Conformal_Conic" )
+        {
+            bool has_2_sps =
+                ogr_srs->getAttrValue( "Standard_Parallel_2", 0 ).length() > 0 ||
+                ogr_srs->getAttrValue( "standard_parallel_2", 0 ).length() > 0;
+
+            std::string new_wkt = ogr_srs->getWKT();
+            if ( has_2_sps )
+                StringUtils::replaceIn( new_wkt, "Lambert_Conformal_Conic", "Lambert_Conformal_Conic_2SP" );
+            else
+                StringUtils::replaceIn( new_wkt, "Lambert_Conformal_Conic", "Lambert_Conformal_Conic_1SP" );
+            
+            return createSRSfromWKT( new_wkt, input->getReferenceFrame() );
+        }
+    }
+
+    return input;
 }
 
 

@@ -66,7 +66,7 @@ class GeoPoint
 class SpatialReference
 {
   GeoPoint transform( GeoPoint in );
-  SpatialReference* getBasisSRS();
+  SpatialReference* getGeographicSRS();
 };
 
 class ResourceList_Lua

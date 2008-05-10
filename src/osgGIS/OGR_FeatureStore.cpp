@@ -21,6 +21,8 @@
 #include <osgGIS/OGR_Feature>
 #include <osgGIS/OGR_SpatialReference>
 #include <osgGIS/OGR_Utils>
+#include <osgGIS/Registry>
+#include <osgGIS/Utils>
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
 #include <ogr_api.h>
@@ -44,13 +46,45 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
         if ( layer_handle )
         {
             supports_random_read = OGR_L_TestCapability( layer_handle, OLCRandomRead ) == TRUE;
+
+            // WARN the user if we load an ESRI-style LCC SRS, in which the PROJECTION["Lambert_Conformal_Conic"]
+            // should really be Lambert_Conformal_Conic_1SP or _2SP.
+            OGR_SpatialReference* ogr_srs = dynamic_cast<OGR_SpatialReference*>( getSRS() );
+            if ( ogr_srs )
+            {
+                if ( ogr_srs->getAttrValue( "PROJECTION", 0 ) == "Lambert_Conformal_Conic" )
+                {
+                    osg::notify(osg::WARN)
+                        << std::endl
+                        << "***WANRING*** SRS has an invalid ESRI-style LCC projection ... transformations may not work"
+                        << std::endl
+                        << "SRS = " << ogr_srs->getWKT() << std::endl
+                        << std::endl;
+                }
+            }
+
+            // if this is an ESRI shapefile, rebuild the SRS from the WKT rep. Internally OGR
+            // will load the SRS as an "ESRI-style" prj instead of WKT, and VPB cannot handle
+            // that yet.
+            //if ( osgDB::getLowerCaseFileExtension( uri ) == "shp" )
+            //{
+            //    std::string prj_path = osgDB::getNameLessExtension( abs_path ) + ".prj";
+            //    SpatialReference* new_spatial_ref = Registry::SRSFactory()->createSRSfromWKTfile( prj_path );
+            //    if ( new_spatial_ref )
+            //    {
+            //        spatial_ref = new_spatial_ref;
+            //        osg::notify( osg::NOTICE ) << "NOTE: changed SRS to " << spatial_ref->getWKT() << std::endl;
+            //    }
+            //}
         }
 	}
 
     if ( isReady() )
     {
-        osg::notify(osg::NOTICE) << "Opened feature store at " << getName() << std::endl
-            << "   Extent = " << getExtent().toString() << std::endl;
+        osg::notify(osg::NOTICE)
+            << "Opened feature store at " << getName() << std::endl
+            << "   Extent = " << getExtent().toString() << std::endl
+            << "   SRS = " << getSRS()->getWKT() << std::endl;
     }
 }
 
@@ -194,13 +228,14 @@ OGR_FeatureStore::getSRS()
 	if ( !spatial_ref.get() )
 	{
         OGR_SCOPE_LOCK();
-		SpatialReference* result = NULL;
+        osg::ref_ptr<SpatialReference> result;
 		void* sr_handle = OGR_L_GetSpatialRef( layer_handle );
 		if ( sr_handle )
 		{
             result = new OGR_SpatialReference( sr_handle, false, osg::Matrixd() );
+            result = Registry::SRSFactory()->validateSRS( result.get() );
 		}
-		spatial_ref = result;
+		spatial_ref = result.get();
 	}
 	return spatial_ref.get();
 }

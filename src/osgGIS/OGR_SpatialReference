@@ -49,9 +49,9 @@ namespace osgGIS
 		
 		virtual bool isGeocentric() const;
 		
-		virtual const SpatialReference* getBasisSRS() const;
+		virtual const SpatialReference* getGeographicSRS() const;
 
-        virtual const Ellipsoid& getBasisEllipsoid() const;
+        virtual const Ellipsoid& getEllipsoid() const;
 		
 		virtual std::string getName() const;
 
@@ -85,7 +85,7 @@ namespace osgGIS
         void* getHandle();
 		
 		
-	protected:
+	public:
 		virtual std::string getAttrValue( const std::string& name, int child_num ) const;
 		
 		

@@ -318,8 +318,8 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
         if ( env->getInputSRS()->isGeocentric() )
         {
             tex_extent_geo = GeoExtent(
-                tex_extent.getSRS()->getBasisSRS()->transform( tex_extent.getSouthwest() ),
-                tex_extent.getSRS()->getBasisSRS()->transform( tex_extent.getNortheast() ) );
+                tex_extent.getSRS()->getGeographicSRS()->transform( tex_extent.getSouthwest() ),
+                tex_extent.getSRS()->getGeographicSRS()->transform( tex_extent.getNortheast() ) );
         }
 
         osg::Vec2Array* texcoords = new osg::Vec2Array( verts->size() );

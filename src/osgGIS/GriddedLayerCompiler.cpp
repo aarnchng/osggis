@@ -291,7 +291,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
     GeoExtent aoi = getAreaOfInterest( layer );
     if ( aoi.isInfinite() || !aoi.isValid() )
     {
-        const SpatialReference* srs = layer->getSRS()->getBasisSRS();
+        const SpatialReference* srs = layer->getSRS()->getGeographicSRS();
 
         aoi = GeoExtent(
             GeoPoint( -180.0, -90.0, srs ),
@@ -411,6 +411,9 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         // block until tasks are completed, and add the resulting nodes to the main graph.
         if ( getTaskManager() )
         {
+            unsigned int total = num_rows * num_cols;
+            unsigned int count = 0;
+
             while( getTaskManager()->wait() )
             {
                 osg::ref_ptr<Task> completed_task = getTaskManager()->getNextCompletedTask();
@@ -426,7 +429,10 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                         // gobs of resources in memory
                         localizeResources( osgDB::getFilePath( output_file ) );
                     }
-                }        
+                }    
+
+                int perc = (int)(100.0f * ((float)++count)/(float)total);
+                osg::notify(osg::NOTICE) << "..." << perc << "% done" << std::endl;
             }
         }
     }

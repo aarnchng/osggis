@@ -349,7 +349,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
             normal.normalize();
             osg::BoundingSphere bs = result->computeBound(); // force it
             float radius = bs.radius();
-            float deviation = (float) -atan( radius / input_srs->getBasisEllipsoid().getSemiMajorAxis() );
+            float deviation = (float) -atan( radius / input_srs->getEllipsoid().getSemiMajorAxis() );
 
             osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
             ccc->set(

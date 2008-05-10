@@ -25,6 +25,14 @@ namespace osgGIS
             const std::string& str,
             const std::string& suffix,
             bool  case_sensitive =false );
+
+        /**
+         * Replaces all occurances of "sub" within "s" with "other", in place.
+         */
+        static std::string& replaceIn( 
+            std::string& s, 
+            const std::string& sub,
+            const std::string& other );
     };
     
     struct OSGGIS_EXPORT PathUtils

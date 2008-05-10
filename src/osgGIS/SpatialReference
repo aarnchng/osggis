@@ -66,14 +66,14 @@ namespace osgGIS
          * the basis is a geographic (lat/lon) SRS describing the ellipsoid model
          * upon which this SRS is based.
          */ 
-		virtual const SpatialReference* getBasisSRS() const =0;
+		virtual const SpatialReference* getGeographicSRS() const =0;
 
         /** 
          * Gets the ellipsoid (i.e. the approximation of the earth's shape) upon which
          * this SRS is based. This is the ellipsoid contained in the basis SRS ... see
          * getBasisSRS().
          */
-        virtual const Ellipsoid& getBasisEllipsoid() const =0;
+        virtual const Ellipsoid& getEllipsoid() const =0;
 
         /**
          * Gets the "up" vector relative to this spatial reference.

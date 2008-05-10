@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 01/19/08 13:01:18.
+** Generated automatically by tolua 5.1b on 05/10/08 14:18:29.
 */
 
 #ifndef __cplusplus
@@ -8,6 +8,15 @@
 #endif
 #include "string.h"
 
+#include "tolua.h"
+extern "C" {
+
+/* Exported function */
+TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
+LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
+
+
+} // extern "C"
 #include <osgGIS/Attribute>
 #include <osgGIS/Feature>
 #include <osgGIS/FilterEnv>
@@ -17,13 +26,6 @@
 #include <osgGIS/Lua_ScriptEngine>
 #include <string>
 using namespace osgGIS;
-extern "C" {
-#include "tolua.h"
-
-/* Exported function */
-TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
-LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
-
 
 /* function to release collected object */
 #ifdef __cplusplus
@@ -1042,8 +1044,8 @@ static int tolua_Lua_ScriptEngine_tolua_SpatialReference_transform00(lua_State* 
 #endif
 }
 
-/* method: getBasisSRS of class  SpatialReference */
-static int tolua_Lua_ScriptEngine_tolua_SpatialReference_getBasisSRS00(lua_State* tolua_S)
+/* method: getGeographicSRS of class  SpatialReference */
+static int tolua_Lua_ScriptEngine_tolua_SpatialReference_getGeographicSRS00(lua_State* tolua_S)
 {
 #ifndef TOLUA_RELEASE
  tolua_Error tolua_err;
@@ -1057,17 +1059,17 @@ static int tolua_Lua_ScriptEngine_tolua_SpatialReference_getBasisSRS00(lua_State
  {
   SpatialReference* self = (SpatialReference*)  tolua_tousertype(tolua_S,1,0);
 #ifndef TOLUA_RELEASE
- if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getBasisSRS'",NULL);
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getGeographicSRS'",NULL);
 #endif
  {
-  SpatialReference* tolua_ret = (SpatialReference*)  self->getBasisSRS();
+  SpatialReference* tolua_ret = (SpatialReference*)  self->getGeographicSRS();
  tolua_pushusertype(tolua_S,(void*)tolua_ret,"SpatialReference");
  }
  }
  return 1;
 #ifndef TOLUA_RELEASE
  tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'getBasisSRS'.",&tolua_err);
+ tolua_error(tolua_S,"#ferror in function 'getGeographicSRS'.",&tolua_err);
  return 0;
 #endif
 }
@@ -1454,7 +1456,7 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
 #endif
  tolua_beginmodule(tolua_S,"SpatialReference");
  tolua_function(tolua_S,"transform",tolua_Lua_ScriptEngine_tolua_SpatialReference_transform00);
- tolua_function(tolua_S,"getBasisSRS",tolua_Lua_ScriptEngine_tolua_SpatialReference_getBasisSRS00);
+ tolua_function(tolua_S,"getGeographicSRS",tolua_Lua_ScriptEngine_tolua_SpatialReference_getGeographicSRS00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
  tolua_cclass(tolua_S,"ResourceList_Lua","ResourceList_Lua","",tolua_collect_ResourceList_Lua);
@@ -1497,6 +1499,3 @@ TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S)
  lua_call(tolua_S, 1, 0);
  return 1;
 }
-
-
-} // extern "C"
