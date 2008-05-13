@@ -60,7 +60,7 @@ RemoveHolesFilter::process( Feature* input, FilterEnv* env )
 
             for( GeoPartList::iterator j = shape.getParts().begin(); j != shape.getParts().end(); j++ )
             {
-                if ( j->size() > 2 && GeomUtils::isPolygonCW( *j ) ) //isPartCW( *j ) )
+                if ( j->size() > 2 && GeomUtils::isPolygonCCW( *j ) )
                     new_parts.push_back( *j );
             }
 

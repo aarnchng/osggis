@@ -68,13 +68,23 @@ namespace osgGIS
             const GeoPointList& polygon );
             
         /**
-         * Returns true if the polygon is would clockwise.
+         * Returns true if the polygon is wound clockwise.
          */
-        static bool isPolygonCW(
-            const GeoPointList& polygon );
+        static bool isPolygonCW( const GeoPointList& polygon );
 
         /**
-         * "Opens" a polygon; i.e. removes the endpoint if it matches the
+         * Returns true if the polygon is wound counter-clockwise.
+         */
+        static bool isPolygonCCW( const GeoPointList& polygon );
+
+        /**
+         * Gets the area of a polygon. Note, the result may be negative (if the poly
+         * is wound clockwise) so be sure to take the abs is necessary.
+         */
+        static double getPolygonArea2D( const GeoPointList& polygon );
+
+        /**
+         * "Opens" a polygon in place; i.e. removes the endpoint if it matches the
          * first point.
          */
         static void openPolygon( GeoPointList& polygon );

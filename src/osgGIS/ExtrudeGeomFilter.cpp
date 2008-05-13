@@ -24,7 +24,6 @@
 #include <osg/TexEnv>
 #include <osg/Image>
 #include <osgDB/ReadFile>
-#include <osgUtil/SmoothingVisitor>
 #include <osgUtil/Tessellator>
 #include <float.h>
 
@@ -418,9 +417,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             }
 
             // generate per-vertex normals
-            // todo: replace this nonsense
-            osgUtil::SmoothingVisitor smoother;
-            smoother.smooth( *(walls.get()) ); 
+            generateNormals( walls.get() );
 
             Fragment* new_fragment = new Fragment( walls.get() );
 
@@ -433,7 +430,8 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 tess.retessellatePolygons( *(rooflines.get()) );
 
                 // generate/smooth the normals.. TODO: replace this maybe
-                smoother.smooth( *(rooflines.get()) );
+                generateNormals( rooflines.get() );
+                //smoother.smooth( *(rooflines.get()) );
 
                 // texture the rooflines if necessary
                 applyOverlayTexturing( rooflines.get(), input, env );

@@ -18,8 +18,9 @@
  */
 
 #include <osgGIS/TransformFilter>
-#include <osg/CoordinateSystemNode>
 #include <osgGIS/Ellipsoid>
+#include <osgGIS/Utils>
+#include <osg/CoordinateSystemNode>
 
 using namespace osgGIS;
 
@@ -37,7 +38,8 @@ TransformFilter::TransformFilter( const TransformFilter& rhs )
 : FeatureFilter( rhs ),
   xform_matrix( rhs.xform_matrix ),
   options( rhs.options ),
-  srs( rhs.srs.get() )
+  srs( rhs.srs.get() ),
+  translate_expr( rhs.translate_expr )
 {
     //NOP
 }

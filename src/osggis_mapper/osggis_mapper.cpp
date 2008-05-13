@@ -57,6 +57,7 @@
 #include <osg/TexEnv>
 #include <osg/Geometry>
 #include <osg/Geode>
+#include <osg/LightSource>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/ReaderWriter>
@@ -139,7 +140,7 @@ public:
             if ( view->computeIntersections( ea.getX(), ea.getY(), hits ) )
             {
                 osgUtil::LineSegmentIntersector::Intersection& first = *hits.begin();
-                osg::Vec3d hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.5;
+                osg::Vec3d hit = first.getWorldIntersectPoint() - first.getWorldIntersectNormal()*0.2;
                 osgGIS::GeoPoint world( hit, terrain_srs.get() );
                 osgGIS::GeoPoint result = terrain_srs->getGeographicSRS()->transform( world );
 
@@ -414,6 +415,14 @@ main(int argc, char* argv[])
     // Attach the HUD for feature attribute readout:
     root->addChild( createHUD( text.get() ) );
 
+    // configure some decent lighting
+    viewer.setLightingMode( osg::View::SKY_LIGHT );
+    osg::Light* light = viewer.getLight();
+    light->setAmbient( osg::Vec4( .4, .4, .4, 1 ) );
+    light->setDiffuse( osg::Vec4( 1, 1, .8, 1 ) );
+    light->setPosition( osg::Vec4( 1, 0, 1, 0 ) );
+    osg::Vec3 dir( -1, -1, -1 ); dir.normalize();
+    light->setDirection( dir );
 
     viewer.setSceneData( root );
 

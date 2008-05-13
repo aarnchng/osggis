@@ -110,34 +110,57 @@ GeomUtils::isPointInPolygon(const GeoPoint& point,
 }
 
 
+double
+GeomUtils::getPolygonArea2D( const GeoPointList& polygon )
+{
+    GeoPointList temp = polygon;
+    openPolygon( temp );
 
+    double sum = 0.0;
+    for( GeoPointList::const_iterator i = temp.begin(); i != temp.end(); i++ )
+    {
+        const GeoPoint& p0 = *i;
+        const GeoPoint& p1 = i != temp.end()-1? *(i+1) : *temp.begin();
+        sum += p0.x()*p1.y() - p1.x()*p0.y();
+    }
+    return .5*sum;
+}
+
+bool 
+GeomUtils::isPolygonCCW( const GeoPointList& points )
+{
+    return getPolygonArea2D( points ) >= 0.0;
+}
 
 bool
 GeomUtils::isPolygonCW( const GeoPointList& points )
 {
-    // find the ymin point:
-    double ymin = DBL_MAX;
-    unsigned int i_lowest = 0;
-
-    for( GeoPointList::const_iterator i = points.begin(); i != points.end(); i++ )
-    {
-        if ( i->y() < ymin ) 
-        {
-            ymin = i->y();
-            i_lowest = i-points.begin();
-        }
-    }
-
-    // next cross the 2 vector converging at that point:
-    osg::Vec3d p0 = *( points.begin() + ( i_lowest > 0? i_lowest-1 : points.size()-1 ) );
-    osg::Vec3d p1 = *( points.begin() + i_lowest );
-    osg::Vec3d p2 = *( points.begin() + ( i_lowest < points.size()-1? i_lowest+1 : 0 ) );
-
-    osg::Vec3d cp = (p1-p0) ^ (p2-p1);
-
-    //TODO: need to rotate into ref frame - for now just use this filter before xforming
-    return cp.z() > 0;
+    return getPolygonArea2D( points ) < 0.0;
 }
+
+//    // find the ymin point:
+//    double ymin = DBL_MAX;
+//    unsigned int i_lowest = 0;
+//
+//    for( GeoPointList::const_iterator i = points.begin(); i != points.end(); i++ )
+//    {
+//        if ( i->y() < ymin ) 
+//        {
+//            ymin = i->y();
+//            i_lowest = i-points.begin();
+//        }
+//    }
+//
+//    // next cross the 2 vector converging at that point:
+//    osg::Vec3d p0 = *( points.begin() + ( i_lowest > 0? i_lowest-1 : points.size()-1 ) );
+//    osg::Vec3d p1 = *( points.begin() + i_lowest );
+//    osg::Vec3d p2 = *( points.begin() + ( i_lowest < points.size()-1? i_lowest+1 : 0 ) );
+//
+//    osg::Vec3d cp = (p1-p0) ^ (p2-p1);
+//
+//    //TODO: need to rotate into ref frame - for now just use this filter before xforming
+//    return cp.z() > 0;
+//}
 
 
 void
