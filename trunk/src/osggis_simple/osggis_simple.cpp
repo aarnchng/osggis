@@ -80,6 +80,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --color <r,g,b,a>      - Color of output geometry (0->1)" << ENDL;
     NOUT << "    --random-colors        - Randomly assign feature colors" << ENDL;
     NOUT << "    --fade-lods            - Apply LOD fading" << ENDL;
+    //NOUT << "    --buffer <n>           - Apply shape buffering" << ENDL;
 }
 
 

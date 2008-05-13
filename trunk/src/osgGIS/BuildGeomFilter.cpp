@@ -22,33 +22,34 @@
 #include <osg/Geode>
 #include <osgUtil/Tessellator>
 #include <osgUtil/Optimizer>
+#include <osgUtil/SmoothingVisitor>
 #include <osgText/Text>
 #include <sstream>
 
 //#define RANDCOL ((((float)(::rand()%255)))/255.0f)
-
-#define PROP_COLOR "BuildGeomFilter::color"
-#define PROP_BATCH "BuildGeomFilter::batch" 
+//#define PROP_COLOR "BuildGeomFilter::color"
+//#define PROP_BATCH "BuildGeomFilter::batch" 
 
 using namespace osgGIS;
 
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( BuildGeomFilter );
 
+#define DEFAULT_RASTER_OVERLAY_MAX_SIZE 0
 
 
 BuildGeomFilter::BuildGeomFilter()
 {
     overall_color = osg::Vec4f(1,1,1,1);
-    max_raster_size = 0;
+    setRasterOverlayMaxSize( DEFAULT_RASTER_OVERLAY_MAX_SIZE );
 }
 
 BuildGeomFilter::BuildGeomFilter( const BuildGeomFilter& rhs )
 : FragmentFilter( rhs ),
   overall_color( rhs.overall_color ),
-  max_raster_size( rhs.max_raster_size ),
+  raster_overlay_max_size( rhs.raster_overlay_max_size ),
+  raster_overlay_script( rhs.raster_overlay_script.get() ),
   color_script( rhs.color_script.get() ),
-  raster_script( rhs.raster_script.get() ),
   feature_name_script( rhs.feature_name_script.get() )
 {
     //NOP
@@ -85,27 +86,27 @@ BuildGeomFilter::getColorScript() const
 }
 
 void
-BuildGeomFilter::setRasterScript( Script* value )
+BuildGeomFilter::setRasterOverlayScript( Script* value )
 {
-    raster_script = value;
+    raster_overlay_script = value;
 }
 
 Script*
-BuildGeomFilter::getRasterScript() const
+BuildGeomFilter::getRasterOverlayScript() const
 {
-    return const_cast<BuildGeomFilter*>(this)->raster_script.get();
+    return const_cast<BuildGeomFilter*>(this)->raster_overlay_script.get();
 }
 
 void
-BuildGeomFilter::setMaxRasterSize( int value )
+BuildGeomFilter::setRasterOverlayMaxSize( int value )
 {
-    max_raster_size = value;
+    raster_overlay_max_size = value;
 }
 
 int
-BuildGeomFilter::getMaxRasterSize() const
+BuildGeomFilter::getRasterOverlayMaxSize() const
 {
-    return max_raster_size;
+    return raster_overlay_max_size;
 }
 
 void 
@@ -125,10 +126,10 @@ BuildGeomFilter::setProperty( const Property& prop )
 {
     if ( prop.getName() == "color" )
         setColorScript( new Script( prop.getValue() ) );
-    else if ( prop.getName() == "raster" )
-        setRasterScript( new Script( prop.getValue() ) );
-    else if ( prop.getName() == "max_raster_size" )
-        setMaxRasterSize( prop.getIntValue( 0 ) );
+    else if ( prop.getName() == "raster_overlay" )
+        setRasterOverlayScript( new Script( prop.getValue() ) );
+    else if ( prop.getName() == "raster_overlay_max_size" )
+        setRasterOverlayMaxSize( prop.getIntValue( DEFAULT_RASTER_OVERLAY_MAX_SIZE ) );
     else if ( prop.getName() == "feature_name" )
         setFeatureNameScript( new Script( prop.getValue() ) );
 
@@ -142,10 +143,10 @@ BuildGeomFilter::getProperties() const
     Properties p = FragmentFilter::getProperties();
     if ( getColorScript() )
         p.push_back( Property( "color", getColorScript()->getCode() ) );
-    if ( getRasterScript() )
-        p.push_back( Property( "raster", getRasterScript()->getCode() ) );
-    if ( getMaxRasterSize() > 0 )
-        p.push_back( Property( "max_raster_size", getMaxRasterSize() ) );
+    if ( getRasterOverlayScript() )
+        p.push_back( Property( "raster_overlay", getRasterOverlayScript()->getCode() ) );
+    if ( getRasterOverlayMaxSize() != DEFAULT_RASTER_OVERLAY_MAX_SIZE )
+        p.push_back( Property( "raster_overlay_max_size", getRasterOverlayMaxSize() ) );
     if ( getFeatureNameScript() )
         p.push_back( Property( "feature_name", getFeatureNameScript() ) );
     return p;
@@ -244,6 +245,8 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
         applyOverlayTexturing( geom, input, env );
     }
 
+    generateNormals( geom );
+
     Fragment* frag = new Fragment( geom );
 
     applyFragmentName( frag, input, env );
@@ -272,6 +275,16 @@ BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
     return result;
 }
 
+void
+BuildGeomFilter::generateNormals( osg::Geometry* geom )
+{
+    if ( geom )
+    {
+        osgUtil::SmoothingVisitor smoother;
+        smoother.smooth( *geom );
+    }
+}
+
 
 void
 BuildGeomFilter::applyFragmentName( Fragment* frag, Feature* feature, FilterEnv* env )
@@ -292,7 +305,7 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
 {
     GeoExtent tex_extent;
 
-    if ( getRasterScript() )
+    if ( getRasterOverlayScript() )
     {
         // if there's a raster script for this filter, we're applying textures per-feature:
         tex_extent = GeoExtent(
@@ -346,9 +359,9 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
     }
 
     // if we are applying the raster per-feature, do so now.
-    if ( getRasterScript() )
+    if ( getRasterOverlayScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( getRasterScript(), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getRasterOverlayScript(), input, env );
         if ( r.isValid() )
         {
             RasterResource* raster = env->getSession()->getResources()->getRaster( r.asString() );
@@ -359,7 +372,7 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
                 builder << "rtex_" << input->getOID() << ".jpg"; //TODO: dds with DXT1 compression
 
                 osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
-                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getMaxRasterSize(), builder.str(), &image ) )
+                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
                     geom->setStateSet( raster_ss.get() );
 

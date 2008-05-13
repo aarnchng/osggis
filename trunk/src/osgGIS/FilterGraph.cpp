@@ -24,6 +24,7 @@
 #include <osgGIS/CollectionFilterState>
 #include <osgGIS/WriteFeaturesFilter>
 #include <osgGIS/Registry>
+#include <osgGIS/Utils>
 #include <osg/Notify>
 #include <osg/Timer>
 
@@ -184,6 +185,27 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     return ok? FilterGraphResult::ok() : FilterGraphResult::error();
 }
 
+
+// ensures that all single-part shapes have their verts wound CCW.
+static Feature* 
+wind( Feature* input )
+{
+    //return input;
+
+    for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
+    {
+        GeoShape& shape = *i;
+        if ( shape.getPartCount() == 1 )
+        {
+            GeoPointList& part = shape.getPart( 0 );
+            if ( !GeomUtils::isPolygonCCW( part ) )
+                std::reverse( part.begin(), part.end() );
+        }
+    }
+    return input;
+}
+
+
 FilterGraphResult
 FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList& output )
 {
@@ -225,7 +247,7 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
             FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
             while( ok && cursor.hasNext() )
             {
-                state->push( cursor.next() );
+                state->push( wind( cursor.next() ) );
                 ok = state->traverse( env );
                 count++;
             }
@@ -239,7 +261,7 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
             FragmentFilterState* state = static_cast<FragmentFilterState*>( first.get() );
             while( ok && cursor.hasNext() )
             {
-                state->push( cursor.next() );
+                state->push( wind( cursor.next() ) );
                 ok = state->traverse( env );
                 count++;           
             }
@@ -253,7 +275,7 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
             CollectionFilterState* state = static_cast<CollectionFilterState*>( first.get() );
             while( ok && cursor.hasNext() )
             {
-                state->push( cursor.next() );
+                state->push( wind( cursor.next() ) );
                 ok = state->traverse( env );
                 count++;           
             }
