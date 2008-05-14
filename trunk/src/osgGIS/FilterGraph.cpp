@@ -192,16 +192,21 @@ wind( Feature* input )
 {
     //return input;
 
-    for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
+    if ( input->getShapeType() == GeoShape::TYPE_POLYGON )
     {
-        GeoShape& shape = *i;
-        if ( shape.getPartCount() == 1 )
+        for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
         {
-            GeoPointList& part = shape.getPart( 0 );
-            if ( !GeomUtils::isPolygonCCW( part ) )
-                std::reverse( part.begin(), part.end() );
+            GeoShape& shape = *i;
+            if ( shape.getPartCount() == 1 )
+            {
+                GeoPointList& part = shape.getPart( 0 );
+                GeomUtils::openPolygon( part );
+                if ( !GeomUtils::isPolygonCCW( part ) )
+                    std::reverse( part.begin(), part.end() );
+            }
         }
     }
+
     return input;
 }
 
