@@ -88,6 +88,7 @@ class ResourceLibrary_Lua
   SkinResourceQuery newSkinQuery();
   ResourceList_Lua getSkins( SkinResourceQuery query );
   ResourceList_Lua getSkins();
+  const char* getPath( const char* name );
 };
 
 

@@ -29,6 +29,9 @@
 using namespace osgGIS;
 using namespace OpenThreads;
 
+static std::string EMPTY_STRING = "";
+
+
 static std::string
 normalize( const std::string& input )
 {
@@ -82,6 +85,12 @@ ResourceLibrary::addResource( Resource* resource )
             SRSResource* srsr = static_cast<SRSResource*>( resource );
             srs_list.push_back( srsr );
             osg::notify( osg::NOTICE ) << "...added SRS " << srsr->getName() << std::endl;
+        }
+        else if ( dynamic_cast<PathResource*>( resource ) )
+        {
+            PathResource* pr = static_cast<PathResource*>( resource );
+            paths.push_back( pr );
+            osg::notify( osg::NOTICE ) << "...added path " << pr->getAbsoluteURI() << std::endl;
         }
 
         resource->setMutex( mut );
@@ -155,6 +164,18 @@ ResourceLibrary::removeResource( Resource* resource )
                 }
             }
         }
+        else if ( dynamic_cast<PathResource*>( resource ) )
+        {
+            for( PathResourceVec::iterator i = paths.begin(); i != paths.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    paths.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed Path \"" << resource->getAbsoluteURI() << "\"" << std::endl;
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -167,6 +188,7 @@ ResourceLibrary::getResource( const std::string& name )
     result = getSkin( name );
     if ( !result ) result = getModel( name );
     if ( !result ) result = getRaster( name );
+    if ( !result ) result = getPathResource( name );
     return result;
 }
 
@@ -401,6 +423,33 @@ ResourceLibrary::getSRS( const std::string& name )
     {
         if ( i->get()->getName() == name )
             return i->get()->getSRS();
+    }
+    return NULL;
+}
+
+std::string
+ResourceLibrary::getPath( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( PathResourceVec::const_iterator i = paths.begin(); i != paths.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get()->getAbsoluteURI();
+    }
+    return EMPTY_STRING;
+}
+
+
+PathResource*
+ResourceLibrary::getPathResource( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( PathResourceVec::const_iterator i = paths.begin(); i != paths.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get();
     }
     return NULL;
 }

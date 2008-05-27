@@ -84,7 +84,10 @@ namespace osgGIS
         ResourceLibrary_Lua( ResourceLibrary* _lib ) : lib( _lib ) { }
         SkinResourceQuery newSkinQuery() { return lib->newSkinQuery(); }
         ResourceList_Lua getSkins() { return ResourceList_Lua( lib->getSkins() ); }
-        ResourceList_Lua getSkins( const SkinResourceQuery& q ) { return lib->getSkins( q ); }
+        ResourceList_Lua getSkins( const SkinResourceQuery& q ) { return lib->getSkins( q ); } 
+        const char* getPath( const char* name ) { 
+            PathResource* resource = dynamic_cast<PathResource*>( lib->getResource( std::string( name ) ) );
+            return resource? resource->getAbsoluteURI().c_str() : NULL; }
     private:
         osg::ref_ptr<ResourceLibrary> lib;
     };

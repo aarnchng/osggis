@@ -78,18 +78,22 @@ void
 Resource::setURI( const std::string& value )
 {
     uri = value;
+    cached_abs_path = "";
 }
 
-const std::string
+const std::string&
 Resource::getAbsoluteURI() const
 {
-    return PathUtils::getAbsPath( getBaseURI(), getURI() );
+    if ( cached_abs_path.length() == 0 )
+        const_cast<Resource*>(this)->cached_abs_path = PathUtils::getAbsPath( getBaseURI(), getURI() );
+    return cached_abs_path;
 }
 
 void
 Resource::setBaseURI( const std::string& value )
 {
     base_uri = value;
+    cached_abs_path = "";
 }
 
 const std::string&

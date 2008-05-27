@@ -53,7 +53,7 @@ namespace osgGIS
         
         void setURI( const std::string& uri );
         
-        const std::string getAbsoluteURI() const;
+        const std::string& getAbsoluteURI() const;
         
         
         /**
@@ -103,7 +103,8 @@ namespace osgGIS
         std::string uri;
         std::string base_uri;
         bool single_use;
-        
+        std::string cached_abs_path;
+
         OpenThreads::ReentrantMutex* mutex;
         bool owns_mutex;
         friend class ResourceLibrary;

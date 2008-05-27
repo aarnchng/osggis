@@ -310,16 +310,6 @@ OGR_Feature::getAttributes() const
         attrs[ (*i).first ] = (*i).second;
     }
 
-    //// accumulate the attrs from the store:
-    //OGR_SCOPE_LOCK();
-    //int count = OGR_F_GetFieldCount( handle );
-    //for( int i=0; i<count; i++ ) //1; i<=count; i++ )
-    //{
-    //    void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
-    //    const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
-    //    attrs[ std::string(field_name) ] = getAttribute( std::string(field_name) );
-    //}
-
     // finally add in the user attrs (overwriting the store attrs if necessary)
     for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end() ; i++ )
         attrs[ (*i).first ] = (*i).second;
