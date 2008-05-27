@@ -53,6 +53,7 @@ SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
   model_script( rhs.model_script.get() ),
   model_path_script( rhs.model_path_script.get() ),
   model_scale_script( rhs.model_scale_script.get() ),
+  model_heading_script( rhs.model_heading_script.get() ),
   feature_name_script( rhs.feature_name_script.get() )
 {
     //NOP
@@ -112,6 +113,18 @@ SubstituteModelFilter::getModelScaleScript() const
 }
 
 void
+SubstituteModelFilter::setModelHeadingScript( Script* value )
+{
+    model_heading_script = value;
+}
+
+Script*
+SubstituteModelFilter::getModelHeadingScript() const
+{
+    return model_heading_script.get();
+}
+
+void
 SubstituteModelFilter::setFeatureNameScript( Script* value )
 {
     feature_name_script = value;
@@ -146,6 +159,8 @@ SubstituteModelFilter::setProperty( const Property& p )
         setCluster( p.getBoolValue( getCluster() ) );
     else if ( p.getName() == "model_scale" )
         setModelScaleScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "model_heading" )
+        setModelHeadingScript( new Script( p.getValue() ) );
     else if ( p.getName() == "feature_name" )
         setFeatureNameScript( new Script( p.getValue() ) );
     else if ( p.getName() == "optimize_model" )
@@ -166,6 +181,8 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "cluster", getCluster() ) );
     if ( getModelScaleScript() )
         p.push_back( Property( "model_scale", getModelScaleScript()->getCode() ) );
+    if ( getModelHeadingScript() )
+        p.push_back( Property( "model_heading", getModelHeadingScript()->getCode() ) );
     if ( getFeatureNameScript() )
         p.push_back( Property( "feature_name", getFeatureNameScript()->getCode() ) );
     if ( getOptimizeModel() != DEFAULT_OPTIMIZE_MODEL )
@@ -227,19 +244,35 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
                                     if ( j->get()->getShapes()[0].getParts()[0].size() > 0 )
                                         c = j->get()->getShapes()[0].getParts()[0][0];
 
+                            osg::Matrix translate_mx = osg::Matrix::translate( c );
+
                             // get the scaler if there is one:
-                            osg::Vec3 scaler( 1, 1, 1 );
+                            //osg::Vec3 scaler( 1, 1, 1 );
+                            osg::Matrix scale_mx;
                             if ( filter->getModelScaleScript() )
                             {
                                 ScriptResult r = env->getScriptEngine()->run( filter->getModelScaleScript(), j->get(), env );
                                 if ( r.isValid() )
-                                    scaler = r.asVec3();
+                                    scale_mx = osg::Matrix::scale( r.asVec3() );
+                                //scaler = r.asVec3();
                             }
+
+                            // and the heading id there is one:
+                            osg::Matrix heading_mx;
+                            if ( filter->getModelHeadingScript() )
+                            {
+                                ScriptResult r = env->getScriptEngine()->run( filter->getModelHeadingScript(), j->get(), env );
+                                if ( r.isValid() )
+                                    heading_mx = osg::Matrix::rotate( osg::DegreesToRadians( r.asDouble(0) ), 0, 0, -1 );
+                            }
+
+                            osg::Matrix mx = heading_mx * scale_mx * translate_mx;
 
                             for( osg::Vec3Array::iterator k = verts->begin(); k != verts->end(); k++ )
                             {
-                                (*k).set( (*k).x() * scaler.x(), (*k).y() * scaler.y(), (*k).z() * scaler.z() );
-                                *k += osg::Vec3( c.x(), c.y(), c.z() );
+                                (*k).set( *k * mx );
+                                //(*k).set( (*k).x() * scaler.x(), (*k).y() * scaler.y(), (*k).z() * scaler.z() );
+                                //*k += osg::Vec3( c.x(), c.y(), c.z() );
                             }
                         }
 
@@ -412,10 +445,70 @@ SubstituteModelFilter::assignFeatureName( osg::Node* node, Feature* input, Filte
     }
 }
 
+
+static double 
+getLowestZ( Feature* input )
+{
+    struct LowZFinder : public GeoPartVisitor {
+        LowZFinder() : lowest_z(DBL_MAX) { }
+        bool visitPart( const GeoPointList& part ) {
+            for( GeoPointList::const_iterator i = part.begin(); i != part.end(); i++ ) {
+                if ( (*i).z() < lowest_z )
+                    lowest_z = (*i).z();
+            }
+            return true;
+        }
+        double lowest_z;
+    };
+
+    const GeoShapeList& shapes = input->getShapes();
+    LowZFinder lzf;
+    shapes.accept( lzf );
+    return lzf.lowest_z != DBL_MAX? lzf.lowest_z : 0.0;
+}
+
+
+osg::Node*
+SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, FilterEnv* env )
+{
+    osg::Matrix heading_mx = osg::Matrix::identity();
+
+    if ( getModelHeadingScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getModelHeadingScript(), input, env );
+        if ( r.isValid() ) 
+        {
+            heading_mx = osg::Matrix::rotate( osg::DegreesToRadians( r.asDouble(0) ), 0, 0, -1 );
+        }
+    }
+
+    // the sub-point will be the centroid combined with the minimum Z-value in the shape (or 0).
+    GeoPoint centroid = input->getExtent().getCentroid();
+    centroid.z() = getLowestZ( input );
+    centroid.setDim( 3 );
+
+    osg::Matrix translate_mx = osg::Matrix::translate( centroid );
+
+    osg::MatrixTransform* xform = new osg::MatrixTransform( heading_mx * translate_mx );
+
+    xform->addChild( model_node );
+    xform->setDataVariance( osg::Object::STATIC );
+    assignFeatureName( xform, input, env );
+
+    return xform;
+}
+
+
 osg::NodeList
 SubstituteModelFilter::process( Feature* input, FilterEnv* env )
 {
     osg::NodeList output;
+    
+    // disable flattening, since the model will be multi-parented with different xforms.
+    env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
+
+    // disable tristripping too because it crashes the optimizer for some unknown reason
+    env->getOptimizerHints().exclude( osgUtil::Optimizer::TRISTRIP_GEOMETRY );
 
     if ( getModelScript() )
     {
@@ -428,12 +521,7 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                 osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
                 if ( node )
                 {
-                    osg::MatrixTransform* xform = new osg::MatrixTransform(
-                        osg::Matrix::translate( input->getExtent().getCentroid() ) );
-                    xform->addChild( node );
-                    xform->setDataVariance( osg::Object::STATIC );
-                    assignFeatureName( xform, input, env );
-                    output.push_back( xform );
+                    output.push_back( buildOutputNode( node, input, env ) );
                     env->getSession()->markResourceUsed( model );
                 }
             }
@@ -450,15 +538,9 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             model->setName( r.asString() );
             env->getSession()->getResources()->addResource( model );
             osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
-//            osg::Node* node = env->getSession()->getResources()->getProxyNode( model );
             if ( node )
             {
-                osg::MatrixTransform* xform = new osg::MatrixTransform(
-                    osg::Matrix::translate( input->getExtent().getCentroid() ) );
-                xform->addChild( node );
-                xform->setDataVariance( osg::Object::STATIC );
-                assignFeatureName( xform, input, env );
-                output.push_back( xform );
+                output.push_back( buildOutputNode( node, input, env ) );
             }
             env->getSession()->markResourceUsed( model );
         }

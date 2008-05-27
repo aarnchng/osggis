@@ -27,56 +27,33 @@ using namespace osgGIS;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( TransformFilter );
 
+#define DEFAULT_LOCALIZE false
+#define DEFAULT_USE_TERRAIN_SRS false
+
 
 TransformFilter::TransformFilter()
 {
     xform_matrix = osg::Matrix::identity();
-    options = (Options)0;
+    localize = DEFAULT_LOCALIZE;
+    use_terrain_srs = DEFAULT_USE_TERRAIN_SRS;
 }
 
 TransformFilter::TransformFilter( const TransformFilter& rhs )
 : FeatureFilter( rhs ),
   xform_matrix( rhs.xform_matrix ),
-  options( rhs.options ),
+  localize( rhs.localize ),
+  use_terrain_srs( rhs.use_terrain_srs ),
   srs( rhs.srs.get() ),
-  translate_expr( rhs.translate_expr )
+  srs_script( rhs.srs_script.get() ),
+  translate_script( rhs.translate_script.get() )
 {
     //NOP
 }
 
-TransformFilter::TransformFilter( const int& _options )
-{
-    xform_matrix = osg::Matrix::identity();
-    options = _options;
-}
-
-
-TransformFilter::TransformFilter( const SpatialReference* _srs )
-{
-    srs = (SpatialReference*)_srs;
-    options = (Options)0;
-}
-
-
-TransformFilter::TransformFilter(const SpatialReference* _srs,
-                                 const int&              _options)
-{
-    srs = (SpatialReference*)_srs;
-    options = _options;
-}
-
-
-TransformFilter::TransformFilter( const osg::Matrix& _matrix )
-{
-    xform_matrix = _matrix;
-    options = (Options)0;
-}
-
-
 TransformFilter::~TransformFilter()
 {
+    //NOP
 }
-
 
 void
 TransformFilter::setMatrix( const osg::Matrix& _matrix )
@@ -93,37 +70,28 @@ TransformFilter::getMatrix() const
 
 
 void
-TransformFilter::setLocalize( bool enabled )
+TransformFilter::setLocalize( bool value )
 {
-    if ( enabled )
-        options |= LOCALIZE;
-    else
-        options &= ~LOCALIZE;
+    localize = value;
 }
-
 
 bool
 TransformFilter::getLocalize() const
 {
-    return options & LOCALIZE;
+    return localize;
 }
-
 
 void
 TransformFilter::setUseTerrainSRS( bool value )
 {
-    options = value? 
-        options | USE_TERRAIN_SRS :
-        options & ~USE_TERRAIN_SRS;
+    use_terrain_srs = value;
 }
-
 
 bool
 TransformFilter::getUseTerrainSRS() const
 {
-    return ( options & USE_TERRAIN_SRS ) != 0;
+    return use_terrain_srs;
 }
-
 
 void
 TransformFilter::setSRS( const SpatialReference* _srs )
@@ -138,6 +106,29 @@ TransformFilter::getSRS() const
     return srs.get();
 }
 
+void
+TransformFilter::setSRSScript( Script* value )
+{
+    srs_script = value;
+}
+
+Script*
+TransformFilter::getSRSScript() const
+{
+    return srs_script.get();
+}
+
+void
+TransformFilter::setTranslateScript( Script* value )
+{
+    translate_script = value;
+}
+
+Script*
+TransformFilter::getTranslateScript() const
+{
+    return translate_script.get();
+}
 
 void
 TransformFilter::setProperty( const Property& p )
@@ -145,11 +136,11 @@ TransformFilter::setProperty( const Property& p )
     if ( p.getName() == "localize" )
         setLocalize( p.getBoolValue( getLocalize() ) );
     else if ( p.getName() == "translate" )
-        translate_expr = p.getValue();
+        setSRSScript( new Script( p.getValue() ) );
     else if ( p.getName() == "use_terrain_srs" )
         setUseTerrainSRS( p.getBoolValue( getUseTerrainSRS() ) );
     else if ( p.getName() == "srs" )
-        setSRS( Registry::instance()->getSRSFactory()->createSRSfromWKT( p.getValue() ) );
+        setSRSScript( new Script( p.getValue() ) );
     FeatureFilter::setProperty( p );
 }
 
@@ -158,13 +149,14 @@ Properties
 TransformFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
-    p.push_back( Property( "localize", getLocalize() ) );
-    if ( translate_expr.length() > 0 )
-        p.push_back( Property( "translate", translate_expr ) );
-    if ( getUseTerrainSRS() )
+    if ( getLocalize() != DEFAULT_LOCALIZE )
+        p.push_back( Property( "localize", getLocalize() ) );
+    if ( getUseTerrainSRS() != DEFAULT_USE_TERRAIN_SRS )
         p.push_back( Property( "use_terrain_srs", getUseTerrainSRS() ) );
-    if ( getSRS() )
-        p.push_back( Property( "srs", getSRS()->getWKT() ) );
+    if ( getTranslateScript() )
+        p.push_back( Property( "translate", getTranslateScript()->getCode() ) );
+    if ( getSRSScript() )
+        p.push_back( Property( "srs", getSRSScript()->getCode() ) );
     return p;
 }
 
@@ -173,18 +165,31 @@ FeatureList
 TransformFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
-    
+
+    // first try to use the terrain SRS if so directed:
     osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
     if ( !new_out_srs.valid() )
+    {
+        // failing that, see if we have an SRS in a resource:
+        if ( !getSRS() && getSRSScript() )
+        {
+            ScriptResult r = env->getScriptEngine()->run( getSRSScript(), input, env );
+            if ( r.isValid() )
+            {
+                setSRS( env->getSession()->getResources()->getSRS( r.asString() ) );
+            }
+        }
+
         new_out_srs = srs.get();
+    }
 
     // resolve the xlate shortcut
     osg::Matrix working_matrix = xform_matrix;
 
     // TODO: this can go into process(FeatureList) instead of running for every feature..
-    if ( translate_expr.length() > 0 )
+    if ( getTranslateScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run( new Script( translate_expr ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getTranslateScript(), input, env );
         if ( r.isValid() )
             working_matrix = osg::Matrix::translate( r.asVec3() );
     }

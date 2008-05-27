@@ -37,44 +37,12 @@ namespace osgGIS
         OSGGIS_META_FILTER( TransformFilter );  
 
     public:
-        enum Options {
-            LOCALIZE        = 0x01, // make a local origin at the centroid of the working extent
-            USE_TERRAIN_SRS = 0x02  // reproject to the terrain's SRS
-        };
-
-    public:
         /**
          * Constructs a new transform filter.
          */
         TransformFilter();
 
         TransformFilter( const TransformFilter& rhs );
-
-        /**
-         * Constructs a new transform filter.
-         *
-         * @param options
-         *      Mask of filter options (see enum Options)
-         */
-        TransformFilter( const int& options );
-        
-        /**
-         * Constructs a new transform filter.
-         *
-         * @param srs
-         *      Spatial reference system into which to transform feature geodata.
-         */
-        TransformFilter( const SpatialReference* srs );
-
-        /**
-         * Constructs a new transform filter.
-         *
-         * @param srs
-         *      Spatial reference system into which to transform feature geodata.
-         * @param options
-         *      Transformation options (see enum Options)
-         */
-        TransformFilter( const SpatialReference* srs, const int& options );
         
         /**
          * Constucts a new transform filter.
@@ -149,6 +117,24 @@ namespace osgGIS
          */
         bool getLocalize() const;
 
+
+    public: // script functions
+
+        /**
+         * Sets a script that will resolve to the resource name of an SRS resource to use.
+         */
+        void setSRSScript( Script* value );
+
+        /**
+         * Gest the script that will resolve to the resource name of an SRS resource to use.
+         */
+        Script* getSRSScript() const;
+
+        void setTranslateScript( Script* script );
+
+        Script* getTranslateScript() const;
+
+
     public:
         virtual FeatureList process( Feature* input, FilterEnv* env );
         
@@ -158,10 +144,15 @@ namespace osgGIS
         virtual Properties getProperties() const;
 
     private:
+        // properties
+        osg::ref_ptr<Script>           srs_script;
+        osg::ref_ptr<Script>           translate_script;
+        bool                           localize;
+        bool                           use_terrain_srs;
+
+        // transient
         osg::ref_ptr<SpatialReference> srs;
         osg::Matrix                    xform_matrix;
-        int                            options; 
-        std::string                    translate_expr;
     };
 }
 

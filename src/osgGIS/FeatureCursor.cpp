@@ -19,6 +19,8 @@
 
 #include <osgGIS/FeatureCursor>
 #include <osgGIS/FeatureStore>
+#include <osgGIS/OGR_Utils>
+#include <algorithm>
 
 using namespace osgGIS;
 
@@ -32,12 +34,29 @@ FeatureCursor::FeatureCursor(const FeatureOIDList& _oids,
     store = _store;
     search_extent = _search_extent;
     match_exactly = _match_exactly;
+    prefetch_size = 64;
+    at_bof = false;
     reset();
 }
 
 FeatureCursor::FeatureCursor()
 {
     iter = 0;
+    at_bof = false;
+}
+
+FeatureCursor::FeatureCursor( const FeatureCursor& rhs )
+: oids( rhs.oids ),
+  store( rhs.store.get() ),
+  iter( rhs.iter ),
+  search_extent( rhs.search_extent ),
+  match_exactly( rhs.match_exactly ),
+  prefetch_size( rhs.prefetch_size ),
+  prefetched_results( rhs.prefetched_results ),
+  last_result( rhs.last_result.get() ),
+  at_bof( rhs.at_bof )
+{
+    //NOP
 }
 
 FeatureCursor::~FeatureCursor()
@@ -46,38 +65,75 @@ FeatureCursor::~FeatureCursor()
 }
 
 void
+FeatureCursor::setPrefetchSize( int value )
+{
+    prefetch_size = std::max( value, 1 );
+}
+
+void
 FeatureCursor::reset()
 {
-    iter = 0;
-    prefetch();
+    if ( !at_bof )
+    {
+        iter = 0;
+        while( !prefetched_results.empty() )
+            prefetched_results.pop();
+        last_result = NULL;
+        prefetch();
+        at_bof = true;
+    }
 }
 
 bool
 FeatureCursor::hasNext() const
 {
-    return store.valid() && next_result.valid();
+    return store.valid() && prefetched_results.size() > 0; //next_result.valid();
 }
 
 Feature*
 FeatureCursor::next()
 {
-    last_result = next_result.get();
+    at_bof = false;
+
+    if ( prefetched_results.size() == 0 )
+    {
+        last_result = NULL;
+    }
+    else
+    {
+        last_result = prefetched_results.front().get();
+        prefetched_results.pop();
+    }
+
     prefetch();
+
     return last_result.get();
 }
 
 void
 FeatureCursor::prefetch()
 {
-    bool match = false;
-    while( store.valid() && !match && iter < oids.size() )
+    if ( store.valid() && prefetched_results.size() <= 1 )
     {
-        next_result = store->getFeature( oids[iter++] );
-        if ( !match_exactly )
-            return;
+        //TODO: make this implementation-independent:
+        OGR_SCOPE_LOCK();
 
-        match = next_result->getShapes().intersects( search_extent );
+        while( prefetched_results.size() < prefetch_size && iter < oids.size() )
+        {
+            Feature* f = store->getFeature( oids[iter++] );
+            if ( f )
+            {
+                bool match = true;
+                if ( match_exactly )
+                {
+                    match = f->getShapes().intersects( search_extent );
+                }
+
+                if ( match )
+                {
+                    prefetched_results.push( f );
+                }
+            }
+        }
     }
-    if ( !match )
-        next_result = NULL;
 }

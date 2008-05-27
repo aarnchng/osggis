@@ -25,6 +25,7 @@
 #include <osgGIS/Attribute>
 #include <vector>
 #include <list>
+#include <queue>
 
 namespace osgGIS
 {
@@ -89,6 +90,8 @@ namespace osgGIS
 	/** A list of reference-counted features. */
 	typedef std::vector< osg::ref_ptr<Feature> > FeatureList;
 	
+    /** A queue of reference-counted features. */
+    typedef std::queue< osg::ref_ptr<Feature> > FeatureQueue;
 
     /** A list of feautre OIDs. */
 	typedef std::vector< FeatureOID > FeatureOIDList;
@@ -106,32 +109,6 @@ namespace osgGIS
 		
 		virtual int getShapeDim() const;
     };
-	
-	
-    ///**
-    // * A cursor for iterating over a collection of features.
-    // */
-    //class OSGGIS_EXPORT FeatureCursor : public osg::Referenced
-    //{
-    //public:
-    //    /**
-    //     * Resets the iterator so that the next call to next() will
-    //     * return the first feature in the collection (if there is one).
-    //     */
-    //    virtual void reset() =0;
-    //    
-    //    /**
-    //     * Gets whether a call to next() will return a feature (true) or
-    //     * NULL (false).
-    //     */
-    //    virtual bool hasNext() const =0;
-
-    //    /**
-    //     * Gets the next feature in the collection, or NULL if you are at
-    //     * the end.
-    //     */
-    //    virtual Feature* next() =0;
-    //};
 
 
     /** Functor used to supply custom feature-related functionality to various

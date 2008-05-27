@@ -33,6 +33,20 @@ namespace osgGIS
             std::string& s, 
             const std::string& sub,
             const std::string& other );
+
+        /**
+         * Returns a copy of the input string with all the characters converted
+         * to lower case.
+         */
+        static std::string toLower(
+            const std::string& in );
+
+        /**
+         * Returns a copy of the input string with all leading and trailing
+         * spaces removed.
+         */
+        static std::string trim(
+            const std::string& in );
     };
     
     struct OSGGIS_EXPORT PathUtils

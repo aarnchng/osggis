@@ -98,6 +98,16 @@ namespace osgGIS
         Script* getModelScaleScript() const;
 
         /**
+         * Sets a script that evalutes to the heading (in degrees) of the model instance (double).
+         */
+        void setModelHeadingScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the heading (in degrees) of the model instance.
+         */
+        Script* getModelHeadingScript() const;
+
+        /**
          * Sets a script that evaluates to a string that will be set as the model instance's
          * node name. (Note: Setting a feature name will disable clustering, since each feature
          * will need to be in its own group.)
@@ -139,10 +149,12 @@ namespace osgGIS
     private:
         osg::Node* materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model );
         void assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env );
+        osg::Node* buildOutputNode( osg::Node* model_node, Feature* input, FilterEnv* env );
     
         osg::ref_ptr<Script> model_script;
         osg::ref_ptr<Script> model_path_script;
         osg::ref_ptr<Script> model_scale_script;
+        osg::ref_ptr<Script> model_heading_script;
         osg::ref_ptr<Script> feature_name_script;
         bool cluster;
         bool optimize_model;

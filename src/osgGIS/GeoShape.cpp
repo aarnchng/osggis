@@ -252,3 +252,32 @@ GeoShapeList::intersects( const GeoExtent& ex ) const
     }
     return false;
 }
+
+
+bool
+GeoShapeList::accept( GeoPartVisitor& visitor )
+{
+    for( GeoShapeList::iterator i = begin(); i != end(); i++ )
+    {
+        for( GeoPartList::iterator j = (*i).getParts().begin(); j != (*i).getParts().end(); j++ )
+        {
+            if ( !visitor.visitPart( *j ) )
+                return false;
+        }
+    }
+    return true;
+}
+
+bool 
+GeoShapeList::accept( GeoPartVisitor& visitor ) const
+{
+    for( GeoShapeList::const_iterator i = begin(); i != end(); i++ )
+    {
+        for( GeoPartList::const_iterator j = (*i).getParts().begin(); j != (*i).getParts().end(); j++ )
+        {
+            if ( !visitor.visitPart( *j ) )
+                return false;;
+        }
+    }
+    return true;
+}

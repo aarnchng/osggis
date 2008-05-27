@@ -156,7 +156,15 @@ namespace osgGIS
          */
         bool isClosed() const;
     };
-    //typedef std::vector<GeoPoint> GeoPointList;
+
+    class GeoPartVisitor
+    {
+    public:
+        GeoPartVisitor() { }
+        virtual ~GeoPartVisitor() { }
+        virtual bool visitPart( GeoPointList& part ) { return true; }
+        virtual bool visitPart( const GeoPointList& part ) { return visitPart( (GeoPointList&)part ); }
+    };
 
     class GeoPointVisitor
     {

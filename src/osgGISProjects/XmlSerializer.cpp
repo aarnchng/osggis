@@ -22,6 +22,7 @@
 #include <osgGISProjects/XmlDocument>
 #include <osgGIS/Registry>
 #include <osgGIS/Utils>
+#include <osgGIS/SRSResource>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <expat.h>
@@ -239,6 +240,19 @@ decodeScript( XmlElement* e, Project* proj )
     return script;
 }
 
+static void
+parseSRSResource( XmlElement* e, SRSResource* resource )
+{
+    if ( !resource->getSRS() )
+    {
+        std::string wkt = e->getText();
+        if ( wkt.length() > 0 )
+        {
+            resource->setSRS( Registry::SRSFactory()->createSRSfromWKT( wkt ) );
+        }
+    }
+}
+
 static Resource*
 decodeResource( XmlElement* e, Project* proj )
 {
@@ -267,6 +281,11 @@ decodeResource( XmlElement* e, Project* proj )
                 std::string name = k_e->getAttr( "name" );
                 std::string value = k_e->getAttr( "value" );
                 resource->setProperty( Property( name, value ) );
+            }
+
+            if ( dynamic_cast<SRSResource*>( resource ) )
+            {
+                parseSRSResource( e, static_cast<SRSResource*>( resource ) );
             }
         }
         else
@@ -503,7 +522,16 @@ decodeProject( XmlElement* e, const std::string& source_uri )
         {
             Source* source = decodeSource( static_cast<XmlElement*>( j->get() ), project, 0 );
             if ( source )
+            {
                 project->getSources().push_back( source );
+
+                // also add each source as a feature layer resource
+                Resource* resource = osgGIS::Registry::instance()->createResourceByType( "FeatureLayerResource" );
+                resource->setBaseURI( project->getBaseURI() );
+                resource->setURI( source->getURI() );
+                resource->setName( source->getName() );
+                project->getResources().push_back( resource );                
+            }
         }
         for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
         {

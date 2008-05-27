@@ -184,9 +184,11 @@ namespace osgGIS
         GeoShapeList() { }
         GeoShapeList( int capacity ) : std::vector<GeoShape>( capacity ) { }
 
+        bool accept( GeoPartVisitor& visitor );
+        bool accept( GeoPartVisitor& visitor ) const;
+
     public:
         //TODO: geometry functions.
         bool intersects( const GeoExtent& extent ) const;
     };
-    //typedef std::vector<GeoShape> GeoShapeList;
 }

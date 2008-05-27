@@ -25,6 +25,8 @@
 #include <osgGIS/SkinResource>
 #include <osgGIS/ModelResource>
 #include <osgGIS/RasterResource>
+#include <osgGIS/SRSResource>
+#include <osgGIS/FeatureLayerResource>
 #include <osg/StateSet>
 #include <osg/Node>
 #include <OpenThreads/ReentrantMutex>
@@ -81,6 +83,9 @@ namespace osgGIS
         
         RasterResource* getRaster( const std::string& name );
         
+        FeatureLayer* getFeatureLayer( const std::string& name );
+
+        SpatialReference* getSRS( const std::string& name );
         
         
     private:
@@ -93,6 +98,8 @@ namespace osgGIS
         ModelNodes model_nodes;
         
         RasterResourceVec rasters;
+        FeatureLayerResourceVec feature_layers;
+        SRSResourceVec srs_list;
 
         OpenThreads::ReentrantMutex& mut;
     };
