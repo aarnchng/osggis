@@ -136,7 +136,7 @@ TransformFilter::setProperty( const Property& p )
     if ( p.getName() == "localize" )
         setLocalize( p.getBoolValue( getLocalize() ) );
     else if ( p.getName() == "translate" )
-        setSRSScript( new Script( p.getValue() ) );
+        setTranslateScript( new Script( p.getValue() ) );
     else if ( p.getName() == "use_terrain_srs" )
         setUseTerrainSRS( p.getBoolValue( getUseTerrainSRS() ) );
     else if ( p.getName() == "srs" )

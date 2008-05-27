@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 05/10/08 14:18:29.
+** Generated automatically by tolua 5.1b on 05/27/08 12:20:34.
 */
 
 #ifndef __cplusplus
@@ -9,14 +9,6 @@
 #include "string.h"
 
 #include "tolua.h"
-extern "C" {
-
-/* Exported function */
-TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
-LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
-
-
-} // extern "C"
 #include <osgGIS/Attribute>
 #include <osgGIS/Feature>
 #include <osgGIS/FilterEnv>
@@ -26,6 +18,12 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
 #include <osgGIS/Lua_ScriptEngine>
 #include <string>
 using namespace osgGIS;
+
+extern "C" {
+
+/* Exported function */
+TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
+LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
 
 /* function to release collected object */
 #ifdef __cplusplus
@@ -1371,6 +1369,38 @@ tolua_lerror:
  return tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins00(tolua_S);
 }
 
+/* method: getPath of class  ResourceLibrary_Lua */
+static int tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getPath00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"ResourceLibrary_Lua",0,&tolua_err) ||
+ !tolua_isstring(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  ResourceLibrary_Lua* self = (ResourceLibrary_Lua*)  tolua_tousertype(tolua_S,1,0);
+  const char* name = ((const char*)  tolua_tostring(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getPath'",NULL);
+#endif
+ {
+  const char* tolua_ret = (const char*)  self->getPath(name);
+ tolua_pushstring(tolua_S,(const char*)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getPath'.",&tolua_err);
+ return 0;
+#endif
+}
+
 /* Open lib function */
 LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
 {
@@ -1487,6 +1517,7 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"newSkinQuery",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_newSkinQuery00);
  tolua_function(tolua_S,"getSkins",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins00);
  tolua_function(tolua_S,"getSkins",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getSkins01);
+ tolua_function(tolua_S,"getPath",tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_getPath00);
  tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);
  return 1;
@@ -1499,3 +1530,6 @@ TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S)
  lua_call(tolua_S, 1, 0);
  return 1;
 }
+
+} // extern "C"
+

@@ -73,6 +73,7 @@ SET(LIB_PUBLIC_HEADERS
     OGR_Utils
     OptimizerHints
     PagedLayerCompiler
+    PathResource
     Property
     RandomGroupingFilter
     RasterResource
@@ -174,6 +175,7 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_Utils.cpp
     OptimizerHints.cpp
     PagedLayerCompiler.cpp
+    PathResource.cpp
     Property.cpp
     RandomGroupingFilter.cpp
     RasterResource.cpp

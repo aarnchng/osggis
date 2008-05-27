@@ -180,24 +180,8 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
     // geometry for each. Then merge the geometries.
     bool needs_tessellation = false;
 
-    osg::Geometry* geom = new osg::Geometry();
-
-    // TODO: pre-total points and pre-allocate these arrays:
-    osg::Vec3Array* verts = new osg::Vec3Array();
-    geom->setVertexArray( verts );
-    unsigned int vert_ptr = 0;
-
-    // per-vertex coloring takes more memory than per-primitive-set coloring,
-    // but it renders faster.
-    osg::Vec4Array* colors = new osg::Vec4Array();
-    geom->setColorArray( colors );
-    geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
-
-    //osg::Vec3Array* normals = new osg::Vec3Array();
-    //geom->setNormalArray( normals );
-    //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
-    //normals->push_back( osg::Vec3( 0, 0, 1 ) );
-
+    Fragment* frag = new Fragment();
+    
     const GeoShapeList& shapes = input->getShapes();
 
     // if we're in batch mode, the color was resolved in the other process() function.
@@ -212,6 +196,25 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
         {
             needs_tessellation = true;
         }
+
+        osg::Geometry* geom = new osg::Geometry();
+
+        // TODO: pre-total points and pre-allocate these arrays:
+        osg::Vec3Array* verts = new osg::Vec3Array();
+        geom->setVertexArray( verts );
+        unsigned int vert_ptr = 0;
+
+        // per-vertex coloring takes more memory than per-primitive-set coloring,
+        // but it renders faster.
+        osg::Vec4Array* colors = new osg::Vec4Array();
+        geom->setColorArray( colors );
+        geom->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
+
+        //osg::Vec3Array* normals = new osg::Vec3Array();
+        //geom->setNormalArray( normals );
+        //geom->setNormalBinding( osg::Geometry::BIND_OVERALL );
+        //normals->push_back( osg::Vec3( 0, 0, 1 ) );
+
 
         GLenum prim_type = 
             shape.getShapeType() == GeoShape::TYPE_POINT? osg::PrimitiveSet::POINTS : 
@@ -230,24 +233,26 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
             }
             geom->addPrimitiveSet( new osg::DrawArrays( prim_type, part_ptr, vert_ptr-part_ptr ) );
         }
+        
+        // tessellate all polygon geometries. Tessellating each geometry separately
+        // with TESS_TYPE_GEOMETRY is much faster than doing the whole bunch together
+        // using TESS_TYPE_DRAWABLE.
+        if ( needs_tessellation )
+        {
+            osgUtil::Tessellator tess;
+            tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+            tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+            tess.retessellatePolygons( *geom );
+
+            applyOverlayTexturing( geom, input, env );
+        }
+
+        generateNormals( geom );
+
+        frag->addDrawable( geom );
     }
-    
-    // tessellate all polygon geometries. Tessellating each geometry separately
-    // with TESS_TYPE_GEOMETRY is much faster than doing the whole bunch together
-    // using TESS_TYPE_DRAWABLE.
-    if ( needs_tessellation )
-    {
-        osgUtil::Tessellator tess;
-        tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
-        tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
-        tess.retessellatePolygons( *geom );
 
-        applyOverlayTexturing( geom, input, env );
-    }
-
-    generateNormals( geom );
-
-    Fragment* frag = new Fragment( geom );
+    //Fragment* frag = new Fragment( geom );
 
     applyFragmentName( frag, input, env );
 
