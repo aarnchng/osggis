@@ -9,6 +9,7 @@ ENDIF(DYNAMIC_OSGGIS)
 SET(LIB_NAME osgGIS)
 
 SET(LIB_PUBLIC_HEADERS
+    AlignFilter
     Attribute
     AttributeIndex
     AutoResetBlock
@@ -39,6 +40,7 @@ SET(LIB_PUBLIC_HEADERS
     FeatureFilter
     FeatureFilterState
     FeatureLayer
+    FeatureLayerResource
     FeatureStore
     FeatureStoreCompiler
     FeatureStoreFactory
@@ -79,6 +81,7 @@ SET(LIB_PUBLIC_HEADERS
     RecalculateExtentFilter
     Registry
     RemoveHolesFilter
+    Report
     Resource
     ResourceLibrary
     RTree
@@ -97,6 +100,7 @@ SET(LIB_PUBLIC_HEADERS
     SpatialReference
     SpatialReferenceBase
     SpatialReferenceFactory
+    SRSResource
     StubSpatialIndex
     SubstituteModelFilter
     Tags
@@ -113,6 +117,7 @@ SET(LIB_PUBLIC_HEADERS
 ADD_LIBRARY(${LIB_NAME}
     ${OSGGIS_USER_DEFINED_DYNAMIC_OR_STATIC}
     ${LIB_PUBLIC_HEADERS}
+    AlignFilter.cpp
     Attribute.cpp
     BufferFilter.cpp
     BuildGeomFilter.cpp
@@ -138,6 +143,7 @@ ADD_LIBRARY(${LIB_NAME}
     FeatureFilter.cpp
     FeatureFilterState.cpp
     FeatureLayer.cpp
+    FeatureLayerResource.cpp
     FeatureStoreCompiler.cpp
     Filter.cpp
     FilterGraph.cpp
@@ -174,6 +180,7 @@ ADD_LIBRARY(${LIB_NAME}
     RecalculateExtentFilter.cpp
     Registry.cpp
     RemoveHolesFilter.cpp
+    Report.cpp
     Resource.cpp
     ResourceLibrary.cpp
     RTreeSpatialIndex.cpp
@@ -187,6 +194,7 @@ ADD_LIBRARY(${LIB_NAME}
     SimpleSpatialIndex.cpp
     SmartReadCallback.cpp
     SpatialReference.cpp
+    SRSResource.cpp
     SubstituteModelFilter.cpp
     Task.cpp
     TaskManager.cpp

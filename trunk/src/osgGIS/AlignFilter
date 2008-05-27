@@ -1,0 +1,112 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ALIGN_FILTER_H_
+#define _OSGGIS_ALIGN_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+#include <osgGIS/FeatureLayer>
+
+namespace osgGIS
+{
+    /**
+     * Calculates a heading for each incoming POINT feature such that
+     * the point feature will be "aligned" with the nearest feature
+     * in a secondary search feature store.
+     *
+     * For example, you can use this feature to calculate a heading for
+     * speed limit signs so that they will always face the traffic for
+     * the closest street segment.
+     *
+     * This filter does not alter any feature geometry. Rather is stores
+     * the calculated heading in an "output attribute". You can later use
+     * the TransformFilter or the SubstituteModelFilter to apply that
+     * heading information.
+     */
+    class OSGGIS_EXPORT AlignFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( AlignFilter );  
+
+    public:
+        AlignFilter();
+
+        AlignFilter( const AlignFilter& rhs );
+
+        ~AlignFilter();
+
+    public: // properties
+
+        /**
+         * Sets the search radius (in meters). This is the radius around the
+         * input point's centroid for which to search for a nearest feature
+         * to which to align the point.
+         */
+        void setRadius( double value );
+
+        /**
+         * Gets the search radius (in meters). This is the radius around the
+         * input point's centroid for which to search for a nearest feature
+         * to which to align the point.
+         */
+        double getRadius() const;
+
+        /**
+         * Sets the name of the feature store resource to use as the
+         * alignment layer.
+         */
+        void setAlignmentLayerResourceName( const std::string& );
+
+        /**
+         * Gets the name of the feature store resource to use as the
+         * alignment layer.
+         */
+        const std::string& getAlignmentLayerResourceName() const;
+
+        /**
+         * Sets the name of the feature attribute to which to assign
+         * the calculated heading.
+         */
+        void setOutputAttribute( const std::string& name );
+        
+        /**
+         * Gets the name of the feature attribute to which to assign
+         * the calculated heading.
+         */
+        const std::string& getOutputAttribute() const;
+
+    public:
+        FeatureList process( Feature* input, FilterEnv* env );
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    protected:
+        // properties
+        double radius;
+        std::string output_attribute;
+        std::string alignment_layer_name;
+
+        // transients
+        osg::ref_ptr<FeatureLayer> alignment_layer;
+        double radius_input_srs;
+    };
+}
+
+#endif // _OSGGIS_ALIGN_FILTER_H_

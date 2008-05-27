@@ -19,6 +19,7 @@
 
 #include <osgGIS/OGR_Feature>
 #include <osgGIS/OGR_Utils>
+#include <osgGIS/Utils>
 #include <ogr_api.h>
 #include <osg/Notify>
 #include <algorithm>
@@ -156,6 +157,8 @@ OGR_Feature::load( void* handle )
             }
         }
 	}
+
+    loadAttributes();
 }
 
 
@@ -210,38 +213,84 @@ OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_
 Attribute
 OGR_Feature::getAttribute( const std::string& key ) const
 {
-    // TODO: need a mutex here? is there any caching going on? Ideally,
-    // each OGR_Feature instance is unique relative to the compilation
-    // context.
-    AttributeTable::const_iterator i = getUserAttrs().find( key );
+    std::string lkey = StringUtils::toLower( key );
+
+    AttributeTable::const_iterator i = getUserAttrs().find( lkey );
     if ( i != getUserAttrs().end() )
     {
         return i->second;
     }
-    else //TODO: perhaps cache the features in the UserAttrs table?
+    else
     {
-        OGR_SCOPE_LOCK();
-        int index = OGR_F_GetFieldIndex( handle, key.c_str() );
-        if ( index > 0 )
+        AttributeTable::const_iterator j = store_attrs.find( lkey );
+        if ( j != store_attrs.end() )
         {
-            void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, index );
-            OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
-            switch( ft )
-            {
-                case OFTInteger:
-                    return Attribute( key, OGR_F_GetFieldAsInteger( handle, index ) );
-                    break;
-                case OFTReal:
-                    return Attribute( key, OGR_F_GetFieldAsDouble( handle, index ) );
-                    break;
-                case OFTString:
-                    return Attribute( key, OGR_F_GetFieldAsString( handle, index ) );
-                    break;
-            }
+            return j->second;
         }
-    }  
-
+    }
     return invalid_attr;
+
+    //    OGR_SCOPE_LOCK();
+    //    int index = OGR_F_GetFieldIndex( handle, key.c_str() );
+    //    if ( index > 0 )
+    //    {
+    //        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, index );
+    //        OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
+    //        switch( ft )
+    //        {
+    //            case OFTInteger:
+    //                return Attribute( key, OGR_F_GetFieldAsInteger( handle, index ) );
+    //                break;
+    //            case OFTReal:
+    //                return Attribute( key, OGR_F_GetFieldAsDouble( handle, index ) );
+    //                break;
+    //            case OFTString:
+    //                return Attribute( key, OGR_F_GetFieldAsString( handle, index ) );
+    //                break;
+    //        }
+    //    }
+    //}  
+
+    //return invalid_attr;
+}
+
+
+void
+OGR_Feature::loadAttributes()
+{
+    OGR_SCOPE_LOCK();
+
+    store_attrs.clear();
+
+    int count = OGR_F_GetFieldCount( handle );
+    for( int i=0; i<count; i++ )
+    {
+        Attribute attr;
+
+        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
+        const char* field_name = OGR_Fld_GetNameRef( field_handle_ref );
+        std::string lkey = StringUtils::toLower( std::string( field_name ) );
+        OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
+        switch( ft )
+        {
+            case OFTInteger:
+                attr = Attribute( lkey, OGR_F_GetFieldAsInteger( handle, i ) );
+                break;
+            case OFTReal:
+                attr =  Attribute( lkey, OGR_F_GetFieldAsDouble( handle, i ) );
+                break;
+            case OFTString:
+                attr =  Attribute( lkey, OGR_F_GetFieldAsString( handle, i ) );
+                break;
+        }
+
+        if ( attr.isValid() )
+        {
+            store_attrs[ lkey ] = attr;
+        }
+    }
+
+    store_attrs_loaded = true;
 }
 
 
@@ -250,15 +299,26 @@ OGR_Feature::getAttributes() const
 {
     AttributeTable attrs;
 
-    // accumulate the attrs from the store:
-    OGR_SCOPE_LOCK();
-    int count = OGR_F_GetFieldCount( handle );
-    for( int i=0; i<count; i++ ) //1; i<=count; i++ )
+    if ( !store_attrs_loaded )
     {
-        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
-        const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
-        attrs[ std::string(field_name) ] = getAttribute( std::string(field_name) );
+        const_cast<OGR_Feature*>(this)->loadAttributes();
     }
+
+    // accumulate the attrs from the store:
+    for( AttributeTable::const_iterator i = store_attrs.begin(); i != store_attrs.end(); i++ )
+    {
+        attrs[ (*i).first ] = (*i).second;
+    }
+
+    //// accumulate the attrs from the store:
+    //OGR_SCOPE_LOCK();
+    //int count = OGR_F_GetFieldCount( handle );
+    //for( int i=0; i<count; i++ ) //1; i<=count; i++ )
+    //{
+    //    void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
+    //    const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
+    //    attrs[ std::string(field_name) ] = getAttribute( std::string(field_name) );
+    //}
 
     // finally add in the user attrs (overwriting the store attrs if necessary)
     for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end() ; i++ )

@@ -18,6 +18,7 @@
  */
 
 #include <osgGISProjects/XmlDOM>
+#include <osgGIS/Utils>
 #include <osg/Notify>
 #include <expat.h>
 #include <algorithm>
@@ -114,7 +115,7 @@ XmlElement::getText() const
         }
     }
 
-    std::string result = builder.str();
+    std::string result = osgGIS::StringUtils::trim( builder.str() );
     return result;
 }
 

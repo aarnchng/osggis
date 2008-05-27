@@ -339,9 +339,10 @@ createFilterGraph()
 
     // Transform the features to the target spatial reference system,
     // localizing them to a local origin:
-    graph->appendFilter( new osgGIS::TransformFilter(
-        osgGIS::TransformFilter::USE_TERRAIN_SRS |
-        osgGIS::TransformFilter::LOCALIZE ) );
+    osgGIS::TransformFilter* xform_filter = new osgGIS::TransformFilter();
+    xform_filter->setUseTerrainSRS( true );
+    xform_filter->setLocalize( true );
+    graph->appendFilter( xform_filter );
 
     // Decimate shapes to a point-to-point-distance threshold. Doing this
     // after the transform means we're dealing in meters.

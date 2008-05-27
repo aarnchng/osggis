@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/Attribute>
+#include <osgGIS/Utils>
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -37,7 +38,7 @@ Attribute::Attribute()
 
 Attribute::Attribute( const std::string& _key, const std::string& _value )
 {
-    key = _key;
+    key = StringUtils::toLower( _key );
     string_value = _value;
     type = TYPE_STRING;
     valid = true;
@@ -45,7 +46,7 @@ Attribute::Attribute( const std::string& _key, const std::string& _value )
 
 Attribute::Attribute( const std::string& _key, const char* _value )
 {
-    key = _key;
+    key = StringUtils::toLower( _key );
     string_value = _value;
     type = TYPE_STRING;
     valid = true;
@@ -53,7 +54,7 @@ Attribute::Attribute( const std::string& _key, const char* _value )
 
 Attribute::Attribute( const std::string& _key, int _value )
 {
-    key = _key;
+    key = StringUtils::toLower( _key );
     int_value = _value;
     type = TYPE_INT;
     valid = true;
@@ -61,7 +62,7 @@ Attribute::Attribute( const std::string& _key, int _value )
 
 Attribute::Attribute( const std::string& _key, double _value )
 {
-    key = _key;
+    key = StringUtils::toLower( _key );
     double_value = _value;
     type = TYPE_DOUBLE;
     valid = true;
@@ -69,7 +70,7 @@ Attribute::Attribute( const std::string& _key, double _value )
 
 Attribute::Attribute( const std::string& _key, bool _value )
 {
-    key = _key;
+    key = StringUtils::toLower( _key );
     int_value = _value? 1 : 0;
     type = TYPE_BOOL;
     valid = true;
@@ -169,7 +170,7 @@ Attribute::asBool() const
 AttributeSchema::AttributeSchema(const std::string&     _attr_name,
                                  const Attribute::Type& _attr_type )
 {
-    name = _attr_name;
+    name = StringUtils::toLower( _attr_name );
     type = _attr_type;
 }
         
@@ -177,7 +178,7 @@ AttributeSchema::AttributeSchema(const std::string&     _attr_name,
                                  const Attribute::Type& _attr_type,
                                  const Properties&      _props )
 {
-    name = _attr_name;
+    name = StringUtils::toLower( _attr_name );
     type = _attr_type;
     props = _props;
 }
@@ -207,7 +208,8 @@ AttributeSchema::getProperties() const
 Attribute
 AttributedBase::getAttribute( const std::string& key ) const
 {
-    AttributeTable::const_iterator i = user_attrs.find( key );
+    std::string lkey = StringUtils::toLower( key );
+    AttributeTable::const_iterator i = user_attrs.find( lkey );
     return i != user_attrs.end()? i->second : Attribute::invalid();
 }
 
@@ -236,25 +238,29 @@ AttributedBase::getAttributeSchemas() const
 void 
 AttributedBase::setAttribute( const std::string& key, const std::string& value )
 {
-    user_attrs[key] = Attribute( key, value );
+    std::string lkey = StringUtils::toLower( key );
+    user_attrs[lkey] = Attribute( lkey, value );
 }
 
 void 
 AttributedBase::setAttribute( const std::string& key, int value )
 {
-    user_attrs[key] = Attribute( key, value );
+    std::string lkey = StringUtils::toLower( key );
+    user_attrs[lkey] = Attribute( lkey, value );
 }
 
 void 
 AttributedBase::setAttribute( const std::string& key, double value )
 {
-    user_attrs[key] = Attribute( key, value );
+    std::string lkey = StringUtils::toLower( key );
+    user_attrs[lkey] = Attribute( lkey, value );
 }
 
 void
 AttributedBase::setAttribute( const std::string& key, bool value )
 {
-    user_attrs[key] = Attribute( key, value );
+    std::string lkey = StringUtils::toLower( key );
+    user_attrs[lkey] = Attribute( lkey, value );
 }
 
 const AttributeTable&

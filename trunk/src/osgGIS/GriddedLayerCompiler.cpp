@@ -431,7 +431,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     }   
 
                     int perc = (int)(100.0f * ((float)++count)/(float)total);
-                    osg::notify(osg::NOTICE) << "..." << perc << "% done" << std::endl;
+                    osg::notify(osg::NOTICE) << "..." << perc << "% done" << std::endl << std::flush;
                 } 
             }
         }

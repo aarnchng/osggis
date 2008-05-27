@@ -88,9 +88,12 @@ namespace osgGIS
 		GeoExtent                      extent;
 		osg::ref_ptr<SpatialReference> spatial_ref;
         Attribute                      invalid_attr;
+        bool                           store_attrs_loaded;
+        AttributeTable                 store_attrs;
 		
 	private:
 	    void load( void* );
+        void loadAttributes();
 		GeoShape decodeShape( void*, int, GeoShape::ShapeType );
 	};
 }

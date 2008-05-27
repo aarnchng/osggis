@@ -37,8 +37,6 @@ normalize( const std::string& input )
     return output;
 }
 
-
-
 ResourceLibrary::ResourceLibrary( ReentrantMutex& _mut )
 : mut( _mut )
 {
@@ -56,13 +54,13 @@ ResourceLibrary::addResource( Resource* resource )
         {
             SkinResource* skin = static_cast<SkinResource*>( resource );
             skins.push_back( skin );
-            osg::notify( osg::INFO ) << "...added skin " << skin->getAbsoluteURI() << std::endl;
+            osg::notify( osg::NOTICE ) << "...added skin " << skin->getAbsoluteURI() << std::endl;
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
             ModelResource* model = static_cast<ModelResource*>( resource );
             models.push_back( model );
-            osg::notify( osg::INFO ) << "...added model " << model->getAbsoluteURI() << std::endl;
+            osg::notify( osg::NOTICE ) << "...added model " << model->getAbsoluteURI() << std::endl;
 
             osgDB::Registry::instance()->getDataFilePathList().push_back(
                 osgDB::getFilePath( model->getAbsoluteURI() ) );
@@ -71,7 +69,19 @@ ResourceLibrary::addResource( Resource* resource )
         {
             RasterResource* raster = static_cast<RasterResource*>( resource );
             rasters.push_back( raster );
-            osg::notify( osg::INFO ) << "...added raster " << raster->getAbsoluteURI() << std::endl;
+            osg::notify( osg::NOTICE ) << "...added raster " << raster->getAbsoluteURI() << std::endl;
+        }
+        else if ( dynamic_cast<FeatureLayerResource*>( resource ) )
+        {
+            FeatureLayerResource* flr = static_cast<FeatureLayerResource*>( resource );
+            feature_layers.push_back( flr );
+            osg::notify( osg::NOTICE ) << "...added feature layer " << flr->getAbsoluteURI() << std::endl;
+        }
+        else if ( dynamic_cast<SRSResource*>( resource ) )
+        {
+            SRSResource* srsr = static_cast<SRSResource*>( resource );
+            srs_list.push_back( srsr );
+            osg::notify( osg::NOTICE ) << "...added SRS " << srsr->getName() << std::endl;
         }
 
         resource->setMutex( mut );
@@ -121,6 +131,30 @@ ResourceLibrary::removeResource( Resource* resource )
                 }
             }
         }
+        else if ( dynamic_cast<FeatureLayerResource*>( resource ) )
+        {
+            for( FeatureLayerResourceVec::iterator i = feature_layers.begin(); i != feature_layers.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    feature_layers.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed feature layer \"" << resource->getName() << "\"" << std::endl;
+                    break;
+                }
+            }
+        }
+        else if ( dynamic_cast<SRSResource*>( resource ) )
+        {
+            for( SRSResourceVec::iterator i = srs_list.begin(); i != srs_list.end(); i++ )
+            {
+                if ( i->get() == resource )
+                {
+                    srs_list.erase( i );
+                    osg::notify( osg::NOTICE ) << "ResourceLibrary: Removed SRS \"" << resource->getName() << "\"" << std::endl;
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -148,7 +182,6 @@ ResourceLibrary::getSkin( const std::string& name )
     }
     return NULL;
 }
-
 
 ResourceList
 ResourceLibrary::getSkins()
@@ -342,6 +375,32 @@ ResourceLibrary::getRaster( const std::string& name )
     {
         if ( i->get()->getName() == name )
             return i->get();
+    }
+    return NULL;
+}
+
+FeatureLayer*
+ResourceLibrary::getFeatureLayer( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( FeatureLayerResourceVec::const_iterator i = feature_layers.begin(); i != feature_layers.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get()->getFeatureLayer();
+    }
+    return NULL;
+}
+
+SpatialReference*
+ResourceLibrary::getSRS( const std::string& name )
+{
+    ScopedLock<ReentrantMutex> sl( mut );
+
+    for( SRSResourceVec::const_iterator i = srs_list.begin(); i != srs_list.end(); i++ )
+    {
+        if ( i->get()->getName() == name )
+            return i->get()->getSRS();
     }
     return NULL;
 }

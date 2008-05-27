@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <float.h>
 #include <sys/stat.h>
+#include <string>
 
 using namespace osgGIS;
 
@@ -55,6 +56,29 @@ StringUtils::replaceIn( std::string& s, const std::string& sub, const std::strin
     return s;
 }
 
+std::string
+StringUtils::toLower( const std::string& in )
+{
+    std::string output = in;
+    std::transform( output.begin(), output.end(), output.begin(), ::tolower );
+    return output;
+}
+
+std::string
+StringUtils::trim( const std::string& in )
+{
+    // by Rodrigo C F Dias
+    // http://www.codeproject.com/KB/stl/stdstringtrim.aspx
+    std::string str = in;
+    std::string::size_type pos = str.find_last_not_of(' ');
+    if(pos != std::string::npos) {
+        str.erase(pos + 1);
+        pos = str.find_first_not_of(' ');
+        if(pos != std::string::npos) str.erase(0, pos);
+    }
+    else str.erase(str.begin(), str.end());
+    return str;
+}
 
 bool
 PathUtils::isAbsPath( const std::string& path )

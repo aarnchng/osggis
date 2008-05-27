@@ -47,7 +47,11 @@ namespace osgGIS
          */
         FeatureCursor();
 
+        FeatureCursor( const FeatureCursor& rhs );
+
         virtual ~FeatureCursor();
+
+        void setPrefetchSize( int size );
 
     public:
 
@@ -59,16 +63,18 @@ namespace osgGIS
 
 
     private:
+        bool                       at_bof;
         FeatureOIDList             oids;
         unsigned int               iter;
         osg::ref_ptr<FeatureStore> store;
         osg::ref_ptr<Feature>      last_result;
-        osg::ref_ptr<Feature>      next_result;
         GeoExtent                  search_extent;
         bool                       match_exactly;
+        FeatureQueue               prefetched_results;
 
     private:
         void prefetch();
+        int prefetch_size;
     };
 }
 
