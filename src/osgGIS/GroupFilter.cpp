@@ -79,6 +79,7 @@ GroupFilter::assign( Feature* input, FilterEnv* env )
 {
     if ( getGroupExpr().length() > 0 )
     {
+        //TODO: new Script() is a memory leak in the following line!!
         ScriptResult r = env->getScriptEngine()->run( new Script( getGroupExpr() ), input, env );
         if ( r.isValid() )
             return r.asString();

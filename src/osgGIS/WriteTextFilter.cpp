@@ -154,6 +154,7 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
             }
         }
         
+        //TODO: new Script() is a memory leak in the following line!!
         ScriptResult r = env->getScriptEngine()->run( new Script( getTextExpr() ), input, env );
         if ( r.isValid() )
         {
