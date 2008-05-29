@@ -227,18 +227,6 @@ LayerCompiler::setSession( Session* _session )
 }
 
 void
-LayerCompiler::setPreCompileExpr( const std::string& expr )
-{
-    pre_compile_expr = expr;
-}
-
-const std::string&
-LayerCompiler::getPreCompileExpr() const
-{
-    return pre_compile_expr;
-}
-
-void
 LayerCompiler::setAreaOfInterest( double x0, double y0, double x1, double y1 )
 {
     aoi_xmin = x0;
@@ -287,7 +275,6 @@ LayerCompiler::setProperties( Properties& input )
     setPaged( input.getBoolValue( "paged", getPaged() ) );
     setFadeLODs( input.getBoolValue( "fade_lods", getFadeLODs() ) );
     setRenderOrder( input.getIntValue( "render_order", getRenderOrder() ) );
-    setPreCompileExpr( input.getValue( "pre_script", getPreCompileExpr() ) );
     setLocalizeResources( input.getBoolValue( "localize_resources", getLocalizeResources() ) );
     setCompressTextures( input.getBoolValue( "compress_textures", getCompressTextures() ) );
 

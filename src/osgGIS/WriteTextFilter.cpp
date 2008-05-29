@@ -64,34 +64,34 @@ WriteTextFilter::WriteTextFilter()
 WriteTextFilter::WriteTextFilter( const WriteTextFilter& rhs )
 : FeatureFilter( rhs ),
   append( rhs.append ),
-  output_file( rhs.output_file ),
-  text_expr( rhs.text_expr )
+  output_path_resource_name_script( rhs.output_path_resource_name_script.get() ),
+  text_script( rhs.text_script.get() )
 {
     //NOP
 }
 
 void
-WriteTextFilter::setOutputFile( const std::string& value )
+WriteTextFilter::setOutputPathResourceNameScript( Script* value )
 {
-    output_file = value;
+    output_path_resource_name_script = value;
 }
 
-const std::string&
-WriteTextFilter::getOutputFile() const
+Script*
+WriteTextFilter::getOutputPathResourceNameScript() const
 {
-    return output_file;
+    return output_path_resource_name_script.get();
 }
 
 void
-WriteTextFilter::setTextExpr( const std::string& value )
+WriteTextFilter::setTextScript( Script* value )
 {
-    text_expr = value;
+    text_script = value;
 }
 
-const std::string&
-WriteTextFilter::getTextExpr() const
+Script*
+WriteTextFilter::getTextScript() const
 {
-    return text_expr;
+    return text_script.get();
 }
 
 void
@@ -108,10 +108,10 @@ WriteTextFilter::getAppend() const
 void
 WriteTextFilter::setProperty( const Property& p )
 {
-    if ( p.getName() == "output_file" )
-        setOutputFile( p.getValue() );
+    if ( p.getName() == "output" )
+        setOutputPathResourceNameScript( new Script( p.getValue() ) );
     else if ( p.getName() == "text" )
-        setTextExpr( p.getValue() );
+        setTextScript( new Script( p.getValue() ) );
     else if ( p.getName() == "append" )
         setAppend( p.getBoolValue( getAppend() ) );
     FeatureFilter::setProperty( p );
@@ -121,10 +121,10 @@ Properties
 WriteTextFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
-    if ( getOutputFile().length() > 0 )
-        p.push_back( Property( "output_file", getOutputFile() ) );
-    if ( getTextExpr().length() > 0 )
-        p.push_back( Property ( "text", getTextExpr() ) );
+    if ( getOutputPathResourceNameScript() )
+        p.push_back( Property( "output", getOutputPathResourceNameScript()->getCode() ) );
+    if ( getTextScript() )
+        p.push_back( Property ( "text", getTextScript()->getCode() ) );
     if ( getAppend() != DEFAULT_APPEND )
         p.push_back( Property( "append", getAppend() ) );
     return p;
@@ -136,7 +136,7 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
     FeatureList output;
     output.push_back( input );
 
-    if ( getTextExpr().length() > 0 && getOutputFile().length() > 0 )
+    if ( getTextScript() && getOutputPathResourceNameScript() )
     {
         // open the file as a SESSION property so that all compilers can share it
         Property p = env->getSession()->getProperty( PROP_FILE );
@@ -148,14 +148,21 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
             file = dynamic_cast<RefFile*>( p.getRefValue() );
             if ( !file )
             {
-                file = new RefFile( getOutputFile() );
-                env->getSession()->setProperty( Property( PROP_FILE, file ) );
-                osg::notify(osg::NOTICE) << "WriteText: writing to " << getOutputFile() << std::endl;
+                ScriptResult r = env->getScriptEngine()->run( getOutputPathResourceNameScript(), input, env );
+                if ( r.isValid() )
+                {
+                    const std::string output_path = env->getSession()->getResources()->getPath( r.asString() );
+                    if ( output_path.length() > 0 )
+                    {
+                        file = new RefFile( output_path );
+                        env->getSession()->setProperty( Property( PROP_FILE, file ) );
+                        osg::notify(osg::NOTICE) << "WriteText: writing to " << output_path << std::endl;
+                    }
+                }
             }
         }
         
-        //TODO: new Script() is a memory leak in the following line!!
-        ScriptResult r = env->getScriptEngine()->run( new Script( getTextExpr() ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getTextScript(), input, env );
         if ( r.isValid() )
         {
             file->write( r.asString() );

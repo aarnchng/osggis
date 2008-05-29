@@ -28,18 +28,19 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( BuildLabelsFilter );
 
 
-#define FRAND (((double)(rand()%100))/100.0)
+#define DEFAULT_DISABLE_DEPTH_TEST true
 
 
 BuildLabelsFilter::BuildLabelsFilter()
 {
-    setTextExpr( "text" );
+    setTextScript( new Script( "default", "lua", "'text'" ) );
+    setDisableDepthTest( DEFAULT_DISABLE_DEPTH_TEST );
 }
 
 BuildLabelsFilter::BuildLabelsFilter( const BuildLabelsFilter& rhs )
 : BuildGeomFilter( rhs ),
-  text_expr( rhs.text_expr ),
-  font_size_expr( rhs.font_size_expr ),
+  text_script( rhs.text_script.get() ),
+  font_size_script( rhs.font_size_script.get() ),
   disable_depth_test( rhs.disable_depth_test )
 {
     //NOP
@@ -51,27 +52,27 @@ BuildLabelsFilter::~BuildLabelsFilter()
 }
 
 void
-BuildLabelsFilter::setTextExpr( const std::string& value )
+BuildLabelsFilter::setTextScript( Script* value )
 {
-    text_expr = value;
+    text_script = value;
 }
 
-const std::string&
-BuildLabelsFilter::getTextExpr() const
+Script*
+BuildLabelsFilter::getTextScript() const
 {
-    return text_expr;
+    return text_script.get();
 }
 
 void 
-BuildLabelsFilter::setFontSizeExpr( const std::string& expr )
+BuildLabelsFilter::setFontSizeScript( Script* value )
 {
-    font_size_expr = expr;
+    font_size_script = value;
 }
 
-const std::string& 
-BuildLabelsFilter::getFontSizeExpr() const
+Script*
+BuildLabelsFilter::getFontSizeScript() const
 {
-    return font_size_expr;
+    return font_size_script.get();
 }
 
 void 
@@ -90,11 +91,11 @@ void
 BuildLabelsFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "text" )
-        setTextExpr( p.getValue() );
+        setTextScript( new Script( p.getValue() ) );
     else if ( p.getName() == "topmost" )
         setDisableDepthTest( true );
     else if ( p.getName() == "font_size" )
-        setFontSizeExpr( p.getValue() );
+        setFontSizeScript( new Script( p.getValue() ) );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -103,12 +104,12 @@ Properties
 BuildLabelsFilter::getProperties() const
 {
     Properties p = BuildGeomFilter::getProperties();
-    if ( getTextExpr().length() > 0 )
-        p.push_back( Property( "text", getTextExpr() ) );
-    if ( getDisableDepthTest() )
+    if ( getTextScript() )
+        p.push_back( Property( "text", getTextScript()->getCode() ) );
+    if ( getFontSizeScript() )
+        p.push_back( Property( "font_size", getFontSizeScript()->getCode() ) );
+    if ( getDisableDepthTest() != DEFAULT_DISABLE_DEPTH_TEST )
         p.push_back( Property( "topmost", true ) );
-    if ( getFontSizeExpr().length() > 0 )
-        p.push_back( Property( "font_size", font_size_expr ) );
     return p;
 }
 
@@ -128,17 +129,24 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
     osg::Vec4 color = getColorForFeature( input, env );
 
     // the text string:
-
-    //TODO: new Script() is a memory leak in the following line!!
-    ScriptResult r = env->getScriptEngine()->run( new Script( getTextExpr() ), input, env );
-    std::string text = r.isValid()? r.asString() : "error";
+    std::string text;
+    if ( getTextScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getTextScript(), input, env );
+        if ( r.isValid() ) 
+            text = r.asString();
+    }
 
     // resolve the size:
+    double font_size = 16.0;
+    if ( getFontSizeScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getFontSizeScript(), input, env );
+        if ( r.isValid() )
+            font_size = r.asDouble( font_size );
+    }
     
-    //TODO: new Script() is a memory leak in the following line!!
-    r = env->getScriptEngine()->run( new Script( getFontSizeExpr() ), input, env );
-    double font_size = r.asDouble( 16.0 );
-    
+    // build the drawable:
     osgText::Text* t = new osgText::Text();
     t->setAutoRotateToScreen( true );
     t->setCharacterSizeMode( osgText::Text::SCREEN_COORDS );
@@ -148,7 +156,11 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
     t->setPosition( input->getExtent().getCentroid() );
     t->setBackdropType( osgText::Text::OUTLINE );
     t->setBackdropColor( osg::Vec4(0,0,0,1) );
-    t->getOrCreateStateSet()->setAttribute( new osg::Depth( osg::Depth::ALWAYS, 0, 1, false ), osg::StateAttribute::ON );
+
+    if ( getDisableDepthTest() )
+    {
+        t->getOrCreateStateSet()->setAttribute( new osg::Depth( osg::Depth::ALWAYS, 0, 1, false ), osg::StateAttribute::ON );
+    }
 
     output.push_back( new Fragment( t ) );
 

@@ -38,17 +38,35 @@ namespace osgGIS
         WriteTextFilter( const WriteTextFilter& rhs );
 
     public:
-        void setOutputFile( const std::string& file );
+        /**
+         * Sets a script that evaluates to the name of a PathResource
+         * which holds the path of the output file to which to write
+         * text.
+         */
+        void setOutputPathResourceNameScript( Script* script );
 
-        const std::string& getOutputFile() const;
+        /**
+         * Gets a script that evaluates to the name of a PathResource
+         * which holds the path of the output file to which to write
+         * text.
+         */
+        Script* getOutputPathResourceNameScript() const;
 
+        // NYI
         void setAppend( bool value );
 
+        // NYI
         bool getAppend() const;
 
-        void setTextExpr( const std::string& text_expr );
+        /**
+         * Sets a script that evaluates to the text string to output.
+         */
+        void setTextScript( Script* script );
 
-        const std::string& getTextExpr() const;
+        /**
+         * Gets a script that evalutes to the text string to output.
+         */
+        Script* getTextScript() const;
 
     public:
         virtual void setProperty( const Property& p );
@@ -58,9 +76,9 @@ namespace osgGIS
         virtual FeatureList process( Feature* input, FilterEnv* env );
 
     private:
-        std::string output_file;
-        std::string text_expr;
         bool append;
+        osg::ref_ptr<Script> output_path_resource_name_script;
+        osg::ref_ptr<Script> text_script;
     };
 }
 
