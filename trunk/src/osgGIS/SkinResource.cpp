@@ -66,6 +66,7 @@ SkinResource::init()
     setColor( osg::Vec4( 1, 1, 1, 1 ) );
     setRepeatsVertically( true );
     setTextureMode( DEFAULT_TEXTURE_MODE );
+    setSingleUse( false );
 }
 
 SkinResource::~SkinResource()

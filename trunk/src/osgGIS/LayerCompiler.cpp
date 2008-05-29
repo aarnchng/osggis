@@ -375,19 +375,19 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 void
 LayerCompiler::localizeResources( const std::string& output_folder )
 {
-    if ( getLocalizeResources() )
-    {   
-        ResourceList resources_to_localize = getSession()->getResourcesUsed( true );
-
-        //osg::notify(osg::INFO) << "LayerCompiler: finalizing layer/localizing resources" << std::endl;
-
-        osg::ref_ptr<osgDB::ReaderWriter::Options> local_options = new osgDB::ReaderWriter::Options;
+    // collect the resources marked as used.
+    ResourceList resources_to_localize = getSession()->getResourcesUsed( true );
 
 
-        for( ResourceList::const_iterator i = resources_to_localize.begin(); i != resources_to_localize.end(); i++ )
+    osg::ref_ptr<osgDB::ReaderWriter::Options> local_options = new osgDB::ReaderWriter::Options;
+
+    for( ResourceList::const_iterator i = resources_to_localize.begin(); i != resources_to_localize.end(); i++ )
+    {
+        Resource* resource = i->get();
+
+        // if we are localizing resources, attempt to copy each one to the output folder:
+        if ( getLocalizeResources() )
         {
-            Resource* resource = i->get();
-
             if ( dynamic_cast<SkinResource*>( resource ) )
             {
                 SkinResource* skin = static_cast<SkinResource*>( resource );
@@ -462,12 +462,12 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                     }
                 }
             }
+        }
 
-            // now remove any non-shared resources.
-            if ( resource->isSingleUse() )
-            {
-                getSession()->getResources()->removeResource( resource );
-            }
+        // now remove any single-use (i.e. non-shared) resources (whether we are localizing them or not)
+        if ( resource->isSingleUse() )
+        {
+            getSession()->getResources()->removeResource( resource );
         }
     }
 }
