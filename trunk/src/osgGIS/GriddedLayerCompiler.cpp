@@ -305,6 +305,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
 
     if ( getSession() && getPreCompileExpr().length() > 0 )
     {
+        //TODO: new Script() is a memory leak in the following line!!
         getSession()->createScriptEngine()->run( new Script( getPreCompileExpr() ) );
     }
     
@@ -391,8 +392,9 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                 }
                 else
                 {
+
                     osg::notify(osg::NOTICE) 
-                        << task->getName() << ": building... " 
+                        << task->getName() << " starting... " 
                         << sub_extent.toString() << "..."
                         << std::flush;
 

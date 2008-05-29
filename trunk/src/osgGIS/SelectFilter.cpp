@@ -29,21 +29,15 @@ OSGGIS_DEFINE_FILTER( SelectFilter );
 
 SelectFilter::SelectFilter()
 {
-    select_expr = "";
+    //NOP
 }
 
 SelectFilter::SelectFilter( const SelectFilter& rhs )
 : FeatureFilter( rhs ),
-  select_expr( rhs.select_expr )
+  select_script( rhs.select_script.get() )
 {
     //NOP
 }
-
-SelectFilter::SelectFilter( const std::string& _select_expr )
-{
-    setSelectExpr( _select_expr );
-}
-
 
 SelectFilter::~SelectFilter()
 {
@@ -51,22 +45,22 @@ SelectFilter::~SelectFilter()
 }
 
 void
-SelectFilter::setSelectExpr( const std::string& value )
+SelectFilter::setSelectScript( Script* value )
 {
-    select_expr = value;
+    select_script = value;
 }
 
-const std::string&
-SelectFilter::getSelectExpr() const
+Script*
+SelectFilter::getSelectScript() const
 {
-    return select_expr;
+    return select_script.get();
 }
 
 void
 SelectFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "select" )
-        setSelectExpr( p.getValue() );
+        setSelectScript( new Script( p.getValue() ) );
     FeatureFilter::setProperty( p );
 }
 
@@ -74,8 +68,8 @@ Properties
 SelectFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
-    if ( getSelectExpr().length() > 0 )
-        p.push_back( Property( "select", getSelectExpr() ) );
+    if ( getSelectScript() )
+        p.push_back( Property( "select", getSelectScript()->getCode() ) );
     return p;
 }
 
@@ -84,10 +78,9 @@ SelectFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
 
-    if ( getSelectExpr().length() > 0 )
+    if ( getSelectScript() )
     {
-        ScriptResult r = env->getScriptEngine()->run(
-            new Script( getSelectExpr() ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getSelectScript(), input, env );
 
         if ( r.isValid() && r.asBool( false ) )
             output.push_back( input );

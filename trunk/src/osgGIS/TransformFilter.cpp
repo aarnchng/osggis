@@ -194,7 +194,9 @@ TransformFilter::process( Feature* input, FilterEnv* env )
             working_matrix = osg::Matrix::translate( r.asVec3() );
     }
 
-    SpatialReference* working_srs = new_out_srs.valid()? new_out_srs.get() : NULL;
+    SpatialReference* working_srs = new_out_srs.valid()? 
+        new_out_srs.get() : 
+        env->getInputSRS(); //NULL;
 
     // LOCALIZE points around a local origin (the working extent's centroid)
     if ( working_srs && getLocalize() && env->getExtent().getArea() > 0.0 )
@@ -206,7 +208,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
         }
         else
         {
-            working_srs = new_out_srs.get();
+            //working_srs = new_out_srs.get();
 
             GeoPoint centroid = new_out_srs.valid()?
                 new_out_srs->transform( env->getExtent().getCentroid() ) :
@@ -240,7 +242,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
              shape!= input->getShapes().end();
              shape++ )
         {
-            if ( working_srs )
+            if ( working_srs && !working_srs->equivalentTo( env->getInputSRS() ) )
             {
                 working_srs->transformInPlace( *shape );
             }

@@ -20,7 +20,7 @@
 #include <osgGIS/ClampFilter>
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/LineSegmentIntersector2>
-#include <osgGIS/ELevationResource>
+#include <osgGIS/ElevationResource>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/PlaneIntersector>
 

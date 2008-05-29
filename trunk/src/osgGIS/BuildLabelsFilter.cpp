@@ -128,10 +128,14 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
     osg::Vec4 color = getColorForFeature( input, env );
 
     // the text string:
+
+    //TODO: new Script() is a memory leak in the following line!!
     ScriptResult r = env->getScriptEngine()->run( new Script( getTextExpr() ), input, env );
     std::string text = r.isValid()? r.asString() : "error";
 
     // resolve the size:
+    
+    //TODO: new Script() is a memory leak in the following line!!
     r = env->getScriptEngine()->run( new Script( getFontSizeExpr() ), input, env );
     double font_size = r.asDouble( 16.0 );
     

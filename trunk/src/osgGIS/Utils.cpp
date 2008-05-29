@@ -263,35 +263,35 @@ GeomUtils::setDataVarianceRecursively( osg::Node* node, const osg::Object::DataV
 	DXT1 or DXT5, then saves the converted image to disk.
 	\return 0 if failed, otherwise returns 1
 **/
-int
-save_image_as_DDS
-(
-    const char *filename,
-    int width, int height, int channels,
-    const unsigned char *const data
-);
+//int
+//save_image_as_DDS
+//(
+//    const char *filename,
+//    int width, int height, int channels,
+//    const unsigned char *const data
+//);
 
 /**
 	take an image and convert it to DXT1 (no alpha)
 **/
-unsigned char*
-convert_image_to_DXT1
-(
-    const unsigned char *const uncompressed,
-    int width, int height, int channels,
-    int *out_size
-);
+//unsigned char*
+//convert_image_to_DXT1
+//(
+//    const unsigned char *const uncompressed,
+//    int width, int height, int channels,
+//    int *out_size
+//);
 
 /**
 	take an image and convert it to DXT5 (with alpha)
 **/
-unsigned char*
-convert_image_to_DXT5
-(
-    const unsigned char *const uncompressed,
-    int width, int height, int channels,
-    int *out_size
-);
+//unsigned char*
+//convert_image_to_DXT5
+//(
+//    const unsigned char *const uncompressed,
+//    int width, int height, int channels,
+//    int *out_size
+//);
 
 /**	A bunch of DirectDraw Surface structures and flags **/
 typedef struct
@@ -412,65 +412,6 @@ void compress_DDS_alpha_block(
 
 /********* Actual Exposed Functions *********/
 
-static
-int
-	save_image_as_DDS
-	(
-		const char *filename,
-		int width, int height, int channels,
-		const unsigned char *const data
-	)
-{
-	/*	variables	*/
-	FILE *fout;
-	unsigned char *DDS_data;
-	DDS_header header;
-	int DDS_size;
-	/*	error check	*/
-	if( (NULL == filename) ||
-		(width < 1) || (height < 1) ||
-		(channels < 1) || (channels > 4) ||
-		(data == NULL ) )
-	{
-		return 0;
-	}
-	/*	Convert the image	*/
-	if( (channels & 1) == 1 )
-	{
-		/*	no alpha, just use DXT1	*/
-		DDS_data = convert_image_to_DXT1( data, width, height, channels, &DDS_size );
-	} else
-	{
-		/*	has alpha, so use DXT5	*/
-		DDS_data = convert_image_to_DXT5( data, width, height, channels, &DDS_size );
-	}
-	/*	save it	*/
-	memset( &header, 0, sizeof( DDS_header ) );
-	header.dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
-	header.dwSize = 124;
-	header.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
-	header.dwWidth = width;
-	header.dwHeight = height;
-	header.dwPitchOrLinearSize = DDS_size;
-	header.sPixelFormat.dwSize = 32;
-	header.sPixelFormat.dwFlags = DDPF_FOURCC;
-	if( (channels & 1) == 1 )
-	{
-		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
-	} else
-	{
-		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
-	}
-	header.sCaps.dwCaps1 = DDSCAPS_TEXTURE;
-	/*	write it out	*/
-	fout = fopen( filename, "wb");
-	fwrite( &header, sizeof( DDS_header ), 1, fout );
-	fwrite( DDS_data, 1, DDS_size, fout );
-	fclose( fout );
-	/*	done	*/
-	free( DDS_data );
-	return 1;
-}
 
 
 static
@@ -1019,6 +960,65 @@ void
 	/*	done compressing to DXT1	*/
 }
 
+static
+int
+	save_image_as_DDS
+	(
+		const char *filename,
+		int width, int height, int channels,
+		const unsigned char *const data
+	)
+{
+	/*	variables	*/
+	FILE *fout;
+	unsigned char *DDS_data;
+	DDS_header header;
+	int DDS_size;
+	/*	error check	*/
+	if( (NULL == filename) ||
+		(width < 1) || (height < 1) ||
+		(channels < 1) || (channels > 4) ||
+		(data == NULL ) )
+	{
+		return 0;
+	}
+	/*	Convert the image	*/
+	if( (channels & 1) == 1 )
+	{
+		/*	no alpha, just use DXT1	*/
+		DDS_data = convert_image_to_DXT1( data, width, height, channels, &DDS_size );
+	} else
+	{
+		/*	has alpha, so use DXT5	*/
+		DDS_data = convert_image_to_DXT5( data, width, height, channels, &DDS_size );
+	}
+	/*	save it	*/
+	memset( &header, 0, sizeof( DDS_header ) );
+	header.dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+	header.dwSize = 124;
+	header.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
+	header.dwWidth = width;
+	header.dwHeight = height;
+	header.dwPitchOrLinearSize = DDS_size;
+	header.sPixelFormat.dwSize = 32;
+	header.sPixelFormat.dwFlags = DDPF_FOURCC;
+	if( (channels & 1) == 1 )
+	{
+		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
+	} else
+	{
+		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
+	}
+	header.sCaps.dwCaps1 = DDSCAPS_TEXTURE;
+	/*	write it out	*/
+	fout = fopen( filename, "wb");
+	fwrite( &header, sizeof( DDS_header ), 1, fout );
+	fwrite( DDS_data, 1, DDS_size, fout );
+	fclose( fout );
+	/*	done	*/
+	free( DDS_data );
+	return 1;
+}
 
 /*************************************************************************/
     
