@@ -213,19 +213,11 @@ namespace osgGIS
          * Gets whether to compress textures upon localization.
          */
         bool getCompressTextures() const;
-        
-        //deprecated
-        void setPreCompileExpr( const std::string& expr ); 
-        //deprecated       
-        const std::string& getPreCompileExpr() const;
                 
         
     public:
         virtual Properties getProperties();
-        virtual void setProperties( Properties& props );    
-        
-        /* builds and applies an overlay raster. */
-        //void generateOverlayRaster( osg::Node* node, const GeoExtent& tile_extent );
+        virtual void setProperties( Properties& props );
         
         /* rewrites any texture image or proxy node file references so that they
            reference files we've moved inside the archive. */
@@ -245,7 +237,6 @@ namespace osgGIS
         std::string                     archive_filename;
         osg::ref_ptr<TaskManager>       task_manager;
         osg::ref_ptr<Session>           session;
-        std::string                     pre_compile_expr;
         double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
         bool                            localize_resources;
         bool                            compress_textures;

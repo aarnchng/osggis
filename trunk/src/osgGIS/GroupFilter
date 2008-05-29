@@ -43,9 +43,17 @@ namespace osgGIS
 
     public: // properties
 
-        void setGroupExpr( const std::string& value );
+        /**
+         * Sets a script that evaluates to the name of the group into which
+         * to put a feature.
+         */
+        void setGroupScript( Script* script );
 
-        const std::string& getGroupExpr() const;
+        /**
+         * Gets the scripts that evaluates to the name of the group into which
+         * to put a feature.
+         */
+        Script* getGroupScript() const;
 
     
     public:
@@ -63,9 +71,9 @@ namespace osgGIS
 
     private:
 
-        std::string group_expr;
+        osg::ref_ptr<Script> group_script;
     };
 }
 
 
-#endif // _OSGGIS_COLLECTION_FILTER_H_
+#endif // _OSGGIS_GROUP_FILTER_H_

@@ -44,21 +44,33 @@ namespace osgGIS
     public: //properties
 
         /**
-         * Sets the expression that evaluates to the color to use.
+         * Sets the script that evaluates to the label text.
          */
-        void setTextExpr( const std::string& expr );
+        void setTextScript( Script* script );
 
         /**
-         * Gets the expression that evaluates to color to use.
+         * Gets the script that evaluates to the label text.
          */
-        const std::string& getTextExpr() const;
+        Script* getTextScript() const;
+
+        /**
+         * Sets the script that evaluates to a font size for the text.
+         */
+        void setFontSizeScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to a font size for the text.
+         */
+        Script* getFontSizeScript() const;
         
-        void setFontSizeExpr( const std::string& expr );
-        
-        const std::string& getFontSizeExpr() const;
-        
+        /**
+         * Sets whether to disable depth testing on the text label geometry.
+         */
         void setDisableDepthTest( bool value );
         
+        /**
+         * Gets whether to disable depth testing on the text label geometry.
+         */
         bool getDisableDepthTest() const;
         
     public:
@@ -73,10 +85,10 @@ namespace osgGIS
 
         virtual ~BuildLabelsFilter();
         
-    protected:
-        std::string text_expr;
-        std::string font_size_expr;
-        bool        disable_depth_test;
+    private:
+        osg::ref_ptr<Script> text_script;
+        osg::ref_ptr<Script> font_size_script;
+        bool                 disable_depth_test;
     };
 }
 

@@ -303,12 +303,6 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
         FadeHelper::enableFading( root->getOrCreateStateSet() );
     }
 
-    if ( getSession() && getPreCompileExpr().length() > 0 )
-    {
-        //TODO: new Script() is a memory leak in the following line!!
-        getSession()->createScriptEngine()->run( new Script( getPreCompileExpr() ) );
-    }
-    
     if ( aoi.isValid() )
     {
         const GeoPoint& sw = aoi.getSouthwest();

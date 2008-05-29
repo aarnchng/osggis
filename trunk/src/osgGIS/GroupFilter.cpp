@@ -34,7 +34,7 @@ GroupFilter::GroupFilter()
 
 GroupFilter::GroupFilter( const GroupFilter& rhs )
 : CollectionFilter( rhs ),
-  group_expr( rhs.group_expr )
+  group_script( rhs.group_script.get() )
 {
     //NOP
 }
@@ -45,22 +45,22 @@ GroupFilter::~GroupFilter()
 }
 
 void
-GroupFilter::setGroupExpr( const std::string& value )
+GroupFilter::setGroupScript( Script* value )
 {
-    group_expr = value;
+    group_script = value;
 }
 
-const std::string&
-GroupFilter::getGroupExpr() const
+Script*
+GroupFilter::getGroupScript() const
 {
-    return group_expr;
+    return group_script.get();
 }
 
 void
 GroupFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "group" )
-        setGroupExpr( p.getValue() );
+        setGroupScript( new Script( p.getValue() ) );
     CollectionFilter::setProperty( p );
 }
 
@@ -68,8 +68,8 @@ Properties
 GroupFilter::getProperties() const
 {
     Properties p = CollectionFilter::getProperties();
-    if ( getGroupExpr().length() > 0 )
-        p.push_back( Property( "group", getGroupExpr() ) );
+    if ( getGroupScript() )
+        p.push_back( Property( "group", getGroupScript()->getCode() ) );
     return p;
 }
 
@@ -77,10 +77,9 @@ GroupFilter::getProperties() const
 std::string 
 GroupFilter::assign( Feature* input, FilterEnv* env )
 {
-    if ( getGroupExpr().length() > 0 )
+    if ( getGroupScript() )
     {
-        //TODO: new Script() is a memory leak in the following line!!
-        ScriptResult r = env->getScriptEngine()->run( new Script( getGroupExpr() ), input, env );
+        ScriptResult r = env->getScriptEngine()->run( getGroupScript(), input, env );
         if ( r.isValid() )
             return r.asString();
     }
