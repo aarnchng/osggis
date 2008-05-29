@@ -242,7 +242,7 @@ TransformFilter::process( Feature* input, FilterEnv* env )
              shape!= input->getShapes().end();
              shape++ )
         {
-            if ( working_srs && !working_srs->equivalentTo( env->getInputSRS() ) )
+            if ( working_srs && !working_srs->equivalentTo( env->getInputSRS() ) ) //???
             {
                 working_srs->transformInPlace( *shape );
             }

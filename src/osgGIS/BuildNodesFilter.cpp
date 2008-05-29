@@ -426,7 +426,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
 
                 if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
-                    // add this as a skin resource so the compiler can properly localize and deploy it.
+                    // Add this as a skin resource so the compiler can properly localize and deploy it.
                     SkinResource* skin = new SkinResource( image );
                     env->getSession()->markResourceUsed( skin );
                 }
