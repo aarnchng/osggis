@@ -210,8 +210,11 @@ parseCommandLine( int argc, char** argv )
         gridded = true;
     }
 
-    while( arguments.read( "--correlated" ) )
+    while( arguments.read( "--correlated" ) ) {
+        NOUT << "The --correlated option is no longer supported." <<ENDL;
+        exit(0);
         correlated = true;
+    }
 
     while( arguments.read( "--range-near", str ) )
         sscanf( str.c_str(), "%f", &range_near );

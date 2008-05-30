@@ -242,7 +242,8 @@ clampLinePartToTerrain(GeoPointList&           in_part,
 {
     osgUtil::IntersectionVisitor iv;
 
-    iv.setReadCallback( read_cache );
+    if ( read_cache )
+        iv.setReadCallback( read_cache );
 
     for( GeoPointList::iterator i = in_part.begin(); i != in_part.end()-1; i++ )
     {
@@ -332,7 +333,12 @@ clampLinePartToTerrain(GeoPointList&           in_part,
         iv.setIntersector( isector.get() );
         
         // try the read cache's MRU node if it intersects our points:
-        osg::Node* target = read_cache->getMruNodeIfContains( p0_world, p1_world, terrain );
+        osg::Node* target = NULL;
+        if ( read_cache )
+            target = read_cache->getMruNodeIfContains( p0_world, p1_world, terrain );
+        else
+            target = terrain;
+
         if ( target != terrain )
         {
             // we're using the cache entry, so we must first ensure that each endpoint
@@ -389,7 +395,8 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                 }
                 
                 //TODO: i guess we really need a MRU queue instead..?
-                read_cache->setMruNode( isect.nodePath.back() );
+                if ( read_cache )
+                    read_cache->setMruNode( isect.nodePath.back() );
 
                 // add the new polyline part to the result set:
                 if ( new_part.size() >= 2 )
