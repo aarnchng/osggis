@@ -81,6 +81,7 @@ class SkinResourceQuery
   void setMinTextureHeight( double value );
   void setMaxTextureHeight( double value );
   void setRepeatsVertically( bool value );
+  void addTag( const char* value );
 };
 
 class ResourceLibrary_Lua

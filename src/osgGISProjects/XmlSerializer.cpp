@@ -23,6 +23,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/Utils>
 #include <osgGIS/SRSResource>
+#include <osgGIS/Tags>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <expat.h>
@@ -30,6 +31,8 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <iterator>
+#include <sstream>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
@@ -271,6 +274,16 @@ decodeResource( XmlElement* e, Project* proj )
             resource->setBaseURI( proj->getBaseURI() );
 
             resource->setName( e->getAttr( "name" ) );
+
+            std::string csv_tags = e->getAttr( "tags" );
+            if ( csv_tags.length() > 0 )
+            {
+                std::istringstream iss( csv_tags );
+                std::vector<std::string> tokens( (std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>() );
+                for( std::vector<std::string>::const_iterator i = tokens.begin(); i != tokens.end(); i++ )
+                    resource->addTag( *i );
+            }
+
             resource->addTag( e->getAttr( "tags" ) );
             resource->setURI( e->getSubElementText( "uri" ) );
 
