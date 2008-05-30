@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 05/27/08 12:20:34.
+** Generated automatically by tolua 5.1b on 05/29/08 18:00:05.
 */
 
 #ifndef __cplusplus
@@ -9,6 +9,8 @@
 #include "string.h"
 
 #include "tolua.h"
+
+
 #include <osgGIS/Attribute>
 #include <osgGIS/Feature>
 #include <osgGIS/FilterEnv>
@@ -20,7 +22,6 @@
 using namespace osgGIS;
 
 extern "C" {
-
 /* Exported function */
 TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
 LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
@@ -1258,6 +1259,37 @@ static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setRepeatsVertically00
 #endif
 }
 
+/* method: addTag of class  SkinResourceQuery */
+static int tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_addTag00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"SkinResourceQuery",0,&tolua_err) ||
+ !tolua_isstring(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  SkinResourceQuery* self = (SkinResourceQuery*)  tolua_tousertype(tolua_S,1,0);
+  const char* value = ((const char*)  tolua_tostring(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'addTag'",NULL);
+#endif
+ {
+  self->addTag(value);
+ }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'addTag'.",&tolua_err);
+ return 0;
+#endif
+}
+
 /* method: newSkinQuery of class  ResourceLibrary_Lua */
 static int tolua_Lua_ScriptEngine_tolua_ResourceLibrary_Lua_newSkinQuery00(lua_State* tolua_S)
 {
@@ -1507,6 +1539,7 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"setMinTextureHeight",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMinTextureHeight00);
  tolua_function(tolua_S,"setMaxTextureHeight",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setMaxTextureHeight00);
  tolua_function(tolua_S,"setRepeatsVertically",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_setRepeatsVertically00);
+ tolua_function(tolua_S,"addTag",tolua_Lua_ScriptEngine_tolua_SkinResourceQuery_addTag00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
  tolua_cclass(tolua_S,"ResourceLibrary_Lua","ResourceLibrary_Lua","",0);
@@ -1531,5 +1564,5 @@ TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S)
  return 1;
 }
 
-} // extern "C"
 
+} // extern "C"
