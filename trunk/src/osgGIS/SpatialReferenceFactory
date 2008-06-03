@@ -71,5 +71,5 @@ namespace osgGIS
     };
 }
 
-#endif _OSGGIS_SPATIAL_REFERENCE_FACTORY_H_
+#endif // _OSGGIS_SPATIAL_REFERENCE_FACTORY_H_
 
