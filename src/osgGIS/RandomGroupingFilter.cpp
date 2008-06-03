@@ -120,3 +120,4 @@ RandomGroupingFilter::assign( osg::Node* input, FilterEnv* env )
     stream << ( ::rand() % getNumGroups() );
     return stream.str();
 }
+

@@ -135,3 +135,4 @@ ElevationResource::createGrid( const GeoExtent& aoi ) const
 {
     return new ElevationGridImpl( aoi, getAbsoluteURI(), const_cast<ElevationResource*>(this)->getMutex() );
 }
+

@@ -266,3 +266,4 @@ LocalizeNodesFilter::process( osg::Node* input, FilterEnv* env )
 
     return output;
 }
+

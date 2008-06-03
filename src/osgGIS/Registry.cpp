@@ -217,3 +217,5 @@ Registry::hasWorkDirectory() const
 {
     return work_dir.length() > 0;
 }
+
+

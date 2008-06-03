@@ -101,3 +101,4 @@ namespace osgGIS
 }
 
 #endif // OSGGIS_OGR_SPATIALREFERENCE
+

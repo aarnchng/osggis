@@ -453,3 +453,4 @@ ResourceLibrary::getPathResource( const std::string& name )
     }
     return NULL;
 }
+

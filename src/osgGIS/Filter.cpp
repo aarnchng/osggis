@@ -62,3 +62,4 @@ Filter::getProperties() const
 {
     return Properties();
 }
+

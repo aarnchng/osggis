@@ -67,3 +67,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_BUILD_LAYER_SLICE_H_
+

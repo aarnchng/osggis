@@ -16,13 +16,13 @@ namespace osgGIS
         void setMruNode( osg::Node* );
         
         osg::Node* getMruNodeIfContains( 
-            const osg::Vec3& p,
-            osg::Node*       fallback );
+            const osg::Vec3d& p,
+            osg::Node*        fallback );
             
         osg::Node* getMruNodeIfContains( 
-            const osg::Vec3& p1,
-            const osg::Vec3& p2,
-            osg::Node*       fallback );
+            const osg::Vec3d& p1,
+            const osg::Vec3d& p2,
+            osg::Node*        fallback );
         
         float getMruHitRatio() const;
     
@@ -44,3 +44,4 @@ namespace osgGIS
 
 
 #endif // _OSGGIS_SMART_READ_CALLBACK_H_
+

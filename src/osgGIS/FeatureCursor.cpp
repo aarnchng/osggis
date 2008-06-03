@@ -137,3 +137,4 @@ FeatureCursor::prefetch()
         }
     }
 }
+

@@ -68,3 +68,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_XML_SCRIPT_SERIALIZER_H_
+

@@ -56,3 +56,4 @@ namespace osgGIS
 
 
 #endif // _OSGGIS_RECALCULATE_EXTENT_FILTER_H_
+

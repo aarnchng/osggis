@@ -85,3 +85,4 @@ GroupFilter::assign( Feature* input, FilterEnv* env )
     }
     return "";
 }
+

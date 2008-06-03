@@ -471,3 +471,4 @@ LayerCompiler::localizeResources( const std::string& output_folder )
         }
     }
 }
+

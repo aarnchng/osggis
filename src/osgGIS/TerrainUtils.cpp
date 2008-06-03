@@ -107,3 +107,4 @@ TerrainUtils::calculateSubExtents(const GeoExtent& extent,
         out.push_back( getSubExtent( extent, num_children, i ) );
     }
 }
+

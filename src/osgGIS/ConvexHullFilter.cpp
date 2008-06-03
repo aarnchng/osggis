@@ -222,3 +222,4 @@ ConvexHullFilter::process( FeatureList& input, FilterEnv* env )
     output.push_back( hull_feature );
     return output;
 }
+

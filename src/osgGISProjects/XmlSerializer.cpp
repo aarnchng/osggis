@@ -639,3 +639,4 @@ XmlSerializer::writeProject( Project* project )
     return new XmlDocument();
 }
 
+

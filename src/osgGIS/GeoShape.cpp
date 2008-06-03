@@ -281,3 +281,4 @@ GeoShapeList::accept( GeoPartVisitor& visitor ) const
     }
     return true;
 }
+

@@ -57,3 +57,4 @@ OptimizerHints::getExcludedOptions() const
 {
     return (osgUtil::Optimizer::OptimizationOptions)excluded;
 }
+

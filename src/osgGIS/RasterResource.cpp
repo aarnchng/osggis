@@ -113,3 +113,4 @@ RasterResource::applyToStateSet( osg::StateSet* state_set, const GeoExtent& aoi,
 
     return result;
 }
+

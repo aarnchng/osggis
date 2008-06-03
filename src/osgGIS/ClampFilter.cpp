@@ -163,7 +163,9 @@ clampPointPartToTerrain(GeoPointList&           part,
         osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
         osg::Vec3d clamp_vec;
 
-        double z = (p.getDim() > 2 && !ignore_z)? p.z() : DEFAULT_OFFSET_EXTENSION;
+        double lat = 0.0, lon = 0.0;
+        double hat = 0.0;
+        //double z = (p.getDim() > 2 && !ignore_z)? p.z() : DEFAULT_OFFSET_EXTENSION;
 
         osg::ref_ptr<LineSegmentIntersector2> isector;
 
@@ -171,9 +173,26 @@ clampPointPartToTerrain(GeoPointList&           part,
         {
             clamp_vec = p_world;
             clamp_vec.normalize();
+            
+            srs->getEllipsoid().xyzToLatLonHeight( p_world.x(), p_world.y(), p_world.z(), lat, lon, hat );
+
+            // to get rid of the HAT:
+            osg::Vec3d xyz = srs->getEllipsoid().latLongToGeocentric(
+                osg::Vec3d( osg::RadiansToDegrees(lon), osg::RadiansToDegrees(lat), 0.0 ) );
+            
             isector = new LineSegmentIntersector2(
-                clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
-                osg::Vec3d( 0, 0, 0 ) );
+                xyz + clamp_vec * 10000.0,
+                xyz - clamp_vec * 10000.0 );
+                //p_world + clamp_vec * 10000.0,
+                //p_world - clamp_vec * 10000.0 );
+                //clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
+                //osg::Vec3d( 0, 0, 0 ) );
+            
+            // calculate the HAT for later:
+            if ( !ignore_z )
+            {
+                srs->getEllipsoid().xyzToLatLonHeight( p_world.x(), p_world.y(), p_world.z(), lat, lon, hat );
+            }
         }
         else
         {
@@ -182,6 +201,11 @@ clampPointPartToTerrain(GeoPointList&           part,
             isector = new LineSegmentIntersector2(
                 p_world + ext_vec,
                 p_world - ext_vec );
+
+            if ( p.getDim() > 2 && !ignore_z )
+            {
+                hat = p.z();
+            }
         }
 
         iv.setIntersector( isector.get() );
@@ -195,7 +219,9 @@ clampPointPartToTerrain(GeoPointList&           part,
             // First try the MRU target; then fall back on the whole terrain.
             target->accept( iv );
             if ( !isector->containsIntersections() && target != terrain )
+            {
                 terrain->accept( iv );
+            }
         }
         else
         {
@@ -206,7 +232,7 @@ clampPointPartToTerrain(GeoPointList&           part,
         {
             LineSegmentIntersector2::Intersection isect = isector->getFirstIntersection();
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
-            osg::Vec3d offset_point = new_point + clamp_vec * z;
+            osg::Vec3d offset_point = new_point + clamp_vec * hat;
             p.set( offset_point * srs->getReferenceFrame() );
             clamps++;
             if ( read_cache )
@@ -215,16 +241,26 @@ clampPointPartToTerrain(GeoPointList&           part,
             // record the HAT value:
             if ( srs->isGeocentric() )
             {
-                double lat, lon, h;
-                srs->getEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
-                if ( h < out_clamped_z )
-                    out_clamped_z = h;
+                if ( hat < out_clamped_z )
+                    out_clamped_z = hat;
+
+                //double lat, lon, h;
+                //srs->getEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
+                //if ( h < out_clamped_z )
+                //    out_clamped_z = h;
             }
             else
             {
                 if ( offset_point.z() < out_clamped_z )
                     out_clamped_z = offset_point.z();
             }
+        }
+
+        else 
+        {
+            osg::notify( osg::WARN ) << "Missed an intersection for point " 
+                << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
+                << std::endl;
         }
     }
 
@@ -254,7 +290,7 @@ clampLinePartToTerrain(GeoPointList&           in_part,
         if ( p0 == p1 )
             continue;
 
-        double z = ignore_z? 0.0 : p0.z();
+        double z = p0.getDim() < 3 || ignore_z? 0.0 : p0.z();
 
         osg::Vec3d p0_world = p0 * srs->getInverseReferenceFrame();
         osg::Vec3d p1_world = p1 * srs->getInverseReferenceFrame();
@@ -506,3 +542,4 @@ ClampFilter::process( Feature* input, FilterEnv* env )
     output.push_back( input );
     return output;
 }
+

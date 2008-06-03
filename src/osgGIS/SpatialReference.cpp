@@ -57,3 +57,4 @@ SpatialReference::getUpVector( const osg::Vec3d& point ) const
     v.normalize();
     return v;
 }
+

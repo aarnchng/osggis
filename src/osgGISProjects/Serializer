@@ -54,3 +54,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_SERIALIZER_H_
+

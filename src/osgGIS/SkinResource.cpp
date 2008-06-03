@@ -341,3 +341,4 @@ SkinResourceQuery::getHashCode()
     //TODO
     return EMPTY_STRING;
 }
+

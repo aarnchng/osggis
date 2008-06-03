@@ -156,3 +156,4 @@ Ellipsoid::getSemiMinorAxis() const
 {
     return semi_minor_axis;
 }
+

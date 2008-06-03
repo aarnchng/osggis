@@ -70,4 +70,4 @@ namespace osgGIS
     };
 }
 
-#endif // _OSGGIS_ELLIPSOID_H_
+#endif // _OSGGIS_OPTIMIZER_HINTS_H_

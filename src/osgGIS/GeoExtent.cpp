@@ -490,3 +490,4 @@ GeoExtent::toString() const
 		return str.str();
 	}
 }
+

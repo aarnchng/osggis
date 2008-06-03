@@ -49,3 +49,4 @@ PathResource::getProperties() const
     Properties props = Resource::getProperties();
     return props;
 }
+

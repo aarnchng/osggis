@@ -833,3 +833,4 @@ GDAL_RasterStore::createHeightField(const GeoExtent& requested_aoi) const
 
     return hf;
 }
+

@@ -92,3 +92,4 @@ BuildLayerSlice::setMaxRange( float value )
     if ( max_range < 0 ) max_range = FLT_MAX;
 }
 
+

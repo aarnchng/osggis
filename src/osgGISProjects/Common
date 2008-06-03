@@ -28,3 +28,4 @@
 #define VERBOSE_OUT osg::notify(osg::FATAL)
 
 #endif // _OSGGISPROJECTS_COMMON_H_
+

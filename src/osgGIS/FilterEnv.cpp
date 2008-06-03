@@ -206,3 +206,4 @@ FilterEnv::getOptimizerHints()
 {
     return optimizer_hints;
 }
+

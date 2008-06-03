@@ -209,3 +209,4 @@ GeoPointList::isClosed() const
 {
     return size() >= 2 && front() == back();
 }
+

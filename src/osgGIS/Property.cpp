@@ -417,3 +417,4 @@ Properties::get( const std::string& key ) const
     }
     return Property::invalid();
 }
+

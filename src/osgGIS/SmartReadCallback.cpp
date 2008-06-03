@@ -76,20 +76,6 @@ SmartReadCallback::getMruNode()
 }
 
 
-//void
-//SmartReadCallback::setMruNode( osg::Node* node )
-//{
-//    mru_node = node;
-//    if ( node )
-//    {
-//        osg::Vec3 center = mru_node->getBound().center();
-//        osg::MatrixList mats = node->getWorldMatrices();
-//        for( int i=0; i < mats.size(); i++ )
-//            center = center * mats[i];
-//        mru_world_bs = osg::BoundingSphere( center, mru_node->getBound().radius() );
-//    }
-//}
-
 void
 SmartReadCallback::setMruNode( osg::Node* node )
 {
@@ -114,7 +100,7 @@ SmartReadCallback::setMruNode( osg::Node* node )
 
 
 osg::Node*
-SmartReadCallback::getMruNodeIfContains( const osg::Vec3& p, osg::Node* fallback )
+SmartReadCallback::getMruNodeIfContains( const osg::Vec3d& p, osg::Node* fallback )
 {
     osg::Node* result = fallback;
     mru_tries++;
@@ -141,7 +127,7 @@ SmartReadCallback::getMruNodeIfContains( const osg::Vec3& p, osg::Node* fallback
 }
 
 osg::Node*
-SmartReadCallback::getMruNodeIfContains( const osg::Vec3& p1, const osg::Vec3& p2, osg::Node* fallback )
+SmartReadCallback::getMruNodeIfContains( const osg::Vec3d& p1, const osg::Vec3d& p2, osg::Node* fallback )
 {
     osg::Node* result = fallback;
     mru_tries++;
@@ -160,3 +146,4 @@ SmartReadCallback::getMruHitRatio() const
 {
     return mru_tries > 0? (float)mru_hits/(float)mru_tries : 0.0f;
 }
+

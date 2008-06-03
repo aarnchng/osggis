@@ -60,3 +60,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_BUILD_TARGET_H_
+

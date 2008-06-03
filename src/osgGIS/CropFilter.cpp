@@ -749,3 +749,4 @@ CropFilter::process( Feature* input, FilterEnv* env )
 
     return output;
 }
+

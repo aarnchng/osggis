@@ -122,3 +122,4 @@ DensifyFilter::process( Feature* input, FilterEnv* env )
     output.push_back( input );
     return output;
 }
+

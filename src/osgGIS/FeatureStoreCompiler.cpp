@@ -88,3 +88,4 @@ FeatureStoreCompiler::compile( const std::string& output_uri, FilterEnv* env_tem
     FilterGraphResult r = graph->computeFeatureStore( cursor, env.get(), output_uri );
     return r.isOK();
 }
+

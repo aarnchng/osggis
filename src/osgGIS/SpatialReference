@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#pragma once
+#ifndef _OSGGIS_SPATIAL_REFERENCE_H_
+#define _OSGGIS_SPATIAL_REFERENCE_H_ 1
+
 #include <osgGIS/Common>
 #include <osgGIS/Ellipsoid>
 #include <string>
@@ -150,3 +152,6 @@ namespace osgGIS
 	};	
 	
 }
+
+#endif //_OSGGIS_SPATIAL_REFERENCE_H_
+
