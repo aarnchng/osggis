@@ -69,3 +69,4 @@ Terrain::getAbsoluteURI() const
 {
     return PathUtils::getAbsPath( base_uri, uri );
 }
+

@@ -251,3 +251,4 @@ OGR_SpatialReferenceFactory::createGeocentricSRS(const osg::CoordinateSystemNode
     }
     return result;
 }
+

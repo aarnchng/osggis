@@ -304,3 +304,4 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
 
     return ok? FilterGraphResult::ok() : FilterGraphResult::error();
 }
+

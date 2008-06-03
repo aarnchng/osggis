@@ -1098,3 +1098,4 @@ ImageUtils::hasAlpha( osg::Image* image )
     GLenum pf = image->getPixelFormat();
     return pf == GL_ALPHA || pf == GL_LUMINANCE_ALPHA || pf == GL_RGBA || pf == GL_BGRA;
 }
+

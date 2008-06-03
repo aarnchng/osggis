@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#pragma once
+#ifndef _OSGGIS_GEOSHAPE_H_
+#define _OSGGIS_GEOSHAPE_H_ 1
+
 #include <osgGIS/Common>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/GeoPoint>
@@ -192,3 +194,5 @@ namespace osgGIS
         bool intersects( const GeoExtent& extent ) const;
     };
 }
+
+#endif // _OSGGIS_GEOSHAPE_H_

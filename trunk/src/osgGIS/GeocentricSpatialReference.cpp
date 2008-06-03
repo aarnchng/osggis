@@ -199,3 +199,4 @@ GeocentricSpatialReference::transform( const GeoExtent& input ) const
         transform( input.getSouthwest() ),
         transform( input.getNortheast() ) );        
 }
+

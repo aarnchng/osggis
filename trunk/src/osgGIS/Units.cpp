@@ -107,3 +107,4 @@ Units::isLinear() const
 {
     return type == TYPE_LINEAR;
 }
+

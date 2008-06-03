@@ -60,3 +60,4 @@ Report::getProperties() const
 {
     return Properties();
 }
+

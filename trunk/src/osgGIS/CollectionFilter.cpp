@@ -67,3 +67,4 @@ CollectionFilter::getProperties() const
         p.push_back( Property( "metering", getMetering() ) );
     return p;
 }
+

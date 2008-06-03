@@ -230,3 +230,4 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
 }
+

@@ -397,3 +397,4 @@ OGR_SpatialReference::testEquivalence(const OGR_SpatialReference* rhs,
 
     out_mat_equiv = this->getRefFrame() == rhs->getRefFrame();
 }
+

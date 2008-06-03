@@ -388,3 +388,4 @@ OGR_Feature::getAttributeSchemas() const
 
     return result;
 }
+

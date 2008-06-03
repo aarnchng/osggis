@@ -104,3 +104,4 @@ FeatureFilterState::traverse( FilterEnv* in_env )
 
     return true;
 }
+

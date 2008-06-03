@@ -287,3 +287,4 @@ CollectionFilterState::signalCheckpoint()
 
     return ok;
 }
+

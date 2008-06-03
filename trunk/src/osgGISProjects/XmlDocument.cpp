@@ -162,3 +162,4 @@ XmlDocument::store( std::ostream& out ) const
         storeNode( i->get(), 0, out );
     }
 }
+

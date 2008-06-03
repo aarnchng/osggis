@@ -42,3 +42,4 @@ namespace osgGIS
     OpenThreads::ScopedLock<OpenThreads::ReentrantMutex> _ogr_mut(OGR_Utils::getMutex())
 
 #endif // _OSGGIS_OGR_UTILS_H_
+

@@ -268,3 +268,4 @@ AttributedBase::getUserAttrs() const
 {
     return user_attrs;
 }
+

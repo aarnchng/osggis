@@ -74,3 +74,4 @@ FeatureLayerResource::getFeatureLayer()
 
     return feature_layer.get();
 }
+

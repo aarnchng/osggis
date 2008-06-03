@@ -109,3 +109,4 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
 
     return result;
 }
+

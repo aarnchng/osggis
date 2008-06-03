@@ -25,3 +25,4 @@ Serializer::Serializer()
 {
     //NOP
 }
+

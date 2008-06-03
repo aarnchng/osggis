@@ -149,3 +149,4 @@ FeatureLayer::getCursor( const GeoPoint& point )
         return FeatureCursor(); // empty
     }
 }
+

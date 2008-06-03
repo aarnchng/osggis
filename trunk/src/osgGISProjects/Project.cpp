@@ -296,3 +296,4 @@ Project::testSources() const
 
     return true;
 }
+

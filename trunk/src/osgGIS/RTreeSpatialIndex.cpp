@@ -123,3 +123,4 @@ RTreeSpatialIndex::getExtent() const
 {
     return extent;
 }
+

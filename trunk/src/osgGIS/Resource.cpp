@@ -134,3 +134,4 @@ Resource::setMutex( ReentrantMutex& value )
     mutex = &value;
     owns_mutex = false;
 }
+

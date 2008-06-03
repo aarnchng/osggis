@@ -162,3 +162,4 @@ XmlText::getValue() const
 {
     return value;
 }
+

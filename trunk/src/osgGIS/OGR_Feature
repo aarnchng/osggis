@@ -99,3 +99,4 @@ namespace osgGIS
 }
 
 #endif // _OSGGIS_OGR_FEATURE_H_
+

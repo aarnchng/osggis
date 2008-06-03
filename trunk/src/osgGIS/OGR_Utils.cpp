@@ -45,3 +45,4 @@ OGR_Utils::getMutex()
         ogr_mutex = new OpenThreads::ReentrantMutex();
     return *ogr_mutex;
 }
+

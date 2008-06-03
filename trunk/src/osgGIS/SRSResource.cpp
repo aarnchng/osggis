@@ -65,3 +65,4 @@ SRSResource::getSRS() const
 {
     return srs.get();
 }
+

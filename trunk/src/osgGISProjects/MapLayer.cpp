@@ -75,3 +75,4 @@ MapLayer::getVisible() const
 {
     return visible;
 }
+

@@ -70,3 +70,4 @@ SimpleSpatialIndex::buildIndex()
     }
 }
 
+

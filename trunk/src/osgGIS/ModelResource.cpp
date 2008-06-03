@@ -114,3 +114,4 @@ ModelResourceQuery::getHashCode()
     //TODO
     return "";
 }
+

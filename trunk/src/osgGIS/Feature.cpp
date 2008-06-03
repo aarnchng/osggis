@@ -40,3 +40,4 @@ FeatureBase::getShapeDim() const
     }
     return dim;
 }
+

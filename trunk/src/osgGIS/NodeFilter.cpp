@@ -116,3 +116,5 @@ NodeFilter::process( osg::Node* input, FilterEnv* env )
     output.push_back( input );
     return output;
 }
+
+
