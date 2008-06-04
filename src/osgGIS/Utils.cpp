@@ -45,7 +45,7 @@ std::string&
 StringUtils::replaceIn( std::string& s, const std::string& sub, const std::string& other)
 {
     if ( sub.empty() ) return s;
-    unsigned int b=0;
+    size_t b=0;
     for( ; ; )
     {
         b = s.find( sub, b );

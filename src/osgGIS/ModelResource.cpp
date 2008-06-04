@@ -1,6 +1,6 @@
 /**
 * osgGIS - GIS Library for OpenSceneGraph
-* Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+* Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
 * http://osggis.org
 *
 * osgGIS is free software; you can redistribute it and/or modify
@@ -27,6 +27,8 @@ using namespace osgGIS;
 
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_RESOURCE(ModelResource);
+
+static std::string EMPTY_STRING = "";
 
 
 ModelResource::ModelResource()
@@ -112,6 +114,6 @@ const std::string&
 ModelResourceQuery::getHashCode()
 {
     //TODO
-    return "";
+    return EMPTY_STRING;
 }
 

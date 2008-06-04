@@ -1,6 +1,6 @@
-/**
+/** -*-c++-*-
  * osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
  * osgGIS is free software; you can redistribute it and/or modify
@@ -26,11 +26,11 @@
 // that uses this DLL. This way any other project whose source files include this file see 
 // OSGGIS_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
-#ifdef OSGGISPROJECTS_EXPORTS
-#define OSGGISPROJECTS_EXPORT __declspec(dllexport)
-#else
-#define OSGGISPROJECTS_EXPORT __declspec(dllimport)
-#endif
+//#ifdef OSGGISPROJECTS_EXPORTS
+//#define OSGGISPROJECTS_EXPORT __declspec(dllexport)
+//#else
+//#define OSGGISPROJECTS_EXPORT __declspec(dllimport)
+//#endif
 
 #if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__) || defined( __MWERKS__)
     #  if defined( OSGGISPROJECTS_EXPORTS_STATIC )

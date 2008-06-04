@@ -1,6 +1,6 @@
-/**
+/** -*-c++-*-
  * osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
  * osgGIS is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@ namespace osgGIS
     public:
         ResourceList_Lua( const ResourceList& _obj ) : data(_obj) { }
         int size() const { return data.size(); }
-        const char* getName(int i) { return i < data.size()? data[i].get()->getName() : NULL; }
+        const char* getName(int i) { unsigned int j=(unsigned int)i; return j < data.size()? data[j].get()->getName() : NULL; }
     private:
         ResourceList data;
     };

@@ -1,6 +1,6 @@
 /**
  * osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
  * osgGIS is free software; you can redistribute it and/or modify
@@ -129,10 +129,11 @@ public:
     bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa )
     { 
         if ( ea.getHandled() ) return false;
-        if ( ea.getEventType() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON &&
-            (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0 &&
-            terrain_srs.valid() &&
-            layer.valid() )
+        if ( ea.getEventType() == osgGA::GUIEventAdapter::PUSH &&
+             ea.getButtonMask() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON &&
+             (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0 &&
+             terrain_srs.valid() &&
+             layer.valid() )
         {
             osgViewer::View* view = dynamic_cast<osgViewer::View*>( &aa );
             if ( !view ) return false;
