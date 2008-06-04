@@ -1,6 +1,6 @@
 /**
  * osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
  * osgGIS is free software; you can redistribute it and/or modify
@@ -191,8 +191,8 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
 
 
     double aspect_ratio = output_aoi.getWidth()/output_aoi.getHeight();
-    int max_pixels_x = output_aoi.getWidth() / osg::absolute( geo_transform[1] ); // gt[1] == x-resolution
-    int max_pixels_y = output_aoi.getHeight() / osg::absolute( geo_transform[5] ); // gt[5] = y-resolution
+    int max_pixels_x = (int)( output_aoi.getWidth() / osg::absolute( geo_transform[1] ) ); // gt[1] == x-resolution
+    int max_pixels_y = (int)( output_aoi.getHeight() / osg::absolute( geo_transform[5] ) ); // gt[5] = y-resolution
 
     int image_width, image_height;
     if ( aspect_ratio >= 1.0 )

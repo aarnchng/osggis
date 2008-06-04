@@ -1,6 +1,6 @@
 /**
  * osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
  * osgGIS is free software; you can redistribute it and/or modify
