@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -26,7 +26,9 @@
 namespace osgGIS
 {
     /**
-     * Builds osgText labels for features.
+     * Builds osgText labels for features. (UNDER CONSTRUCTION)
+     *
+     * This filter is still under construction!
      */
     class OSGGIS_EXPORT BuildLabelsFilter : public BuildGeomFilter
     {
@@ -45,26 +47,36 @@ namespace osgGIS
 
         /**
          * Sets the script that evaluates to the label text.
+         * @param script
+         *      Script that generates text
          */
         void setTextScript( Script* script );
 
         /**
          * Gets the script that evaluates to the label text.
+         * @return
+         *      Script that generates text
          */
         Script* getTextScript() const;
 
         /**
          * Sets the script that evaluates to a font size for the text.
+         * @param script
+         *      Script that generates a font size
          */
         void setFontSizeScript( Script* script );
 
         /**
          * Gets the script that evaluates to a font size for the text.
+         * @return
+         *      Script that generates a font size
          */
         Script* getFontSizeScript() const;
         
         /**
          * Sets whether to disable depth testing on the text label geometry.
+         * @param value
+         *      True to turn off depth buffer testing, false otherwise
          */
         void setDisableDepthTest( bool value );
         
@@ -73,13 +85,11 @@ namespace osgGIS
          */
         bool getDisableDepthTest() const;
         
-    public:
-    
+    public: // Filter overrides    
         virtual void setProperty( const Property& );
         virtual Properties getProperties() const;
 
-    protected:
-
+    protected: // FragmentFilter overrides
         virtual FragmentList process( FeatureList& input, FilterEnv* env );
         virtual FragmentList process( Feature* input, FilterEnv* env );
 

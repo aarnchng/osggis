@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -47,13 +47,13 @@ namespace osgGIS
         /**
          * Sets the name of this resource.
          */
-        void setName( const std::string& name );
+        virtual void setName( const std::string& name );
         
-        const std::string& getURI() const;
+        virtual const std::string& getURI() const;
         
-        void setURI( const std::string& uri );
+        virtual void setURI( const std::string& uri );
         
-        const std::string& getAbsoluteURI() const;
+        virtual const std::string& getAbsoluteURI() const;
         
         
         /**

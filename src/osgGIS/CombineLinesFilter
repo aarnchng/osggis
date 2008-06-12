@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,22 +25,41 @@
 
 namespace osgGIS
 {
+    /**
+     * Filter that optimizes line feature collections by combining multiple
+     * line features into one.
+     *
+     * This filter is similar to a "tri-stripper" except that is operates on
+     * line data. It will try to optimize a collection of line features by joining
+     * their endpoints to produce longer line strips. This can be useful for 
+     * optimizing large line layers (e.g., street centerlines).
+     *
+     * Important note: since this filter combines individual line features into one,
+     * you will lose the attributes associated with the input features. If this is
+     * a problem, don't use this filter.
+     */
     class OSGGIS_EXPORT CombineLinesFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( CombineLinesFilter );  
 
     public:
+        /**
+         * Constructs a new line-stripping filter.
+         */
         CombineLinesFilter();
 
+        /**
+         * Copy constructor
+         */
         CombineLinesFilter( const CombineLinesFilter& rhs );
 
         ~CombineLinesFilter();
 
-    public:
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
         
-    public:
+    public: // FeatureFilter overrides
         FeatureList process( FeatureList& input, FilterEnv* env );
     };
 }

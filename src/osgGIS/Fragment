@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -41,16 +41,26 @@ namespace osgGIS
 	    Fragment( osg::Drawable* );
 	    
 	public:
+
+        void setName( const std::string& name );
+
+        const std::string& getName() const;
+
+        bool hasName() const;
+
 	    DrawableList& getDrawables();
 	    
 	    const DrawableList&	getDrawables() const;
 
         void addDrawable( osg::Drawable* d );
 
+        void addAttributes( const AttributeList& attrs );
+
     protected:
 	    virtual ~Fragment();
 
     private:
+        std::string name;
         DrawableList drawables;
 	};
 	

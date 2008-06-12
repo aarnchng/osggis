@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -27,34 +27,29 @@
 namespace osgGIS
 {
     /**
-     * Assembles osg::Drawable objects into osg::Nodes. This is usually
-     * the final step in a filter graph.
+     * Assembles Fragment instances into osg::Node instances.
+     *
+     * This is usually the final Filter in a FilterGraph. It takes as input one or
+     * more Fragment objects and combines them under Geode and Group objects, optimizing
+     * as appropriate.
+     *
+     * It can also apply finishing touches like mapping an overlay texture, enabling cluster
+     * culling, or adjusting the overall GL state attributes line point size and line width.
      */
     class OSGGIS_EXPORT BuildNodesFilter : public NodeFilter
     {
         OSGGIS_META_FILTER( BuildNodesFilter );
 
     public:
-        enum Options
-        {
-            CULL_BACKFACES        = 0x01,
-            DISABLE_LIGHTING      = 0x02,
-            APPLY_CLUSTER_CULLING = 0x04,
-            OPTIMIZE              = 0x08
-        };
-
-    public:
         /**
-         * Constructs a filter with default properties.
+         * Constructs a BuildNodes filter with default settings.
          */
         BuildNodesFilter();
 
-        BuildNodesFilter( const BuildNodesFilter& rhs );
-
         /**
-         * Constructs a filter with the specified quick-set options.
+         * Copy constructor
          */
-        BuildNodesFilter( int options /*Options*/);
+        BuildNodesFilter( const BuildNodesFilter& rhs );
 
         virtual ~BuildNodesFilter();
         
@@ -62,109 +57,162 @@ namespace osgGIS
 
         /**
          * Sets whether to disable GL lighting on the resulting node graphs.
+         *
+         * @param value
+         *      True to disable lighting, false to leave it enabled.
          */
         void setDisableLighting( bool value );
         
         /** 
          * Gets whether to disable GL lighting on the resulting node graphs.
+         *
+         * @return
+         *      True if lighting is disabled, false if not.
          */
         bool getDisableLighting() const;  
         
         /**
          * Sets whether to enable backface culling on the resulting node.
+         *
+         * @param value
+         *      True to set backface culling; false to do nothing
          */
         void setCullBackfaces( bool value );
         
         /**
          * Gets whether to enable backfase culling on the resulting node.
+         *
+         * @return
+         *      True for backface culling; false otherwise
          */
         bool getCullBackfaces() const;
         
         /**
          * Sets whether to apply cluster culling to the resulting node. 
          * Cluster culling is a fast way to cull the entire node based on
-         * a single normal vector. This only applies to geocentric datasets.
+         * a single normal vector. (This only applies to localized, geocentric
+         * datasets.)
+         *
+         * @param value
+         *      True to enable cluster culling for localized, geocentric data;
+         *      False to disable it.
          */
         void setApplyClusterCulling( bool value );
         
         /**
          * Gets whether to apply cluster culling to the resulting node.
+         *
+         * @return
+         *      True if cluster culling will be installed
          */
         bool getApplyClusterCulling() const;  
         
         /**
          * Sets whether to run the OSG optimizer on the resulting node.
+         *
+         * @param value
+         *      True to enable node optimization
          */
         void setOptimize( bool value );
         
         /**
          * Gets whether to run the OSG optimizer on the resulting node.
+         *
+         * @return True if resulting nodes will get optimized
          */
         bool getOptimize() const;      
         
-        void setOptimizerOptions( int optimizer_options );
-        
-        int getOptimizerOptions() const;
-
         /** 
          * Sets the line width to set on the resulting node.
+         *
+         * @param value
+         *      The line width to use, or 0.0f to use the default
          */
         void setLineWidth( float value );
 
         /**
          * Gets the line width the set on the resulting node.
+         *
+         * @return The line width, or 0.0f to use the default
          */
         float getLineWidth() const;
 
         /** 
          * Sets the point size to apply to the resulting node graph.
+         *
+         * @param value
+         *      The point size, or 0.0 to use the default
          */
         void setPointSize( float value );
 
         /**
          * Gets the point size to apply to the resulting node graph.
+         *
+         * @return The point size, or 0.0 to use the default
          */
         float getPointSize() const;
 
         /**
-         * Sets whether to create geometry for the normal vector used
-         * for cluster culling (for debugging purposes).
+         * Sets a script that evaluates to the name of a RasterResource to use to
+         * generate a texture that will by applied to the resulting scene graph. This is
+         * useful for generating overlay textures, for example.
+         *
+         * @param Script
+         *      Script that generates a RasterResource name
          */
-        void setDrawClusterCullingNormals( bool value );
-
-        /**
-         * Gets whether to create geometry for the normal vector used
-         * for cluster culling (for debugging purposes).
-         */
-        bool getDrawClusterCullingNormals() const;
-        
         void setRasterOverlayScript( Script* script );
         
+        /**
+         * Gets a script that evalutes to the name of a RasterResource to use as a
+         * default scene graph texture.
+         *
+         * @return
+         *      Script that generates a RasterResource name
+         */
         Script* getRasterOverlayScript() const;
         
+        /**
+         * Sets the maximum allowable dimension (width or height) for an overlay texture.
+         * The default is 1024.
+         *
+         * @param size
+         *      Maximum texture size (in either dimension)
+         */
         void setRasterOverlayMaxSize( int size );
         
+        /**
+         * Gets the maximum allowable dimension (width or height) for an overlay texture.
+         *
+         * @return
+         *      Maximum texture size (in either dimension)
+         */
         int getRasterOverlayMaxSize() const;
         
-    public:
-    
+        void setEmbedAttributes( bool );
+
+        bool getEmbedAttributes() const;
+
+    public: // Filter overrides    
         virtual void setProperty( const Property& );
         virtual Properties getProperties() const;
         
-    protected:
+    protected: // NodeFilter overrides
         virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
         virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
 
     private:
-        int   options;
-        int   optimizer_options;
         float line_width;
         float point_size;
         bool  draw_cluster_culling_normals;
         osg::ref_ptr<Script> raster_overlay_script;
         int raster_overlay_max_size;
+        bool cull_backfaces;
+        bool apply_cluster_culling;
+        bool optimize;
+        bool disable_lighting;
+        bool embed_attrs;
 
-        void init( int options );
+        void init();
     };
 }
 

@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,6 +25,7 @@ using namespace osgGIS;
 
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( CollectionFilter );
+OSGGIS_DEFINE_FILTER( CollectFilter );
 
 #define DEFAULT_METERING 0
 

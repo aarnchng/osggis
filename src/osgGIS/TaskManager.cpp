@@ -211,7 +211,7 @@ TaskManager::update()
             osg::ref_ptr<Task> task = thread->getResult();
             completed_tasks.push( task.get() );
             num_running_tasks--;
-            osg::notify(osg::ALWAYS) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+            osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
         }
 
         // dispatch any pending tasks:
@@ -221,7 +221,7 @@ TaskManager::update()
             pending_tasks.pop();
             num_running_tasks++;
             thread->runTask( task.get() );
-            osg::notify(osg::ALWAYS) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
+            osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
         }
     }
 }

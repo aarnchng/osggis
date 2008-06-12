@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -24,7 +24,8 @@
 
 namespace osgGIS
 {
-    /**
+    /* (deprecated - no public api docs)
+     *
      * Generalizes an input feature set into a single polygon representing
      * the convex hull of the feature set. Optimization filter for far-range
      * visualization.

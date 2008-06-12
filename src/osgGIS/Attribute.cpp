@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -261,6 +261,13 @@ AttributedBase::setAttribute( const std::string& key, bool value )
 {
     std::string lkey = StringUtils::toLower( key );
     user_attrs[lkey] = Attribute( lkey, value );
+}
+
+void
+AttributedBase::setAttribute( const Attribute& a )
+{
+    std::string lkey = StringUtils::toLower( a.getKey() );
+    user_attrs[lkey] = a;
 }
 
 const AttributeTable&

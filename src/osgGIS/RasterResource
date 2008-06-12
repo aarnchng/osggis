@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -30,6 +30,9 @@ namespace osgGIS
 {
     /**
      * Defines a georeference raster that can be used as a texture.
+     *
+     * The raster can be either a single-source raster or a composite
+     * raster (a mosaic of multiple rasters stiched together).
      */
     class OSGGIS_EXPORT RasterResource : public Resource
     {
@@ -41,12 +44,43 @@ namespace osgGIS
 
     public:
 
+        /**
+         * Assembles an osg::Image from the raster data and applies it to
+         * a state set.
+         *
+         * @param state_set
+         *      State set to which to apply the texture containing the extracted image
+         * @param aoi
+         *      Region of the raster to extract into the image
+         * @param max_pixels
+         *      Maximum width or height of the image to extract
+         * @param image_name
+         *      Name to assign to the extracted image
+         * @param out_image
+         *      Store the image pointer to this variable upon success
+         *
+         * @return true upon success, false upon failure
+         */
         bool applyToStateSet( 
             osg::StateSet*     state_set,
             const GeoExtent&   aoi,
-            int                max_pixels,
-            const std::string& image_name ="",
+            unsigned int       max_pixel_span,
             osg::Image**       out_image =0L );
+
+        //bool applyToStateSet(
+        //    osg::StateSet*     state_set,
+        //    const GeoExtent&   aoi,
+        //    int                max_pixel_span,
+        //    osg::Image**       out_image =0L );
+
+        /**
+         * Adds a part to a composite raster.
+         *
+         * @param uri
+         *      URI (absolute, or relative to the base URI of this resource) of one
+         *      part of the raster data.
+         */
+        void addPartURI( const std::string& uri );
 
     public: 
 
@@ -59,6 +93,13 @@ namespace osgGIS
 
     private:
         void init();
+        void initParts();
+
+        typedef std::pair< GeoExtent, std::string > RasterPart;
+        typedef std::list< RasterPart > RasterParts;
+        RasterParts parts;
+        bool parts_initialized;
+        GLenum pixel_format;
     };
     
     typedef std::vector< osg::ref_ptr<RasterResource> > RasterResourceVec;

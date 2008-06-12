@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -37,6 +37,24 @@ Fragment::~Fragment()
     //NOP
 }
 
+void
+Fragment::setName( const std::string& value )
+{
+    name = value;
+}
+
+const std::string&
+Fragment::getName() const
+{
+    return name;
+}
+
+bool 
+Fragment::hasName() const
+{
+    return name.length() > 0;
+}
+
 const DrawableList&
 Fragment::getDrawables() const
 {
@@ -53,5 +71,14 @@ void
 Fragment::addDrawable( osg::Drawable* d )
 {
     drawables.push_back( d );
+}
+
+void
+Fragment::addAttributes( const AttributeList& attrs )
+{
+    for( AttributeList::const_iterator i = attrs.begin(); i != attrs.end(); i++ )
+    {
+        this->setAttribute( *i );
+    }
 }
 

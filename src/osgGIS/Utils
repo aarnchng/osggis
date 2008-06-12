@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -139,6 +139,8 @@ namespace osgGIS
     {
         static osg::Image* convertRGBAtoDDS( 
             osg::Image* in_rgba );
+
+        static bool copyAsSubImage( osg::Image* source, osg::Image* dest, int dest_col, int dest_row );
 
         static bool hasAlpha( osg::Image* image );
             

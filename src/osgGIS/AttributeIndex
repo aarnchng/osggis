@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -28,6 +28,7 @@
 
 namespace osgGIS
 {
+    // not yet implemented - no docs
     template<typename T> class OSGGIS_EXPORT AttributeIndex : public osg::Referenced
     {
     public:

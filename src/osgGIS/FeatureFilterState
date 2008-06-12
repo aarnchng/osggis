@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -26,13 +26,38 @@
 
 namespace osgGIS
 {
+    /* (internal class - no public api docs)
+     *
+     * State object for FeatureFilter implementations. See FilterState for more
+     * information on FilterGraph state objects.
+     */
     class FeatureFilterState : public FilterState
     {
     public:
+        /**
+         * Constructs a new state object for the specified Filter.
+         *
+         * @param filter
+         *      FeatureFilter for which to track state
+         */
         FeatureFilterState( FeatureFilter* filter );
 
+        /**
+         * Pushes a Feature onto the input list.
+         */
         void push( Feature* input );
+
+        /**
+         * Pushes a list of Features onto the input list.
+         */
         void push( const FeatureList& input );
+
+        /**
+         * Instructs this state's Filter to process its input.
+         *
+         * @param env
+         *      Runtime processing environment
+         */
         bool traverse( FilterEnv* env );
 
     protected:

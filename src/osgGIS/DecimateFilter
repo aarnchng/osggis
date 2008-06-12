@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,28 +25,60 @@
 
 namespace osgGIS
 {
+    /**
+     * Fitler that simplifies feature geometry by removing points.
+     *
+     * This simple decimation filter removes points from a feature based on a distance threshold;
+     * i.e. if a point is less than a given distance from the previous point in a shape, it will
+     * be removed.
+     */
     class OSGGIS_EXPORT DecimateFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( DecimateFilter );  
 
     public:
+        /**
+         * Constructs an empty decimation filter.
+         */
         DecimateFilter();
 
+        /**
+         * Copy constructor
+         */
         DecimateFilter( const DecimateFilter& rhs );
 
+        /**
+         * Constructs a new decmination filter.
+         *
+         * @param distance_threshold
+         *      Minimum allowable distance between points
+         */
         DecimateFilter( double distance_threshold );
 
         ~DecimateFilter();
 
     public: // properties
 
+        /**
+         * Sets the minimum allowable distance between points in a feature shape.
+         *
+         * @param value
+         *      Distance threshold, in feature units.
+         */
         void setDistanceThreshold( double value );
 
+        /**
+         * Gets the minimum allowable distance between points in a feature shape.
+         *
+         * @return
+         *      Distance threshold, in feature units.
+         */
         double getDistanceThreshold() const;
 
-    public:
+    public: // FeatureFilter overrides
         FeatureList process( Feature* input, FilterEnv* env );
 
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
 

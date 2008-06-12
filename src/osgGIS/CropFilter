@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -26,20 +26,27 @@
 namespace osgGIS
 {
     /**
-     * This filter crops feature data to a spatial extent. This may
-     * result in a feature shape being broken up into multiple parts.
+     * Filter that crops feature geometry to a spatial extent.
+     *
+     * This filter takes input features and crops them so that no part lies outside the
+     * working spatial extent (as conveyed in the FilterEnv). This filter only operates
+     * in 2D (x and y).
+     *
+     * For POINT data, points falling outside the spatial extent are simply discarded.
+     *
+     * For LINE data, each line segment is cut to fit inside the extent. This may result in
+     * continuous line features being broken up into multiple line segment.
+     *
+     * For POLYGON data, the area is again cropped to fit the extent. This may result in single
+     * polygon shapes being broken up into multiple areas. Also note that cropping may have
+     * unexpected affects on multi-part polygons with holes (i.e. counter-wound polygon parts).
+     *
+     * Note: This may result in a feature shape being broken up into multiple parts. but it
+     * will not affect the feature attributes set.
      */
     class OSGGIS_EXPORT CropFilter : public FeatureFilter
     {        
         OSGGIS_META_FILTER( CropFilter );  
-
-    public:
-        enum Options
-        {
-            /** Add lines to the cropped feature set to show the
-                extent to which the features were cropped. */
-            SHOW_CROP_LINES = 0x01
-        };
 
     public:
         /**
@@ -47,29 +54,21 @@ namespace osgGIS
          */
         CropFilter();
 
+        /**
+         * Copy constructor.
+         */
         CropFilter( const CropFilter& rhs );
 
-        /**
-         * Constructs a new cropping filter.
-         */
-        CropFilter( int options );
-
-    public: // properties
-
-        void setShowCropLines( bool value );
-
-        bool getShowCropLines() const;
-
-    public:
-        FeatureList process( Feature* input, FilterEnv* env );
-        
-        virtual ~CropFilter();
-
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
 
-    private:
-        int options;
+    public: // FeatureFilter overrides
+        FeatureList process( Feature* input, FilterEnv* env );
+        
+    public:
+        virtual ~CropFilter();
+
     };
 }
 

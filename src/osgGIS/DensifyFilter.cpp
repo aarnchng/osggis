@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,8 +25,6 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( DensifyFilter );
 
 
-
-
 DensifyFilter::DensifyFilter()
 {
     threshold = 0.0;
@@ -38,12 +36,6 @@ DensifyFilter::DensifyFilter( const DensifyFilter& rhs )
 {
     //NOP
 }
-
-DensifyFilter::DensifyFilter( double _threshold )
-{
-    threshold = _threshold;
-}
-
 
 DensifyFilter::~DensifyFilter()
 {
@@ -57,13 +49,11 @@ DensifyFilter::setThreshold( double value )
     threshold = value;
 }
 
-
 double
 DensifyFilter::getThreshold() const
 {
     return threshold;
 }
-
 
 void
 DensifyFilter::setProperty( const Property& p )

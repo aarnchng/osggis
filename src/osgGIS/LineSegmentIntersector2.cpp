@@ -50,9 +50,13 @@ namespace LineSegmentIntersectorUtils
 
     struct TriangleIntersector
     {
-        osg::Vec3   _s;
-        osg::Vec3   _d;
-        float       _length;
+        osg::Vec3d   _s;
+        osg::Vec3d   _d;
+        double       _length;
+
+        //osg::Vec3   _s;
+        //osg::Vec3   _d;
+        //float       _length;
 
         int         _index;
         float       _ratio;
@@ -80,32 +84,36 @@ namespace LineSegmentIntersectorUtils
             _d /= _length;
         }
 
-        inline void operator () (const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3, bool treatVertexDataAsTemporary)
+        inline void operator () (const osg::Vec3& in_v1,const osg::Vec3& in_v2,const osg::Vec3& in_v3, bool treatVertexDataAsTemporary)
         {
             ++_index;
 
+            osg::Vec3d v1 = in_v1;
+            osg::Vec3d v2 = in_v2;
+            osg::Vec3d v3 = in_v3;
+
             if (v1==v2 || v2==v3 || v1==v3) return;
 
-            osg::Vec3 v12 = v2-v1;
-            osg::Vec3 n12 = v12^_d;
-            float ds12 = (_s-v1)*n12;
-            float d312 = (v3-v1)*n12;
+            osg::Vec3d v12 = v2-v1;
+            osg::Vec3d n12 = v12^_d;
+            double ds12 = (_s-v1)*n12;
+            double d312 = (v3-v1)*n12;
             if (d312>=0.0f)
             {
-                if (ds12<0.0f) return;
+                if (ds12<0.0) return;
                 if (ds12>d312) return;
             }
             else                     // d312 < 0
             {
-                if (ds12>0.0f) return;
+                if (ds12>0.0) return;
                 if (ds12<d312) return;
             }
 
-            osg::Vec3 v23 = v3-v2;
-            osg::Vec3 n23 = v23^_d;
-            float ds23 = (_s-v2)*n23;
-            float d123 = (v1-v2)*n23;
-            if (d123>=0.0f)
+            osg::Vec3d v23 = v3-v2;
+            osg::Vec3d n23 = v23^_d;
+            double ds23 = (_s-v2)*n23;
+            double d123 = (v1-v2)*n23;
+            if (d123>=0.0)
             {
                 if (ds23<0.0f) return;
                 if (ds23>d123) return;
@@ -116,48 +124,48 @@ namespace LineSegmentIntersectorUtils
                 if (ds23<d123) return;
             }
 
-            osg::Vec3 v31 = v1-v3;
-            osg::Vec3 n31 = v31^_d;
-            float ds31 = (_s-v3)*n31;
-            float d231 = (v2-v3)*n31;
-            if (d231>=0.0f)
+            osg::Vec3d v31 = v1-v3;
+            osg::Vec3d n31 = v31^_d;
+            double ds31 = (_s-v3)*n31;
+            double d231 = (v2-v3)*n31;
+            if (d231>=0.0)
             {
-                if (ds31<0.0f) return;
+                if (ds31<0.0) return;
                 if (ds31>d231) return;
             }
             else                     // d231 < 0
             {
-                if (ds31>0.0f) return;
+                if (ds31>0.0) return;
                 if (ds31<d231) return;
             }
 
 
-            float r3;
-            if (ds12==0.0f) r3=0.0f;
-            else if (d312!=0.0f) r3 = ds12/d312;
+            double r3;
+            if (ds12==0.0f) r3=0.0;
+            else if (d312!=0.0) r3 = ds12/d312;
             else return; // the triangle and the line must be parallel intersection.
 
-            float r1;
-            if (ds23==0.0f) r1=0.0f;
-            else if (d123!=0.0f) r1 = ds23/d123;
+            double r1;
+            if (ds23==0.0) r1=0.0f;
+            else if (d123!=0.0) r1 = ds23/d123;
             else return; // the triangle and the line must be parallel intersection.
 
-            float r2;
-            if (ds31==0.0f) r2=0.0f;
-            else if (d231!=0.0f) r2 = ds31/d231;
+            double r2;
+            if (ds31==0.0f) r2=0.0;
+            else if (d231!=0.0) r2 = ds31/d231;
             else return; // the triangle and the line must be parallel intersection.
 
-            float total_r = (r1+r2+r3);
-            if (total_r!=1.0f)
+            double total_r = (r1+r2+r3);
+            if (total_r!=1.0)
             {
-                if (total_r==0.0f) return; // the triangle and the line must be parallel intersection.
-                float inv_total_r = 1.0f/total_r;
+                if (total_r==0.0) return; // the triangle and the line must be parallel intersection.
+                double inv_total_r = 1.0f/total_r;
                 r1 *= inv_total_r;
                 r2 *= inv_total_r;
                 r3 *= inv_total_r;
             }
 
-            osg::Vec3 in = v1*r1+v2*r2+v3*r3;
+            osg::Vec3d in = v1*r1+v2*r2+v3*r3;
             if (!in.valid())
             {
                 osg::notify(osg::WARN)<<"Warning:: Picked up error in TriangleIntersect"<<std::endl;
@@ -166,15 +174,15 @@ namespace LineSegmentIntersectorUtils
                 return;
             }
 
-            float d = (in-_s)*_d;
+            double d = (in-_s)*_d;
 
-            if (d<0.0f) return;
+            if (d<0.0) return;
             if (d>_length) return;
 
             osg::Vec3 normal = v12^v23;
             normal.normalize();
 
-            float r = d/_length;
+            double r = d/_length;
 
 
             if (treatVertexDataAsTemporary)
@@ -183,7 +191,7 @@ namespace LineSegmentIntersectorUtils
             }
             else
             {
-                _intersections.insert(std::pair<const float,TriangleIntersection>(r,TriangleIntersection(_index-1,normal,r1,&v1,r2,&v2,r3,&v3)));
+                _intersections.insert(std::pair<const float,TriangleIntersection>(r,TriangleIntersection(_index-1,normal,r1,&in_v1,r2,&in_v2,r3,&in_v3)));
             }
             _hit = true;
 
@@ -263,7 +271,7 @@ Intersector* LineSegmentIntersector2::clone(osgUtil::IntersectionVisitor& iv)
     osg::Matrix inverse;
     inverse.invert(matrix);
 
-    osg::ref_ptr<LineSegmentIntersector2> lsi = new LineSegmentIntersector2(_start * inverse, _end * inverse);
+    osg::ref_ptr<LineSegmentIntersector2> lsi = new LineSegmentIntersector2(_start*inverse, _end*inverse);
     lsi->_parent = this;
     return lsi.release();
 }
@@ -359,10 +367,23 @@ void LineSegmentIntersector2::reset()
     _intersections.clear();
 }
 
+#define DOT(a,b) (a.x()*b.x() + a.y()*b.y() + a.z()*b.z())
+
 bool LineSegmentIntersector2::intersects(const osg::BoundingSphere& bs)
 {
     // if bs not valid then return true based on the assumption that an invalid sphere is yet to be defined.
     if (!bs.valid()) return true; 
+   
+    //osg::Vec3d oc = bs._center - _start;
+    //double l2_oc = oc.length2();
+
+    //osg::Vec3d d = _end - _start;
+    //double l2_d = d*d;
+    //double tca = (oc * d) / l2_d;
+    //
+    //double r2 = bs._radius * bs._radius;
+    //double l2_hc = ((r2-l2_oc)/l2_d) + (tca*tca);
+    //if ( l2_hc < 0.0 ) return false;
 
     osg::Vec3d sm = _start - bs._center;
     double c = sm.length2()-bs._radius*bs._radius;

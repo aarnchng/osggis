@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -23,6 +23,7 @@
 #include <osgGIS/ElevationResource>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/PlaneIntersector>
+#include <osg/PagedLOD>
 
 using namespace osgGIS;
 
@@ -32,13 +33,11 @@ OSGGIS_DEFINE_FILTER( ClampFilter );
 
 ClampFilter::ClampFilter()
 {
-    technique = ClampFilter::TECHNIQUE_CONFORM;
     ignore_z = false;
 }
 
 ClampFilter::ClampFilter( const ClampFilter& rhs )
 : FeatureFilter( rhs ),
-  technique( rhs.technique ),
   ignore_z( rhs.ignore_z ),
   clamped_z_output_attribute( rhs.clamped_z_output_attribute ),
   elevation_resource_script( rhs.elevation_resource_script.get() )
@@ -49,18 +48,6 @@ ClampFilter::ClampFilter( const ClampFilter& rhs )
 ClampFilter::~ClampFilter()
 {
     //NOP
-}
-
-void
-ClampFilter::setTechnique( const Technique& value )
-{
-    technique = value;
-}
-
-const ClampFilter::Technique&
-ClampFilter::getTechnique() const
-{
-    return technique;
 }
 
 void
@@ -87,33 +74,27 @@ ClampFilter::getClampedZOutputAttribute() const
     return clamped_z_output_attribute;
 }
 
-void
-ClampFilter::setElevationResourceScript( Script* value )
-{
-    elevation_resource_script = value;
-}
-
-Script*
-ClampFilter::getElevationResourceScript() const
-{
-    return elevation_resource_script.get();
-}
+//void
+//ClampFilter::setElevationResourceScript( Script* value )
+//{
+//    elevation_resource_script = value;
+//}
+//
+//Script*
+//ClampFilter::getElevationResourceScript() const
+//{
+//    return elevation_resource_script.get();
+//}
 
 void
 ClampFilter::setProperty( const Property& p )
 {
-    if ( p.getName() == "technique" ) {
-        setTechnique( 
-            p.getValue() == "simple"? TECHNIQUE_SIMPLE :
-            p.getValue() == "conform"? TECHNIQUE_CONFORM :
-            getTechnique() );
-    }
-    else if ( p.getName() == "ignore_z" )
+    if ( p.getName() == "ignore_z" )
         setIgnoreZ( p.getBoolValue( getIgnoreZ() ) );
     else if ( p.getName() == "clamped_z_output_attribute" )
         setClampedZOutputAttribute( p.getValue() );
-    else if ( p.getName() == "elevation" )
-        setElevationResourceScript( new Script( p.getValue() ) );
+    //else if ( p.getName() == "elevation" )
+    //    setElevationResourceScript( new Script( p.getValue() ) );
 
     FeatureFilter::setProperty( p );
 }
@@ -123,22 +104,58 @@ ClampFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
 
-    p.push_back( Property( "technique",
-        getTechnique() == TECHNIQUE_SIMPLE? "simple" :
-        getTechnique() == TECHNIQUE_CONFORM? "conform" :
-        std::string() ) );
     p.push_back( Property( "ignore_z", getIgnoreZ() ) );
 
     if ( getClampedZOutputAttribute().length() > 0 )
         p.push_back( Property( "clamped_z_output_attribute", getClampedZOutputAttribute() ) );
-    if ( getElevationResourceScript() )
-        p.push_back( Property( "elevation", getElevationResourceScript()->getCode() ) );
+    //if ( getElevationResourceScript() )
+    //    p.push_back( Property( "elevation", getElevationResourceScript()->getCode() ) );
 
     return p;
 }
 
 #define ALTITUDE_EXTENSION 250000
 #define DEFAULT_OFFSET_EXTENSION 0
+
+
+// custom intersection visitor that can "fall back" on lower resolution tiles when
+// a pages lod subtile cannot be found.
+//
+// NOTE: I submitted this change to the OSG core -- it will become the default behavior in
+// the 2.6 stable release.
+class RelaxedIntersectionVisitor : public osgUtil::IntersectionVisitor
+{
+public:
+    RelaxedIntersectionVisitor() { }
+
+    virtual void apply( osg::PagedLOD& plod ) // override
+    {
+        if (!enter(plod)) return;
+
+        if (plod.getNumFileNames()>0)
+        {
+            osg::ref_ptr<osg::Node> highestResChild;
+
+            if (plod.getNumFileNames() != plod.getNumChildren() && _readCallback.valid())
+            {
+                highestResChild = _readCallback->readNodeFile( plod.getDatabasePath() + plod.getFileName(plod.getNumFileNames()-1) );
+            }
+
+            if ( !highestResChild.valid() && plod.getNumChildren() > 0 )
+            {
+                highestResChild = plod.getChild( plod.getNumChildren()-1 );
+            }
+
+            if (highestResChild.valid())
+            {
+                highestResChild->accept(*this);
+            }
+        }
+
+        leave();
+    }
+};
+
 
 static int
 clampPointPartToTerrain(GeoPointList&           part,
@@ -151,7 +168,8 @@ clampPointPartToTerrain(GeoPointList&           part,
     int clamps = 0;
     out_clamped_z = DBL_MAX;
 
-    osgUtil::IntersectionVisitor iv;
+    RelaxedIntersectionVisitor iv;
+    //osgUtil::IntersectionVisitor iv;
 
     if ( read_cache )
         iv.setReadCallback( read_cache );
@@ -181,12 +199,8 @@ clampPointPartToTerrain(GeoPointList&           part,
                 osg::Vec3d( osg::RadiansToDegrees(lon), osg::RadiansToDegrees(lat), 0.0 ) );
             
             isector = new LineSegmentIntersector2(
-                xyz + clamp_vec * 10000.0,
-                xyz - clamp_vec * 10000.0 );
-                //p_world + clamp_vec * 10000.0,
-                //p_world - clamp_vec * 10000.0 );
-                //clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
-                //osg::Vec3d( 0, 0, 0 ) );
+                clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
+                osg::Vec3d( 0, 0, 0 ) );
             
             // calculate the HAT for later:
             if ( !ignore_z )
@@ -254,13 +268,20 @@ clampPointPartToTerrain(GeoPointList&           part,
                 if ( offset_point.z() < out_clamped_z )
                     out_clamped_z = offset_point.z();
             }
+            
+            //osg::notify( osg::WARN ) << "Found an intersection for point " 
+            //    << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
+            //    << std::endl;
         }
 
         else 
         {
-            osg::notify( osg::WARN ) << "Missed an intersection for point " 
-                << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
-                << std::endl;
+            //osg::notify( osg::WARN ) << "MISSED an intersection for point " 
+            //    << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
+            //    << std::endl;
+            
+            //osg::Vec3d offset_point = p_world + clamp_vec * 100.0;
+            //p.set( offset_point * srs->getReferenceFrame() );
         }
     }
 
@@ -276,7 +297,7 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                        SmartReadCallback*      read_cache,
                        GeoPartList&            out_parts )
 {
-    osgUtil::IntersectionVisitor iv;
+    RelaxedIntersectionVisitor iv;
 
     if ( read_cache )
         iv.setReadCallback( read_cache );
@@ -415,13 +436,13 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                     {
                         if ( srs->isGeocentric() )
                         {
-                            osg::Vec3 z_vec = ip_world;
+                            osg::Vec3d z_vec = ip_world;
                             z_vec.normalize();
                             ip_world = ip_world + z_vec * z;
                         }
                         else
                         {
-                            ip_world = ip_world + osg::Vec3(0,0,z);
+                            ip_world = ip_world + osg::Vec3d(0,0,z);
                         }
                     }
 
