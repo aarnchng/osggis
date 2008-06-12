@@ -29,19 +29,22 @@ OSGGIS_DEFINE_FILTER( BuildLabelsFilter );
 
 
 #define DEFAULT_DISABLE_DEPTH_TEST true
+#define DEFAULT_FONT_NAME          ""
 
 
 BuildLabelsFilter::BuildLabelsFilter()
 {
     setTextScript( new Script( "default", "lua", "'text'" ) );
     setDisableDepthTest( DEFAULT_DISABLE_DEPTH_TEST );
+    setFontName( DEFAULT_FONT_NAME );
 }
 
 BuildLabelsFilter::BuildLabelsFilter( const BuildLabelsFilter& rhs )
 : BuildGeomFilter( rhs ),
   text_script( rhs.text_script.get() ),
   font_size_script( rhs.font_size_script.get() ),
-  disable_depth_test( rhs.disable_depth_test )
+  disable_depth_test( rhs.disable_depth_test ),
+  font_name( rhs.font_name )
 {
     //NOP
 }
@@ -75,6 +78,18 @@ BuildLabelsFilter::getFontSizeScript() const
     return font_size_script.get();
 }
 
+void
+BuildLabelsFilter::setFontName( const std::string& value )
+{
+    font_name = value;
+}
+
+const std::string&
+BuildLabelsFilter::getFontName() const
+{
+    return font_name;
+}
+
 void 
 BuildLabelsFilter::setDisableDepthTest( bool value )
 {
@@ -96,6 +111,8 @@ BuildLabelsFilter::setProperty( const Property& p )
         setDisableDepthTest( true );
     else if ( p.getName() == "font_size" )
         setFontSizeScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "font" )
+        setFontName( p.getValue() );
     BuildGeomFilter::setProperty( p );
 }
 
@@ -108,6 +125,8 @@ BuildLabelsFilter::getProperties() const
         p.push_back( Property( "text", getTextScript()->getCode() ) );
     if ( getFontSizeScript() )
         p.push_back( Property( "font_size", getFontSizeScript()->getCode() ) );
+    if ( getFontName() != DEFAULT_FONT_NAME )
+        p.push_back( Property( "font", getFontName() ) );
     if ( getDisableDepthTest() != DEFAULT_DISABLE_DEPTH_TEST )
         p.push_back( Property( "topmost", true ) );
     return p;
@@ -117,16 +136,31 @@ BuildLabelsFilter::getProperties() const
 FragmentList
 BuildLabelsFilter::process( FeatureList& input, FilterEnv* env )
 {
+    // load and cache the font
+    if ( getFontName().length() > 0 && !font.valid() )
+    {
+        font = osgText::readFontFile( getFontName() );
+    }
+
     return BuildGeomFilter::process( input, env );
 }
 
+class ZCalc : public GeoPointVisitor {
+public:
+    double z_sum;
+    int z_count;
+    ZCalc() : z_sum(0.0), z_count(0) { }
+    bool visitPoint( GeoPoint& point ) {
+        z_sum += point.getDim() > 2? point.z() : 0.0;
+        z_count++;
+        return true;
+    }
+};
 
 FragmentList
 BuildLabelsFilter::process( Feature* input, FilterEnv* env )
 {
     FragmentList output;
-
-    osg::Vec4 color = getColorForFeature( input, env );
 
     // the text string:
     std::string text;
@@ -145,17 +179,33 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
         if ( r.isValid() )
             font_size = r.asDouble( font_size );
     }
+
+    // the text color:
+    osg::Vec4 color = getColorForFeature( input, env );
+
+    // calculate the 3D centroid of the feature:
+    // TODO: move this to the geoshapelist class
+    osg::Vec3d point( input->getExtent().getCentroid() );    
+    ZCalc zc;
+    input->getShapes().accept( zc );
+    point.z() = zc.z_count > 0? zc.z_sum/(double)zc.z_count : 0.0;
     
     // build the drawable:
     osgText::Text* t = new osgText::Text();
     t->setAutoRotateToScreen( true );
     t->setCharacterSizeMode( osgText::Text::SCREEN_COORDS );
+    t->setAlignment( osgText::Text::CENTER_CENTER );
     t->setText( text.c_str() );
     t->setColor( color );
     t->setCharacterSize( (float)font_size );
-    t->setPosition( input->getExtent().getCentroid() );
+    t->setPosition( point );
     t->setBackdropType( osgText::Text::OUTLINE );
     t->setBackdropColor( osg::Vec4(0,0,0,1) );
+
+    if ( font.valid() )
+    {
+        t->setFont( font.get() );
+    }
 
     if ( getDisableDepthTest() )
     {

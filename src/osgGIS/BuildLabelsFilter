@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/BuildGeomFilter>
+#include <osgText/Font>
 
 namespace osgGIS
 {
@@ -72,6 +73,36 @@ namespace osgGIS
          *      Script that generates a font size
          */
         Script* getFontSizeScript() const;
+
+        /**
+         * Sets the name of the font to use.
+         *
+         * @param font_name
+         *      Name of the font file to use, e.g. "arial.ttf"
+         */
+        void setFontName( const std::string& font_name );
+
+        /**
+         * Gets the name of the font to use.
+         *
+         * @return Font file name, e.g. "arial.ttf"
+         */
+        const std::string& getFontName() const;
+
+        /**
+         * Sets a script that evalutes to the text color.
+         *
+         * @param script
+         *      Foreground color for text
+         */
+        void setTextColorScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the text color (vec4)
+         *
+         * @return A script
+         */
+        Script* getTextColorScript() const;
         
         /**
          * Sets whether to disable depth testing on the text label geometry.
@@ -84,6 +115,7 @@ namespace osgGIS
          * Gets whether to disable depth testing on the text label geometry.
          */
         bool getDisableDepthTest() const;
+
         
     public: // Filter overrides    
         virtual void setProperty( const Property& );
@@ -98,7 +130,13 @@ namespace osgGIS
     private:
         osg::ref_ptr<Script> text_script;
         osg::ref_ptr<Script> font_size_script;
+        osg::ref_ptr<Script> text_color_script;
+        std::string          font_name;
         bool                 disable_depth_test;
+
+    private: //transient
+        osg::ref_ptr<osgText::Font> font;
+
     };
 }
 

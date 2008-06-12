@@ -282,3 +282,38 @@ GeoShapeList::accept( GeoPartVisitor& visitor ) const
     return true;
 }
 
+
+bool
+GeoShapeList::accept( GeoPointVisitor& visitor )
+{
+    for( GeoShapeList::iterator i = begin(); i != end(); i++ )
+    {
+        for( GeoPartList::iterator j = (*i).getParts().begin(); j != (*i).getParts().end(); j++ )
+        {
+            for( GeoPointList::iterator k = (*j).begin(); k != (*j).end(); k++ )
+            {
+                if ( !visitor.visitPoint( *k ) )
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool 
+GeoShapeList::accept( GeoPointVisitor& visitor ) const
+{
+    for( GeoShapeList::const_iterator i = begin(); i != end(); i++ )
+    {
+        for( GeoPartList::const_iterator j = (*i).getParts().begin(); j != (*i).getParts().end(); j++ )
+        {
+            for( GeoPointList::const_iterator k = (*j).begin(); k != (*j).end(); k++ )
+            {
+                if ( !visitor.visitPoint( *k ) )
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+

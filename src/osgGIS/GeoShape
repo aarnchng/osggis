@@ -189,6 +189,9 @@ namespace osgGIS
         bool accept( GeoPartVisitor& visitor );
         bool accept( GeoPartVisitor& visitor ) const;
 
+        bool accept( GeoPointVisitor& visitor );
+        bool accept( GeoPointVisitor& visitor ) const;
+
     public:
         //TODO: geometry functions.
         bool intersects( const GeoExtent& extent ) const;
