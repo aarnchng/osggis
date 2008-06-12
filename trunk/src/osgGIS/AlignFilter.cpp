@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -235,8 +235,11 @@ AlignFilter::process( Feature* input, FilterEnv* env )
             double radius_srs = radius;
 
             // adjust the search radius for geographic space if necessary:
+            // TODO: refine this 'shortcut' with a proper deg-to-m conversion
             if ( env->getInputSRS()->isGeographic() )
+            {
                 radius_srs = radius/METERS_IN_ONE_DEG_OF_LAT;
+            }
 
             // get the point's coordinates and transform them into absolute space:
             GeoPoint c = input->getExtent().getCentroid().getAbsolute();

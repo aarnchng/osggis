@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -36,49 +36,23 @@ typedef std::vector<UINT> UINTList;
 
 CropFilter::CropFilter()
 {
-    options = 0;
-}
-
-CropFilter::CropFilter( const CropFilter& rhs )
-: FeatureFilter( rhs ),
-  options( rhs.options )
-{
     //NOP
 }
 
-CropFilter::CropFilter( int _options )
+CropFilter::CropFilter( const CropFilter& rhs )
+: FeatureFilter( rhs )
 {
-    options = _options;
+    //NOP
 }
-
 
 CropFilter::~CropFilter()
 {
     //NOP
 }
 
-
-void
-CropFilter::setShowCropLines( bool value )
-{
-    options = value?
-        options | SHOW_CROP_LINES :
-        options & ~SHOW_CROP_LINES;
-}
-
-
-bool
-CropFilter::getShowCropLines() const
-{
-    return options & SHOW_CROP_LINES;
-}
-
-
 void
 CropFilter::setProperty( const Property& p )
 {
-    if ( p.getName() == "show_crop_lines" )
-        setShowCropLines( p.getBoolValue( getShowCropLines() ) );
     FeatureFilter::setProperty( p );
 }
 
@@ -86,7 +60,6 @@ Properties
 CropFilter::getProperties() const
 {
     Properties p = FeatureFilter::getProperties();
-    p.push_back( Property( "show_crop_lines", getShowCropLines() ) );
     return p;
 }
 
@@ -723,20 +696,20 @@ CropFilter::process( Feature* input, FilterEnv* env )
             }
         }
 
-        if ( getShowCropLines() )
-        {
-            GeoPointList part;
-            part.push_back( crop_extent.getSouthwest() );
-            part.push_back( crop_extent.getSoutheast() );
-            part.push_back( crop_extent.getNortheast() );
-            part.push_back( crop_extent.getNorthwest() );
-            part.push_back( crop_extent.getSouthwest() );
-            GeoShape extent_shape( GeoShape::TYPE_LINE, crop_extent.getSRS() );
-            extent_shape.getParts().push_back( part );
-            Feature* extent_f = new SimpleFeature();
-            extent_f->getShapes().push_back( extent_shape );
-            output.push_back( extent_f );
-        }
+        //if ( getShowCropLines() )
+        //{
+        //    GeoPointList part;
+        //    part.push_back( crop_extent.getSouthwest() );
+        //    part.push_back( crop_extent.getSoutheast() );
+        //    part.push_back( crop_extent.getNortheast() );
+        //    part.push_back( crop_extent.getNorthwest() );
+        //    part.push_back( crop_extent.getSouthwest() );
+        //    GeoShape extent_shape( GeoShape::TYPE_LINE, crop_extent.getSRS() );
+        //    extent_shape.getParts().push_back( part );
+        //    Feature* extent_f = new SimpleFeature();
+        //    extent_f->getShapes().push_back( extent_shape );
+        //    output.push_back( extent_f );
+        //}
 
         input->getShapes().swap( new_shapes );
     }

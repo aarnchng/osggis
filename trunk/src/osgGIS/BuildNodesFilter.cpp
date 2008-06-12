@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -32,6 +32,7 @@
 #include <osg/Point>
 #include <osg/Geometry>
 #include <osg/TriangleFunctor>
+#include <osgSim/ShapeAttribute>
 #include <osgUtil/Optimizer>
 #include <sstream>
 #include <iomanip>
@@ -41,118 +42,102 @@ using namespace osgGIS;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 
-#define DEFAULT_RASTER_OVERLAY_MAX_SIZE 0
-
+#define DEFAULT_RASTER_OVERLAY_MAX_SIZE  0
+#define DEFAULT_POINT_SIZE               0.0f
+#define DEFAULT_LINE_WIDTH               0.0f
+#define DEFAULT_CULL_BACKFACES           true
+#define DEFAULT_APPLY_CLUSTER_CULLING    true
+#define DEFAULT_DISABLE_LIGHTING         false
+#define DEFAULT_OPTIMIZE                 true
+#define DEFAULT_EMBED_ATTRIBUTES         false
 
 BuildNodesFilter::BuildNodesFilter()
 {
-    init( OPTIMIZE );
+    init();
 }
 
 BuildNodesFilter::BuildNodesFilter( const BuildNodesFilter& rhs )
 : NodeFilter( rhs ),
-  options( rhs.options ),
-  optimizer_options( rhs.optimizer_options ),
   line_width( rhs.line_width ),
   point_size( rhs.point_size ),
   draw_cluster_culling_normals( rhs.draw_cluster_culling_normals ),
   raster_overlay_script( rhs.raster_overlay_script.get() ),
-  raster_overlay_max_size( rhs.raster_overlay_max_size )
+  raster_overlay_max_size( rhs.raster_overlay_max_size ),
+  cull_backfaces( rhs.cull_backfaces ),
+  apply_cluster_culling( rhs.apply_cluster_culling ),
+  disable_lighting( rhs.disable_lighting ),
+  optimize( rhs.optimize ),
+  embed_attrs( rhs.embed_attrs )
 {
     //NOP
 }
 
-BuildNodesFilter::BuildNodesFilter( int _options )
-{
-    init( _options );
-}
-
-
 void
-BuildNodesFilter::init( int _options )
+BuildNodesFilter::init()
 {
-    options = _options;
-    optimizer_options = 
-        osgUtil::Optimizer::ALL_OPTIMIZATIONS &
-        (~osgUtil::Optimizer::TEXTURE_ATLAS_BUILDER); // no texture atlases please
-    line_width = 0.0f;
-    point_size = 0.0f;
+    cull_backfaces               = DEFAULT_CULL_BACKFACES;
+    apply_cluster_culling        = DEFAULT_APPLY_CLUSTER_CULLING;
+    disable_lighting             = DEFAULT_DISABLE_LIGHTING;
+    optimize                     = DEFAULT_OPTIMIZE;
+    line_width                   = DEFAULT_LINE_WIDTH;
+    point_size                   = DEFAULT_POINT_SIZE; 
     draw_cluster_culling_normals = false;
-    raster_overlay_max_size = DEFAULT_RASTER_OVERLAY_MAX_SIZE;
+    raster_overlay_max_size      = DEFAULT_RASTER_OVERLAY_MAX_SIZE;
+    embed_attrs                  = DEFAULT_EMBED_ATTRIBUTES;
 }
-
 
 BuildNodesFilter::~BuildNodesFilter()
 {
+    //NOP
 }  
 
 void 
 BuildNodesFilter::setCullBackfaces( bool value )
 {
-    options = value?
-        options | CULL_BACKFACES :
-        options & ~CULL_BACKFACES;
+    cull_backfaces = value;
 }
 
 bool
 BuildNodesFilter::getCullBackfaces() const
 {
-    return ( options & CULL_BACKFACES ) != 0;
+    return cull_backfaces;
 }
 
 void 
 BuildNodesFilter::setApplyClusterCulling( bool value )
 {
-    options = value?
-        options | APPLY_CLUSTER_CULLING :
-        options & ~APPLY_CLUSTER_CULLING;
+    apply_cluster_culling = value;
 }
 
 bool
 BuildNodesFilter::getApplyClusterCulling() const
 {
-    return ( options & APPLY_CLUSTER_CULLING ) != 0;
+    return apply_cluster_culling;
 } 
 
 void
 BuildNodesFilter::setDisableLighting( bool value )
 {
-    options = value?
-        options | DISABLE_LIGHTING :
-        options & ~DISABLE_LIGHTING;
+    disable_lighting = value;
 }
 
 bool
 BuildNodesFilter::getDisableLighting() const
 {
-    return ( options & DISABLE_LIGHTING ) != 0;
+    return disable_lighting;
 }
 
 void
 BuildNodesFilter::setOptimize( bool value )
 {
-    options = value?
-        options | OPTIMIZE :
-        options & ~OPTIMIZE;
+    optimize = value;
 }
 
 bool 
 BuildNodesFilter::getOptimize() const
 {
-    return ( options & OPTIMIZE ) != 0;
-}      
-
-void
-BuildNodesFilter::setOptimizerOptions( int value )
-{
-    optimizer_options = value;
-}
-
-int 
-BuildNodesFilter::getOptimizerOptions() const
-{
-    return optimizer_options;
-}
+    return optimize;
+} 
 
 void
 BuildNodesFilter::setLineWidth( float value )
@@ -176,18 +161,6 @@ float
 BuildNodesFilter::getPointSize() const
 {
     return point_size;
-}
-
-void
-BuildNodesFilter::setDrawClusterCullingNormals( bool value )
-{
-    draw_cluster_culling_normals = value;
-}
-
-bool
-BuildNodesFilter::getDrawClusterCullingNormals() const
-{
-    return draw_cluster_culling_normals;
 }
 
 void
@@ -215,6 +188,18 @@ BuildNodesFilter::getRasterOverlayMaxSize() const
 }
 
 void
+BuildNodesFilter::setEmbedAttributes( bool value )
+{
+    embed_attrs = value;
+}
+
+bool 
+BuildNodesFilter::getEmbedAttributes() const
+{
+    return embed_attrs;
+}
+
+void
 BuildNodesFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "optimize" )
@@ -225,18 +210,16 @@ BuildNodesFilter::setProperty( const Property& p )
         setApplyClusterCulling( p.getBoolValue( getApplyClusterCulling() ) );
     else if ( p.getName() == "disable_lighting" )
         setDisableLighting( p.getBoolValue( getDisableLighting() ) );
-    else if ( p.getName() == "optimizer_options" )
-        setOptimizerOptions( p.getIntValue( getOptimizerOptions() ) );
     else if ( p.getName() == "line_width" )
         setLineWidth( p.getFloatValue( getLineWidth() ) );
     else if ( p.getName() == "point_size" )
         setPointSize( p.getFloatValue( getPointSize() ) );
-    else if ( p.getName() == "draw_cluster_culling_normals" )
-        setDrawClusterCullingNormals( p.getBoolValue( getDrawClusterCullingNormals() ) );
     else if ( p.getName() == "raster_overlay" )
         setRasterOverlayScript( new Script( p.getValue() ) );
     else if ( p.getName() == "raster_overlay_max_size" )
         setRasterOverlayMaxSize( p.getIntValue( getRasterOverlayMaxSize() ) );
+    else if ( p.getName() == "embed_attributes" )
+        setEmbedAttributes( p.getBoolValue( getEmbedAttributes() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -250,14 +233,14 @@ BuildNodesFilter::getProperties() const
     p.push_back( Property( "cull_backfaces", getCullBackfaces() ) );
     p.push_back( Property( "apply_cluster_culling", getApplyClusterCulling() ) );
     p.push_back( Property( "disable_lighting", getDisableLighting() ) );
-    p.push_back( Property( "optimizer_options", getOptimizerOptions() ) );
     p.push_back( Property( "line_width", getLineWidth() ) );
     p.push_back( Property( "point_size", getPointSize() ) );
-    p.push_back( Property( "draw_cluster_culling_normals", getDrawClusterCullingNormals() ) );
     if ( getRasterOverlayScript() )
         p.push_back( Property( "raster_overlay", getRasterOverlayScript()->getCode() ) );
     if ( getRasterOverlayMaxSize() != DEFAULT_RASTER_OVERLAY_MAX_SIZE )
         p.push_back( Property( "raster_overlay_max_size", getRasterOverlayMaxSize() ) );
+    if ( getEmbedAttributes() != DEFAULT_EMBED_ATTRIBUTES )
+        p.push_back( Property( "embed_attributes", getEmbedAttributes() ) );
     return p;
 }
 
@@ -282,14 +265,51 @@ BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
             geode->addDrawable( d->get() );
         }
 
-        // if a fragment name is set, apply it and reset the geode point so that the next fragment
-        // gets placed in a new geode.
-        Attribute a = frag->getAttribute( ".fragment-name" );
-        if ( a.isValid() )
+        bool retire_geode = false;
+
+        // if a fragment name is set, apply it
+        if ( frag->hasName() )
         {
-            geode->addDescription( a.asString() );
+            geode->addDescription( frag->getName() );
+            retire_geode = true;
+        }
+
+        if ( getEmbedAttributes() )
+        {
+            osgSim::ShapeAttributeList* to_embed = new osgSim::ShapeAttributeList();
+            osgGIS::AttributeList attrs = frag->getAttributes();
+            for( AttributeList::const_iterator a = attrs.begin(); a != attrs.end(); a++ )
+            {
+                switch( a->getType() )
+                {
+                case Attribute::TYPE_INT:
+                case Attribute::TYPE_BOOL:
+                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asInt() ) );
+                    break;
+                case Attribute::TYPE_DOUBLE:
+                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asDouble() ) );
+                    break;
+                case Attribute::TYPE_STRING:
+                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asString() ) );
+                }
+            }
+
+            geode->setUserData( to_embed );
+            retire_geode = true;
+        }
+
+        // If required, reset the geode point so that the next fragment gets placed in a new geode.
+        if ( retire_geode )
+        {
             geode = NULL;
         }
+
+        //Attribute a = frag->getAttribute( ".fragment-name" );
+        //if ( a.isValid() )
+        //{
+        //    geode->addDescription( a.asString() );
+        //    geode = NULL;
+        //}
     }
 
     // with multiple geodes or fragment names, disable geode combining to preserve the node decription.
@@ -327,12 +347,11 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
         return osg::NodeList();
     }
 
-    // NEXT create a XFORM if there's a localization matrix in the SRS:
+    // NEXT create a XFORM if there's a localization matrix in the SRS. This will
+    // prevent jittering due to loss of precision.
     const SpatialReference* input_srs = env->getInputSRS();
 
-    if ( env->getExtent().getArea() > 0 &&
-         //input_srs->isGeocentric() &&
-         !input_srs->getReferenceFrame().isIdentity() )
+    if ( env->getExtent().getArea() > 0 && !input_srs->getReferenceFrame().isIdentity() )
     {
         osg::Vec3d centroid( 0, 0, 0 );
         osg::Matrixd irf = input_srs->getInverseReferenceFrame();
@@ -352,11 +371,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
             float deviation = (float) -atan( radius / input_srs->getEllipsoid().getSemiMajorAxis() );
 
             osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
-            ccc->set(
-                control_point,
-                normal,
-                deviation,
-                radius );            
+            ccc->set( control_point, normal, deviation, radius );            
 
             osg::Group* cull_group = new osg::Group();
             cull_group->setCullCallback( ccc );
@@ -382,32 +397,24 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
 
     if ( getCullBackfaces() )
     {
-        result->getOrCreateStateSet()->setAttributeAndModes(
-            new osg::CullFace(),
-            osg::StateAttribute::ON );
+        result->getOrCreateStateSet()->setAttributeAndModes( new osg::CullFace(), osg::StateAttribute::ON );
     }
 
     if ( getDisableLighting() )
     {
-        result->getOrCreateStateSet()->setMode(
-            GL_LIGHTING,
-            osg::StateAttribute::OFF );
+        result->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
     }
 
     if ( getLineWidth() > 0.0f )
     {
-        result->getOrCreateStateSet()->setAttribute(
-            new osg::LineWidth( line_width ),
-            osg::StateAttribute::ON );
+        result->getOrCreateStateSet()->setAttribute( new osg::LineWidth( line_width ), osg::StateAttribute::ON );
     }
 
     if ( getPointSize() > 0.0f )
     {
         osg::Point* point = new osg::Point();
         point->setSize( point_size );
-        result->getOrCreateStateSet()->setAttribute(
-            point,
-            osg::StateAttribute::ON );
+        result->getOrCreateStateSet()->setAttribute( point, osg::StateAttribute::ON );
     }
 
     if ( getRasterOverlayScript() )
@@ -424,9 +431,11 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
                 std::stringstream builder;
                 builder << std::setprecision(10) << "gtex_" << x << "x" << y << ".jpg";
 
-                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), builder.str(), &image ) )
+                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), &image ) )
+//                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
                     // Add this as a skin resource so the compiler can properly localize and deploy it.
+                    image->setFileName( builder.str() );
                     SkinResource* skin = new SkinResource( image );
                     env->getSession()->markResourceUsed( skin );
                 }
@@ -437,7 +446,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
     if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
-        int opt_mask = getOptimizerOptions();
+        int opt_mask = osgUtil::Optimizer::ALL_OPTIMIZATIONS; //getOptimizerOptions();
 
         // disable texture atlases, since they mess with our shared skin resources and
         // don't work correctly during multi-threaded building

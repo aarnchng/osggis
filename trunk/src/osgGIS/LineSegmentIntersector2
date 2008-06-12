@@ -21,12 +21,14 @@ using namespace osgUtil;
 
 namespace osgGIS
 {
-/**
- * This is the LineSegmentIntersector class, patched to store valid nodePath's in the
- * Intersection inner class. -gw
- */
-class LineSegmentIntersector2 : public Intersector
-{
+    /* (internal class - no public api docs)
+     *
+     * This is the LineSegmentIntersector class, patched to store valid nodePath's in the
+     * Intersection inner class. The only change is the Intersection::nodePath member. Any
+     * other changes are just from experimentation.
+     */
+    class LineSegmentIntersector2 : public Intersector
+    {
     public:
 
         /** Construct a LineSegmentIntersector the runs between the secified start and end points in MODEL coordinates. */

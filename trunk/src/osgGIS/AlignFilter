@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -27,26 +27,37 @@
 namespace osgGIS
 {
     /**
-     * Calculates a heading for each incoming POINT feature such that
-     * the point feature will be "aligned" with the nearest feature
-     * in a secondary search feature store.
+     * Aligns point features to the nearest line feature segment.
+     *
+     * This filter calculates a heading for each incoming feature such that
+     * the feature will be "aligned" with the nearest linear feature in a secondary
+     * feature store.
      *
      * For example, you can use this feature to calculate a heading for
-     * speed limit signs so that they will always face the traffic for
-     * the closest street segment.
+     * street lights (point features) so that they will always face the
+     * closest street segment.
      *
-     * This filter does not alter any feature geometry. Rather is stores
+     * This filter does not alter any feature geometry. Instead is stores
      * the calculated heading in an "output attribute". You can later use
      * the TransformFilter or the SubstituteModelFilter to apply that
      * heading information.
+     *
+     * NOTE: When generating a geocentric scene graph, use this filter BEFORE
+     * applying the TransformFilter to convert into geocentric space.
      */
     class OSGGIS_EXPORT AlignFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( AlignFilter );  
 
     public:
+        /**
+         * Constructs a new AlignFilter.
+         */
         AlignFilter();
 
+        /**
+         * Copy constructor.
+         */
         AlignFilter( const AlignFilter& rhs );
 
         ~AlignFilter();
@@ -57,6 +68,9 @@ namespace osgGIS
          * Sets the search radius (in meters). This is the radius around the
          * input point's centroid for which to search for a nearest feature
          * to which to align the point.
+         *
+         * @param value
+         *      New search radius, in meters.
          */
         void setRadius( double value );
 
@@ -64,36 +78,49 @@ namespace osgGIS
          * Gets the search radius (in meters). This is the radius around the
          * input point's centroid for which to search for a nearest feature
          * to which to align the point.
+         *
+         * @return Search radius, in meters.
          */
         double getRadius() const;
 
         /**
-         * Sets the name of the feature store resource to use as the
-         * alignment layer.
+         * Sets the name of the FeatureLayerResource that holds the linear
+         * features to which we are aligning.
+         *
+         * @param name
+         *      Name of FeatureLayerResource.
          */
-        void setAlignmentLayerResourceName( const std::string& );
+        void setAlignmentLayerResourceName( const std::string& name );
 
         /**
-         * Gets the name of the feature store resource to use as the
-         * alignment layer.
+         * Gets the name of the FeatureLayerResource that holds the linear
+         * features to which we are aligning.
+         *
+         * @return Name of FeatureLayerResource.
          */
         const std::string& getAlignmentLayerResourceName() const;
 
         /**
          * Sets the name of the feature attribute to which to assign
          * the calculated heading.
+         *
+         * @param name
+         *      Output attribute name.
          */
         void setOutputAttribute( const std::string& name );
         
         /**
          * Gets the name of the feature attribute to which to assign
          * the calculated heading.
+         *
+         * @return Output attribute name.
          */
         const std::string& getOutputAttribute() const;
 
-    public:
+    public: // FeatureFilter overrides
         FeatureList process( Feature* input, FilterEnv* env );
 
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
 

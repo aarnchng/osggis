@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -43,10 +43,24 @@ namespace osgGIS
 		
 		const GeoExtent& getExtent() const;
 
+        GLenum getImagePixelFormat() const;
+
         osg::Image* createImage( 
             const GeoExtent& extent, 
             int max_span_pixels,
             bool force_power_of_2_dimensions ) const;
+
+        osg::Image* createImage(
+            const GeoExtent& extent,
+            unsigned int     image_width,
+            unsigned int     image_height ) const;
+
+        bool getOptimalImageSize(
+            const GeoExtent& aoi,
+            unsigned int     max_pixel_span,
+            bool             force_power_of_2,
+            unsigned int&    out_image_width,
+            unsigned int&    out_image_height ) const;
 
         osg::HeightField* createHeightField(
             const GeoExtent& aoi ) const;

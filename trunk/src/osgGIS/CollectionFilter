@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -31,8 +31,8 @@ namespace osgGIS
     /**
      * A filter that collects incoming data and meters it out in batches.
      *
-     * Normally, data (such as features or fragments) passes through a graph
-     * one element at a time. A collection filter will "collect" elements,
+     * Normally, data (such as Feature or Fragment data) passes through a FilterGraph
+     * one element at a time. A CollectionFilter will "collect" elements,
      * wait until a checkpoint is reached, and then meter the collected
      * elements out in batches.
      * 
@@ -61,16 +61,32 @@ namespace osgGIS
          */
         CollectionFilter();
 
+        /**
+         * Copy constructor.
+         */
         CollectionFilter( const CollectionFilter& rhs );
 
 
     public: // properties
 
+        /**
+         * Sets the metering size. This will determine how many collected
+         * elements get sent out in each batch.
+         *
+         * @param value
+         *      Batch size for metered output
+         */
         void setMetering( int value ) { metering = value; }
+
+        /**
+         * Gets the number of collected elements that will be sent out in each batch.
+         *
+         * @return Batch size for metered output
+         */
         int getMetering() const { return metering; }
     
-    public:
 
+    public: // Filter overrides
         FilterState* newState() const;
 
         virtual void setProperty( const Property& prop );
@@ -97,6 +113,24 @@ namespace osgGIS
         int metering;
         
         friend class CollectionFilterState;
+    };
+
+    
+    /**
+     * A filter that collects incoming data and meters it out in batches.
+     *
+     * This class is the same as the CollectionFilter, but exists to change the
+     * class name while preserving backwards compatibility.
+     *
+     * @see CollectionFilter
+     */
+    class OSGGIS_EXPORT CollectFilter : public CollectionFilter
+    {
+        OSGGIS_META_FILTER( CollectFilter );  
+
+    public:
+        CollectFilter() { }
+        CollectFilter( const CollectFilter& rhs ) : CollectionFilter( rhs ) { }
     };
 }
 

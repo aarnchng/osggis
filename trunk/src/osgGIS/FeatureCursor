@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -27,14 +27,33 @@ namespace osgGIS
     class FeatureStore;
 
     /**
-     * Simple feature cursor implementation that uses a list of OIDs
+     * Object that iterates over a collection of Features.
+     *
+     * This is a simple "cursor" implementation that uses a list of Feature OIDs
      * to iterate over a feature store.
      */
     class OSGGIS_EXPORT FeatureCursor
     {
     public:
         /**
-         * Constructs a feature cursor that will iterator over a set of features.
+         * Constructs a feature cursor
+         *
+         * @param oids
+         *      Object IDs of features over which to iterate
+         * @param store
+         *      Feature store from which to read the Feature data
+         * @param search_extent
+         *      Search extent that was used to generate the list of OIDs in this
+         *      cursor - this is used to refine the list of Features actually
+         *      returned from the cursor
+         * @param match_exactly
+         *      True to only return Feature instances that "exactly" match the 
+         *      original search criteria. When querying a FeatureStore by spatial
+         *      extent (GeoExtent), the store will actually return a FeatureCursor
+         *      corresponding to all features whose bounding extents intersect the
+         *      search extent; i.e. it does not test down to the shape level. Passing
+         *      true to this parameter will perform shape-level intersection testing
+         *      when using this cursor.
          */
         FeatureCursor( 
             const FeatureOIDList& oids,
@@ -47,18 +66,44 @@ namespace osgGIS
          */
         FeatureCursor();
 
+        /**
+         * Copy constructor
+         */
         FeatureCursor( const FeatureCursor& rhs );
 
         virtual ~FeatureCursor();
 
+        /**
+         * Sets the number of Feature instances that the cursor will fetch and
+         * cache at a time before having to reconnect to the FeatureStore.
+         *
+         * @param size
+         *      Cache size for pre-fetch operations; default = 64
+         */
         void setPrefetchSize( int size );
 
     public:
 
+        /**
+         * Resets the iterator to the beginning of the result set.
+         */
         void reset();
         
+        /**
+         * Checks whether a call to next() would return a Feature
+         *
+         * @return
+         *      True if there are more elements over which to iterate; false if we
+         *      are at the end of the list
+         */
         bool hasNext() const;
 
+        /**
+         * Gets the next feature in the list.
+         *
+         * @return
+         *      Feature instance, or NULL if we're at the end
+         */
         Feature* next();
 
 

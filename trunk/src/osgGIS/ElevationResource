@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -29,9 +29,9 @@
 
 namespace osgGIS
 {
-    /**
-     * Defines a georeferenced elevation grid that can be used for querying
-     * terrain heights.
+    /* (work in progress - no public api docs yet)
+     *
+     * A georeferenced elevation grid that can be used for querying terrain heights.
      */
     class OSGGIS_EXPORT ElevationResource : public Resource
     {
@@ -39,6 +39,7 @@ namespace osgGIS
 
     public:
         ElevationResource();
+
         ElevationResource( const std::string& name );
 
     public:

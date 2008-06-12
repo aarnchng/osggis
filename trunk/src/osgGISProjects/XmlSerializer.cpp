@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -256,6 +256,16 @@ parseSRSResource( XmlElement* e, SRSResource* resource )
     }
 }
 
+static void
+parseRasterResource( XmlElement* e, RasterResource* resource )
+{
+    XmlNodeList parts = e->getSubElements( "uri" );
+    for( XmlNodeList::const_iterator i = parts.begin(); i != parts.end(); i++ )
+    {
+        resource->addPartURI( static_cast<XmlElement*>( i->get() )->getText() );
+    }
+}
+
 static Resource*
 decodeResource( XmlElement* e, Project* proj )
 {
@@ -299,6 +309,10 @@ decodeResource( XmlElement* e, Project* proj )
             if ( dynamic_cast<SRSResource*>( resource ) )
             {
                 parseSRSResource( e, static_cast<SRSResource*>( resource ) );
+            }
+            else if ( dynamic_cast<RasterResource*>( resource ) )
+            {
+                parseRasterResource( e, static_cast<RasterResource*>( resource ) );
             }
         }
         else

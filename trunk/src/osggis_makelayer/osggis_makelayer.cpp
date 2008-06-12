@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -84,7 +84,6 @@ bool gridded = false;
 int grid_rows = 1;
 int grid_cols = 1;
 osg::ref_ptr<osgGIS::Script> color_script;
-bool include_grid = false;
 bool preview = false;
 osgGIS::GeoExtent terrain_extent( 
         -180, -90, 180, 90, 
@@ -101,6 +100,7 @@ bool remove_holes = false;
 bool fade_lods = false;
 int num_threads = 0;
 bool overlay = false;
+bool embed_attrs = false;
 osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 
 int
@@ -150,7 +150,6 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --no-lighting              - Disables lighting on the output geometry; good for points and lines" << ENDL;
     NOUT << "    --priority-offset <num>    - Paging priority of vectors relative to terrain tiles (when using --paged)" << ENDL;
     NOUT << "    --fade-lods                - Enable fade-in of LOD nodes (lines and points only)" << ENDL;
-    //NOUT << "    --include-grid             - Includes geometry for the PagedLOD grid structure (when using --paged)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Feature options:" << ENDL;
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
@@ -158,6 +157,7 @@ static void usage( const char* prog, const char* msg )
     //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
     NOUT << "    --color <expr>             - Color, as a Lua expression (e.g. \"vec4(1,0,0,1)\")" << ENDL;
     NOUT << "    --random-colors            - Randomly assign feature colors" << ENDL;
+    NOUT << "    --embed-attrs              - Writes shape attribute name/value pairs to an .osg file" << ENDL;
 
 }
 
@@ -243,6 +243,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--fade-lods" ) )
         fade_lods = true;
 
+    while( arguments.read( "--embed-attrs" ) )
+        embed_attrs = true;
+
     double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
     while( arguments.read( "--terrain-extent", str ) )
     {
@@ -283,9 +286,6 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--decimate", str ) )
         sscanf( str.c_str(), "%lf", &decimate_threshold );
-
-    while( arguments.read( "--include-grid" ) )
-        include_grid = true;
 
     while( arguments.read( "--no-lighting" ) )
         lighting = false;
@@ -337,8 +337,7 @@ createFilterGraph()
     }
 
     // Crop the feature data to the compiler environment's working extent:
-    graph->appendFilter( new osgGIS::CropFilter( 
-        include_grid? osgGIS::CropFilter::SHOW_CROP_LINES : 0 ) );
+    graph->appendFilter( new osgGIS::CropFilter() );
 
     // Transform the features to the target spatial reference system,
     // localizing them to a local origin:
@@ -383,15 +382,14 @@ createFilterGraph()
 
     // Construct a Node that contains the drawables and adjust its
     // state set.
-    osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter(
-        osgGIS::BuildNodesFilter::CULL_BACKFACES |
-        osgGIS::BuildNodesFilter::OPTIMIZE |
-        (!lighting? osgGIS::BuildNodesFilter::DISABLE_LIGHTING : 0) );
+    osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter();
+    bnf->setDisableLighting( !lighting );
+    bnf->setEmbedAttributes( embed_attrs );
 
     // cluster culling causes overlay geometry not to work properly.
-    if ( !overlay )
+    if ( overlay )
     {
-        bnf->setApplyClusterCulling( true );
+        bnf->setApplyClusterCulling( false );
     }
 
     graph->appendFilter( bnf );

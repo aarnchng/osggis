@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -114,7 +114,7 @@ namespace osgGIS
         static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }     
 
 #define OSGGIS_DEFINE_FILTER(name) \
-    static bool _osggsis_df = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )
+    static bool _osggsis_df_##name = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )
 
 
 }

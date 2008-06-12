@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -28,6 +28,11 @@
 
 namespace osgGIS
 {
+    /* (internal class - no public docs)
+     * State object for filters derived from CollectionFilter.
+     *
+     * Please refer to FilterState for more information on filter state objects.
+     */
     class CollectionFilterState : public FilterState
     {
     public:

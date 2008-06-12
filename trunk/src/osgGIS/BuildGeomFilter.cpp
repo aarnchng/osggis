@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,10 +25,6 @@
 #include <osgUtil/SmoothingVisitor>
 #include <osgText/Text>
 #include <sstream>
-
-//#define RANDCOL ((((float)(::rand()%255)))/255.0f)
-//#define PROP_COLOR "BuildGeomFilter::color"
-//#define PROP_BATCH "BuildGeomFilter::batch" 
 
 using namespace osgGIS;
 
@@ -252,8 +248,7 @@ BuildGeomFilter::process( Feature* input, FilterEnv* env )
         frag->addDrawable( geom );
     }
 
-    //Fragment* frag = new Fragment( geom );
-
+    frag->addAttributes( input->getAttributes() );
     applyFragmentName( frag, input, env );
 
     output.push_back( frag );
@@ -299,7 +294,8 @@ BuildGeomFilter::applyFragmentName( Fragment* frag, Feature* feature, FilterEnv*
         ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), feature, env );
         if ( r.isValid() )
         {
-            frag->setAttribute( ".fragment-name", r.asString() );
+            frag->setName( r.asString() );
+            //frag->setAttribute( ".fragment-name", r.asString() );
         }
     }
 }
@@ -377,8 +373,10 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
                 builder << "rtex_" << input->getOID() << ".jpg"; //TODO: dds with DXT1 compression
 
                 osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
-                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), builder.str(), &image ) )
+                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), &image ) )
+//                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
+                    image->setFileName( builder.str() );
                     geom->setStateSet( raster_ss.get() );
 
                     // add this as a skin resource so the compiler can properly localize and deploy it.

@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -68,10 +68,31 @@ namespace osgGIS
          *      If true, will resize the image so that both dimensions have a span that is
          *      an exact power of 2.
          */
-        virtual osg::Image* createImage( 
-            const GeoExtent& extent, 
-            int max_span_pixels,
-            bool force_power_of_2_dimensions ) const =0;
+        //virtual osg::Image* createImage( 
+        //    const GeoExtent& extent, 
+        //    int max_span_pixels,
+        //    bool force_power_of_2_dimensions ) const =0;
+
+        virtual osg::Image* createImage(
+            const GeoExtent& extent,
+            unsigned int     image_width,
+            unsigned int     image_height ) const =0;
+
+        /**
+         * Gets the pixel format of images returned from createImage
+         * (e.g. GL_RGBA, GL_RGB, etc.)
+         */
+        virtual GLenum getImagePixelFormat() const =0;
+
+        /**
+         * TBD
+         */
+        virtual bool getOptimalImageSize(
+            const GeoExtent& aoi,
+            unsigned int     max_pixel_span,
+            bool             force_power_of_2,
+            unsigned int&    out_image_width,
+            unsigned int&    out_image_height ) const =0;
 
         /**
          * Extracts a height field from the raster store.

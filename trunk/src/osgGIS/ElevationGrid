@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,7 +25,8 @@
 
 namespace osgGIS
 {
-    /**
+    /* (work in progress - no public api docs yet)
+     *
      * A georeferenced grid of elevation values that you can query for height values.
      */
     class OSGGIS_EXPORT ElevationGrid : public osg::Referenced

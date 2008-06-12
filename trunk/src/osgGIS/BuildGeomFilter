@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -26,7 +26,11 @@
 namespace osgGIS
 {
     /**
-     * Assembles feature data into basic fragments.
+     * Assembles feature data into basic fragments (i.e. attributed drawables).
+     *
+     * This filter takes Feature data as input, and generates Fragment data as output. 
+     * (A Fragment is an osg::Drawable with an AttributeTable.) In other words it
+     * create basic OSG geometry from GIS feature data.
      */
     class OSGGIS_EXPORT BuildGeomFilter : public FragmentFilter
     {
@@ -38,6 +42,9 @@ namespace osgGIS
          */
         BuildGeomFilter();
 
+        /**
+         * Copy constructor.
+         */
         BuildGeomFilter( const BuildGeomFilter& rhs );
 
 
@@ -45,6 +52,7 @@ namespace osgGIS
     
         /**
          * Sets the overall color to assign to generated primitives.
+         *
          * @param color
          *      A Vec4 color
          */
@@ -52,29 +60,40 @@ namespace osgGIS
         
         /**
          * Gets the overall color to assign to generated primitives.
+         *
+         * @return OSG color vector
          */
         const osg::Vec4f& getColor() const;
 
         /**
          * Sets the script that evalutes to the color to apply to the geometry.
+         *
+         * @param script Script that generates the geometry color
          */
         void setColorScript( Script* script );
 
         /**
          * Gets the script that evaluates to the color to apply to the 
          * geometry.
+         *
+         * @return Script that generates the geometry color
          */
         Script* getColorScript() const;
         
         /**
-         * Sets the script that evaluates to the name of the RasterResource
+         * Sets a script that evaluates to the name of the RasterResource
          * to use to texture the geometry.
+         *
+         * @param script
+         *      Script that generates the resource name
          */
         void setRasterOverlayScript( Script* script );
         
         /**
          * Gets the script that evaluates to the name of the RasterResource
          * to use to texture the geometry.
+         *
+         * @return Script that generates the resource name
          */
         Script* getRasterOverlayScript() const;
         
@@ -82,6 +101,9 @@ namespace osgGIS
          * Sets the maximum size (width or height) of a texture created from
          * the raster referenced by the raster script. Set this to 0 to disable
          * the capping.
+         *
+         * @param max_size
+         *      Maximum width or height of the overlay texture
          */
         void setRasterOverlayMaxSize( int max_size );
         
@@ -89,20 +111,40 @@ namespace osgGIS
          * Gets the maximum size (width or height) or a texture created from
          * the raster referenced by the raster script. A value less than or
          * equal to 0 means no capping.
+         *
+         * @return Maximum texture dimension
          */
         int getRasterOverlayMaxSize() const;
         
+        /**
+         * Sets a script that evaluates to a string that this filter set as the
+         * OSG node name.
+         *
+         * Important note: setting a feature name forces the filter to place 
+         * each feature's geometry under a separate Geode. This prevents certain
+         * optimizations (such as merging geometries) and can ultimatley affect
+         * runtime performance.
+         *
+         * @param script
+         *      Script that generates the feature node name
+         */
         void setFeatureNameScript( Script* script );
         
+        /**
+         * Gets a script that evaluates to the string that this filter sets as the
+         * OSG node name.
+         *
+         * @return
+         *      Script that generates the feature node name
+         */
         Script* getFeatureNameScript() const;
+
         
-    public:
-    
+    public: // Filter overrides    
         virtual void setProperty( const Property& );
         virtual Properties getProperties() const;
 
-    protected:
-
+    protected: // FragmentFilter overrides
         virtual FragmentList process( FeatureList& input, FilterEnv* env );
         virtual FragmentList process( Feature* input, FilterEnv* env );
         
@@ -119,7 +161,8 @@ namespace osgGIS
         osg::ref_ptr<Script> feature_name_script;
         osg::Vec4            overall_color;
         osg::ref_ptr<Script> raster_overlay_script;
-        int                  raster_overlay_max_size;   
+        int                  raster_overlay_max_size;
+        bool                 embed_attributes;
 
     private: // transients
         bool      is_batch;

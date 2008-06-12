@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,6 +25,11 @@ using namespace osgGIS;
 
 
 GeoExtent GeoExtent::invalid()
+{
+    return GeoExtent( false, false );
+}
+
+GeoExtent GeoExtent::empty()
 {
     return GeoExtent( false, false );
 }
@@ -241,6 +246,25 @@ GeoExtent::getArea() const
     {
         return -1.0;
     }
+}
+
+GeoExtent
+GeoExtent::getIntersection( const GeoExtent& _rhs ) const
+{
+    GeoExtent rhs = getSRS()->transform( _rhs );
+
+    if (rhs.getXMin() >= getXMax() || rhs.getXMax() <= getXMin() ||
+        rhs.getYMin() >= getYMax() || rhs.getYMax() <= getYMin() )
+    {
+        return GeoExtent::empty();
+    }
+
+    double xmin = rhs.getXMin() < getXMin()? getXMin() : rhs.getXMin();
+    double xmax = rhs.getXMax() > getXMax()? getXMax() : rhs.getXMax();
+    double ymin = rhs.getYMin() < getYMin()? getYMin() : rhs.getYMin();
+    double ymax = rhs.getYMax() > getYMax()? getYMax() : rhs.getYMax();
+    
+    return GeoExtent( xmin, ymin, xmax, ymax, getSRS() );
 }
 
 

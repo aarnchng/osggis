@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -161,9 +161,9 @@ createFilterGraph()
     graph->appendFilter( new osgGIS::CollectionFilter() );
 
     // Construct a Node that contains the drawables and adjust its state set.
-    graph->appendFilter( new osgGIS::BuildNodesFilter( 
-        osgGIS::BuildNodesFilter::CULL_BACKFACES |
-        osgGIS::BuildNodesFilter::DISABLE_LIGHTING ) );
+    osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter();
+    bnf->setDisableLighting( true );
+    graph->appendFilter( bnf );
 
     return graph;
 }

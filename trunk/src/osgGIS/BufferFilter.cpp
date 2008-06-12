@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -244,12 +244,16 @@ BufferFilter::process( Feature* input, FilterEnv* env )
     GeoShapeList new_shapes;
 
     double b = getDistance();
+
     if ( env->getInputSRS()->isGeographic() )
     {
+        // for geo, convert from meters to degrees
         //TODO: we SHOULD do this for each and every feature buffer segment, but
         //  for how this is a shortcut approximation.
-        osg::Vec2d vec( b, b ); vec.normalize();
-        osg::Vec2d p0( input->getExtent().getXMin(), input->getExtent().getYMin() );
+        double bc = b/1.4142;
+        osg::Vec2d vec( bc, bc ); //vec.normalize();
+        GeoPoint c = input->getExtent().getCentroid();
+        osg::Vec2d p0( c.x(), c.y() );
         osg::Vec2d p1;
         Units::convertLinearToAngularVector( vec, Units::METERS, Units::DEGREES, p0, p1 );
         b = (p1-p0).length();

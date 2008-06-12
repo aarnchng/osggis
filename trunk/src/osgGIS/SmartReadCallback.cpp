@@ -65,6 +65,11 @@ SmartReadCallback::readNodeFile( const std::string& filename )
         //osg::notify(osg::WARN)<<"Read from disk:  " << filename << ", radius=" << mru_world_bs.radius() << std::endl;
     }
 
+    else
+    {
+        //osg::notify( osg::WARN ) << "SMART READ CALLBACK: Read(" << filename << ") FAILED!" << std::endl;
+    }
+
     return node.release();
 }
 

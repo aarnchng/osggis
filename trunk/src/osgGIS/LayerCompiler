@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -28,7 +28,6 @@
 #include <osgGIS/TaskManager>
 #include <osg/Node>
 #include <osgDB/Archive>
-#include <osgUtil/IntersectionVisitor>
 #include <string>
 
 namespace osgGIS

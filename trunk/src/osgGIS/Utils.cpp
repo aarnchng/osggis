@@ -258,42 +258,7 @@ GeomUtils::setDataVarianceRecursively( osg::Node* node, const osg::Object::DataV
 	public domain
 */
 
-/**
-	Converts an image from an array of unsigned chars (RGB or RGBA) to
-	DXT1 or DXT5, then saves the converted image to disk.
-	\return 0 if failed, otherwise returns 1
-**/
-//int
-//save_image_as_DDS
-//(
-//    const char *filename,
-//    int width, int height, int channels,
-//    const unsigned char *const data
-//);
-
-/**
-	take an image and convert it to DXT1 (no alpha)
-**/
-//unsigned char*
-//convert_image_to_DXT1
-//(
-//    const unsigned char *const uncompressed,
-//    int width, int height, int channels,
-//    int *out_size
-//);
-
-/**
-	take an image and convert it to DXT5 (with alpha)
-**/
-//unsigned char*
-//convert_image_to_DXT5
-//(
-//    const unsigned char *const uncompressed,
-//    int width, int height, int channels,
-//    int *out_size
-//);
-
-/**	A bunch of DirectDraw Surface structures and flags **/
+//A bunch of DirectDraw Surface structures and flags
 typedef struct
 {
     unsigned int    dwMagic;
@@ -1069,6 +1034,29 @@ ImageUtils::convertRGBAtoDDS( osg::Image* input )
     output->setImage( input->s(), input->t(), 1, output_format, output_format, GL_UNSIGNED_BYTE, DDS_data, osg::Image::USE_MALLOC_FREE );
 
     return output;
+}
+
+bool
+ImageUtils::copyAsSubImage( osg::Image* src, osg::Image* dst, int dst_start_col, int dst_start_row )
+{
+    if (!src || !dst || 
+        src->getPacking() != dst->getPacking() || 
+        src->getDataType() != dst->getDataType() || 
+        src->getPixelFormat() != dst->getPixelFormat() ||
+        dst_start_col + src->s() > dst->s() ||
+        dst_start_row + src->t() > dst->t() )
+    {
+        return false;
+    }
+
+    for( int src_row=0, dst_row=dst_start_row; src_row < src->t(); src_row++, dst_row++ )
+    {
+        void* src_data = src->data( 0, src_row, 0 );
+        void* dst_data = dst->data( dst_start_col, dst_row, 0 );
+        memcpy( dst_data, src_data, src->getRowSizeInBytes() );
+    }
+
+    return true;
 }
 
 

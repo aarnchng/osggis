@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -27,39 +27,38 @@
 namespace osgGIS
 {
     /**
-     * A filter that processes feature data.
+     * Base class for a Filter that processes Feature instances.
      *
-     * Create a feature-processing filter by subclassing this class and 
-     * overriding one or both of the process() methods, depending on whether
-     * you want to process features individually or in batches.
+     * FeatureFilter implementations subclass this class and override one or both of
+     * the process() methods.
      */
     class OSGGIS_EXPORT FeatureFilter : public Filter
     {            
     public:    
 
         /**
-         * Processes a single feature.
+         * Processes a single Feature.
          *
          * @param input
-         *      Individual feature to process.
+         *      Individual Feature to process.
          * @param env
-         *      Contextual compilation environment.
+         *      Runtime processing environment.
          * @return
-         *      A collection of processed features. The default implementation
-         *      of this method just returns the input.
+         *      A collection of Feature instances. The default implementation
+         *      of this method just returns the input in a list.
          */
         virtual FeatureList process( Feature* input, FilterEnv* env );    
 
 
         /**
-         * Processes a batch of features.
+         * Processes a batch of Feature objects.
          *
          * @param input
          *      Batch of features to process.
          * @param env
-         *      Contextual compilation environment.
+         *      Runtime processing environment.
          * @return
-         *      A collection of processed features. The default implementation
+         *      A collection of Feature instances. The default implementation
          *      of this method just returns the input.
          */
         virtual FeatureList process( FeatureList& input, FilterEnv* env );
@@ -67,6 +66,9 @@ namespace osgGIS
 
     public: // Internal compilation methods
 
+        /**
+         * Generates a new state object for this filter.
+         */
         virtual FilterState* newState() const;
         
     protected:

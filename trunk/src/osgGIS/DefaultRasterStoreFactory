@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,7 +25,8 @@
 
 namespace osgGIS
 {
-    /**
+    /* (internal class - no public api docs)
+     *
      * The object that creates new raster store connections by default.
      */
 	class DefaultRasterStoreFactory : public RasterStoreFactory

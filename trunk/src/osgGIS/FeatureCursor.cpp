@@ -1,5 +1,5 @@
 /**
- * osgGIS - GIS Library for OpenSceneGraph
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -24,6 +24,7 @@
 
 using namespace osgGIS;
 
+#define DEFAULT_PREFETCH_SIZE 64
 
 FeatureCursor::FeatureCursor(const FeatureOIDList& _oids,
                              FeatureStore*         _store,
@@ -34,7 +35,7 @@ FeatureCursor::FeatureCursor(const FeatureOIDList& _oids,
     store = _store;
     search_extent = _search_extent;
     match_exactly = _match_exactly;
-    prefetch_size = 64;
+    prefetch_size = DEFAULT_PREFETCH_SIZE;
     at_bof = false;
     reset();
 }

@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -119,6 +119,15 @@ namespace osgGIS
          *      Extent to test against this extent.
          */
 		bool intersects( const GeoExtent& input ) const;
+
+        /**
+         * Returns an extent representing the intersection two extents.
+         * @param input
+         *      Extent to intersect with this object.
+         * @return
+         *      Intersection extent.
+         */
+        GeoExtent getIntersection( const GeoExtent& input ) const;
 
         /**
          * Returns true if this extent intersects the minimum bounding rectangle
@@ -254,6 +263,11 @@ namespace osgGIS
          * Creates an infininte (yet valid) extent.
          */
 	    static GeoExtent infinite();
+
+        /**
+         * Creates an empty extent.
+         */
+        static GeoExtent empty();
 
     public:
         virtual ~GeoExtent();

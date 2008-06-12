@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -26,8 +26,10 @@
 namespace osgGIS
 {
     /**
-     * Interpolates additional points along the contours of incoming
-     * feature shapes.
+     * Filter that adds new points to existing feature shapes.
+     *
+     * This filter "densifys" a feature by interpolating additional points along 
+     * the contours of its existing edges.
      */
     class OSGGIS_EXPORT DensifyFilter : public FeatureFilter
     {
@@ -39,29 +41,37 @@ namespace osgGIS
          */
         DensifyFilter();
 
-        DensifyFilter( const DensifyFilter& rhs );
-
         /**
-         * Constructs a new densification filter.
-         * @param threshold
-         *      Ensure that the shape's points are no more than this
-         *      distance apart.
+         * Copy constructor
          */
-        DensifyFilter( double threshold );
+        DensifyFilter( const DensifyFilter& rhs );
 
     public: // properties
 
+        /**
+         * Sets the maximum allowable distance between points in a feature.
+         *
+         * @param value
+         *      Distance threshold, in feature units.
+         */
         void setThreshold( double value );
 
+        /**
+         * Gets the maximum allowable distance between points in a feature.
+         *
+         * @return
+         *      Distance threshold, in feature units.
+         */
         double getThreshold() const;
 
-    public:
+    public: // FeatureFilter overrides
         virtual FeatureList process( Feature* input, FilterEnv* env );
 
-        virtual ~DensifyFilter();
-
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
+
+        virtual ~DensifyFilter();
 
     private:
         double threshold;

@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -25,28 +25,62 @@
 
 namespace osgGIS
 {
+    /**
+     * Creates a polygon representing a region containing all points within a certain 
+     * distance of all points on the source feature.
+     *
+     * Given a linear feature, this filter will output a polygon that encloses 
+     * all points less than or equal to a given distance from that feature's geometry.
+     *
+     * This filter only performs simple linear buffering. It does not "dissolve" 
+     * overlapping regions, nor does it currently build rounded end-caps.
+     */
     class OSGGIS_EXPORT BufferFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( BufferFilter );  
 
     public:
+        /**
+         * Constructs a new buffering filter.
+         */
         BufferFilter();
 
+        /**
+         * Copy constructor.
+         */
         BufferFilter( const BufferFilter& rhs );
 
+        /**
+         * Constructs a new buffering filter.
+         *
+         * @param distance
+         *      Buffer distance. This is usually positive but can be negative if you wish to "shrink" a polygon.
+         */
         BufferFilter( double distance );
 
         ~BufferFilter();
 
     public: // properties
 
+        /**
+         * Sets the buffering distance.
+         *
+         * @param value
+         *      Buffering distance, in meters.
+         */
         void setDistance( double value );
 
+        /**
+         * Gets the buffering distance.
+         *
+         * @return Buffering distance, in meters.
+         */
         double getDistance() const;
 
-    public:
+    public: // FeatureFilter overrides
         FeatureList process( Feature* input, FilterEnv* env );
 
+    public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
 

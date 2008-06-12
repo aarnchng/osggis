@@ -1,5 +1,5 @@
-/** -*-c++-*-
- * osgGIS - GIS Library for OpenSceneGraph
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
  *
@@ -30,7 +30,10 @@
 namespace osgGIS
 {
     /**
-     * A Feature Layer is a grouping of features that together comprise a
+     * A collection of Features that all represent the same type of geospatial
+     * object.
+     *
+     * A FeatureLayer is a grouping of features that together comprise a
      * meaningful dataset. All the features in a layer share a commmon spatial
      * reference (SRS), a common attribute table schema, and (usually) a
      * common shape type.
@@ -42,10 +45,6 @@ namespace osgGIS
      * A FeatureLayer sits atop a FeatureStore (which provides access to the actual
      * GIS backing store) and adds useful functionality like spatial indexing and
      * layer-level attribution.
-     *
-     * The osgGIS compiler framework operates on the FeatureLayer level. You 
-     * generally create a compiler and tell it to generate geometry for some subset
-     * of a FeatureLayer.
      */
 	class OSGGIS_EXPORT FeatureLayer : public osg::Referenced
 	{
