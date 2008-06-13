@@ -332,7 +332,7 @@ ResourceLibrary::getNode( ModelResource* model, bool optimize )
     osg::Node* result = NULL;
     if ( model )
     {
-        ModelNodes::iterator i = model_nodes.find( model );
+        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
         if ( i == model_nodes.end() )
         {
             bool simplify_extrefs = true; //TODO
@@ -345,7 +345,10 @@ ResourceLibrary::getNode( ModelResource* model, bool optimize )
                     osgUtil::Optimizer o;
                     o.optimize( result );
                 }
-                model_nodes[model] = result;
+                model_nodes[model->getAbsoluteURI()] = result;
+
+                // prevent optimization later when the object might be shared!
+                result->setDataVariance( osg::Object::DYNAMIC);
             }
         }
         else
@@ -365,12 +368,12 @@ ResourceLibrary::getProxyNode( ModelResource* model )
     osg::Node* result = NULL;
     if ( model )
     {
-        ModelNodes::iterator i = model_nodes.find( model );
+        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
         if ( i == model_nodes.end() )
         {
             bool simplify_extrefs = true; //TODO
             result = model->createProxyNode();
-            model_nodes[model] = result;
+            model_nodes[model->getAbsoluteURI()] = result;
         }
         else
         {

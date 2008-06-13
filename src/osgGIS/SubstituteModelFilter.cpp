@@ -37,7 +37,7 @@ OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
 #define DEFAULT_CLUSTER true
-#define DEFAULT_OPTIMIZE_MODEL true
+#define DEFAULT_OPTIMIZE_MODEL false
 
 
 SubstituteModelFilter::SubstituteModelFilter()
@@ -374,59 +374,6 @@ registerTextures( osg::Node* node, Session* session )
     node->accept( image_finder );
 }
 
-
-osg::NodeList
-SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
-{
-    osg::NodeList output;
-
-    if ( input.size() > 0 && getCluster() && !getFeatureNameScript() )
-    {
-        // There is a bug, or an order-of-ops problem, with "FLATTEN" that causes grid
-        // cell features to be improperly offset...especially with SubstituteModelFilter
-        // TODO: investigate this later.
-        env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
-
-        if ( getModelScript() )
-        {
-            ScriptResult r = env->getScriptEngine()->run( getModelScript(), env );
-            if ( r.isValid() )
-            {
-                ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
-                if ( model )
-                {
-                    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
-                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
-                }
-            }
-        }
-        else if ( getModelPathScript() )
-        {
-            ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), env );
-            if ( r.isValid() )
-            {
-                osg::Node* node = osgDB::readNodeFile( r.asString() );
-                if ( node )
-                {
-                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
-                }
-            }
-        }
-    }
-    else
-    {
-        output = NodeFilter::process( input, env );
-    }
-    
-    // register textures for localization.
-    for( osg::NodeList::iterator i = output.begin(); i != output.end(); i++ )
-    {
-        registerTextures( i->get(), env->getSession() );
-    }
-
-    return output;
-}
-
 void
 SubstituteModelFilter::assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env )
 {
@@ -498,6 +445,81 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
     return xform;
 }
 
+osg::Node*
+SubstituteModelFilter::getNodeFromModelCache( ModelResource* model )
+{
+    ModelCache::iterator i = non_clustered_model_cache.find( model->getAbsoluteURI() );
+    return i != non_clustered_model_cache.end()? i->second.get() : NULL;
+}
+
+
+osg::Node*
+SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* env )
+{
+    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+    if ( node )
+    {
+        // we must clone it because the resource model node, being in the ResourceLibrary, is shared geometry!
+        node = dynamic_cast<osg::Node*>( node->clone( osg::CopyOp::DEEP_COPY_ALL ) ); // no dangling ref; original node is in the resource lib
+        if ( node )
+            non_clustered_model_cache[ model->getAbsoluteURI() ] = node;
+    }
+    return node;
+}
+
+osg::NodeList
+SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
+{
+    osg::NodeList output;
+
+    if ( input.size() > 0 && getCluster() && !getFeatureNameScript() )
+    {
+        // There is a bug, or an order-of-ops problem, with "FLATTEN" that causes grid
+        // cell features to be improperly offset...especially with SubstituteModelFilter
+        // TODO: investigate this later.
+        env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
+
+        if ( getModelScript() )
+        {
+            ScriptResult r = env->getScriptEngine()->run( getModelScript(), env );
+            if ( r.isValid() )
+            {
+                ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
+                if ( model )
+                {
+                    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
+                }
+            }
+        }
+        else if ( getModelPathScript() )
+        {
+            ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), env );
+            if ( r.isValid() )
+            {
+                osg::Node* node = osgDB::readNodeFile( r.asString() );
+                if ( node )
+                {
+                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
+                }
+            }
+        }
+    }
+    else
+    {
+        output = NodeFilter::process( input, env );
+    }
+    
+    // register textures for localization.
+    // TODO: err should we do this in the singleton process() too?
+    for( osg::NodeList::iterator i = output.begin(); i != output.end(); i++ )
+    {
+        registerTextures( i->get(), env->getSession() );
+    }
+
+    return output;
+}
+
 
 osg::NodeList
 SubstituteModelFilter::process( Feature* input, FilterEnv* env )
@@ -510,6 +532,9 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
     // disable tristripping too because it crashes the optimizer for some unknown reason
     env->getOptimizerHints().exclude( osgUtil::Optimizer::TRISTRIP_GEOMETRY );
 
+    // keep the shared nodes shared
+    env->getOptimizerHints().exclude( osgUtil::Optimizer::COPY_SHARED_NODES );
+
     if ( getModelScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getModelScript(), input, env );
@@ -518,7 +543,10 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
             if ( model )
             {
-                osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+                osg::Node* node = getNodeFromModelCache( model );
+                if ( !node )
+                    node = cloneAndCacheModelNode( model, env );
+
                 if ( node )
                 {
                     output.push_back( buildOutputNode( node, input, env ) );
@@ -537,7 +565,11 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             model->setURI( r.asString() );
             model->setName( r.asString() );
             env->getSession()->getResources()->addResource( model );
-            osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+
+            osg::Node* node = getNodeFromModelCache( model );
+            if ( !node )
+                node = cloneAndCacheModelNode( model, env );
+
             if ( node )
             {
                 output.push_back( buildOutputNode( node, input, env ) );
