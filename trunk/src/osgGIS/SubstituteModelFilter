@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/NodeFilter>
+#include <map>
 
 namespace osgGIS
 {
@@ -150,6 +151,8 @@ namespace osgGIS
         osg::Node* materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model );
         void assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env );
         osg::Node* buildOutputNode( osg::Node* model_node, Feature* input, FilterEnv* env );
+        osg::Node* getNodeFromModelCache( ModelResource* model );
+        osg::Node* cloneAndCacheModelNode( ModelResource* model, FilterEnv* env );
     
         osg::ref_ptr<Script> model_script;
         osg::ref_ptr<Script> model_path_script;
@@ -158,6 +161,9 @@ namespace osgGIS
         osg::ref_ptr<Script> feature_name_script;
         bool cluster;
         bool optimize_model;
+
+        typedef std::map<std::string,osg::ref_ptr<osg::Node> > ModelCache;
+        ModelCache non_clustered_model_cache;
     };
 }
 

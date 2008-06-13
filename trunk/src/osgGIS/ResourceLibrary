@@ -99,7 +99,7 @@ namespace osgGIS
         SkinStateSets skin_state_sets;
 
         ModelResourceVec models;
-        typedef std::map< ModelResource*, osg::ref_ptr<osg::Node> > ModelNodes;
+        typedef std::map< std::string, osg::ref_ptr<osg::Node> > ModelNodes;
         ModelNodes model_nodes;
         
         RasterResourceVec rasters;
