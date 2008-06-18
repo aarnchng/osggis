@@ -27,7 +27,7 @@
 namespace osgGIS
 {
     /**
-     * Spatial reference frame for data in earth-centered XYZ coordiantes.
+     * Spatial reference frame for data in earth-centered XYZ coordiantes (ECEF).
      */
     class GeocentricSpatialReference : public SpatialReferenceBase  
     {
@@ -62,37 +62,47 @@ namespace osgGIS
          * Note that there actually is no WKT representation of a geocentric SRS,
          * so this just returns the WKT of the SRS from which this SRS derives
          * its reference ellipsoid.
+         *
+         * @return OGC WKT (well-known WKT) SRS representation
          */
 		virtual const std::string& getWKT() const;
 
         /**
          * Always returns false, since this is a geocentric SRS.
+         * @return false
          */
 		virtual bool isGeographic() const;
 
         /**
          * Always returns false, since this is a geocentric SRS.
+         * @return false
          */
 		virtual bool isProjected() const;
 		
         /**
-         * Always returns true.
+         * Always returns true since this is a geocentric SRS.
+         * @return true
          */
 		virtual bool isGeocentric() const;
 		
         /**
          * Gets the SRS from which this object derives its reference ellipsoid.
+         * @return A geographic SRS
          */
 		virtual const SpatialReference* getGeographicSRS() const;
 
         /**
          * Gets this object's reference ellipsoid, i.e. the approximate shape of
          * the earth that it uses to transform coordinates.
+         *
+         * @return An ellipsoid model
          */
         virtual const Ellipsoid& getEllipsoid() const;
 		
         /**
          * Gets the readable name of this SRS.
+         *
+         * @return A human-readable string
          */
 		virtual std::string getName() const;
 

@@ -27,6 +27,9 @@
 
 namespace osgGIS
 {
+    /* (internal - no public api docs)
+     *
+     */
     class NodeFilterState : public FilterState
     {
     public:

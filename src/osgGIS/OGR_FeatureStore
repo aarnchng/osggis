@@ -27,6 +27,8 @@
 
 namespace osgGIS
 {
+    /* (internal)
+     */
 	class OGR_FeatureStore : public osgGIS::FeatureStore
 	{
 	public:

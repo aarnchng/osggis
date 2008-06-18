@@ -20,8 +20,11 @@
 #include <osgGIS/Property>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 
 using namespace osgGIS;
+
+#define PRECISION 64
 
 static std::string
 normalize( std::string input )
@@ -62,7 +65,7 @@ Property::Property( const std::string& _name, float _value )
 {
     name = normalize( _name );
     std::stringstream ss;
-    ss << _value;
+    ss << std::setprecision(PRECISION) << _value;
     value = ss.str();
     valid = true;
 }
@@ -71,7 +74,7 @@ Property::Property( const std::string& _name, double _value )
 {
     name = normalize( _name );
     std::stringstream ss;
-    ss << _value;
+    ss << std::setprecision(PRECISION) << _value;
     value = ss.str();
     valid = true;
 }
@@ -87,7 +90,7 @@ Property::Property( const std::string& _name, const osg::Vec2f& _v )
 {
     name = normalize( _name );
     std::stringstream ss;
-    ss << _v[0] << " " << _v[1];
+    ss << std::setprecision(PRECISION) << _v[0] << " " << _v[1];
     value = ss.str();
     valid = true;
 }
@@ -96,7 +99,7 @@ Property::Property( const std::string& _name, const osg::Vec3f& _v )
 {
     name = normalize( _name );
     std::stringstream ss;
-    ss << _v[0] << " " << _v[1] << " " << _v[2];
+    ss << std::setprecision(PRECISION) << _v[0] << " " << _v[1] << " " << _v[2];
     value = ss.str();
     valid = true;
 }
@@ -105,7 +108,7 @@ Property::Property( const std::string& _name, const osg::Vec4f& _v )
 {
     name = normalize( _name );
     std::stringstream ss;
-    ss << _v[0] << " " << _v[1] << " " << _v[2] << " " << _v[3];
+    ss << std::setprecision(PRECISION) << _v[0] << " " << _v[1] << " " << _v[2] << " " << _v[3];
     value = ss.str();
     valid = true;
 }
@@ -115,6 +118,7 @@ Property::Property( const std::string& _name, const osg::Matrix& _v )
     name = normalize( _name );
     std::stringstream ss;
     const osg::Matrix::value_type* p = _v.ptr();
+    ss << std::setprecision(PRECISION);
     for( int i=0; i<15; i++ ) ss << *p++ << " ";
     ss << *p;
     value = ss.str();

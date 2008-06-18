@@ -28,6 +28,9 @@ namespace osgGIS
     class Filter;
     class FilterFactory;
 
+    /* (no api docs)
+     * Maintains the flow of data through a filter.
+     */
     class FilterState : public osg::Referenced
     {
     public:

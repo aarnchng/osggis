@@ -26,12 +26,14 @@
 namespace osgGIS
 {
     /**
-     * osgUtil::Optimizer options to expressly include or exclude.
+     * A collection of hints that tells the osgUtil::Optimizer to expressly include or 
+     * exclude certain optimization options.
      *
      * Filters that do their own optimization may wish to instruct the general OSG
-     * optimizer to include or exclude certain optimization techniques.
+     * optimizer to include or exclude certain optimization techniques. The FilterEnv
+     * carries an OptimizerHints object that can be used for this purpose.
      */
-    class OptimizerHints
+    class OSGGIS_EXPORT OptimizerHints
     {
     public:
         /**

@@ -29,6 +29,8 @@
 
 namespace osgGIS
 {	
+    /* (internal)
+     */
 	class OGR_SpatialReference : public SpatialReferenceBase
 	{
 	public:

@@ -27,9 +27,19 @@
 
 namespace osgGIS
 {
+    /* (internal - no api docs)
+     * 
+     * Implementation of a RasterStore that reads data via the GDAL library.
+     */
 	class GDAL_RasterStore : public RasterStore
 	{
 	public:
+        /**
+         * Constructs a new GDAL raster store
+         *
+         * @param uri
+         *      URI of GDAL data store to which to connect
+         */
 		GDAL_RasterStore(const std::string& uri );
 		
 		

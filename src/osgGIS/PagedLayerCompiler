@@ -29,7 +29,7 @@
 
 namespace osgGIS
 {
-    /**
+    /* (probably to be deprecated)
      * Compiles a feature layer against a terrain.
      */
     class OSGGIS_EXPORT PagedLayerCompiler : public LayerCompiler

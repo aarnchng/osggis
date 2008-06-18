@@ -26,7 +26,7 @@
 
 namespace osgGIS
 {
-    /**
+    /* (internal)
      * Feature loaded from an GDAL/OGR driver.
      */
 	class OGR_Feature : public FeatureBase

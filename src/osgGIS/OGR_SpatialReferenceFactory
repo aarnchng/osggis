@@ -25,7 +25,9 @@
 
 namespace osgGIS
 {
-    class OSGGIS_EXPORT OGR_SpatialReferenceFactory : public SpatialReferenceFactory
+    /* (internal)
+     */
+    class OGR_SpatialReferenceFactory : public SpatialReferenceFactory
     {
     public:
         OGR_SpatialReferenceFactory();

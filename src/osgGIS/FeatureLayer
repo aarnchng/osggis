@@ -59,12 +59,16 @@ namespace osgGIS
 
         /**
          * Gets the name of the feature layer.
+         *
+         * @return A string
          */
         const std::string& getName() const;
 		
         /**
          * Gets the spatial reference system relative to which all the geodata
          * in this layer is expressed.
+         *
+         * @return A spatial reference system
          */
 		SpatialReference* getSRS() const;
 
@@ -73,11 +77,16 @@ namespace osgGIS
          * This method DOES NOT reproject the data in the layer. It only assigns
          * a spatial reference to use (in the case where the feature store does
          * not provide one).
+         *
+         * @param srs
+         *      Spatial reference system to set
          */
         void setSRS( const SpatialReference* srs );
 		
         /**
          * Gets the spatial bounds of all the feature data within this layer.
+         *
+         * @return Extent of the layer
          */
 		const GeoExtent getExtent() const;
 		
@@ -86,12 +95,16 @@ namespace osgGIS
          *
          * @param oid
          *      Primary key (unique uidentifier) of the feature to get.
+         * @return
+         *      Feature corresponding to the OID, or NULL if not found
          */
 		Feature* getFeature( const FeatureOID& oid );
 		
         /**
          * Gets a spatial index that allows for fast spatial queries against
          * this layer.
+         *
+         * @return A spatial index
          */
 		SpatialIndex* getSpatialIndex();
 		
@@ -99,16 +112,24 @@ namespace osgGIS
          * Sets a spatial index that the layer should expose to support spatial
          * queries against this layer. You can set the spatial index to NULL but
          * this will slow down spatial search operations (a lot).
+         *
+         * @param index
+         *      Spatial index to use
          */
 		void setSpatialIndex( SpatialIndex* index );
 		
         /**
          * Gets the feature store that is backing this feature layer.
+         *
+         * @return
+         *      A FeatureStore for direct access
          */
 		FeatureStore* getFeatureStore();
 		
         /**
          * Gets a cursor that will iterate over ALL the features in the layer.
+         *
+         * @return A cursor that iterates over all features
          */
 		FeatureCursor getCursor();
 		
@@ -118,12 +139,17 @@ namespace osgGIS
          * 
          * @param extent
          *      Spatial area of interest to query
+         * @return
+         *      A cursor for iterating over search results
          */
 		FeatureCursor getCursor( const GeoExtent& extent );
 
         /**
          * Gets a cursor that will iterate over all the features whose shapes
          * intersect the specified point.
+         *
+         * @return
+         *      A cursor for iterating over search results
          */
         FeatureCursor getCursor( const GeoPoint& point );
 		

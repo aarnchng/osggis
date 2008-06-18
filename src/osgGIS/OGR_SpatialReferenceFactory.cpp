@@ -183,8 +183,10 @@ OGR_SpatialReferenceFactory::validateSRS( SpatialReference* input )
     OGR_SpatialReference* ogr_srs = dynamic_cast<OGR_SpatialReference*>( input );
     if ( ogr_srs )
     {
+        std::string proj = ogr_srs->getAttrValue( "PROJECTION", 0 );
+
         // fix invalid ESRI LCC projections:
-        if ( ogr_srs->getAttrValue( "PROJECTION", 0 ) == "Lambert_Conformal_Conic" )
+        if ( proj == "Lambert_Conformal_Conic" )
         {
             bool has_2_sps =
                 ogr_srs->getAttrValue( "Standard_Parallel_2", 0 ).length() > 0 ||
@@ -196,6 +198,20 @@ OGR_SpatialReferenceFactory::validateSRS( SpatialReference* input )
             else
                 StringUtils::replaceIn( new_wkt, "Lambert_Conformal_Conic", "Lambert_Conformal_Conic_1SP" );
             
+            return createSRSfromWKT( new_wkt, input->getReferenceFrame() );
+        }
+
+        // fixes for ESRI Plate_Carree and Equidistant_Cylindrical projections:
+        else if ( proj == "Plate_Carree" )
+        {
+            std::string new_wkt = ogr_srs->getWKT();
+            StringUtils::replaceIn( new_wkt, "Plate_Carree", "Equirectangular" );
+            return createSRSfromWKT( new_wkt, input->getReferenceFrame() );
+        }
+        else if ( proj == "Equidistant_Cylindrical" )
+        {
+            std::string new_wkt = ogr_srs->getWKT();
+            StringUtils::replaceIn( new_wkt, "Equidistant_Cylindrical", "Equirectangular" );
             return createSRSfromWKT( new_wkt, input->getReferenceFrame() );
         }
     }

@@ -27,14 +27,16 @@
 namespace osgGIS
 {
     /**
-     * Defines a Resource encapsulating a system path, which could be a
-     * file or a directory.
+     * A Resource that encapsulates a simple URI or path.
      */
     class OSGGIS_EXPORT PathResource : public Resource
     {
         OSGGIS_META_RESOURCE(PathResource);
 
     public:
+        /**
+         * Constructs a new, empty path resource.
+         */
         PathResource();
 
     public: // properties        

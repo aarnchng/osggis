@@ -26,7 +26,9 @@
 namespace osgGIS
 {
     /**
-     * A filter that groups feature based on an expression.
+     * A filter that groups feature based on a script expression.
+     *
+     * Use this filter to batch features into named groups.
      */
     class OSGGIS_EXPORT GroupFilter : public CollectionFilter
     {
@@ -38,6 +40,9 @@ namespace osgGIS
          */
         GroupFilter();
 
+        /**
+         * Copy constructor
+         */
         GroupFilter( const GroupFilter& rhs );
 
 
@@ -46,12 +51,17 @@ namespace osgGIS
         /**
          * Sets a script that evaluates to the name of the group into which
          * to put a feature.
+         *
+         * @param script
+         *      Script that generates group name
          */
         void setGroupScript( Script* script );
 
         /**
          * Gets the scripts that evaluates to the name of the group into which
          * to put a feature.
+         *
+         * @return Script that generates group name
          */
         Script* getGroupScript() const;
 

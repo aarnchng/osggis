@@ -45,28 +45,38 @@ namespace osgGIS
         /**
          * Gets whether a connection to the feature store was successfully
          * established.
+         *
+         * @return True if the connection is open; False if it failed to open.
          */
 		virtual bool isReady() const =0;
 
         /**
          * Gets the name of the store.
+         *
+         * @return A humand-readable string
          */
         virtual const std::string& getName() const =0;
 		
         /**
          * Gets the spatial reference system (SRS) of the geodata in the
          * store. This may be NULL is no SRS is specified.
+         *
+         * @return A spatial reference system
          */
 		virtual SpatialReference* getSRS() =0;
 		
         /**
          * Gets the total number of features in the backing store.
+         *
+         * @return An integer count, or -1 if it cannot be determined
          */
 		virtual int getFeatureCount() const =0;
 		
         /**
-         * Gets the minimum bounding rectangle containing all the geodata
+         * Gets the bounding rectangle containing all the geodata
          * in the feature store.
+         *
+         * @return A spatial extent containing all features
          */
 		virtual const GeoExtent& getExtent() const =0;
 		
@@ -75,21 +85,29 @@ namespace osgGIS
          * 
          * @param oid
          *      Primary key (unique identifier) of the feature to get
+         * @return
+         *      Feature with the specified OID, or NULL if it does not exist
          */
 		virtual Feature* getFeature( const FeatureOID& oid ) =0;
 		
         /**
          * Creates a cursor that will iterator over ALL the features in
          * the backing store, in no particular order.
+         *
+         * @return A cursor for iterating over search results
          */
 		virtual FeatureCursor getCursor() =0;
 		
 		/**
-		 * Writes a feature to the feature store.
+		 * Writes a feature to the feature store. The store must have been opened
+         * for writing.
+         *
+         * @param feature
+         *      Feature to insert. It must have the exact schema of the store.
+         * @return
+         *      True if inserting succeeded, false if it failed.
 		 */
-		virtual bool insertFeature( Feature* f ) =0;
-
-    public:
+		virtual bool insertFeature( Feature* feature ) =0;
 
         /**
          * Returns true if the feature store supports random access to

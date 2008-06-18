@@ -26,18 +26,33 @@
 namespace osgGIS
 {
     /**
-     * Defines a feature layer wrapped in a resource that filters
-     * can access at filter-graph build time.
+     * A feature layer wrapped as a Resource that filters can access
+     * during filter-graph compilation.
      */
     class OSGGIS_EXPORT FeatureLayerResource : public Resource
     {
         OSGGIS_META_RESOURCE(FeatureLayerResource);
 
     public:
+        /**
+         * Construct a new empty feature layer resource.
+         */
         FeatureLayerResource();
+
+        /**
+         * Constructs a new feature layer resource that wraps a named feature layer.
+         *
+         * @param name
+         *      Name of feature layer to wrap
+         */
         FeatureLayerResource( const std::string& name );
 
     public:
+        /**
+         * Gets the feature layer associated with this resource.
+         *
+         * @return The feature layer, or NULL if a connection cannot be made
+         */
         FeatureLayer* getFeatureLayer();
 
     public: 

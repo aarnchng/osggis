@@ -26,20 +26,40 @@
 namespace osgGIS
 {
     /**
-     * Defines a "model" - an externally references 3D file.
+     * A Resource that references an external 3D model.
      */
     class OSGGIS_EXPORT ModelResource : public Resource
     {
         OSGGIS_META_RESOURCE(ModelResource);
 
-    public:
+    public: 
+        /**
+         * Creates a new, empty model resource.
+         */
         ModelResource();
+
+        /**
+         * Creates a new names model resource.
+         */
         ModelResource( const std::string& name );
         
     public:
 
+        /**
+         * Loads the model from its URI and returns it.
+         *
+         * @return Root node of the model. The caller is responsible for
+         *         deleting the returned object.
+         */
         osg::Node* createNode();
         
+        /**
+         * Creates an returns a new osg::ProxyNode that references the
+         * URI of this model resource.
+         *
+         * @return A new osg::ProxyNode. The caller is responsible for
+         *         deleting the returned object.
+         */
         osg::Node* createProxyNode();
 
     public: 
@@ -58,12 +78,25 @@ namespace osgGIS
 
     typedef std::vector< osg::ref_ptr<ModelResource> > ModelResourceVec;
 
+    /**
+     * Structure used to query the resource library for model resources.
+     */
     class OSGGIS_EXPORT ModelResourceQuery : public osg::Referenced
     {
     public:
+        /**
+         * Creates a new model query structure.
+         */
         ModelResourceQuery();
 
+        /** 
+         * Adds a tag to include in the search.
+         */
         void addTag( const char* tag );
+
+        /**
+         * Gets the collection of tags to use in the model search.
+         */
         const TagList& getTags() const;
 
         const std::string& getHashCode();

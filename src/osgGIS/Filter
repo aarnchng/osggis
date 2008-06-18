@@ -33,12 +33,12 @@ namespace osgGIS
     /**
      * A discrete data-processing element in a FilterGraph.
      *
-     * A Filter in a dicrete data processor. It takes input and generates
+     * A Filter in a self-contained data processing unit. It takes input and generates
      * output data. When chained together in a FilterGraph, filters sequentially
-     * process data in discrete steps which together form a complete,
-     * repeatable data compilation procedure.
+     * process data in discrete steps which together form a complete, repeatable data
+     * compilation procedure.
      *
-     * A Filter's operation should not depend on any external factors, save
+     * A Filter's operation should not depend on any external factors, except for 
      * the information conveyed in the FilterEnv data structure to which
      * every filter has access while it is running. Filters should ideally
      * be stateless with respect to the data they are processing. This helps
@@ -47,40 +47,64 @@ namespace osgGIS
     class OSGGIS_EXPORT Filter : public osg::Referenced
     {
     public:
+        /**
+         * Gets the filter type
+         *
+         * @return Human-readable filter type string.
+         */
         virtual std::string getFilterType() =0;
 
     public:
         virtual ~Filter();
 
         /**
-         * Sets the name of this filter.
+         * Sets the name of this filter. A name is for reference purposes and is
+         * not strictly required for the operation of the filter.
+         *
+         * @param name
+         *      Name of this filter.
          */
         void setName( const std::string& name );
 
         /**
          * Gets the name of this filter.
+         *
+         * @return The filter name string
          */
         const std::string& getName() const;
 
         /**
-         * Creates a new state object that can be used with this filter type.
+         * Creates a new state object that can be used with this filter type. The
+         * various compilers use this object to communicate data from filter to
+         * filter.
+         *
+         * @return A new state object for use with this filter.
          */
         virtual FilterState* newState() const =0;
 
         /**
-         * Creates an exact copy of this instance.
+         * Creates an exact copy of this instance. Note to developers: complete 
+         * implementation of this method is critical to the operation of the
+         * FilterGraph!
+         *
+         * @return An exact Filter copy
          */
         virtual Filter* clone() const =0;
 
     public:
 
         /**
-         * Sets one of the filter's properties by name.
+         * Sets one of the filter's properties.
+         *
+         * @param prop
+         *      Property to set
          */
         virtual void setProperty( const Property& prop );
 
         /**
-         * Gets a collection of all this filter's properties.
+         * Gets a collection of all this filter's properties
+         *
+         * @return A collection of Property objects
          */
         virtual Properties getProperties() const;
 
@@ -96,16 +120,20 @@ namespace osgGIS
     
     typedef std::vector< osg::ref_ptr<Filter> > FilterList;
 
+    /* Interface for creating a new filter */
     class FilterFactory : public osg::Referenced {
     public:
         virtual Filter* createFilter() const =0;
     };
+
+    /* Parameterized interface for creating a new filter */
     template<typename T> struct FilterFactoryImpl : public FilterFactory {
         Filter* createFilter() const { return new T(); }
     };    
 
     typedef std::map<std::string,osg::ref_ptr<FilterFactory> > FilterFactoryMap;
 
+    /* Handy macro for defining all the basic required methods in a Filter class definition */
 #define OSGGIS_META_FILTER(name) \
     public: \
         virtual std::string getFilterType() { return getStaticFilterType(); } \
@@ -113,6 +141,7 @@ namespace osgGIS
         static std::string getStaticFilterType() { return #name; } \
         static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }     
 
+    /* Handy macro for defining all the basic required implementation methods in a Filter class */
 #define OSGGIS_DEFINE_FILTER(name) \
     static bool _osggsis_df_##name = osgGIS::Registry::instance()->addFilterType( name::getStaticFilterType(), name::getFilterFactory() )
 
