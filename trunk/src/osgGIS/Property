@@ -29,37 +29,153 @@
 
 namespace osgGIS
 {
+    /**
+     * A type-morphing name/value pair.
+     *
+     * A Property is a name/value pair that will accept various primitives like strings,
+     * integers, floats, doubles, and booleans for the value. You can then read the value
+     * back as any of the above types as well and the object will give you the best possible
+     * representation available.
+     *
+     * A Property can also hold various non-primitive values, like osg::Vec2, osg::Vec3, osg::Vec4,
+     * osg::Matrix, and a general osg::Referenced pointer.
+     */
     class OSGGIS_EXPORT Property
     {
     public:
+        /**
+         * Constructs a new empty property.
+         */
         Property();
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, const std::string& value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, int value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, float value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, double value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, bool value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, const osg::Vec2f& value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, const osg::Vec3f& value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, const osg::Vec4f& value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, const osg::Matrix& value );
+
+        /**
+         * Constructs a new property.
+         */
         Property( const std::string& name, osg::Referenced* value );
 
+        /**
+         * Gets the property's name.
+         */
         const std::string& getName() const;
+
+        /**
+         * Gets the property's value as a string.
+         */
         const std::string& getValue() const;
+
+        /**
+         * Gets the property's value as an integer (with fallback)
+         */
         int getIntValue( int def ) const;
+
+        /**
+         * Gets the property's value as a float (with fallback)
+         */
         float getFloatValue( float def ) const;
+
+        /**
+         * Gets the property's value as a double (with fallback)
+         */
         double getDoubleValue( double def ) const;
+
+        /**
+         * Gets the property's value as a boolean (with fallback)
+         */
         bool getBoolValue( bool def ) const;
+
+        /**
+         * Gets the property's value as an osg::Vec2
+         */
         osg::Vec2 getVec2Value() const;
+
+        /**
+         * Gets the property's value as an osg::Vec3
+         */
         osg::Vec3 getVec3Value() const;
+
+        /**
+         * Gets the property's value as an osg::Vec4
+         */
         osg::Vec4 getVec4Value() const;
+
+        /**
+         * Gets the property's value as an osg::Matrix
+         */
         osg::Matrix getMatrixValue() const;
+
+        /**
+         * Gets the property's value as an osg::Referenced*
+         */
         osg::Referenced* getRefValue();
+
+        /**
+         * Gets true if the property holds a valid value.
+         */
         bool isValid() const;
 
+        /**
+         * Gets the property's value as a string
+         */
         const char* asString() const;
+
+        /**
+         * Gets the property's value as a double
+         */
         double asDouble() const;
+
+        /**
+         * Gets the property's value as an integer
+         */
         int asInt() const;
+
+        /**
+         * Gets the property's value as a boolean
+         */
         bool asBool() const;
 
         Property static invalid();
@@ -71,6 +187,9 @@ namespace osgGIS
         bool valid;
     };
     
+    /**
+     * A collection of Property objects.
+     */
     class OSGGIS_EXPORT Properties : public std::vector<Property>
     {
     public:

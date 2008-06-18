@@ -28,7 +28,7 @@
 namespace osgGIS
 {    
     /**
-     * A filter that generates fragments.
+     * A filter that generates fragments from either features or other fragments.
      *
      * A FragmentFilter can accept either features or other fragments as input (i.e.,
      * you can append a FragmentFilter, a FeatureFilter, or a CollectionFilter.)

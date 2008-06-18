@@ -29,10 +29,10 @@
 namespace osgGIS
 {
     /**
-     * A filter that processes data into osg::Node scene graphs.
+     * A filter that processes feature or fragment data into osg::Node scene graphs.
      *
-     * A NodeFilter can take as input either osg::Drawable's or osg::Node's and
-     * return osg::Node's. To implement a NodeFilter you create a subclass and
+     * A NodeFilter can take as input Feautres, Fragments or osg::Nodes. It generates
+     * a list of osg::Node instances. To implement a NodeFilter you create a subclass and
      * implement the appropriate process(...) method(s).
      */
     class OSGGIS_EXPORT NodeFilter : public Filter

@@ -29,7 +29,8 @@
 namespace osgGIS
 {
     /**
-     * Defines a georeference raster that can be used as a texture.
+     * A resource referencing a georeferenced raster that can be used as an 
+     * overlay texture.
      *
      * The raster can be either a single-source raster or a composite
      * raster (a mosaic of multiple rasters stiched together).

@@ -29,6 +29,13 @@ namespace osgGIS
 {
     /**
      * Uses a filter graph to compile a feature layer into a feature store.
+     *
+     * This compiler connects to a source feature layer, reads all features, and
+     * runs them through a user-defined FilterGraph, and writes the resulting
+     * features out to a new FeatureStore.
+     *
+     * Since the output is a feature set, the FilterGraph can contain only FeatureFilter
+     * and CollectionFilter filter types.
      */
     class OSGGIS_EXPORT FeatureStoreCompiler : public osg::Referenced
     {
@@ -45,16 +52,39 @@ namespace osgGIS
         
         /**
          * Compiles the feature layer into another feature layer.
+         *
+         * @param output_uri
+         *      URI of the FeatureStore to create for the output features.
+         * @param env
+         *      Initial filter environment
+         * @return
+         *      True if the compilation succeeded
          */
         bool compile( const std::string& output_uri, FilterEnv* env );
         
 
     public:
 
+        /**
+         * Gets the source filter layer from which to pull features.
+         *
+         * @return The source FeatureLayer
+         */
         FeatureLayer* getFeatureLayer();
 
+        /**
+         * Gets the FilterGraph that will be used to compile features.
+         *
+         * @return The FilterGraph 
+         */
         FilterGraph* getFilterGraph();
 
+        /**
+         * Gets the compilation session associated with this compiler, creating
+         * a new one if it does not already exist.
+         *
+         * @return The compilation session.
+         */         
         Session* getSession();
 
 

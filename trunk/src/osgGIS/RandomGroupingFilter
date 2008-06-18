@@ -25,7 +25,7 @@
 
 namespace osgGIS
 {
-    /**
+    /* (deprecated)
      * DEPRECATED - use GroupFilter with randomizing script instead
      *
      * A filter that randomly batches features into a set number of groups.

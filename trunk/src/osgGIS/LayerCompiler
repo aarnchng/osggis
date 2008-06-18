@@ -203,8 +203,7 @@ namespace osgGIS
         bool getLocalizeResources() const;
         
         /**
-         * Sets whether to compress textures upon localization. This will only happen
-         * is getLocalizeResources() == true as well.
+         * Sets whether to compress textures upon localization.
          */
         void setCompressTextures( bool value );
         
@@ -218,6 +217,8 @@ namespace osgGIS
         virtual Properties getProperties();
         virtual void setProperties( Properties& props );
         
+    public:
+
         /* rewrites any texture image or proxy node file references so that they
            reference files we've moved inside the archive. */
         void localizeResourceReferences( osg::Node* );

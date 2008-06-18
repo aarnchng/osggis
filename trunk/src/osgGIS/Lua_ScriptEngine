@@ -29,6 +29,10 @@ extern "C" {
 
 namespace osgGIS
 {
+    /* (internal - no api docs)
+     *
+     * Scripting engine that evalutes LUA scripts.
+     */
     class /*INTERNAL*/ Lua_ScriptEngine : public ScriptEngine
     {
     public:

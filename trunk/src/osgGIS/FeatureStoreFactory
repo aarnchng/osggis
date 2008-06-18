@@ -30,11 +30,21 @@
 
 namespace osgGIS
 {
+    /**
+     * Interface for classes that create new FeatureStore connections.
+     */
 	class OSGGIS_EXPORT FeatureStoreFactory : public osg::Referenced
 	{
 	public:
 	    /**
 	     * Connects to an existing feature store and returns a handle.
+         *
+         * @param uri
+         *      URI of feature store to which to connect
+         * @return
+         *      Feature store reference. Caller is responsible for deleting
+         *      the return object. Call isReady() on the result to determine 
+         *      whether the connection succeeded.
 	     */
 		virtual FeatureStore* connectToFeatureStore( const std::string& uri ) =0;
 		
@@ -47,6 +57,10 @@ namespace osgGIS
 		 *      Type of shapes in this feature store.
 		 * @param schema
 		 *      Attribute schema for features in this store.
+         *
+         * @return
+         *      Connection to the new feature store. The caller is responsible
+         *      for deleting the return object.
 		 */
 		virtual FeatureStore* createFeatureStore(
 		    const std::string&         uri,

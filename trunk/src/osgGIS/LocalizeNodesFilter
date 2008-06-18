@@ -25,7 +25,8 @@
 
 namespace osgGIS
 {
-    /**
+    /* (DEPRECATED - no api docs)
+     *
      * deprecated. Use the LOCALIZE property in TransformFilter.
      */
     class OSGGIS_EXPORT LocalizeNodesFilter : public NodeFilter

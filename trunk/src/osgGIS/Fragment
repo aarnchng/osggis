@@ -32,28 +32,92 @@ namespace osgGIS
     typedef std::vector< osg::ref_ptr<osg::Drawable> > DrawableList;
 
     /**
-     * An osg::Drawable paired with an attribute set.
+     * A collection of osg::Drawable instances paired with an attribute set.
+     *
+     * In the process of compiling features into a scene graph, the data goes
+     * through two transformations: first from Features to Fragments, and then
+     * from Fragments to Nodes. A "fragment" is a kind of half-way state and
+     * consists of OSG drawables that may still have feature attributes, but that
+     * have no scene graph structure.
+     *
+     * A FragmentFilter is a filter that turns Feature data into Fragment data.
      */
 	class OSGGIS_EXPORT Fragment : public AttributedBase
 	{
 	public:
+        /**
+         * Creates a new, empty Fragment.
+         */
 	    Fragment();
-	    Fragment( osg::Drawable* );
+
+        /**
+         * Creates a new fragment that holds a single osg::Drawable.
+         *
+         * @param drawable
+         *      Drawable to add to the fragment
+         */
+	    Fragment( osg::Drawable* drawable );
 	    
 	public:
 
+        /**
+         * Sets the name of this fragment.
+         *
+         * If a fragment has a name set, the compiler will be forces to maintain "feature
+         * integrity" -- the feature will end up residing alone under a dedicated osg::Geode
+         * instead of being optimized into a larger set of geometries.
+         *
+         * @param name The Fragment name
+         */
         void setName( const std::string& name );
 
+        /**
+         * Gets the name of this Fragment. @see #setName for more information.
+         *
+         * @return Fragment's name. 
+         */
         const std::string& getName() const;
 
+        /**
+         * Gets whether this fragment has a name.
+         *
+         * @return True if the fragment has a name; false if not.
+         */
         bool hasName() const;
 
+        /**
+         * Gets access to the fragment's collection of osg::Drawable's.
+         *
+         * @return List of osg::Drawable instances
+         */
 	    DrawableList& getDrawables();
 	    
+        /**
+         * Gets read-only access to the fragment's collection of osg::Drawable's.
+         *
+         * @return Read-only list of osg::Drawable instances
+         */
 	    const DrawableList&	getDrawables() const;
 
+        /**
+         * Adds a drawable to the fragment.
+         *
+         * @param d
+         *      Drawable to add
+         */
         void addDrawable( osg::Drawable* d );
 
+        /**
+         * Adds a collection of attributes to this fragment. The compiler will embed the
+         * attributes into the resulting scene graph as a osgSim::ShapeAttributeList.
+         *
+         * If a fragment has attributes, the compiler will be forces to maintain "feature
+         * integrity" -- the feature will end up residing alone under a dedicated osg::Geode
+         * instead of being optimized into a larger set of geometries.
+         *
+         * @param attrs
+         *      Attributes to embed
+         */
         void addAttributes( const AttributeList& attrs );
 
     protected:
