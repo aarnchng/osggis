@@ -26,18 +26,40 @@
 namespace osgGIS
 {
 	/**
-	 * A basic index that applies no special indexing scheme, but rather just
+	 * A basic, stub spatial index.
+     * This is a basic index that applies no special indexing scheme, but rather just
 	 * checks every feature by brute force. Useful for a very low feature count.
 	 */
 	class SimpleSpatialIndex : public osgGIS::SpatialIndex
 	{
 	public:
+        /**
+         * Constructs a spatial index
+         *
+         * @param store 
+         *      Feature store whose contents to index
+         */
 		SimpleSpatialIndex( FeatureStore* store );
 		
 	public: // SpatialIndex
 	
+        /**
+         * Gets a cursor that iterates over all the features that intersect
+         * a spatial extent.
+         *
+         * @param extent
+         *      Spatial extent to intersect
+         * @param match_exactly
+         *      If true, check for intersection at the shape level. If false, check
+         *      for intersection at the extent (bounding box) level.
+         */
 	    FeatureCursor getCursor( const GeoExtent& extent, bool match_exactly =false );
 	    
+        /**
+         * Gets the extent of the entire indexed dataset.
+         *
+         * @return A spatial extent
+         */
 	    const GeoExtent& getExtent() const;
 
 	public:

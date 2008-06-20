@@ -116,14 +116,15 @@ namespace osgGIS
          * @param env
          *      Contextual compilation environment
          * @param output
-         *      Output node list of compiled scene graph
+         *      Group node that, upon success, contains resulting nodes of compiled scene
+         *      as its children
          * @return
          *      A structure describing the result of the compilation.
          */
         FilterGraphResult computeNodes( 
             FeatureCursor& cursor, 
             FilterEnv*     env,
-            osg::NodeList& output );
+            osg::Group*&   output );
         
         
         /**

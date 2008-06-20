@@ -32,8 +32,19 @@ namespace osgGIS
 	class GeoExtent;
 	
     /**
-     * Describes how to interpret a 2D or 3D point in space.
-     * (a.k.a "SRS").
+     * Mathematical description that associates a set of 2D or 3D coordinates with a
+     * real-world location on the earth (or other planet). A.K.A "SRS".
+     *
+     * Said another way: Given a set of coordinates, you can use their SRS to figure
+     * out exactly what point on the Earth they represent. There are three types of
+     * SRS in osgGIS:
+     *
+     * Geographic: Angular (lat/long) coordinates covering the entire planet
+     *
+     * Projected: Cartesian (XYZ) coordinates representing a point in a mapping of
+     * geographic coordinates on to a flat plane
+     *
+     * Geocentric: Cartesian (XYZ) coordinates relative to the center of the Earth.
      */
 	class OSGGIS_EXPORT SpatialReference : public osg::Referenced
 	{
@@ -41,67 +52,96 @@ namespace osgGIS
 	
         /**
          * Gets the OGC WKT (well-known text) representation of the SRS.
+         *
+         * @return a WKT string
          */
 		virtual const std::string& getWKT() const =0;
 
         /**
          * Returns true if the SRS represents an unprojected location expressed
          * in angular units relative to the whole earth (i.e. longitude/latitude).
+         *
+         * @return True if the SRS is geographic; false if not.
          */
 		virtual bool isGeographic() const =0;
 
         /**
          * Returns true if the SRS represents a projected location expressed in
          * linear units (e.g. meters, feet).
+         *
+         * @return True if the SRS is projected; false if not.
          */
 		virtual bool isProjected() const =0;
 		
         /**
          * Returns true if the SRS represents an XYZ point in 3D space relative to
          * the center of the earth (0,0,0).
+         *
+         * @return True is the SRS is geocentric; false if not.
          */
 		virtual bool isGeocentric() const =0;
 		
         /**
-         * Gets the "basis" SRS for this SRS. If isGeographic(), there is no basis
-         * and this method simply returns "this". If isProjected() or isGeocentric(),
-         * the basis is a geographic (lat/lon) SRS describing the ellipsoid model
-         * upon which this SRS is based.
+         * Gets an SRS that describing this SRS's geographic (lat/long) basis ellipsoid.
+         *
+         * Every SRS is expressed relative to an ellipsoid that approximates the shape of
+         * the earth. If isGeographic(), the SRS represents the ellipsoid model directly.
+         * If isProjected() or isGeocentric(), the SRS is a a cartesian coordinate system
+         * that exists relative to a "basic" ellipsoid model.
+         *
+         * @return If isGeographic(), returns this. Otherwise, returns the basis ellipsoid's
+         *         geographic (lat/long) SRS.
          */ 
 		virtual const SpatialReference* getGeographicSRS() const =0;
 
         /** 
          * Gets the ellipsoid (i.e. the approximation of the earth's shape) upon which
-         * this SRS is based. This is the ellipsoid contained in the basis SRS ... see
-         * getBasisSRS().
+         * this SRS is based. This is the ellipsoid contained in getGeographicSRS().
+         *
+         * @return An ellipsoid model approximating the shape of the planet.
          */
         virtual const Ellipsoid& getEllipsoid() const =0;
 
         /**
          * Gets the "up" vector relative to this spatial reference.
+         *
+         * @param at
+         *      Point at which to calculate the "up" direction
+         * @return
+         *      Up vector at the given location. If isProjected() or isGeographic(),
+         *      the up vector will be (0,0,1). If isGeocentric(), the up vector
+         *      will depend on the "at" point.
          */
         virtual osg::Vec3d getUpVector( const osg::Vec3d& at ) const;
 		
         /**
          * Gets the readable name of this SRS.
+         *
+         * @return SRS readable name
          */
 		virtual std::string getName() const =0;
         
         /**
-         * Gets the optional reference frame matrix that may be applied after resolving
-         * the SRS. In other words, MY_POINT = INPUT_POINT * SRS * REF_FRAME.
+         * Gets the optional reference frame for points expressed relative to this SRS.
+         *
+         * @return A matrix that places a point into the SRS's local reference frame.
+         *         i.e., P(in) = P(out) * getReferenceFrame()
          */
         virtual const osg::Matrixd& getReferenceFrame() const =0;
 
         /**
-         * Gets the inverse of the optional reference frame matrix that may be applied
-         * before projecting a point out of this SRS.
+         * Gets the inverse of the reference frame for points expressed relative to this SRS.
+         *
+         * @return A matrix that removes a point from the SRS's local reference frame.
+         *         i.e., P(out) = P(in) * getInverseReferenceFrame()
          */
         virtual const osg::Matrixd& getInverseReferenceFrame() const =0;
 
         /**
          * Creates an exact copy of this SRS, and then applies a new reference frame
          * transform matrix to it.
+         *
+         * @return A new SRS
          */
         virtual SpatialReference* cloneWithNewReferenceFrame( const osg::Matrixd& rf ) const =0;
 
@@ -110,37 +150,75 @@ namespace osgGIS
 	
         /**
          * Returns a point transformed into this SRS.
+         * 
+         * @param input
+         *      Point to transform into this SRS
+         * @return
+         *      Transformed point; or GeoPoint::invalid() upon failure
          */
 		virtual GeoPoint transform( const GeoPoint& input ) const =0;
 
         /** 
          * Transforms a point into this SRS (modifying the input data).
+         *
+         * @param input
+         *      Point to transform into this SRS
+         * @return
+         *      True if the transformation succeeded, false if not
          */
         virtual bool transformInPlace( GeoPoint& input ) const =0;
 		
         /**
          * Returns a shape transformed into this SRS.
+         *
+         * @param input
+         *      Shape to transform into this SRS
+         * @return
+         *      Transformed shape, or GeoShape::invalid() upon failure
          */
 		virtual GeoShape transform( const GeoShape& input ) const =0;
 
         /**
          * Transforms a shape into this SRS (modifying the input data).
+         *
+         * @param input
+         *      Shape to transform into this SRS
+         * @return
+         *      True upon success, false upon failure.
          */
         virtual bool transformInPlace( GeoShape& input ) const =0;
         
         /**
          * Transforms an extent into this srs.
+         *
+         * @param input
+         *      Extent to transform into this SRS
+         * @return
+         *      Transformed extent, or GeoExtent::invalid() upon failure
          */
         virtual GeoExtent transform( const GeoExtent& input ) const =0;
 
         /**
          * Gets whether this and other SRS are mathematically equivalent.
+         *
+         * @param rhs
+         *      Spatial reference to compare to this one
          */
         virtual bool equivalentTo( const SpatialReference* rhs ) const =0;
 
 
     public: // static methods
 
+        /**
+         * Gets whether two spatial references are mathematically equivalent.
+         *
+         * @param lhs
+         *      First spatial reference
+         * @param rhs
+         *      Second spatial reference
+         * @return
+         *      True if they are mathematically equivalent.
+         */
         static bool equivalent(
             const SpatialReference* lhs, 
             const SpatialReference* rhs );

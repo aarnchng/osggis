@@ -27,7 +27,7 @@
 namespace osgGIS
 {
     /**
-     * Builds nodes for placing externally loaded models at featuer locations.
+     * Builds nodes by placing externally loaded models at feature locations.
      */
     class OSGGIS_EXPORT SubstituteModelFilter : public NodeFilter
     {
@@ -35,35 +35,48 @@ namespace osgGIS
 
     public:
         /**
-         * Constructs a new filter for converting features into labels.
+         * Constructs a model substitution filter.
          */
         SubstituteModelFilter();
 
+        /**
+         * Copy constructor.
+         */
         SubstituteModelFilter( const SubstituteModelFilter& rhs );
 
 
     public: //properties
 
         /**
-         * Sets the script that evaluates to the model resource to use.
+         * Sets a script that evaluates to the name of the ModelResource to use.
+         *
+         * @param script
+         *      Script that generates a ModelResource name
          */
         void setModelScript( Script* script );
 
         /**
-         * Gets the script that evaluates to the model resource to use.
+         * Gets the script that evaluates to the ModelResource to use.
+         *
+         * @return Script that generates a ModelResource name
          */
         Script* getModelScript() const;
         
         /**
-         * Sets the script that evaluates to the absolute pathname of the model
+         * Sets a script that evaluates to the absolute pathname of the model
          * to use (rather than specifying a resource name expression as you do with
-         * setModelExpr).
+         * setModelScript).
+         *
+         * @param script
+         *      Script that generates an absolute pathname
          */
         void setModelPathScript( Script* script );
         
         /**
          * Gets the script that evaluates to the absolute pathname of the model
          * to use. 
+         *
+         * @return Script that generates an absolute pathname
          */
         Script* getModelPathScript() const;
         
@@ -80,31 +93,46 @@ namespace osgGIS
          *
          * NOTE: clustering only works when this filter is preceded by a Collection filter
          * that batches features together.
+         *
+         * @param value
+         *      True to cluster; false to not cluster (default)
          */
         void setCluster( bool value );
         
         /**
          * Gets whether to cluster materialized model references. See setCluster() for details.
+         *
+         * @return True to cluster; false to not cluster (default).
          */
         bool getCluster() const;
         
         /**
          * Sets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         *
+         * @param script
+         *      Script that generates a vec3
          */
         void setModelScaleScript( Script* script );
         
         /**
          * Gets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         *
+         * @return Script that generates an vec3
          */
         Script* getModelScaleScript() const;
 
         /**
          * Sets a script that evalutes to the heading (in degrees) of the model instance (double).
+         *
+         * @param script
+         *      Script that generates a double
          */
         void setModelHeadingScript( Script* script );
 
         /**
          * Gets the script that evaluates to the heading (in degrees) of the model instance.
+         *
+         * @return Script that generates a double
          */
         Script* getModelHeadingScript() const;
 
@@ -112,23 +140,32 @@ namespace osgGIS
          * Sets a script that evaluates to a string that will be set as the model instance's
          * node name. (Note: Setting a feature name will disable clustering, since each feature
          * will need to be in its own group.)
+         *
+         * @param script
+         *      Script that generates a string
          */
         void setFeatureNameScript( Script* script );
 
         /**
          * Gets a script that evaluates to a string that will be set as the model instance's
          * node name.
+         *
+         * @return Script that generates a string
          */
         Script* getFeatureNameScript() const;
 
         /**
          * Sets whether to run the osgUtil Optimizer on a model before substituting it.
-         * Default is true.
+         *
+         * @param value
+         *      True to run the optimizer on the model; false to leave it as-is (false)
          */
         void setOptimizeModel( bool value );
 
         /**
          * Gets whether to run the osgUtil Optimizer on a model before substituting it.
+         *
+         * @return True to optimize, false to not optimize (default)
          */
         bool getOptimizeModel() const;
         

@@ -26,6 +26,8 @@
 namespace osgGIS
 {
     /* (internal)
+     *
+     * General OGR utility methods.
      */
 	class OGR_Utils
 	{

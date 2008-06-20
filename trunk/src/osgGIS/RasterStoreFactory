@@ -26,11 +26,19 @@
 
 namespace osgGIS
 {
+    /**
+     * Factory interface for creating a connection to a RasterStore.
+     */
 	class OSGGIS_EXPORT RasterStoreFactory : public osg::Referenced
 	{
 	public:
 	    /**
 	     * Connects to an existing raster store and returns a handle.
+         *
+         * @param uri
+         *      URI of the raster store to which to connect
+         * @return
+         *      A raster store connection
 	     */
 		virtual RasterStore* connectToRasterStore( const std::string& uri ) =0;		
 	};

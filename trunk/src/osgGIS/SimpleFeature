@@ -28,22 +28,46 @@
 namespace osgGIS
 {	
     /**
-     * A concrete feature class you can use to create new features on the
-     * fly.
+     * Concrete user-generated feature.
+     * You can use this class when you want to create features in memory (as opposed
+     * to reading them from a FeatureStore.
      */
 	class OSGGIS_EXPORT SimpleFeature : public FeatureBase
 	{
     public:
+        /**
+         * Construct a new simple feature.
+         */
         SimpleFeature();
 
 	public:	// Feature interface
 
+        /**
+         * Gets the unique object ID of this feature.
+         *
+         * @return Unique object ID
+         */
 		virtual const FeatureOID& getOID() const;
 		
+        /**
+         * Gets read-only access to the list of geometries in this feature.
+         *
+         * @return Read-only shape list
+         */
 		virtual const GeoShapeList& getShapes() const;
 		
+        /**
+         * Gets access to the list of geometries in this feature.
+         *
+         * @return Shape list
+         */
 		virtual GeoShapeList& getShapes();
 		
+        /**
+         * Gets the spatial extent of the shape data in this feature.
+         *
+         * @return A spatial extent
+         */
 		virtual const GeoExtent& getExtent() const;
 
     protected:

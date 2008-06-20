@@ -19,7 +19,6 @@
 
 #include <osgGIS/PagedLayerCompiler>
 #include <osgGIS/Registry>
-#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/Registry>
 #include <osg/CoordinateSystemNode>
 #include <osg/Notify>
@@ -249,7 +248,7 @@ PagedLayerCompiler::compileGeometry(
     }
 
     // compile that graph:
-    osg::Node* out = NULL;
+    osg::Group* out = NULL;
     if ( graph )
     {
         osg::notify(osg::NOTICE) << indent[level+2]
@@ -259,8 +258,11 @@ PagedLayerCompiler::compileGeometry(
         env->setTerrainNode( tile_terrain );
         env->setTerrainSRS( terrain_srs.get() );
         env->setExtent( tile_extent );
-        SceneGraphCompiler compiler( layer, graph ); //, getSession() );
-        out = compiler.compile( env.get() );
+        env->setInputSRS( layer->getSRS() );
+
+        FeatureCursor cursor = layer->getCursor( env->getExtent() );
+        FilterGraphResult r = graph->computeNodes( cursor, env.get(), out );
+        if ( !r.isOK() ) out = NULL;
     }
     else
     {

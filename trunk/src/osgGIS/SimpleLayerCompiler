@@ -30,7 +30,11 @@
 namespace osgGIS
 {
     /**
-     * Compiles a feature layer.
+     * Compiles all or part of a FeatureLayer into an OSG scene graph.
+     *
+     * This layer compiler runs feature data though one or more FilterGraphs
+     * in order to produce an in-memory OSG scene graph. It does not support
+     * PagedLODs or parallel compilation.
      */
     class OSGGIS_EXPORT SimpleLayerCompiler : public LayerCompiler
     {
@@ -41,21 +45,55 @@ namespace osgGIS
         SimpleLayerCompiler();
 
         /**
+         * Constructs a new compiler.
+         *
+         * @param graph
+         *      Single filter graph to compile.
+         */
+        SimpleLayerCompiler( FilterGraph* graph );
+
+        /**
          * Compiles a feature layer.
          *
          * @param layer
-         *    Feature layer to compile
+         *      Feature layer to compile
+         * @param output_file
+         *      If getLocalizeResources() == true, the compiler will localize
+         *      external resources to the directory containing the specified
+         *      file. This compiler does not actually write anything to the
+         *      named file however.
          * @return
-         *    Compiled feature layer
+         *      Resulting scene graph, or NULL upon error
          */
         osg::Node* compile(
-            FeatureLayer* layer,
+            FeatureLayer*      layer,
+            const std::string& output_file ="");
+
+        /**
+         * Compiles a feature layer.
+         *
+         * @param layer
+         *      Feature layer to compile
+         * @param cursor
+         *      Iterator over custom connection of features to compile
+         * @param output_file
+         *      If getLocalizeResources() == true, the compiler will localize
+         *      external resources to the directory containing the specified
+         *      file. This compiler does not actually write anything to the
+         *      named file however.
+         * @return
+         *      Resulting scene graph, or NULL upon error
+         */
+        osg::Node* compile(
+            FeatureLayer*      layer,
+            FeatureCursor&     cursor,
             const std::string& output_file ="");
             
     private:
         osg::Node* compileLOD(
-            FeatureLayer* layer,
-            FilterGraph*  graph);
+            FeatureLayer*  layer,
+            FeatureCursor& cursor,
+            FilterGraph*   graph );
     };
 }
 

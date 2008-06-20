@@ -26,8 +26,12 @@
 namespace osgGIS
 {
     /**
-     * A filter that re-calculates the FilterEnv's working extent based on
-     * a collection of features.
+     * Collects all incoming features, calculates the extent of the collection,
+     * sets this extent of the FilterEnv's new working extent, and outputs the
+     * features.
+     *
+     * This filter performs a kind of "shink-to-fit" function on the current
+     * working extent (as conveyed by the FilterEnv).
      */
     class OSGGIS_EXPORT RecalculateExtentFilter : public CollectionFilter
     {
@@ -35,10 +39,13 @@ namespace osgGIS
 
     public:
         /**
-         * Constructs a new filter.
+         * Constructs a new extent recalculation filter.
          */
         RecalculateExtentFilter();
 
+        /**
+         * Copy constructor
+         */
         RecalculateExtentFilter( const RecalculateExtentFilter& rhs );
     
     public:

@@ -30,6 +30,9 @@
 namespace osgGIS
 {	
     /* (internal)
+     *
+     * Spatial reference system (SRS) implementation that uses the OGR library
+     * to represent and transform coordinates.
      */
 	class OGR_SpatialReference : public SpatialReferenceBase
 	{

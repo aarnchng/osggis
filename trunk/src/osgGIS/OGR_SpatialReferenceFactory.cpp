@@ -176,7 +176,13 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
     return result;
 }
 
-
+//
+// This method attempts to fix some of the inconsistencies b/w ESRI WKT and OGC WKT
+// as supported by OGR.
+//
+// Please refer to:
+// http://home.gdal.org/projects/opengis/wktproblems.html
+//
 SpatialReference*
 OGR_SpatialReferenceFactory::validateSRS( SpatialReference* input )
 {

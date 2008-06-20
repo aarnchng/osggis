@@ -212,9 +212,10 @@ wind( Feature* input )
 
 
 FilterGraphResult
-FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList& output )
+FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& output )
 {
     bool ok = false;
+    output = NULL;
 
     osg::ref_ptr<NodeFilterState> output_state;
 
@@ -298,8 +299,13 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::NodeList&
 
     if ( output_state.valid() )
     {
-        osg::NodeList& result = output_state->getOutput();
-        output.insert( output.end(), result.begin(), result.end() );
+        output = new osg::Group();
+        for( osg::NodeList::iterator i = output_state->getOutput().begin(); i != output_state->getOutput().end(); i++ )
+        {
+            output->addChild( i->get() );
+        }
+        //osg::NodeList& result = output_state->getOutput();
+        //output.insert( output.end(), result.begin(), result.end() );
     }
 
     return ok? FilterGraphResult::ok() : FilterGraphResult::error();

@@ -28,7 +28,7 @@
 namespace osgGIS
 {
     /**
-     * A interface for performing spatial queries against a FeatureStore.
+     * A interface for performing fast spatial queries against a FeatureStore.
      */
 	class OSGGIS_EXPORT SpatialIndex : public osg::Referenced
 	{

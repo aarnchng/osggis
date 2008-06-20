@@ -27,19 +27,33 @@
 namespace osgGIS
 {
     /**
-     * Defines a Resource encapsulating an SRS.
+     * A Resource that references a SpatialReference.
      */
     class OSGGIS_EXPORT SRSResource : public Resource
     {
         OSGGIS_META_RESOURCE(SRSResource);
 
     public:
+        /**
+         * Constructs a new SRS resource.
+         */
         SRSResource();
 
     public: // properties
 
+        /**
+         * Sets the spatial reference object in this resource.
+         *
+         * @param value
+         *      SRS to set
+         */
         void setSRS( SpatialReference* value );
 
+        /**
+         * Gets the SRS referenced by this resource.
+         *
+         * @return The spatial reference.
+         */
         SpatialReference* getSRS() const;
         
 

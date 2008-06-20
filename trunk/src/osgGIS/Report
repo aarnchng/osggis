@@ -26,8 +26,13 @@
 namespace osgGIS
 {
     /**
-     * A Report is a summary of information created by some process within
-     * the system.
+     * A summary of information created by some functional process.
+     *
+     * The reporting mechanism lets any subsystem generate information about
+     * the status of its processing responsibilities by generating a Report.
+     *
+     * Reports can be hierarchical, each Report deliniating summary information
+     * about its child reports.
      */
     class OSGGIS_EXPORT Report : public osg::Referenced
     {
@@ -36,15 +41,24 @@ namespace osgGIS
          * Constructs a new, empty report
          */
         Report();
+
+        /**
+         * Copy constructor
+         */
         Report( const Report& rhs );
 
         /**
          * Sets the name of this report.
+         *
+         * @param name
+         *      A human-readable string
          */
         void setName( const std::string& name );
 
         /**
          * Gets the name of this report.
+         *
+         * @return A human-readable string
          */
         const std::string& getName() const;
 

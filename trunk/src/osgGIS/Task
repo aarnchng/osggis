@@ -27,15 +27,36 @@
 
 namespace osgGIS
 {
+    /**
+     * A discrete operation that may be dispatched by a TaskManager.
+     */
     class OSGGIS_EXPORT Task : public osg::Referenced
     {
     public:
+        /**
+         * Constructs a new task.
+         */
         Task();
+
+        /**
+         * Constructs a new task
+         *
+         * @param name
+         *      Readable name of the task.
+         */
         Task( const std::string& name );
 
+        /**
+         * Gets the task name.
+         *
+         * @return Readable name of the task
+         */
         const std::string& getName() const;
         
     public:
+        /** 
+         * Executes the task.
+         */
         virtual void run() =0;
         
     protected:

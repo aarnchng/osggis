@@ -27,6 +27,14 @@
 
 namespace osgGIS
 {
+    /**
+     * Code that the scripting engine can execute at compile-time.
+     *
+     * A Script is a piece of dynamically executed source code that you can embed in the
+     * feature compilation process. Many filters accept Scripts as property values. A Script
+     * has access to feature attributes and other data that is only available at compile-time.
+     * This awards a great deal of flexibility to the build process.
+     */
     class OSGGIS_EXPORT Script : public osg::Referenced
     {
     public:
@@ -37,41 +45,66 @@ namespace osgGIS
 
         /**
          * Constructs a new script with code in the default language.
+         *
+         * @param code
+         *      Source code/expression to be executed
          */
         Script( const std::string& code );
 
         /**
          * Constructs a new script with code in the specified language.
+         *
+         * @param name
+         *      Name of the script
+         * @param language
+         *      Language in which the script is written (e.g., "lua")
+         * @param code
+         *      Source code/expression to be executed
          */
         Script( const std::string& name, const std::string& language, const std::string& code );
         
         /**
          * Sets the name of this script.
+         *
+         * @param name
+         *      Name of the script
          */
         void setName( const std::string& name );
 
         /**
          * Gets the name of this script.
+         *
+         * @return Name of the script
          */
         const std::string& getName() const;
 
         /** 
          * Sets the scripting language used by the code in this script.
+         *
+         * @param language
+         *      Language in which the script is written (e.g., "lua")
          */
         void setLanguage( const std::string& language );
 
         /**
          * Gets the scripting language used by this script.
+         *
+         * @return Lanuage in which the script is written (e.g., "lua")
          */
         const std::string& getLanguage() const;
 
         /**
          * Sets the script code to execute.
+         *
+         * @param code
+         *      Source code/expression to execute
          */
         void setCode( const std::string& code );
         
         /**
          * Gets the source code to execute.
+         *
+         * @return Source code/expression
          */
         const std::string& getCode() const;
 
@@ -85,9 +118,15 @@ namespace osgGIS
     typedef std::map<std::string, osg::ref_ptr<Script> > ScriptsByName;
 
 
+    /**
+     * Status and return data resulting from the execution of a Script.
+     */
     class OSGGIS_EXPORT ScriptResult
     {
     public:
+        /**
+         * The data type of the return value of the Script.
+         */
         enum ReturnType
         {
             TYPE_BOOL,

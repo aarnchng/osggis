@@ -29,39 +29,128 @@
 namespace osgGIS
 {
     /**
-     * Defines a feature "skin" - metadata that defines the appearance of a
-     * compiled feature.
+     * Resource pointing to an non-geo-referenced image that can be used as a texture map.
      */
     class OSGGIS_EXPORT SkinResource : public Resource
     {
         OSGGIS_META_RESOURCE(SkinResource);
 
     public:
+        /**
+         * Constructs a new skin.
+         */
         SkinResource();
+
+        /**
+         * Constructs a new skin.
+         * @param name
+         *      Name of the skin resource
+         */
         SkinResource( const std::string& name );
+
+        /**
+         * Constructs a new single-use skin directly from an image bitmap.
+         *
+         * @param image
+         *      Image to embed in the resource.
+         */
         SkinResource( osg::Image* image );
 
     public: // properties
 
+        /**
+         * Sets the real-world width, in meters, of the image.
+         *
+         * @param value
+         *      Tetxture width (in meters)
+         */
         void setTextureWidthMeters( double value );
+
+        /**
+         * Gets the real-world width of the image
+         *
+         * @return Texture width (meters)
+         */
         double getTextureWidthMeters() const;
 
-        // applies to repeating textures
+        /**
+         * Sets the real-world height of the image
+         *
+         * @param value
+         *      Texture height (in meters)
+         */
         void setTextureHeightMeters( double value );
+
+        /**
+         * Gets the real-world height of the image
+         *
+         * @return Texture height (in meters)
+         */
         double getTextureHeightMeters() const;
 
-        // applies to non-repeating textures
+        /**
+         * Sets the minimum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @param value
+         *      Texture height (in meters )
+         */
         void setMinTextureHeightMeters( double value );
+
+        /**
+         * Gets the minimum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @return Texture height (in meters )
+         */
         double getMinTextureHeightMeters() const;
 
-        // applies to non-repeating textures
+        /**
+         * Sets the maximum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @param value
+         *      Texture height (in meters )
+         */
         void setMaxTextureHeightMeters( double value );
+        
+        /**
+         * Gets the maximum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @return Texture height (in meters )
+         */
         double getMaxTextureHeightMeters() const;
 
+        /**
+         * Sets whether this is a repeating texture in the Y direction.
+         *
+         * @param value
+         *      True if it repeats; false if not.
+         */
         void setRepeatsVertically( bool value );
+        
+        /**
+         * Gets whether this is a repeating texture in the Y direction.
+         *
+         * @return True if it repeats; false if not.
+         */
         bool getRepeatsVertically() const;
 
+        /**
+         * Sets the OpenGL texture mapping mode for the image (default
+         * is GL_MODULATE)
+         *
+         * @param mode
+         *      OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
         void setTextureMode( const osg::TexEnv::Mode& mode );
+        
+        /**
+         * Gets the OpenGL texture mapping mode for the image
+         *
+         * @return OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
         const osg::TexEnv::Mode& getTextureMode() const;
 
         void setColor( const osg::Vec4& value );

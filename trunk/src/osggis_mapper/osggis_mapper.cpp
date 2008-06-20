@@ -81,7 +81,7 @@
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/CollectionFilter>
 #include <osgGIS/BuildNodesFilter>
-#include <osgGIS/SceneGraphCompiler>
+#include <osgGIS/SimpleLayerCompiler>
 #include <osgGISProjects/Project>
 #include <osgGISProjects/XmlSerializer>
 
@@ -212,8 +212,8 @@ public:
         nodes->setDisableLighting( true );
         graph->appendFilter( nodes );
 
-        osgGIS::SceneGraphCompiler compiler( layer.get(), graph );
-        osg::Group* result = compiler.compile( cursor );
+        osgGIS::SimpleLayerCompiler compiler( graph );
+        osg::Node* result = compiler.compile( layer.get(), cursor );
 
         overlay->setOverlaySubgraph( result );
         overlay->dirtyOverlayTexture();

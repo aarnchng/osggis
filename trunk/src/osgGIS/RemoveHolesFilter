@@ -25,16 +25,26 @@
 namespace osgGIS
 {
     /**
-     * Removes "holes" (i.e. counter-wound parts) from polygon feature
-     * data. This can be useful as an optimization step for far LODs.
+     * A Feature Filter that removes "holes" (i.e. counter-wound parts) from polygon
+     * features.
+     *
+     * A Polygon feature may actually consist of multiple polygons. The vertex winding
+     * determines whether each poly is a surface or a hole in another surface. This filter
+     * removes the parts that are determined to be holes.
      */
     class OSGGIS_EXPORT RemoveHolesFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( RemoveHolesFilter ); 
 
     public:
+        /**
+         * Constructs a new hole-removing filter
+         */
         RemoveHolesFilter();
 
+        /**
+         * Copy constructor
+         */
         RemoveHolesFilter( const RemoveHolesFilter& rhs );
         
         virtual ~RemoveHolesFilter();

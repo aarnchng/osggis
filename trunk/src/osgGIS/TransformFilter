@@ -29,8 +29,11 @@ namespace osgGIS
 {
     /**
      * Transforms feature data by way of spatial reference reprojtion and/or
-     * matrix transformation. Note that the filter first reprojects using the 
-     * target SRS, then transforms the reprojected geodata using the matrix.
+     * matrix transformation.
+     * 
+     * If you set an SRS (or set an implicit SRS by way of setUseTerrainSRS(true),
+     * the filter performs the SRS transformation before applying any matrix
+     * transformations.
      */
     class OSGGIS_EXPORT TransformFilter : public FeatureFilter
     {
@@ -42,6 +45,9 @@ namespace osgGIS
          */
         TransformFilter();
 
+        /**
+         * Copy constructor.
+         */
         TransformFilter( const TransformFilter& rhs );
         
         /**
@@ -56,7 +62,8 @@ namespace osgGIS
     public: //properties
 
         /**
-         * Sets a transform matrix to use to transform feature geodata.
+         * Sets a transform matrix to use to perform a cartesian transformation
+         * on feature shape data.
          *
          * @param xform_matrix
          *      Matrix to use to transform geodata. Note that SRS reprojection
@@ -65,7 +72,8 @@ namespace osgGIS
         void setMatrix( const osg::Matrix& xform_matrix );
 
         /**
-         * Gets the matrix used to transform feature geodata.
+         * Sets a transform matrix to use to perform a cartesian transformation
+         * on feature shape data.
          * 
          * @return A transformation matrix.
          */
@@ -90,19 +98,21 @@ namespace osgGIS
 
         /**
          * Indicates whether the filter should transform features into the terrain's
-         * SRS as exposed in the FilterEnv* at process time.
+         * SRS as reported by the FilterEnv at compile time.
          */
         void setUseTerrainSRS( bool value );
 
         /**
-         * Gets whether the filter should use the terrain SRS (as shown in the 
-         * FilterEnv).
+         * Gets whether the filter should use the terrain SRS (as reported by the
+         * FilterEnv at compile-time).
          */
         bool getUseTerrainSRS() const;
 
         /**
          * Sets whether to localize the feature geodata by transforming it so it is
-         * relative to the centroid of the graph's working extent
+         * relative to the centroid of the graph's working extent. This is the standard
+         * way to create a "local origin" for a grid cell so as to avoid precision
+         * problems.
          *
          * @param enabled
          *      True to localize geodata; false to not localize
@@ -121,17 +131,35 @@ namespace osgGIS
     public: // script functions
 
         /**
-         * Sets a script that will resolve to the resource name of an SRS resource to use.
+         * Sets a script that will evaluate to the name of an SRSResource to use for
+         * feature data reprojection.
+         *
+         * @param value
+         *      Script that generates an SRSResource name
          */
         void setSRSScript( Script* value );
 
         /**
-         * Gest the script that will resolve to the resource name of an SRS resource to use.
+         * Gets a script that will evaluate to the  name of an SRSResource to use for
+         * feature data reprojection.
+         *
+         * @return Script that generates an SRSResource name
          */
         Script* getSRSScript() const;
 
+        /**
+         * Sets a script that will evaluate to a vec3 to use for cartesian translation
+         * of the feature shape data.
+         *
+         * @param script
+         *      Script that generates a vec3
+         */
         void setTranslateScript( Script* script );
 
+        /**
+         * Gets a script the evaluates to a vec3 to use for cartesian translation of
+         * the feature shape data.
+         */
         Script* getTranslateScript() const;
 
 

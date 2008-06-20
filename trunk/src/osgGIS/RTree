@@ -36,10 +36,10 @@
 
 namespace osgGIS
 {
-    /** Unique identifier for an rtree node. */
+    /* Unique identifier for an rtree node. */
     typedef int RtNodeId;
     
-    /** Single entry in either a leaf or non-leaf node */
+    /* Single entry in either a leaf or non-leaf node */
     template<typename DATA> class RtEntry
     {
     public:
@@ -51,10 +51,10 @@ namespace osgGIS
         };        
     };
     
-    /** Ordered collection of node entries */
+    /* Ordered collection of node entries */
     template<typename DATA> class RtEntryList : public std::vector<RtEntry<DATA> > { };
     
-    /** An R-tree node */
+    /* An R-tree node */
     template<typename DATA> class RtNode : public osg::Referenced
     {
     public:
@@ -69,10 +69,10 @@ namespace osgGIS
         RtEntryList<DATA> entries;
     };    
     
-    /** table that maps node IDs to nodes (for caching/in-memory storage) */
+    /* table that maps node IDs to nodes (for caching/in-memory storage) */
     template<typename DATA> class RtNodeMap : public std::map<RtNodeId, osg::ref_ptr<RtNode<DATA> > > { };
 
-    /** An R-tree spatial data structure */
+    /* An R-tree spatial data structure */
     template<typename DATA> class RTree : public osg::Referenced
     {
     public:

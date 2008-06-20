@@ -29,8 +29,8 @@ namespace osgGIS
 {    
     typedef std::list< std::string > TagList;
 
-    /**
-     * Helper class that implements tagging
+    /* (internal)
+     * Helper class that implements tagging.
      */
     class TagHelper
     {
