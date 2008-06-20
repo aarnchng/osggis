@@ -136,18 +136,6 @@ namespace osgGIS
          * Gets the render order, or -1 if none has been set.
          */
         int getRenderOrder() const;
-
-        /**
-         * Sets whether the compiler should generate PagedLODs instead
-         * of normal LODs, where applicable.
-         */
-        void setPaged( bool value );
-
-        /**
-         * Gets whether the compiler should generate PagedLODs instead
-         * of normal LODs, where applicable.
-         */
-        bool getPaged() const;
         
         /**
          * Sets whether the compiled graph should be converted into an
@@ -232,7 +220,6 @@ namespace osgGIS
         int                             render_order;
         bool                            fade_lods;
         bool                            overlay;
-        bool                            paged;
         osg::ref_ptr<osgDB::Archive>    archive;
         std::string                     archive_filename;
         osg::ref_ptr<TaskManager>       task_manager;

@@ -112,6 +112,18 @@ namespace osgGIS
         int getNumColumns() const;
 
         /**
+         * Sets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        void setPaged( bool value );
+
+        /**
+         * Gets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        bool getPaged() const;
+
+        /**
          * Compiles a non-paged feature layer into a scene graph. Only use this method
          * for non-paged output. For paged output, use the variant that takes an
          * output URI.

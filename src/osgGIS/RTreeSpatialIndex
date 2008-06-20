@@ -26,12 +26,20 @@
 
 namespace osgGIS
 {
-	/**
+	/* (internal class)
+     *
 	 * R-Tree implementation of a spatial index.
 	 */
 	class RTreeSpatialIndex : public osgGIS::SpatialIndex
 	{
 	public:
+        /**
+         * Construct a new R-Tree spatial instance and populate it with
+         * the data in a feature store.
+         *
+         * @param store
+         *      Feature store for which to build index
+         */
 		RTreeSpatialIndex( FeatureStore* store );
 		
 	public: // SpatialIndex

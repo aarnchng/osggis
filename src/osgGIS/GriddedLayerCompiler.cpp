@@ -19,7 +19,6 @@
 
 #include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/GeoExtent>
-#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/FadeHelper>
 #include <osgGIS/Task>
 #include <osgGIS/TaskManager>
@@ -104,6 +103,17 @@ GriddedLayerCompiler::getColumnSize() const
     return col_size;
 }
 
+void
+GriddedLayerCompiler::setPaged( bool value )
+{
+    paged = value;
+}
+
+bool
+GriddedLayerCompiler::getPaged() const
+{
+    return paged;
+}
 
 Properties
 GriddedLayerCompiler::getProperties()
@@ -121,7 +131,9 @@ GriddedLayerCompiler::setProperties( Properties& input )
     setNumColumns( input.getIntValue( "num_columns", getNumColumns() ) );
     setRowSize( input.getDoubleValue( "row_size", getRowSize() ) );
     setColumnSize( input.getDoubleValue( "col_size", getColumnSize() ) );
-    setColumnSize( input.getDoubleValue( "column_size", getColumnSize() ) );
+    setColumnSize( input.getDoubleValue( "column_size", getColumnSize() ) );    
+    setPaged( input.getBoolValue( "paged", getPaged() ) );
+
     LayerCompiler::setProperties( input );
 }
 
@@ -146,13 +158,13 @@ report( const std::string& str )
 class CompileTileTask : public Task
 {
 public:
-    CompileTileTask(int                _row, 
-                    int                _col,
-                    const GeoExtent&   _extent, 
-                    FeatureLayer*      _layer,
-                    Session*           _session,
-                    const std::string& _output_file,
-                    LayerCompiler&     _compiler ) :
+    CompileTileTask(int                   _row, 
+                    int                   _col,
+                    const GeoExtent&      _extent, 
+                    FeatureLayer*         _layer,
+                    Session*              _session,
+                    const std::string&    _output_file,
+                    GriddedLayerCompiler& _compiler ) :
       row(_row),
       col(_col),
       tile_extent( _extent ),
@@ -163,7 +175,6 @@ public:
     {
         std::stringstream s;
         s << "x" << col << ",y" << row;
-//        s << "Cell x" << col << ",y" << row << " EXT: (" << tile_extent.toString() << ") CEN: (" << tile_extent.getCentroid().toString() << ")";
         setName( s.str() );
 
         read_cb = new SmartReadCallback();
@@ -261,11 +272,15 @@ private:
         env->setProperty( Property( "compiler.grid_row", row ) );
         env->setProperty( Property( "compiler.grid_col", col ) );
         env->setExtent( tile_extent );
+        env->setInputSRS( layer->getSRS() );
         env->setTerrainNode( compiler.getTerrainNode() );
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
-        SceneGraphCompiler compiler( layer.get(), graph );
-        return compiler.compile( env.get() );
+
+        osg::Group* output = NULL;
+        FeatureCursor cursor = layer->getCursor( env->getExtent() );
+        FilterGraphResult r = graph->computeNodes( cursor, env.get(), output );
+        return r.isOK()? output : NULL;
     }
 
 private:
@@ -275,7 +290,7 @@ private:
     osg::ref_ptr<FeatureLayer> layer;
     osg::ref_ptr<Session> session;
     std::string output_file;
-    LayerCompiler& compiler;
+    GriddedLayerCompiler& compiler;
     osg::ref_ptr<osg::Node> result;
 };
 

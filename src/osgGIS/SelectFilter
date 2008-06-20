@@ -25,21 +25,44 @@
 
 namespace osgGIS
 {
+    /**
+     * Filter that determines whether to include or exclude individual features.
+     *
+     * This is a custom filtering mechanism that lets you use a Script to look at each Feature
+     * and decide whether to let it continue through the FilterGraph.
+     */
     class OSGGIS_EXPORT SelectFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( SelectFilter );  
 
     public:
+        /**
+         * Constructs a new select filter.
+         */
         SelectFilter();
 
+        /**
+         * Copy constructor
+         */
         SelectFilter( const SelectFilter& rhs );
-
-        ~SelectFilter();
 
     public: // properties
 
+        /**
+         * Sets a script that evaluates to true or false; true = include the feature;
+         * false = exclude the feature.
+         *
+         * @param script
+         *      Script that generates a boolean
+         */
         void setSelectScript( Script* script );
 
+        /**
+         * Gets a script that evalutes to true or false; true = include the feature;
+         * false = exclude the feature.
+         *
+         * @return Script that generates a boolean
+         */
         Script* getSelectScript() const;
 
     public:
@@ -50,6 +73,8 @@ namespace osgGIS
 
     protected:
         osg::ref_ptr<Script> select_script;
+
+        ~SelectFilter();
     };
 }
 

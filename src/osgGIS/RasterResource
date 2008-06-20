@@ -40,14 +40,24 @@ namespace osgGIS
         OSGGIS_META_RESOURCE(RasterResource);
 
     public:
+        /**
+         * Constructs an empty raster resource.
+         */
         RasterResource();
+
+        /**
+         * Constructs a named raster resource.
+         *
+         * @param name
+         *     Readable name of the new resource
+         */
         RasterResource( const std::string& name );
 
     public:
 
         /**
-         * Assembles an osg::Image from the raster data and applies it to
-         * a state set.
+         * Assembles an osg::Image from the raster data and applies it to a state set
+         * as a 2D texture map.
          *
          * @param state_set
          *      State set to which to apply the texture containing the extracted image
@@ -67,12 +77,6 @@ namespace osgGIS
             const GeoExtent&   aoi,
             unsigned int       max_pixel_span,
             osg::Image**       out_image =0L );
-
-        //bool applyToStateSet(
-        //    osg::StateSet*     state_set,
-        //    const GeoExtent&   aoi,
-        //    int                max_pixel_span,
-        //    osg::Image**       out_image =0L );
 
         /**
          * Adds a part to a composite raster.

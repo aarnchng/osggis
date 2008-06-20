@@ -25,6 +25,12 @@
 
 namespace osgGIS
 {
+    /* (internal class)
+     *
+     * Read callback for the IntersectionVisitor that traverses PagedLODs, maintains a
+     * cache, and tracks the MRU node. The MRU dramatically speeds up multiple localized
+     * intersection tests.
+     */
     class SmartReadCallback : public osgUtil::IntersectionVisitor::ReadCallback
     {
     public:

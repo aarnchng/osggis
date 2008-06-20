@@ -28,6 +28,8 @@
 namespace osgGIS
 {
     /* (internal)
+     *
+     * FeatureStore implementation that uses the OGR library to access vector data.
      */
 	class OGR_FeatureStore : public osgGIS::FeatureStore
 	{

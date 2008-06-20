@@ -27,6 +27,8 @@
 
 namespace osgGIS
 {
+    /* (internal)
+     */
     struct OSGGIS_EXPORT StringUtils
     {
         /**
@@ -68,6 +70,8 @@ namespace osgGIS
             const std::string& in );
     };
     
+    /* (internal)
+     */
     struct OSGGIS_EXPORT PathUtils
     {
         static bool isAbsPath(
@@ -82,12 +86,16 @@ namespace osgGIS
             const std::string& right );
     };
     
+    /* (internal)
+     */
     struct OSGGIS_EXPORT FileUtils
     {
         static long getFileTimeUTC(
             const std::string& path );
     };
     
+    /* (internal)
+     */
     struct OSGGIS_EXPORT GeomUtils
     {
         /**
@@ -135,6 +143,8 @@ namespace osgGIS
             const osg::Object::DataVariance& variance );
     };
     
+    /* (internal)
+     */
     struct OSGGIS_EXPORT ImageUtils
     {
         static osg::Image* convertRGBAtoDDS( 

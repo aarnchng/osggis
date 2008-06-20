@@ -32,25 +32,49 @@
 namespace osgGIS
 {
     /**
-     * Defines extension/modifier information that can be applied to a feature.
-     * This could be something that modifies the appearance of a compiled feature
-     * (like a skin/texture) or something at the application level (like a hyperlink).
+     * Pointer to an external piece of data or information.
+     *
+     * A Resource is anything data that exists externally to the core feature store
+     * mechanism. External textures (skins), 3D models, spatial references, or rasters
+     * are all examples of Resource types.
+     *
+     * Concrete classes will implement the Resource interface.
      */
     class OSGGIS_EXPORT Resource : public osg::Referenced, public ObjectWithTags
     {
     public:
         /**
          * Gets the name of this resource.
+         *
+         * @return String
          */
         const char* getName() const;
 
         /**
          * Sets the name of this resource.
+         *
+         * @param name
+         *      Name of the resource (for lookup)
          */
         virtual void setName( const std::string& name );
         
+        /**
+         * Gets the primary URI of the Resource. This is the location of the external
+         * object that the Resource references. (NOTE: You will usually want to call
+         * getAbsoluteURI() instead of this method, sine this may return a relative
+         * value.)
+         *
+         * @return Relative (to getBaseURI) or absolute URI
+         */
         virtual const std::string& getURI() const;
         
+        /**
+         * Sets the primary URI of the Resource. This is the locaiton of the external
+         * object that the Resource references.
+         *
+         * @param uri
+         *      Relative (to getBaseURI) or absolute URI of the external object
+         */
         virtual void setURI( const std::string& uri );
         
         virtual const std::string& getAbsoluteURI() const;
@@ -58,19 +82,27 @@ namespace osgGIS
         
         /**
          * Sets the base URI path to which relative paths should be appended
+         *
+         * @param base_uri
+         *      A URI prefix to which relative primary URIs shall be appended
          */
         void setBaseURI( const std::string& base_uri );
 
         /**
          * Gets the base URI for relative paths.
+         *
+         * @return The base URI to which relative primary URIs shall be appended
          */
         const std::string& getBaseURI() const;
         
         /**
-         * Gets true if this is marked as a "single-use" resource; i.e. it is unique to
-         * a specific application within the build. The layer compiler will remove
-         * single-use resources from memory once them are localized. An example would be
-         * a rooftop-ortho texture, which is applied one time and never shared.
+         * Checks whether this is a one-time-only Resource.
+         *
+         * @return True if this is marked as a "single-use" resource; i.e. it is unique to
+         *         a specific application within the build. The layer compiler will remove
+         *         single-use resources from the ResourceLibrary once them are used. An
+         *         example would be a rooftop-ortho texture, which is applied one time and
+         *         never shared.
          */
         bool isSingleUse() const;
 

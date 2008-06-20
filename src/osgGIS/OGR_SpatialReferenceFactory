@@ -26,6 +26,9 @@
 namespace osgGIS
 {
     /* (internal)
+     *
+     * Spatial reference factory implementation that creates OGR-based
+     * SRS objects.
      */
     class OGR_SpatialReferenceFactory : public SpatialReferenceFactory
     {

@@ -32,6 +32,9 @@ namespace osgGIS
 {
     class OSGGIS_EXPORT TaskManager;
     
+    /* (internal)
+     * Object that a TaskManager uses to run a Task in a separate thread.
+     */
     class TaskThread : public OpenThreads::Thread
     {
     public:
@@ -75,19 +78,83 @@ namespace osgGIS
     typedef std::map<int,TaskThread*> TaskThreadMap;
     
     
+    /**
+     * Dispatches Task objects and tracks their progress.
+     *
+     * A TaskManager maintains a queue of Task instances, and dispatches them one
+     * by one, each in its own thread (TaskThread).
+     *
+     * Each time you call wait(), the TaskManager will check for completed tasks and
+     * dispatch pending tasks if there are threads available. You can then call
+     * getNextCompletedTask() to dequeue a task that has finished.
+     *
+     * So the usage pattern is:
+     *
+     * <pre>
+     *   task_man->queueTask( task1 );
+     *   task_man->queyeTask( task2 );
+     *   ...
+     *   while( task_man->wait() )
+     *   {
+     *      osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
+     *      ...
+     *   }
+     * </pre>
+     */
     class OSGGIS_EXPORT TaskManager : public osg::Referenced
     {
     public:
+        /**
+         * Constructs a new task manager. The task manager will allocate a pool of
+         * working threads equal to the number of logical processors found on the
+         * system.
+         */
         TaskManager();
+
+        /** 
+         * Constructs a new task manager.
+         *
+         * @param max_threads
+         *      Maximum number of threads to allocate for running Tasks.
+         */
         TaskManager( int max_threads );
+
         virtual ~TaskManager();
 
+        /**
+         * Enqueue a task for execution. The task will run when you call wait(),
+         * the task has reached the front of the queue, and there is a working
+         * thread available.
+         *
+         * @param task
+         *      Task to put on the dispatch queue
+         */
         void queueTask( Task* task );
         
+        /**
+         * Keep calling this method until it returns false.
+         *
+         * Calling wait() checks for completed tasks, checks for pending tasks and
+         * dispatching them to available threads, and then blocks until the first
+         * running task completes.
+         *
+         * @return True if there are still more tasks pending or running; False if
+         *         all known tasks have completed.
+         */
         bool wait();
         
+        /**
+         * Checks whether there are any uncompleted tasks.
+         *
+         * @return True if there are still tasks that have not completed.
+         */
         bool hasMoreTasks();
 
+        /**
+         * Gets the next completed task and returns it to the user
+         *
+         * @returns A completed task wrapped in a reference pointer.
+         */
         osg::ref_ptr<Task> getNextCompletedTask();
 
     private:

@@ -29,27 +29,44 @@ namespace osgGIS
     class FeatureStore;
 
     /**
-     * Writes incoming features to a FeatureStore.
+     * Filter that writes incoming features to a FeatureStore.
+     *
+     * This filter will take the incoming feature stream and write each feature
+     * to a new FeatureStore. This is useful if you want to save an intermediate
+     * state in the middle of a FilterGraph, or if you want to create a derived
+     * data source (say by reprojecting source data) and persist it.
      */
     class OSGGIS_EXPORT WriteFeaturesFilter : public FeatureFilter
     {  
         OSGGIS_META_FILTER( WriteFeaturesFilter );   
 
     public:
+        /**
+         * Constructs a new feature-writing filter.
+         */
         WriteFeaturesFilter();
 
+        /**
+         * Copy constructor.
+         */
         WriteFeaturesFilter( const WriteFeaturesFilter& rhs );
 
 
     public: //properties
 
         /**
-         * Sets the URI of the feature store to which to write the features.
+         * Sets the URI of the feature store to which to write the features. The
+         * filter will create a new feature store at the URI.
+         *
+         * @param value
+         *      URI at which to create and open the new feature store
          */
         void setOutputURI( const std::string& value );
         
         /**
          * Gets the URI of the feature store to which to write the featues.
+         *
+         * @return URI at which to create and open the new feature store
          */
         const std::string& getOutputURI() const;
 

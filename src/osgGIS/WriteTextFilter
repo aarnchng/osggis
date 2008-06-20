@@ -26,15 +26,22 @@
 namespace osgGIS
 {
     /**
-     * Writes text to stdout or to a file.
+     * Writes text to stdout or to a text file. This is a "pass-thru" filter
+     * that has no effect on incoming feature data.
      */
     class OSGGIS_EXPORT WriteTextFilter : public FeatureFilter
     {
         OSGGIS_META_FILTER( WriteTextFilter );
 
     public:
+        /**
+         * Constructs a new text-writer filter.
+         */
         WriteTextFilter();
 
+        /**
+         * Copy constructor.
+         */
         WriteTextFilter( const WriteTextFilter& rhs );
 
     public:
@@ -52,19 +59,24 @@ namespace osgGIS
          */
         Script* getOutputPathResourceNameScript() const;
 
-        // NYI
+        /* (nyi) */
         void setAppend( bool value );
 
-        // NYI
+        /* (nyi) */
         bool getAppend() const;
 
         /**
          * Sets a script that evaluates to the text string to output.
+         *
+         * @param script 
+         *      Script that generates a line of text
          */
         void setTextScript( Script* script );
 
         /**
          * Gets a script that evalutes to the text string to output.
+         *
+         * @return Script that generates a line of text
          */
         Script* getTextScript() const;
 

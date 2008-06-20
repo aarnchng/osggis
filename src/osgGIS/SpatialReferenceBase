@@ -25,7 +25,7 @@
 
 namespace osgGIS
 {
-    /**
+    /*
      * Common base class for SpatialReference implementations
      */
     class OSGGIS_EXPORT SpatialReferenceBase : public SpatialReference

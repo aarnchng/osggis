@@ -26,6 +26,9 @@
 
 namespace osgGIS
 {
+    /* (internal)
+     * Utility functions for terrain data
+     */
     class TerrainUtils
     {
     public:

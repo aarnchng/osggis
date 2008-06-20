@@ -45,6 +45,8 @@ namespace osgGIS
          *      Individual feature to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( Feature* input, FilterEnv* env );
         
@@ -55,6 +57,8 @@ namespace osgGIS
          *      Batch of features to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
 
@@ -65,6 +69,8 @@ namespace osgGIS
          *      Individual fragment to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( Fragment* input, FilterEnv* env );
         
@@ -75,6 +81,8 @@ namespace osgGIS
          *      Batch of fragments to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
         
@@ -85,6 +93,8 @@ namespace osgGIS
          *      Individual node to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( osg::Node* input, FilterEnv* env );
         
@@ -95,6 +105,8 @@ namespace osgGIS
          *      Batch of nodes to process
          * @param env
          *      Contextual compilation environment
+         * @return
+         *      Resulting node list
          */
         virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
         

@@ -31,68 +31,95 @@ namespace osgGIS
     class FilterEnv;
     
     /**
-     * A "session" is a state object that exists throughout the life
-     * of one or more related compilations. The Session holds common
-     * re-usable data elements (like Scripts and Resources), tracks
-     * statistics, and so forth.
+     * A state object that exists throughout the life of one or more related compilations.
      *
-     * A session may be shared across compilations that exist in
-     * separate threads -- therefore access to the session's resources
-     * is protected by mutex.
+     * A Session holds shared, re-usable data elements (like Scripts and Resources) that can
+     * be accessed at compile time by Filters. 
+     *
+     * Whereas a FilterEnv exists thoughout the life of a single compilation (a single
+     * FilterGraph/FilterEnv), a Session exists one level above this and governs any number of
+     * "related" compilations (e.g., the compilation of many grid cells comprising a single
+     * feature layer).
+     *
+     * A Session may be shared across compilations that exist in separate threads -- therefore
+     * access to the session's resources is protected by mutex.
      */
     class OSGGIS_EXPORT Session : public osg::Referenced
     {
     public:
         /**
-         * Constructs a new, empty session.
+         * Constructs a new session.
          */
         Session();
         
         /**
-         * Creates a shallow clone of this session that references
-         * the same scripts and resource library (but not the transient elements
-         * like the properties and used-resource marks.
+         * Creates a shallow clone of this session that references the same scripts
+         * and resource library (but not the transient elements like the properties
+         * and resource-use information).
+         *
+         * @return A derived Session. Caller is responsible for deleting the return object.
          */
         Session* derive();
 
         /**
-         * Creates a new scripting engine that incorporates any
-         * scripts stored in this session.
+         * Creates a new scripting engine that incorporates any scripts stored in this
+         * session.
+         *
+         * @return A script evaluation engine. Caller is responsible for deleting the
+         *         return object.
          */
         ScriptEngine* createScriptEngine();
         
         /**
-         * Creates a new filter environment object that will operate
-         * under this session.
+         * Creates a new filter environment context that will operate under this session.
+         *
+         * @return A Filter context. Caller is responsible for deleting the return object.
          */
         FilterEnv* createFilterEnv();
 
         /**
-         * Adds a script to this session. The script will be available
-         * in ScriptEngine's created by calling createScriptEngine().
+         * Adds a Script to this session. The script will be available in ScriptEngine's created
+         * by calling createScriptEngine() (but NOT to a ScriptEngine created before adding the
+         * new Script).
+         *
+         * @param script
+         *      Script to install
          */
         void addScript( Script* script );
 
         /**
-         * Gets a read-only reference to the  resource library that manages
-         * shared resources for this session.
+         * Gets a read-only reference to the resource library that manages shared resources
+         * for this session.
+         *
+         * @return Read-only resource library reference
          */
         const ResourceLibrary* getResources() const;
         
         /**
          * Gets a reference to the resource library that manages shared
          * resources for this session.
+         *
+         * @return Resource library reference
          */
         ResourceLibrary* getResources();
 
         /**
-         * Stores an indicator that this session used the specified resource.
+         * Stores an indicator that the specified resource was used during the course of
+         * this Session.
+         *
+         * @param resource
+         *      Resource to mark as "used"
          */
         void markResourceUsed( Resource* resource );
 
         /**
-         * Gets a collection of the resources that have been
-         * marked as "used" in this session (by calling markResourceUsed).
+         * Gets a collection of the resources that have been marked as "used" in this
+         * session (by calling markResourceUsed).
+         *
+         * @param reset
+         *      Whether to clear the "used" list after returning from this method
+         * @return
+         *      List of resources marked as "used"
          */
         ResourceList getResourcesUsed( bool reset =false );
         
@@ -102,6 +129,8 @@ namespace osgGIS
          * file, for example).
          *
          * Use this sparingly or risk hurting performance!
+         *
+         * @return A mutex
          */
         OpenThreads::ReentrantMutex& getSessionMutex();
         

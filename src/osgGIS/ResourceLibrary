@@ -36,60 +36,222 @@
 namespace osgGIS
 {
     /**
-     * A resource library is a container for Resource and Rule definitions.
+     * A Session-wide container for shared Resource objects.
+     * 
      * Resources define external things that a compiler can apply to features
-     * (like a texture skin or a hyperlink). Rules define how a a feature
-     * selects a particular resource.
+     * (like a texture skin or a hyperlink). They are all stored in the ResourceLibrary
+     * so that Filter implementations can access them during compilation.
+     *
+     * The ResourceLibrary lives at the Session level; one instance is shared between
+     * all FilterGraphs executing under the same session.
      *
      * This class is thread-safe.
      */
     class OSGGIS_EXPORT ResourceLibrary : public osg::Referenced
     {
     public:
+        /**
+         * Constructs a new Resource Library.
+         *
+         * @param mutex_to_use
+         *      Mutex that will protect multi-threaded access to the library.
+         *      Since the library typically exists within a Session, the Session
+         *      shares its mutex with the library.
+         */
         ResourceLibrary( OpenThreads::ReentrantMutex& mutex_to_use );
 
     public:
+        /**
+         * Adds a new resource instance to the library.
+         *
+         * @param resource
+         *      Resource to add to the library
+         */
         void addResource( Resource* resource );
         
+        /**
+         * Removes a resource from the library.
+         *
+         * @param resource
+         *      Resource to remove from the library
+         */
         void removeResource( Resource* resource );
-        
 
+        /**
+         * Gets a resource by name.
+         *
+         * @param name
+         *      Name of the resource for which to search
+         * @return
+         *      Matching resource, or NULL if not found
+         */
         Resource* getResource( const std::string& name );
 
-
+        /**
+         * Gets a skin resource by name.
+         *
+         * @param name
+         *      Name of the skin resource for which to search
+         * @return
+         *      Matching skin, or NULL if not found
+         */
         SkinResource* getSkin( const std::string& name );
 
+        /**
+         * Gets a list of all skin resources in the library.
+         *
+         * @return List of Resources
+         */
         ResourceList getSkins();
 
+        /**
+         * Gets a list of all skin resources in the library that match the
+         * search criteria in the provided query.
+         *
+         * @param query
+         *      Search criteria for skin resources
+         * @return
+         *      List of resources that match the query
+         */
         ResourceList getSkins( const SkinResourceQuery& query );
 
+        /**
+         * Gets the OSG state set corresponding to a skin resource.
+         * A skin resource points to an image. This method returns a state set
+         * that encapsulates that image in an osg::Texture2D and wraps that
+         * texture in a state set.
+         *
+         * @param skin
+         *      Skin resource for which to get a state set
+         * @return
+         *      A state set containing a 2D texture
+         */
         osg::StateSet* getStateSet( SkinResource* skin );
 
+        /**
+         * Creates a new query structure that you can use to search for
+         * skin resources.
+         *
+         * (NOTE: this method just returns an empty object on the stack. The method
+         * exists solely to facitate querying from within a runtime Lua script)
+         *
+         * @return A query structure.
+         */
         SkinResourceQuery newSkinQuery();
 
-        
-        
+        /**
+         * Gets a model resource by name.
+         *
+         * @param name
+         *      Name of the model for which to search
+         * @return
+         *      Matching model resource, or NULL if not found
+         */
         ModelResource* getModel( const std::string& name );
 
+        /**
+         * Gets a list of all model resource in the library.
+         *
+         * @return List of model resources
+         */
         ResourceList getModels();
 
+        /**
+         * Gets a list of all model resources that match a set of
+         * query parameters.
+         *
+         * @param query
+         *      Query parameters 
+         * @return
+         *      List of models that match the query parameters
+         */
         ResourceList getModels( const ModelResourceQuery& query );
 
+        /**
+         * Creates a new query structure that you can use to search for
+         * model resources.
+         *
+         * (NOTE: this method just returns an empty object on the stack. The method
+         * exists solely to facitate querying from within a runtime Lua script)
+         *
+         * @return A query structure.
+         */
         ModelResourceQuery newModelQuery();
 
+        /**
+         * Gets an OSG node containing the scene graph corresponding to a model
+         * resource. 
+         *
+         * @param model
+         *      Model resource for which to return a scene graph
+         * @param optimize
+         *      Whether to run the osgUtil::Optimizer on the model scene graph
+         *      before returning it
+         * @return
+         *      An osg::Node containing the scene graph
+         */
         osg::Node* getNode( ModelResource* model, bool optimize =true );
         
+        /**
+         * Gets an OSG node that references the external path of the model resource
+         * from an osg::ProxyNode without actually loading the scene graph of the
+         * model itselg.
+         *
+         * @param model
+         *      Model resource for which to return a scene graph
+         * @return
+         *      An osg::ProxyNode pointing to the external model
+         */
         osg::Node* getProxyNode( ModelResource* model );
         
-        
+        /**
+         * Gets a Raster resource by name.
+         *
+         * @param name
+         *      Name of the raster resource for which to search
+         * @return
+         *      A raster resource, or NULL if not found
+         */
         RasterResource* getRaster( const std::string& name );
         
+        /**
+         * Gets a feature layer resource by name.
+         *
+         * @param name
+         *      Name of the feature layer resource for which to search
+         * @return
+         *      A feature layer, of NULL if not found
+         */
         FeatureLayer* getFeatureLayer( const std::string& name );
 
+        /**
+         * Gets a spatial reference system (SRS) resource by name
+         *
+         * @param name
+         *      Name of the SRS resource for which to search
+         * @return
+         *      A spatial reference system, or NULL if not found
+         */
         SpatialReference* getSRS( const std::string& name );
 
+        /**
+         * Gets a Path Resource by name
+         *
+         * @param name
+         *      Name of the path resource for which to search
+         * @return
+         *      The path corresponding to the resource, or "" if not found
+         */
         std::string getPath( const std::string& name );
 
+        /**
+         * Gets a Path resource by name
+         *
+         * @param name
+         *      Name of the path resource for which to search
+         * @return
+         *      The path resource, or NULL if not found
+         */
         PathResource* getPathResource( const std::string& name );
         
         

@@ -24,7 +24,7 @@
  */
 
 #include <osgGIS/Registry>
-#include <osgGIS/SceneGraphCompiler>
+#include <osgGIS/SimpleLayerCompiler>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/BuildNodesFilter>
@@ -188,8 +188,8 @@ main(int argc, char* argv[])
     osg::ref_ptr<osgGIS::FilterGraph> graph = createFilterGraph();
 
     // Compile the feature layer into a scene graph.
-    osgGIS::SceneGraphCompiler compiler( layer.get(), graph.get() );
-    osg::ref_ptr<osg::Node> output = compiler.compile();
+    osgGIS::SimpleLayerCompiler compiler( graph.get() );
+    osg::ref_ptr<osg::Node> output = compiler.compile( layer.get() );
 
     if ( !output.valid() )
         return die( "Compilation failed!" );

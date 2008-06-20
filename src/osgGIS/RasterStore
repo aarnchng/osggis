@@ -62,30 +62,43 @@ namespace osgGIS
          *
          * @param aoi
          *      Spatial extent of the area of interest to extract
-         * @param max_span_pixels
-         *      Maximum number of pixels in the returned image, in either dimension
-         * @param force_power_of_2_dimensions
-         *      If true, will resize the image so that both dimensions have a span that is
-         *      an exact power of 2.
+         * @param image_width
+         *      Width of the resulting osg::Image (in pixels)
+         * @param image_height
+         *      Height of the resulting osg::Image (in pixels)
+         * @return
+         *      An osg::Image object. Caller is responsible for deleting the return object.
          */
-        //virtual osg::Image* createImage( 
-        //    const GeoExtent& extent, 
-        //    int max_span_pixels,
-        //    bool force_power_of_2_dimensions ) const =0;
-
         virtual osg::Image* createImage(
-            const GeoExtent& extent,
+            const GeoExtent& aoi,
             unsigned int     image_width,
             unsigned int     image_height ) const =0;
 
         /**
-         * Gets the pixel format of images returned from createImage
-         * (e.g. GL_RGBA, GL_RGB, etc.)
+         * Gets the pixel format of images returned from createImage.
+         *
+         * @return A pixel format (e.g. GL_RGBA, GL_RGB, etc.)
          */
         virtual GLenum getImagePixelFormat() const =0;
 
         /**
-         * TBD
+         * Calculates and returns an image size that will best accomodate an osg::Image
+         * that spans the provided AOI. Typically you would call this and use the generated
+         * size in a call to createImage().
+         *
+         * @param aoi
+         *      Spatial extent of raster area to query
+         * @param max_pixel_span
+         *      Maximum number of pixels in either dimension
+         * @param force_power_of_2
+         *      Round the resulting dimensions so that they are powers of 2
+         * @param out_image_width
+         *      Upon success, stores the calculated width to this variable
+         * @param out_image_height
+         *      Upon success, stores the calcluates height to this variable.
+         *
+         * @return
+         *      True upon success, False upon failure.
          */
         virtual bool getOptimalImageSize(
             const GeoExtent& aoi,
@@ -94,7 +107,7 @@ namespace osgGIS
             unsigned int&    out_image_width,
             unsigned int&    out_image_height ) const =0;
 
-        /**
+        /* (NOT YET IMPLEMENTED)
          * Extracts a height field from the raster store.
          *
          * @param aoi

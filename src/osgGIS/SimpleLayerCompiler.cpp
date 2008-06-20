@@ -19,7 +19,6 @@
 
 #include <osgGIS/SimpleLayerCompiler>
 #include <osgGIS/FilterGraph>
-#include <osgGIS/SceneGraphCompiler>
 #include <osgGIS/FilterEnv>
 #include <osgGIS/FadeHelper>
 #include <osgGIS/Utils>
@@ -28,7 +27,6 @@
 #include <osg/Notify>
 #include <osg/Depth>
 #include <osgDB/FileNameUtils>
-#include <osgSim/LineOfSight> // for the DatabaseCacheReadCallback
 
 using namespace osgGIS;
 
@@ -37,25 +35,39 @@ SimpleLayerCompiler::SimpleLayerCompiler()
     //NOP
 }
 
+SimpleLayerCompiler::SimpleLayerCompiler( FilterGraph* graph )
+{
+    addFilterGraph( FLT_MIN, FLT_MAX, graph );
+}
 
 osg::Node*
-SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FilterGraph* graph )
+SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FeatureCursor& cursor, FilterGraph* graph )
 {
     osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
     env->setExtent( getAreaOfInterest( layer ) );
+    env->setInputSRS( layer->getSRS() );
     env->setTerrainNode( terrain.get() );
     env->setTerrainSRS( terrain_srs.get() );
     env->setTerrainReadCallback( read_cb.get() );
-    SceneGraphCompiler compiler( layer, graph );
-    return compiler.compile( env.get() );
+
+    osg::Group* output;
+    FilterGraphResult r = graph->computeNodes( cursor, env.get(), output );
+    return r.isOK()? output : NULL;
 }
 
 
 osg::Node*
 SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_file )
 {
+    FeatureCursor cursor = layer->getCursor();
+    return compile( layer, cursor, output_file );
+}
+
+
+osg::Node*
+SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, const std::string& output_file )
+{
     osg::Node* result = NULL;
-    //osg::ref_ptr<osg::Node> result = NULL;
 
     if ( !layer ) {
         osg::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
@@ -71,7 +83,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
 
     for( FilterGraphRangeList::iterator i = graph_ranges.begin(); i != graph_ranges.end(); i++ )
     {
-        osg::Node* range = compileLOD( layer, i->graph.get() );
+        osg::Node* range = compileLOD( layer, cursor, i->graph.get() );
         if ( range )
         {
             lod->addChild( range, i->min_range, i->max_range );
@@ -102,9 +114,12 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fil
             result->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth( osg::Depth::ALWAYS ), osg::StateAttribute::ON );
         }
 
-        //generateOverlayRaster( result, getAreaOfInterest( layer ) );
         localizeResourceReferences( result );
-        localizeResources( osgDB::getFilePath( output_file ) );
+
+        if ( output_file.length() > 0 )
+        {
+            localizeResources( osgDB::getFilePath( output_file ) );
+        }
     }
 
     return result;

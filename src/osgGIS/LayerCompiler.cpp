@@ -52,7 +52,6 @@ LayerCompiler::LayerCompiler()
     aoi_xmax = DBL_MIN;
     aoi_ymax = DBL_MIN;
     localize_resources = true;
-    paged = false;
     compress_textures = false;
 }
 
@@ -166,18 +165,6 @@ LayerCompiler::getFadeLODs() const
 }
 
 void
-LayerCompiler::setPaged( bool value )
-{
-    paged = value;
-}
-
-bool
-LayerCompiler::getPaged() const
-{
-    return paged;
-}
-
-void
 LayerCompiler::setOverlay( bool value )
 {
     overlay = value;
@@ -272,7 +259,6 @@ LayerCompiler::getProperties()
 void
 LayerCompiler::setProperties( Properties& input )
 {
-    setPaged( input.getBoolValue( "paged", getPaged() ) );
     setFadeLODs( input.getBoolValue( "fade_lods", getFadeLODs() ) );
     setRenderOrder( input.getIntValue( "render_order", getRenderOrder() ) );
     setLocalizeResources( input.getBoolValue( "localize_resources", getLocalizeResources() ) );
