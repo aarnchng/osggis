@@ -36,7 +36,7 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
-#define DEFAULT_CLUSTER true
+#define DEFAULT_CLUSTER false
 #define DEFAULT_OPTIMIZE_MODEL false
 
 
@@ -472,7 +472,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
     osg::NodeList output;
 
-    if ( input.size() > 0 && getCluster() && !getFeatureNameScript() )
+    if ( input.size() > 1 && getCluster() && !getFeatureNameScript() )
     {
         // There is a bug, or an order-of-ops problem, with "FLATTEN" that causes grid
         // cell features to be improperly offset...especially with SubstituteModelFilter

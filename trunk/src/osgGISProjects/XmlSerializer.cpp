@@ -256,6 +256,17 @@ parseSRSResource( XmlElement* e, SRSResource* resource )
     }
 }
 
+static SRSResource*
+findSRSResource( const ResourceList& list, const std::string& name )
+{
+    for( ResourceList::const_iterator i = list.begin(); i != list.end(); i++ )
+    {
+        if ( dynamic_cast<SRSResource*>( i->get() ) && i->get()->getName() == name )
+            return static_cast<SRSResource*>( i->get() );
+    }
+    return NULL;
+}
+
 static void
 parseRasterResource( XmlElement* e, RasterResource* resource )
 {
@@ -360,6 +371,10 @@ decodeTerrain( XmlElement* e, Project* proj )
         terrain->setBaseURI( proj->getBaseURI() );
         terrain->setName( e->getAttr( "name" ) );
         terrain->setURI( e->getSubElementText( "uri" ) );
+
+        SRSResource* resource = findSRSResource( proj->getResources(), e->getAttr( "srs" ) );
+        if ( resource )
+            terrain->setExplicitSRS( resource->getSRS() );
     }
     return terrain;
 }
@@ -534,7 +549,7 @@ decodeProject( XmlElement* e, const std::string& source_uri )
                 project->getFilterGraphs().push_back( graph );
         }
 
-        // terrains
+        // terrains (depends on resources)
         XmlNodeList terrains = e->getSubElements( "terrain" );
         for( XmlNodeList::const_iterator j = terrains.begin(); j != terrains.end(); j++ )
         {

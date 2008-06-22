@@ -51,9 +51,20 @@ getTerrainData(Terrain*                        terrain,
     if ( terrain && terrain->getURI().length() > 0 )
     {
         out_terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() );
+
+        out_terrain_srs = terrain->getExplicitSRS();
+
         if ( out_terrain_node.valid() )
         {
-            out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
+            if ( !out_terrain_srs.valid() )
+            {
+                out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
+            }
+
+            osg::notify( osg::NOTICE )
+                << "Loaded TERRAIN from \"" << terrain->getAbsoluteURI() << "\", SRS = "
+                << (out_terrain_srs.valid()? out_terrain_srs->getName() : "unknown")
+                << std::endl;
         }
         else
         {
