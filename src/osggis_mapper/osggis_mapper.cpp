@@ -347,6 +347,8 @@ main(int argc, char* argv[])
         return die( "Unable to load terrain file; exiting." );
 
     osg::ref_ptr<osgGIS::SpatialReference> terrain_srs =
+        terrain->getExplicitSRS()?
+        terrain->getExplicitSRS() :
         registry->getSRSFactory()->createSRSfromTerrain( terrain_node );
 
     // activate a polygon offset so that draped vector layers don't z-fight:

@@ -21,6 +21,7 @@
 #define _OSGGISPROJECTS_TERRAIN_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGIS/SpatialReference>
 #include <list>
 
 namespace osgGISProjects
@@ -46,10 +47,15 @@ namespace osgGISProjects
 
         void setURI( const std::string& uri );
 
+        void setExplicitSRS( osgGIS::SpatialReference* srs );
+
+        osgGIS::SpatialReference* getExplicitSRS() const;
+
     private:
         std::string name;
         std::string uri;
         std::string base_uri;
+        osg::ref_ptr<osgGIS::SpatialReference> explicit_srs;
     };
 
     typedef std::list<osg::ref_ptr<Terrain> > TerrainList;

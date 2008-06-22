@@ -70,3 +70,26 @@ Terrain::getAbsoluteURI() const
     return PathUtils::getAbsPath( base_uri, uri );
 }
 
+//void
+//Terrain::setSRSResourceName( const std::string& value )
+//{
+//    srs_resource_name = value;
+//}
+//
+//const std::string&
+//Terrain::getSRSResourceName() const
+//{
+//    return srs_resource_name;
+//}
+
+void
+Terrain::setExplicitSRS( SpatialReference* srs )
+{
+    explicit_srs = srs;
+}
+
+SpatialReference*
+Terrain::getExplicitSRS() const
+{
+    return explicit_srs.get();
+}
