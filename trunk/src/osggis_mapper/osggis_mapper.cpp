@@ -58,6 +58,7 @@
 #include <osg/Geometry>
 #include <osg/Geode>
 #include <osg/LightSource>
+#include <osg/CullFace>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/ReaderWriter>
@@ -354,6 +355,10 @@ main(int argc, char* argv[])
     // activate a polygon offset so that draped vector layers don't z-fight:
     terrain_node->getOrCreateStateSet()->setAttributeAndModes(
         new osg::PolygonOffset( 1.0, 1.0 ),
+        osg::StateAttribute::ON );
+
+    terrain_node->getOrCreateStateSet()->setAttributeAndModes(
+        new osg::CullFace(),
         osg::StateAttribute::ON );
 
     // Optionally disable lighting on the terrain:

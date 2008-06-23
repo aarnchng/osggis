@@ -43,6 +43,7 @@
 #include <osg/TexEnv>
 #include <osg/Geometry>
 #include <osg/Geode>
+#include <osg/CullFace>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/ReaderWriter>
@@ -151,6 +152,10 @@ main(int argc, char* argv[])
                     // Apply a polygon offset so that clamped vector layers display properly:
                     terrain_node->getOrCreateStateSet()->setAttributeAndModes(
                         new osg::PolygonOffset( 1.0, 1.0 ),
+                        osg::StateAttribute::ON );
+
+                    terrain_node->getOrCreateStateSet()->setAttributeAndModes(
+                        new osg::CullFace(),
                         osg::StateAttribute::ON );
 
                     // Optionally disable lighting on the terrain:
