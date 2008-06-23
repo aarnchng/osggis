@@ -46,7 +46,7 @@ OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 #define DEFAULT_POINT_SIZE               0.0f
 #define DEFAULT_LINE_WIDTH               0.0f
 #define DEFAULT_CULL_BACKFACES           true
-#define DEFAULT_APPLY_CLUSTER_CULLING    true
+#define DEFAULT_APPLY_CLUSTER_CULLING    false
 #define DEFAULT_DISABLE_LIGHTING         false
 #define DEFAULT_OPTIMIZE                 true
 #define DEFAULT_EMBED_ATTRIBUTES         false
@@ -363,27 +363,36 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
 
         if ( getApplyClusterCulling() && input_srs->isGeocentric() )
         {    
-            osg::Vec3d control_point = centroid_abs;
             osg::Vec3d normal = centroid_abs;
             normal.normalize();
             osg::BoundingSphere bs = result->computeBound(); // force it
+            
+            // radius = distance from centroid inside which to disable CC altogether:
             float radius = bs.radius();
-            float deviation = (float) -atan( radius / input_srs->getEllipsoid().getSemiMajorAxis() );
+            osg::Vec3d control_point = bs.center();
 
+            // dot product: 0 = orthogonal to normal, -1 = equal to normal
+            float deviation = radius*10.0f/input_srs->getEllipsoid().getSemiMinorAxis();
+            
             osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
-            ccc->set( control_point, normal, deviation, radius );            
+            ccc->set( control_point, normal, deviation, radius );
 
             osg::Group* cull_group = new osg::Group();
             cull_group->setCullCallback( ccc );
             cull_group->addChild( xform );
             result = cull_group;
 
+
+            //osg::notify(osg::NOTICE) << "CCC: radius = " << radius << ", deviation = " << deviation << std::endl;
+
+
             //if ( getDrawClusterCullingNormals() == true )
             //{
             //    //DRAW CLUSTER-CULLING NORMALS
+            //    osg::Geode* geode = new osg::Geode();
             //    osg::Geometry* g = new osg::Geometry();
             //    osg::Vec3Array* v = new osg::Vec3Array(2);
-            //    (*v)[0] = centroid; (*v)[1] = (centroid_abs + (normal*radius)) * input_srs->getReferenceFrame();
+            //    (*v)[0] = control_point; (*v)[1] = control_point + (normal*radius);
             //    g->setVertexArray( v );
             //    osg::Vec4Array* c = new osg::Vec4Array(1);
             //    (*c)[0] = osg::Vec4f( 0,1,0,1 );
@@ -391,6 +400,7 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
             //    g->setColorBinding( osg::Geometry::BIND_OVERALL );
             //    g->addPrimitiveSet( new osg::DrawArrays( osg::PrimitiveSet::LINES, 0, 2 ) );
             //    geode->addDrawable( g );
+            //    cull_group->addChild( geode );
             //}
         }
     }
