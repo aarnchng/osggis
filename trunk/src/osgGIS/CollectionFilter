@@ -24,6 +24,7 @@
 #include <osgGIS/Filter>
 #include <osgGIS/Feature>
 #include <osgGIS/Fragment>
+#include <osgGIS/AttributedNode>
 #include <osg/Node>
 
 namespace osgGIS
@@ -100,13 +101,13 @@ namespace osgGIS
 
         virtual std::string assign( Feature*, FilterEnv* ) { return ""; }
         virtual std::string assign( Fragment*, FilterEnv* ) { return ""; }
-        virtual std::string assign( osg::Node*, FilterEnv* ) { return ""; }
+        virtual std::string assign( AttributedNode*, FilterEnv* ) { return ""; }
         
     public:
     
         virtual void preMeter( FeatureList& features, FilterEnv* ) { }
         virtual void preMeter( FragmentList& drawables, FilterEnv* ) { }
-        virtual void preMeter( osg::NodeList& nodes, FilterEnv* ) { }
+        virtual void preMeter( AttributedNodeList& nodes, FilterEnv* ) { }
 
     private:
 

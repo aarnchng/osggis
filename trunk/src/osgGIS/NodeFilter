@@ -21,6 +21,7 @@
 #define _OSGGIS_NODE_FILTER_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/AttributedNode>
 #include <osgGIS/CollectionFilter>
 #include <osgGIS/FragmentFilter>
 #include <osgGIS/FeatureFilter>
@@ -48,7 +49,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( Feature* input, FilterEnv* env );
+        virtual AttributedNodeList process( Feature* input, FilterEnv* env );
         
         /**
          * Processes a collection of features into a collection of nodes.
@@ -60,7 +61,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
+        virtual AttributedNodeList process( FeatureList& input, FilterEnv* env );
 
         /**
          * Processes a single fragment into a collection of nodes.
@@ -72,7 +73,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( Fragment* input, FilterEnv* env );
+        virtual AttributedNodeList process( Fragment* input, FilterEnv* env );
         
         /**
          * Processes a collection of fragments into a collection of nodes.
@@ -84,7 +85,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
+        virtual AttributedNodeList process( FragmentList& input, FilterEnv* env );
         
         /**
          * Processes a single node into a collection of nodes.
@@ -96,7 +97,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( osg::Node* input, FilterEnv* env );
+        virtual AttributedNodeList process( AttributedNode* input, FilterEnv* env );
         
         /**
          * Processes a collection of nodes into a collection of nodes.
@@ -108,7 +109,7 @@ namespace osgGIS
          * @return
          *      Resulting node list
          */
-        virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
+        virtual AttributedNodeList process( AttributedNodeList& input, FilterEnv* env );
         
     public:
 
@@ -118,6 +119,9 @@ namespace osgGIS
         NodeFilter();
         NodeFilter( const NodeFilter& rhs );
         virtual ~NodeFilter();  
+
+    protected:
+        void embedAttributes( osg::Node* node, const AttributeList& attrs );
     };
 }
 

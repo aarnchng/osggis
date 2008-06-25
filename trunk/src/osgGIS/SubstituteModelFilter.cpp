@@ -440,7 +440,12 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
 
     xform->addChild( model_node );
     xform->setDataVariance( osg::Object::STATIC );
+
+    // if a feature name was requested, add it now:
     assignFeatureName( xform, input, env );
+
+    // transfer the input feature attributes as well:
+    
 
     return xform;
 }
@@ -467,10 +472,10 @@ SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* 
     return node;
 }
 
-osg::NodeList
+AttributedNodeList
 SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
 
     if ( input.size() > 1 && getCluster() && !getFeatureNameScript() )
     {
@@ -488,7 +493,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 if ( model )
                 {
                     osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
-                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
+                    output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
             }
         }
@@ -500,7 +505,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 osg::Node* node = osgDB::readNodeFile( r.asString() );
                 if ( node )
                 {
-                    output.push_back( materializeAndClusterFeatures( input, env, node ) );
+                    output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
             }
         }
@@ -512,19 +517,19 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
     
     // register textures for localization.
     // TODO: err should we do this in the singleton process() too?
-    for( osg::NodeList::iterator i = output.begin(); i != output.end(); i++ )
+    for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
     {
-        registerTextures( i->get(), env->getSession() );
+        registerTextures( (*i)->getNode(), env->getSession() );
     }
 
     return output;
 }
 
 
-osg::NodeList
+AttributedNodeList
 SubstituteModelFilter::process( Feature* input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
     
     // disable flattening, since the model will be multi-parented with different xforms.
     env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
@@ -549,7 +554,8 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
 
                 if ( node )
                 {
-                    output.push_back( buildOutputNode( node, input, env ) );
+                    osg::Node* output_node = buildOutputNode( node, input, env );
+                    output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
                     env->getSession()->markResourceUsed( model );
                 }
             }
@@ -572,7 +578,8 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
 
             if ( node )
             {
-                output.push_back( buildOutputNode( node, input, env ) );
+                osg::Node* output_node = buildOutputNode( node, input, env );
+                output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
             }
             env->getSession()->markResourceUsed( model );
         }

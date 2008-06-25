@@ -28,7 +28,7 @@ using namespace osgGIS;
         
 typedef std::map<std::string,FeatureList>   FeatureGroups;
 typedef std::map<std::string,FragmentList>  FragmentGroups;
-typedef std::map<std::string,osg::NodeList> NodeGroups;
+typedef std::map<std::string,AttributedNodeList> NodeGroups;
 
 
 CollectionFilterState::CollectionFilterState( CollectionFilter* _filter )
@@ -68,14 +68,14 @@ CollectionFilterState::push( Fragment* input )
 
 
 void 
-CollectionFilterState::push( const osg::NodeList& input )
+CollectionFilterState::push( const AttributedNodeList& input )
 {
     nodes.insert( nodes.end(), input.begin(), input.end() );
 }
 
 
 void
-CollectionFilterState::push( osg::Node* input )
+CollectionFilterState::push( AttributedNode* input )
 {
     nodes.push_back( input );
 }
@@ -205,7 +205,7 @@ CollectionFilterState::signalCheckpoint()
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
-                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+                for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
@@ -234,7 +234,7 @@ CollectionFilterState::signalCheckpoint()
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
-                for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
+                for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
                 ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
             }
@@ -243,35 +243,6 @@ CollectionFilterState::signalCheckpoint()
                 ok = false;         
             }
         }
-        //else if ( dynamic_cast<DisperseFilterState*>( next ) )
-        //{
-        //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );   
-        //    if ( !features.empty() )
-        //    {
-        //        FeatureGroups feature_groups;
-        //        for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-        //            feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-        //        ok = meterGroups( filter.get(), feature_groups, state, metering, saved_env.get() );
-        //    }
-        //    else if ( !fragments.empty() )
-        //    {
-        //        FragmentGroups groups;
-        //        for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
-        //            groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-        //        ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
-        //    }
-        //    else if ( !nodes.empty() )
-        //    {
-        //        NodeGroups groups;
-        //        for( osg::NodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
-        //            groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-        //        ok = meterGroups( filter.get(), groups, state, metering, saved_env.get() );
-        //    }
-        //    else
-        //    {
-        //        ok = false;         
-        //    }
-        // }
 
         if ( ok )
         {

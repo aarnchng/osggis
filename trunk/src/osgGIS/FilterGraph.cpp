@@ -300,12 +300,10 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
     if ( output_state.valid() )
     {
         output = new osg::Group();
-        for( osg::NodeList::iterator i = output_state->getOutput().begin(); i != output_state->getOutput().end(); i++ )
+        for( AttributedNodeList::iterator i = output_state->getOutput().begin(); i != output_state->getOutput().end(); i++ )
         {
-            output->addChild( i->get() );
+            output->addChild( (*i)->getNode() ); //i->get() );
         }
-        //osg::NodeList& result = output_state->getOutput();
-        //output.insert( output.end(), result.begin(), result.end() );
     }
 
     return ok? FilterGraphResult::ok() : FilterGraphResult::error();
