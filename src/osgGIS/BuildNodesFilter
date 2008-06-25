@@ -197,8 +197,8 @@ namespace osgGIS
         virtual Properties getProperties() const;
         
     protected: // NodeFilter overrides
-        virtual osg::NodeList process( FragmentList& input, FilterEnv* env );
-        virtual osg::NodeList process( osg::NodeList& input, FilterEnv* env );
+        virtual AttributedNodeList process( FragmentList& input, FilterEnv* env );
+        virtual AttributedNodeList process( AttributedNodeList& input, FilterEnv* env );
 
     private:
         float line_width;

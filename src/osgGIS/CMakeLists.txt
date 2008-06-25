@@ -11,6 +11,7 @@ SET(LIB_NAME osgGIS)
 SET(LIB_PUBLIC_HEADERS
     AlignFilter
     Attribute
+    AttributedNode
     AttributeIndex
     AutoResetBlock
     BufferFilter
@@ -119,6 +120,7 @@ ADD_LIBRARY(${LIB_NAME}
     ${LIB_PUBLIC_HEADERS}
     AlignFilter.cpp
     Attribute.cpp
+    AttributedNode.cpp
     BufferFilter.cpp
     BuildGeomFilter.cpp
     BuildLabelsFilter.cpp

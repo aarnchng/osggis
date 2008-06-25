@@ -176,9 +176,9 @@ namespace osgGIS
 
     public:
 
-        virtual osg::NodeList process( FeatureList& input, FilterEnv* env );
+        virtual AttributedNodeList process( FeatureList& input, FilterEnv* env );
 
-        virtual osg::NodeList process( Feature* input, FilterEnv* env );
+        virtual AttributedNodeList process( Feature* input, FilterEnv* env );
         
     protected:        
 

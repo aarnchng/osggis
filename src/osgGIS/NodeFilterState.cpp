@@ -59,13 +59,13 @@ NodeFilterState::push( FragmentList& input )
 }
 
 void
-NodeFilterState::push( osg::Node* input )
+NodeFilterState::push( AttributedNode* input )
 {
     in_nodes.push_back( input );
 }
 
 void
-NodeFilterState::push( osg::NodeList& input )
+NodeFilterState::push( AttributedNodeList& input )
 {
     in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
 }
@@ -103,11 +103,6 @@ NodeFilterState::traverse( FilterEnv* in_env )
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
             state->push( out_nodes );
         }
-        //else if ( dynamic_cast<DisperseFilterState*>( next ) )
-        //{
-        //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
-        //    state->push( out_nodes );
-        //}
 
         out_nodes.clear();
         ok = next->traverse( env.get() );
@@ -120,7 +115,7 @@ NodeFilterState::traverse( FilterEnv* in_env )
     return ok;
 }
 
-osg::NodeList&
+AttributedNodeList&
 NodeFilterState::getOutput()
 {
     return out_nodes;

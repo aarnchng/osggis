@@ -244,20 +244,22 @@ BuildNodesFilter::getProperties() const
     return p;
 }
 
-osg::NodeList
+AttributedNodeList
 BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
 {
-    osg::NodeList nodes;
+    AttributedNodeList nodes;
 
     osg::Geode* geode = NULL;
     for( FragmentList::const_iterator i = input.begin(); i != input.end(); i++ )
     {
         Fragment* frag = i->get();
 
+        AttributeList frag_attrs = frag->getAttributes();
+
         if ( !geode )
         {
             geode = new osg::Geode();
-            nodes.push_back( geode );
+            nodes.push_back( new AttributedNode( geode, frag_attrs ) );
         }
 
         for( DrawableList::const_iterator d = frag->getDrawables().begin(); d != frag->getDrawables().end(); d++ )
@@ -276,25 +278,7 @@ BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
 
         if ( getEmbedAttributes() )
         {
-            osgSim::ShapeAttributeList* to_embed = new osgSim::ShapeAttributeList();
-            osgGIS::AttributeList attrs = frag->getAttributes();
-            for( AttributeList::const_iterator a = attrs.begin(); a != attrs.end(); a++ )
-            {
-                switch( a->getType() )
-                {
-                case Attribute::TYPE_INT:
-                case Attribute::TYPE_BOOL:
-                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asInt() ) );
-                    break;
-                case Attribute::TYPE_DOUBLE:
-                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asDouble() ) );
-                    break;
-                case Attribute::TYPE_STRING:
-                    to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asString() ) );
-                }
-            }
-
-            geode->setUserData( to_embed );
+            embedAttributes( geode, frag_attrs );
             retire_geode = true;
         }
 
@@ -303,13 +287,6 @@ BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
         {
             geode = NULL;
         }
-
-        //Attribute a = frag->getAttribute( ".fragment-name" );
-        //if ( a.isValid() )
-        //{
-        //    geode->addDescription( a.asString() );
-        //    geode = NULL;
-        //}
     }
 
     // with multiple geodes or fragment names, disable geode combining to preserve the node decription.
@@ -321,30 +298,42 @@ BuildNodesFilter::process( FragmentList& input, FilterEnv* env )
     return process( nodes, env );
 }
 
-osg::NodeList
-BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
+AttributedNodeList
+BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
 {
     osg::ref_ptr<osg::Node> result;
 
     if ( input.size() > 1 )
     {
         result = new osg::Group();
-        for( osg::NodeList::iterator i = input.begin(); i != input.end(); i++ )
-            result->asGroup()->addChild( i->get() );
+        for( AttributedNodeList::iterator i = input.begin(); i != input.end(); i++ )
+        {
+            osg::Node* node = i->get()->getNode();
+            if ( node )
+            {
+                if ( getEmbedAttributes() )
+                    embedAttributes( node, i->get()->getAttributes() );
+
+                result->asGroup()->addChild( node );
+            }
+        }
     }
     else if ( input.size() == 1 )
     {
-        result = input[0].get();
+        result = input[0]->getNode();
+
+        if ( getEmbedAttributes() )
+            embedAttributes( result.get(), input[0]->getAttributes() );
     }
     else
     {
-        return osg::NodeList();
+        return AttributedNodeList();
     }
 
     // if there are no geodes, toss it.
     if ( GeomUtils::getNumGeodes( result.get() ) == 0 )
     {
-        return osg::NodeList();
+        return AttributedNodeList();
     }
 
     // NEXT create a XFORM if there's a localization matrix in the SRS. This will
@@ -442,7 +431,6 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
                 builder << std::setprecision(10) << "gtex_" << x << "x" << y << ".jpg";
 
                 if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), &image ) )
-//                if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
                     // Add this as a skin resource so the compiler can properly localize and deploy it.
                     image->setFileName( builder.str() );
@@ -473,7 +461,8 @@ BuildNodesFilter::process( osg::NodeList& input, FilterEnv* env )
         opt.optimize( result.get(), opt_mask );
     }
 
-    osg::NodeList output;
-    output.push_back( result.get() );
+    AttributedNodeList output;
+    output.push_back( new AttributedNode( result.get() ) );
+
     return output;
 }

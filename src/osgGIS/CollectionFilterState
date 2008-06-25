@@ -45,8 +45,8 @@ namespace osgGIS
         void push( const FeatureList& input );
         void push( Fragment* input );
         void push( const FragmentList& input );
-        void push( osg::Node* );
-        void push( const osg::NodeList& nodes );
+        void push( AttributedNode* );
+        void push( const AttributedNodeList& nodes );
 
     protected:
         osg::ref_ptr<CollectionFilter> filter;
@@ -54,7 +54,7 @@ namespace osgGIS
         
         FeatureList features;
         FragmentList fragments;
-        osg::NodeList nodes;
+        AttributedNodeList nodes;
     };
 }
 

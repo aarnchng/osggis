@@ -22,6 +22,7 @@
 #include <osg/Notify>
 #include <osg/Group>
 #include <osg/Geode>
+#include <osgSim/ShapeAttribute>
 
 using namespace osgGIS;
 
@@ -49,72 +50,95 @@ NodeFilter::newState() const
 }
 
 
-osg::NodeList 
+AttributedNodeList 
 NodeFilter::process( FeatureList& input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
     for( FeatureList::iterator i = input.begin(); i != input.end(); i++ )
     {
-        osg::NodeList interim = process( i->get(), env );
+        AttributedNodeList interim = process( i->get(), env );
         output.insert( output.end(), interim.begin(), interim.end() );
     }
     return output;
 }
 
 
-osg::NodeList 
+AttributedNodeList 
 NodeFilter::process( Feature* input, FilterEnv* env )
 {
-    osg::NodeList output;
-    //NOP
+    AttributedNodeList output;
+    //NOP - never called
     return output;
 }
 
 
-osg::NodeList 
+AttributedNodeList 
 NodeFilter::process( FragmentList& input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
     for( FragmentList::iterator i = input.begin(); i != input.end(); i++ )
     {
-        osg::NodeList interim = process( i->get(), env );
+        AttributedNodeList interim = process( i->get(), env );
         output.insert( output.end(), interim.begin(), interim.end() );
     }
     return output;
 }
 
 
-osg::NodeList 
+AttributedNodeList 
 NodeFilter::process( Fragment* input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
     osg::Geode* geode = new osg::Geode();
     for( DrawableList::const_iterator i = input->getDrawables().begin(); i != input->getDrawables().end(); i++ )
         geode->addDrawable( i->get() );
-    output.push_back( geode );
+    output.push_back( new AttributedNode( geode ) );
     return output;
 }
 
 
-osg::NodeList 
-NodeFilter::process( osg::NodeList& input, FilterEnv* env )
+AttributedNodeList 
+NodeFilter::process( AttributedNodeList& input, FilterEnv* env )
 {
-    osg::NodeList output;
-    for( osg::NodeList::iterator i = input.begin(); i != input.end(); i++ )
+    AttributedNodeList output;
+    for( AttributedNodeList::iterator i = input.begin(); i != input.end(); i++ )
     {
-        osg::NodeList interim = process( i->get(), env );
+        AttributedNodeList interim = process( i->get(), env );
         output.insert( output.end(), interim.begin(), interim.end() );
     }
     return output;
 }
 
 
-osg::NodeList
-NodeFilter::process( osg::Node* input, FilterEnv* env )
+AttributedNodeList
+NodeFilter::process( AttributedNode* input, FilterEnv* env )
 {
-    osg::NodeList output;
+    AttributedNodeList output;
     output.push_back( input );
     return output;
 }
 
 
+void
+NodeFilter::embedAttributes( osg::Node* node, const AttributeList& attrs )
+{
+    osgSim::ShapeAttributeList* to_embed = new osgSim::ShapeAttributeList();
+
+    for( AttributeList::const_iterator a = attrs.begin(); a != attrs.end(); a++ )
+    {
+        switch( a->getType() )
+        {
+        case Attribute::TYPE_INT:
+        case Attribute::TYPE_BOOL:
+            to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asInt() ) );
+            break;
+        case Attribute::TYPE_DOUBLE:
+            to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asDouble() ) );
+            break;
+        case Attribute::TYPE_STRING:
+            to_embed->push_back( osgSim::ShapeAttribute( a->getKey().c_str(), a->asString() ) );
+        }
+    }
+
+    node->setUserData( to_embed );
+}

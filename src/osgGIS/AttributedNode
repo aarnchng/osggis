@@ -1,0 +1,130 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ATTRIBUTED_NODE_H_
+#define _OSGGIS_ATTRIBUTED_NODE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Attribute>
+#include <osg/Node>
+#include <vector>
+#include <list>
+
+namespace osgGIS
+{
+    /**
+     * An osg::Node coupled with an Attribute set.
+     *
+     * In the process of compiling features into a scene graph, the data goes
+     * through two transformations: first from Features to Fragments, and then
+     * from Fragments to AttributedNodes.
+     *
+     * A NodeFilter is a filter that turns Fragment data into AttributedNode data.
+     */
+	class OSGGIS_EXPORT AttributedNode : public AttributedBase
+	{
+	public:
+        /**
+         * Creates a new, empty AttributedNode.
+         */
+	    AttributedNode();
+
+        /**
+         * Creates a new AttributedNode that holds an osg::Node.
+         *
+         * @param node
+         *      Node to encapsulate
+         */
+	    AttributedNode( osg::Node* node );
+
+        /**
+         * Creates a new AttributedNode that holds an osg::Node.
+         *
+         * @param node
+         *      Node to encapsulate
+         * @param attrs
+         *      Attributes to include
+         */
+        AttributedNode( osg::Node* node, const AttributeList& attrs );
+	    
+	public:
+
+        /**
+         * Sets the name of this node.
+         *
+         * @param name
+         *      Name of the node.
+         */
+        void setName( const std::string& name );
+
+        /**
+         * Gets the name of this node. @see #setName for more information.
+         *
+         * @return AttributedNode's name. 
+         */
+        const std::string& getName() const;
+
+        /**
+         * Gets whether this node has a name.
+         *
+         * @return True if the node has a name; false if not.
+         */
+        bool hasName() const;
+
+        /**
+         * Gets access to the object's inner osg::Node.
+         *
+         * @return an osg::Node refernece
+         */
+        osg::Node* getNode();
+
+        /**
+         * Sets the node in this AttributedNode.
+         *
+         * @param node Node to set
+         */
+        void setNode( osg::Node* node );
+
+        /**
+         * Adds a collection of attributes to this fragment. The compiler will embed the
+         * attributes into the resulting scene graph as a osgSim::ShapeAttributeList.
+         *
+         * If a fragment has attributes, the compiler will be forces to maintain "feature
+         * integrity" -- the feature will end up residing alone under a dedicated osg::Geode
+         * instead of being optimized into a larger set of geometries.
+         *
+         * @param attrs
+         *      Attributes to embed
+         */
+        void addAttributes( const AttributeList& attrs );
+
+    protected:
+	    virtual ~AttributedNode();
+
+    private:
+        std::string name;
+        osg::ref_ptr<osg::Node> node;
+	};
+	
+	
+	/** A list of reference-counted attributed node objects. */
+	typedef std::vector< osg::ref_ptr<AttributedNode> > AttributedNodeList;
+}
+
+#endif // _OSGGIS_ATTRIBUTED_NODE_H_

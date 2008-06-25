@@ -60,12 +60,12 @@ namespace osgGIS
         /**
          * Pushes a single node onto this filter's input data queue.
          */
-        void push( osg::Node* input );
+        void push( AttributedNode* input );
 
         /**
          * Pushes a collection of nodes onto this filter's input data queue.
          */
-        void push( osg::NodeList& input );
+        void push( AttributedNodeList& input );
 
         
         /**
@@ -73,14 +73,14 @@ namespace osgGIS
          * can be the final node in a graphs's filter chain, this method allows
          * the compiler to retrieve the final results.
          */
-        osg::NodeList& getOutput();
+        AttributedNodeList& getOutput();
 
     protected:
         osg::ref_ptr<NodeFilter> filter;
         FeatureList in_features;
         FragmentList in_fragments;
-        osg::NodeList in_nodes;
-        osg::NodeList out_nodes;
+        AttributedNodeList in_nodes;
+        AttributedNodeList out_nodes;
     };
 }
 
