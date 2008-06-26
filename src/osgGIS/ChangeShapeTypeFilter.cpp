@@ -66,7 +66,7 @@ ChangeShapeTypeFilter::setProperty( const Property& p )
         setNewShapeType(
             p.getValue() == "point"? GeoShape::TYPE_POINT :
             p.getValue() == "line"? GeoShape::TYPE_LINE :
-            p.getValue() == "polygon"? GeoShape::TYPE_POINT :
+            p.getValue() == "polygon"? GeoShape::TYPE_POLYGON :
             GeoShape::TYPE_UNSPECIFIED );
     }
     FeatureFilter::setProperty( p );
