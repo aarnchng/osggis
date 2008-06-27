@@ -453,7 +453,10 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
 
     // finally we organize the root graph better
     osgUtil::Optimizer opt;
-    opt.optimize( root, osgUtil::Optimizer::SPATIALIZE_GROUPS );
+    opt.optimize( root, 
+        osgUtil::Optimizer::SPATIALIZE_GROUPS |
+        osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
+        osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
     
     if ( getRenderOrder() >= 0 )
     {
