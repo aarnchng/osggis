@@ -106,6 +106,12 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, const 
         {
             result = lod.release();
         }
+        
+        osgUtil::Optimizer opt;
+        opt.optimize( result, 
+            osgUtil::Optimizer::SPATIALIZE_GROUPS |
+            osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
+            osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
 
         if ( getRenderOrder() >= 0 )
         {
