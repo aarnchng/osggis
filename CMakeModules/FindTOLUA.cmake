@@ -27,7 +27,7 @@ FIND_PATH(TOLUA_INCLUDE_DIR tolua.h
 )
 
 FIND_LIBRARY(TOLUA_LIBRARY 
-    NAMES libtolua51
+    NAMES libtolua51 tolua51
     PATHS
     $ENV{TOLUA_DIR}/lib
     $ENV{TOLUA_DIR}/lib
