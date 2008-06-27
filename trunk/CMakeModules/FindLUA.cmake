@@ -6,7 +6,8 @@
 #
 # Created by Glenn Waldron. 
 
-FIND_PATH(LUA_INCLUDE_DIR lua.h lauxlib.h lua.hpp
+FIND_PATH(LUA_INCLUDE_DIR NAMES lua.h lauxlib.h lua.hpp 
+    PATHS
     $ENV{LUA_DIR}/include
     $ENV{LUA_DIR}/include
     $ENV{LUA_DIR}
@@ -16,7 +17,9 @@ FIND_PATH(LUA_INCLUDE_DIR lua.h lauxlib.h lua.hpp
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local/include
+    /usr/local/include/lua5.1
     /usr/include
+    /usr/include/lua5.1
     /sw/include # Fink
     /opt/local/include # DarwinPorts
     /opt/csw/include # Blastwave
@@ -27,7 +30,7 @@ FIND_PATH(LUA_INCLUDE_DIR lua.h lauxlib.h lua.hpp
 )
 
 FIND_LIBRARY(LUA_LIBRARY 
-    NAMES liblua51
+    NAMES liblua51 lua5.1
     PATHS
     $ENV{LUA_DIR}/lib
     $ENV{LUA_DIR}/lib

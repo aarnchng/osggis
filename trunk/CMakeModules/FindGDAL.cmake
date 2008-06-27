@@ -9,7 +9,8 @@
 #
 # Created by Robert Osfield. 
 
-FIND_PATH(GDAL_INCLUDE_DIR gdal.h
+FIND_PATH(GDAL_INCLUDE_DIR NAMES gdal.h 
+      PATHS
         ${GDAL_DIR}/include
     $ENV{GDAL_DIR}/include
     $ENV{GDAL_DIR}
@@ -19,7 +20,9 @@ FIND_PATH(GDAL_INCLUDE_DIR gdal.h
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local/include
+    /usr/local/include/gdal
     /usr/include
+    /usr/include/gdal
     /sw/include # Fink
     /opt/local/include # DarwinPorts
     /opt/csw/include # Blastwave
