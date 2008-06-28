@@ -18,6 +18,7 @@
  */
 
 #include <osgGIS/ChangeShapeTypeFilter>
+#include <osgGIS/Utils>
 
 using namespace osgGIS;
 
@@ -92,7 +93,17 @@ ChangeShapeTypeFilter::process( Feature* input, FilterEnv* env )
     GeoShapeList& shapes = input->getShapes();
     for( GeoShapeList::iterator i = shapes.begin(); i != shapes.end(); i++ )
     {
+        bool need_to_close = i->getShapeType() == GeoShape::TYPE_POLYGON && new_type == GeoShape::TYPE_LINE;
+
         i->setShapeType( new_type );
+        
+        if ( need_to_close ) 
+        {
+            for( GeoPartList::iterator j = i->getParts().begin(); j != i->getParts().end(); j++ )
+            {
+                GeomUtils::closePolygon( *j );
+            }
+        }
     }
 
     output.push_back( input );

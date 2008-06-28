@@ -129,7 +129,13 @@ namespace osgGIS
          * first point.
          */
         static void openPolygon( GeoPointList& polygon );
-            
+        
+        /**
+         * "Closes" a polygon in place; i.e. makes sure the last point is a duplicate
+         * of the last point.
+         */
+        static void closePolygon( GeoPointList& polygon );
+
         /**
          * Counts the number of geodes in a scene graph.
          */
