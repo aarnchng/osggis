@@ -401,7 +401,7 @@ cropPolygonPart( const GeoPointList& initial_input, const GeoExtent& window, Geo
                         }
                     }
                 }
-                
+
                 working.push_back( p );
                 prev_p = p;
                 was_inside = is_inside;
@@ -505,8 +505,9 @@ cropPolygonPart( const GeoPointList& initial_input, const GeoExtent& window, Geo
                         spatial_order[next_exit_order-1] ) );
 
                     current_part = GeoPointList();
-                    current_part.push_back( working[next_entry_ptr] );
+                    //current_part.push_back( working[next_entry_ptr] );
                     part_start_ptr = next_entry_ptr;
+                    shape_ptr = next_entry_ptr;
                 }
             }
 

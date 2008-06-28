@@ -194,6 +194,15 @@ GeomUtils::openPolygon( GeoPointList& polygon )
         polygon.erase( polygon.end()-1 );
 }
 
+void
+GeomUtils::closePolygon( GeoPointList& polygon )
+{
+    if ( polygon.size() >= 1 )
+    {
+        if ( polygon[0] != polygon[polygon.size()-1] )
+            polygon.push_back( polygon[0] );
+    }
+}
 
 struct GeodeCounter : public osg::NodeVisitor {
     GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
