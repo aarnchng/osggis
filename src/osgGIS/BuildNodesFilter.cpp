@@ -361,7 +361,7 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
             osg::Vec3d control_point = bs.center();
 
             // dot product: 0 = orthogonal to normal, -1 = equal to normal
-            float deviation = radius*10.0f/input_srs->getEllipsoid().getSemiMinorAxis();
+            float deviation = -radius/input_srs->getEllipsoid().getSemiMinorAxis();
             
             osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback();
             ccc->set( control_point, normal, deviation, radius );
