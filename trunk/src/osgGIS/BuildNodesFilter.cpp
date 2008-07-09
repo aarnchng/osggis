@@ -330,8 +330,8 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
         return AttributedNodeList();
     }
 
-    // if there are no geodes, toss it.
-    if ( GeomUtils::getNumGeodes( result.get() ) == 0 )
+    // if there are no drawables or external refs, toss it.
+    if ( !GeomUtils::hasDrawables( result.get() ) )
     {
         return AttributedNodeList();
     }

@@ -164,6 +164,7 @@ namespace osgGIS
 
 
     public:
+        virtual FeatureList process( FeatureList& input, FilterEnv* env );
         virtual FeatureList process( Feature* input, FilterEnv* env );
         
         virtual ~TransformFilter();
@@ -177,10 +178,11 @@ namespace osgGIS
         osg::ref_ptr<Script>           translate_script;
         bool                           localize;
         bool                           use_terrain_srs;
+        osg::ref_ptr<SpatialReference> srs;
 
         // transient
-        osg::ref_ptr<SpatialReference> srs;
         osg::Matrix                    xform_matrix;
+        osg::ref_ptr<SpatialReference> working_srs;
     };
 }
 

@@ -168,7 +168,26 @@ namespace osgGIS
          * @return True to optimize, false to not optimize (default)
          */
         bool getOptimizeModel() const;
+
+        /**
+         * Sets whether to load the model into the scene graph, instead of referencing
+         * it externally via a proxy node. (If getCluster() is true, this property is
+         * ignored.)
+         *
+         * @param value
+         *      True to inline the model; false to externally reference it
+         */
+        void setInlineModel( bool value );
         
+        /**
+         * Gets whether to load the model into the scene graph or to reference it
+         * externally via a proxy node. (If getCluster() is true, this property is
+         * ignored.)
+         *
+         * @return True to inline the model; false to externally refernece it
+         */
+        bool getInlineModel() const;
+
     public:
     
         virtual void setProperty( const Property& );
@@ -198,6 +217,7 @@ namespace osgGIS
         osg::ref_ptr<Script> feature_name_script;
         bool cluster;
         bool optimize_model;
+        bool inline_model;
 
         typedef std::map<std::string,osg::ref_ptr<osg::Node> > ModelCache;
         ModelCache non_clustered_model_cache;

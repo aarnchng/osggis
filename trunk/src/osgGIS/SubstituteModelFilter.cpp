@@ -36,20 +36,23 @@ using namespace osgGIS;
 OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 
 
-#define DEFAULT_CLUSTER false
+#define DEFAULT_CLUSTER        false
 #define DEFAULT_OPTIMIZE_MODEL false
+#define DEFAULT_INLINE_MODEL   true
 
 
 SubstituteModelFilter::SubstituteModelFilter()
 {
     setCluster( DEFAULT_CLUSTER );
     setOptimizeModel( DEFAULT_OPTIMIZE_MODEL );
+    setInlineModel( DEFAULT_INLINE_MODEL );
 }
 
 SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
 : NodeFilter( rhs ),
   cluster( rhs.cluster ),
   optimize_model( rhs.optimize_model ),
+  inline_model( rhs.inline_model ),
   model_script( rhs.model_script.get() ),
   model_path_script( rhs.model_path_script.get() ),
   model_scale_script( rhs.model_scale_script.get() ),
@@ -149,6 +152,18 @@ SubstituteModelFilter::getOptimizeModel() const
 }
 
 void
+SubstituteModelFilter::setInlineModel( bool value )
+{
+    inline_model = value;
+}
+
+bool
+SubstituteModelFilter::getInlineModel() const
+{
+    return inline_model;
+}
+
+void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
@@ -165,6 +180,9 @@ SubstituteModelFilter::setProperty( const Property& p )
         setFeatureNameScript( new Script( p.getValue() ) );
     else if ( p.getName() == "optimize_model" )
         setOptimizeModel( p.getBoolValue( getOptimizeModel() ) );
+    else if ( p.getName() == "inline_model" )
+        setInlineModel( p.getBoolValue( getInlineModel() ) );
+
     NodeFilter::setProperty( p );
 }
 
@@ -173,6 +191,7 @@ Properties
 SubstituteModelFilter::getProperties() const
 {
     Properties p = NodeFilter::getProperties();
+
     if ( getModelScript() )
         p.push_back( Property( "model", getModelScript()->getCode() ) );
     if ( getModelPathScript() )
@@ -187,6 +206,9 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "feature_name", getFeatureNameScript()->getCode() ) );
     if ( getOptimizeModel() != DEFAULT_OPTIMIZE_MODEL )
         p.push_back( Property( "optimize_model", getOptimizeModel() ) );
+    if ( getInlineModel() != DEFAULT_INLINE_MODEL )
+        p.push_back( Property( "inline_model", getInlineModel() ) );
+
     return p;
 }
 
@@ -321,12 +343,12 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
 
 
 void
-registerTextures( osg::Node* node, Session* session )
+registerTextures( osg::Node* node, Session* session, bool share_textures )
 {
     class ImageFinder : public osg::NodeVisitor {
     public:
-        ImageFinder( Session* _session )
-            : session(_session), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+        ImageFinder( Session* _session, bool _share_tex )
+            : session(_session), share_textures(_share_tex), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
 
         void processStateSet( osg::StateSet* ss )
         {
@@ -342,8 +364,10 @@ registerTextures( osg::Node* node, Session* session )
                         {
                             SkinResource* skin = new SkinResource();
                             skin->setURI( abs_path );
+                            skin->setSingleUse( !share_textures );
                             session->getResources()->addResource( skin );
                             session->markResourceUsed( skin );
+
                             //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
                         }
                     }
@@ -368,9 +392,10 @@ registerTextures( osg::Node* node, Session* session )
         }
 
         Session* session;
+        bool share_textures;
     };
 
-    ImageFinder image_finder( session );
+    ImageFinder image_finder( session, share_textures );
     node->accept( image_finder );
 }
 
@@ -444,9 +469,6 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
     // if a feature name was requested, add it now:
     assignFeatureName( xform, input, env );
 
-    // transfer the input feature attributes as well:
-    
-
     return xform;
 }
 
@@ -461,7 +483,11 @@ SubstituteModelFilter::getNodeFromModelCache( ModelResource* model )
 osg::Node*
 SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* env )
 {
-    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+    // for a non-inlined model, get the proxy node instead of the real node:
+    osg::Node* node = getInlineModel()?
+        env->getSession()->getResources()->getNode( model, getOptimizeModel() ) :
+        env->getSession()->getResources()->getProxyNode( model );
+
     if ( node )
     {
         // we must clone it because the resource model node, being in the ResourceLibrary, is shared geometry!
@@ -484,8 +510,12 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
         // TODO: investigate this later.
         env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
 
+        bool share_textures = false;
+
         if ( getModelScript() )
         {
+            share_textures = true;
+
             ScriptResult r = env->getScriptEngine()->run( getModelScript(), env );
             if ( r.isValid() )
             {
@@ -499,6 +529,8 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
         }
         else if ( getModelPathScript() )
         {
+            share_textures = false;
+
             ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), env );
             if ( r.isValid() )
             {
@@ -509,17 +541,16 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 }
             }
         }
+            
+        // register textures for localization.
+        for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
+        {
+            registerTextures( (*i)->getNode(), env->getSession(), share_textures );
+        }
     }
     else
     {
         output = NodeFilter::process( input, env );
-    }
-    
-    // register textures for localization.
-    // TODO: err should we do this in the singleton process() too?
-    for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
-    {
-        registerTextures( (*i)->getNode(), env->getSession() );
     }
 
     return output;
@@ -540,8 +571,12 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
     // keep the shared nodes shared
     env->getOptimizerHints().exclude( osgUtil::Optimizer::COPY_SHARED_NODES );
 
+    bool share_textures;
+
     if ( getModelScript() )
     {
+        share_textures = true;
+
         ScriptResult r = env->getScriptEngine()->run( getModelScript(), input, env );
         if ( r.isValid() )
         {
@@ -563,6 +598,8 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
     }
     else if ( getModelPathScript() )
     {
+        share_textures = false;
+
         ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), input, env );
         if ( r.isValid() )
         {
@@ -571,6 +608,8 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             model->setURI( r.asString() );
             model->setName( r.asString() );
             env->getSession()->getResources()->addResource( model );
+
+            model->setSingleUse( true ); // mark as "single use" for path-based models
 
             osg::Node* node = getNodeFromModelCache( model );
             if ( !node )
@@ -581,8 +620,15 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                 osg::Node* output_node = buildOutputNode( node, input, env );
                 output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
             }
+
             env->getSession()->markResourceUsed( model );
         }
+    }
+                
+    // register textures for localization.
+    for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
+    {
+        registerTextures( (*i)->getNode(), env->getSession(), share_textures );
     }
 
     return output;

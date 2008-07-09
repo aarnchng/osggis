@@ -348,7 +348,7 @@ ResourceLibrary::getNode( ModelResource* model, bool optimize )
                 model_nodes[model->getAbsoluteURI()] = result;
 
                 // prevent optimization later when the object might be shared!
-                result->setDataVariance( osg::Object::DYNAMIC);
+                //result->setDataVariance( osg::Object::DYNAMIC ); //gw 7/8/08
             }
         }
         else

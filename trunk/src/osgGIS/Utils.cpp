@@ -204,28 +204,50 @@ GeomUtils::closePolygon( GeoPointList& polygon )
     }
 }
 
-struct GeodeCounter : public osg::NodeVisitor {
-    GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
-    void apply( osg::Geode& geode ) {
-        count++;
-        // no traverse required
-    }
+//struct GeodeCounter : public osg::NodeVisitor {
+//    GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
+//    void apply( osg::Geode& geode ) {
+//        count++;
+//        // no traverse required
+//    }
+//    int count;
+//};
+//
+//int
+//GeomUtils::getNumGeodes( osg::Node* node )
+//{
+//    if ( node )
+//    {
+//        GeodeCounter c;
+//        node->accept( c );
+//        return c.count;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
+
+// note: none of the apply() overrides needs to call traverse(); this is intentional
+struct HasDrawablesVisitor : public osg::NodeVisitor {
+    HasDrawablesVisitor() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
+    void apply( osg::Geode& geode ) { count++; }
+    void apply( osg::ProxyNode& proxy ) { count++; }
+    void apply( osg::PagedLOD& plod ) { count++; }
     int count;
 };
 
-int
-GeomUtils::getNumGeodes( osg::Node* node )
+bool
+GeomUtils::hasDrawables( osg::Node* node )
 {
+    int count = 0;
     if ( node )
     {
-        GeodeCounter c;
+        HasDrawablesVisitor c;
         node->accept( c );
-        return c.count;
+        count = c.count;
     }
-    else
-    {
-        return 0;
-    }
+    return count > 0;
 }
 
 struct DVSetter : public osg::NodeVisitor {

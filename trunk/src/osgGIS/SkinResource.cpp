@@ -232,8 +232,14 @@ SkinResource::getImage()
         if ( !image.valid() ) // check again in case the image was created before obtaining the lock
         {
             const_cast<SkinResource*>(this)->image = osgDB::readImageFile( getAbsoluteURI() );
+
+            if ( !image.valid() )
+            {
+                osg::notify( osg::WARN ) << "** WARNING: unable to load image file: " << getAbsoluteURI() << std::endl;
+            }
         }
     }
+
     return image.get();
 }
 

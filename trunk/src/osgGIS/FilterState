@@ -59,12 +59,21 @@ namespace osgGIS
          */
         FilterState* getNextState();
 
+        /**
+         * Gets a reference to the last filter environment object that passed
+         * through this filter.
+         *
+         * @return A filter environment
+         */
+        FilterEnv* getLastKnownFilterEnv();
+
     protected:    
         FilterState();
 
         osg::ref_ptr<FilterState> next_state;
         osg::ref_ptr<Filter> filter_prototype;
         std::string name;
+        osg::ref_ptr<FilterEnv> current_env;
         
         friend class FilterGraph;
         FilterState* setNextState( FilterState* state );

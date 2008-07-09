@@ -191,13 +191,20 @@ public:
         float min_range = FLT_MAX, max_range = FLT_MIN;
         osg::ref_ptr<osg::LOD> lod = new osg::LOD();
         lod->setName( getName() );
+
+        FilterGraphResultList results;
+
         LayerCompiler::FilterGraphRangeList& graphs = compiler.getFilterGraphs();
 
         for( LayerCompiler::FilterGraphRangeList::iterator i = graphs.begin(); i != graphs.end(); i++ )
         {
-            osg::Node* range = compileLOD( i->graph.get() );
+            osg::Group* range = NULL;
+            FilterGraphResult result = compile( i->graph.get(), range );
+            
             if ( range )
             {
+                results.push_back( result );
+
                 range->setName( i->graph->getName() );
                 lod->addChild( range, i->min_range, i->max_range );
                 if ( i->min_range < min_range ) min_range = i->min_range;
@@ -214,7 +221,7 @@ public:
         }
 
 
-        if ( GeomUtils::getNumGeodes( lod.get() ) > 0 )
+        if ( GeomUtils::hasDrawables( lod.get() ) )
         {
             if ( compiler.getPaged() )
             {
@@ -224,16 +231,38 @@ public:
                 std::string tile_filename = str.str();
                 plod->setFileName( 0, tile_filename );
                 plod->setRange( 0, min_range, max_range );
-                plod->setCenter( lod->getBound().center() );
-                plod->setRadius( lod->getBound().radius() );
+
+                if ( results.size() > 0 && results.front().getSRS() ) // always true, i think
+                {
+                    SpatialReference* geom_srs = results.front().getSRS();
+                    osg::Vec3d p0 = geom_srs->transform( tile_extent.getSouthwest() ).getAbsolute();
+                    osg::Vec3d p1 = geom_srs->transform( tile_extent.getNortheast() ).getAbsolute();
+                    osg::BoundingSphere bs;
+                    bs.expandBy( p0 );
+                    bs.expandBy( p1 );
+                    plod->setRadius( bs.radius() );
+                    if ( geom_srs->isGeocentric() )
+                        plod->setCenter( geom_srs->getInverseReferenceFrame().getTrans() );
+                    else
+                        plod->setCenter( bs.center() );
+                }
+                else // fallback.. but this won't work with proxy node data
+                {
+                    plod->setCenter( lod->getBound().center() );
+                    plod->setRadius( lod->getBound().radius() );
+                }
                 
                 compiler.localizeResourceReferences( lod.get() );
+
+                // if the LOD only has one child, the PagedLOD will do the job and we can discard the
+                // LOD node and just reference its one child directly:
+                osg::Node* node_to_write = lod->getNumChildren() > 1? lod.get() : lod->getChild(0);
 
                 if ( compiler.getArchive() )
                 {
                     // archive has a serializer mutex, so this is ok:
                     compiler.getArchive()->writeNode( 
-                        *(lod.get()), 
+                        *node_to_write, 
                         tile_filename,
                         osgDB::Registry::instance()->getOptions() );
                 }
@@ -241,7 +270,7 @@ public:
                 {
                     std::string tile_path = osgDB::concatPaths( output_dir, tile_filename );
                     osgDB::writeNodeFile(
-                        *(lod.get()),
+                        *node_to_write,
                         tile_path,
                         osgDB::Registry::instance()->getOptions() );
                 }
@@ -266,7 +295,7 @@ public:
     }
 
 private:
-    osg::Node* compileLOD( FilterGraph* graph )
+    FilterGraphResult compile( FilterGraph* graph, osg::Group*& out_node )
     {
         osg::ref_ptr<FilterEnv> env = session->createFilterEnv();
         env->setProperty( Property( "compiler.grid_row", row ) );
@@ -277,10 +306,12 @@ private:
         env->setTerrainSRS( compiler.getTerrainSRS() );
         env->setTerrainReadCallback( read_cb.get() );
 
-        osg::Group* output = NULL;
+        //osg::Group* output = NULL;
         FeatureCursor cursor = layer->getCursor( env->getExtent() );
-        FilterGraphResult r = graph->computeNodes( cursor, env.get(), output );
-        return r.isOK()? output : NULL;
+        return graph->computeNodes( cursor, env.get(), out_node );
+        //out_node = r.isOK()? output : NULL;
+        //return r;
+        //return r.isOK()? output : NULL;
     }
 
 private:

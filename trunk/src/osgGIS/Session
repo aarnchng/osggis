@@ -153,7 +153,7 @@ namespace osgGIS
         OpenThreads::ReentrantMutex session_mtx;
         Properties properties;
         ResourceList resources_used;
-        //ResourceNames resources_used;
+        bool localize_resources;
     };
 }
 
