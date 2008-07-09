@@ -105,7 +105,12 @@ namespace osgGIS
          *         never shared.
          */
         bool isSingleUse() const;
-
+        
+        /**
+         * Sets the resource as being "single-use" or not. By default, resources are
+         * not single-use; i.e. they are multi-use.
+         */
+        void setSingleUse( bool value );
 
     public: 
 
@@ -121,12 +126,6 @@ namespace osgGIS
         Resource( const std::string& name );
 
         virtual ~Resource();
-        
-        /**
-         * Sets the resource as being "single-use" or not. By default, resources are
-         * not single-use; i.e. they are multi-use.
-         */
-        void setSingleUse( bool value );
         
         OpenThreads::ReentrantMutex& getMutex();
         

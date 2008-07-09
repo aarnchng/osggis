@@ -30,10 +30,29 @@
 
 using namespace osgGIS;
 
+
+FilterGraphResult::FilterGraphResult()
+: is_ok( false )
+{
+}
+
+FilterGraphResult::FilterGraphResult( const FilterGraphResult& rhs )
+: is_ok( rhs.is_ok ),
+  out_extent( rhs.out_extent ),
+  out_srs( rhs.out_srs.get() )
+{
+}
+
+FilterGraphResult
+FilterGraphResult::ok( const GeoExtent& extent, const SpatialReference* srs )
+{
+    return FilterGraphResult( true, extent, srs );
+}
+
 FilterGraphResult
 FilterGraphResult::ok()
 {
-    return FilterGraphResult( true );
+    return FilterGraphResult( true, GeoExtent::invalid(), NULL );
 }
 
 FilterGraphResult
@@ -47,10 +66,29 @@ FilterGraphResult::FilterGraphResult( bool _is_ok )
     is_ok = _is_ok;
 }
 
+FilterGraphResult::FilterGraphResult( bool _is_ok, const GeoExtent& extent, const SpatialReference* srs )
+{
+    is_ok = _is_ok;
+    out_extent = extent;
+    out_srs = const_cast<SpatialReference*>( srs );
+}
+
 bool
 FilterGraphResult::isOK() const
 {
     return is_ok;
+}
+
+const GeoExtent&
+FilterGraphResult::getExtent() const
+{
+    return out_extent;
+}
+
+SpatialReference*
+FilterGraphResult::getSRS() const
+{
+    return out_srs.get();
 }
 
 
@@ -156,7 +194,8 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     writer->setOutputURI( output_uri );
     //writer->setAppendMode( WriteFeaturesFilter::OVERWRITE );
 
-    first->appendState( writer->newState() );
+    osg::ref_ptr<FilterState> output_state = writer->newState();
+    first->appendState( output_state.get() );
 
     // now run the graph.
     ok = true;
@@ -180,9 +219,17 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     osg::Timer_t end = osg::Timer::instance()->tick();
     double dur = osg::Timer::instance()->delta_s( start, end );
 
-    //writer->finalize();
-
-    return ok? FilterGraphResult::ok() : FilterGraphResult::error();
+    if ( ok )
+    {
+        FilterEnv* final_env = output_state->getLastKnownFilterEnv();
+        return final_env?
+            FilterGraphResult::ok( final_env->getExtent(), final_env->getOutputSRS() ) :
+            FilterGraphResult::ok();
+    }
+    else
+    {
+        return FilterGraphResult::error();
+    }
 }
 
 
@@ -190,8 +237,6 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
 static Feature* 
 wind( Feature* input )
 {
-    //return input;
-
     if ( input->getShapeType() == GeoShape::TYPE_POLYGON )
     {
         for( GeoShapeList::iterator i = input->getShapes().begin(); i != input->getShapes().end(); i++ )
@@ -305,7 +350,17 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
             output->addChild( (*i)->getNode() ); //i->get() );
         }
     }
-
-    return ok? FilterGraphResult::ok() : FilterGraphResult::error();
+    
+    if ( ok )
+    {
+        FilterEnv* final_env = output_state.valid()? output_state->getLastKnownFilterEnv() : NULL;
+        return final_env?
+            FilterGraphResult::ok( final_env->getExtent(), final_env->getOutputSRS() ) :
+            FilterGraphResult::ok();
+    }
+    else
+    {
+        return FilterGraphResult::error();
+    }
 }
 

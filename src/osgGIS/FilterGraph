@@ -38,23 +38,47 @@ namespace osgGIS
         /**
          * Creates a result object that conveys success.
          */
+        static FilterGraphResult ok( const GeoExtent& out_extent, const SpatialReference* out_srs );
+
+        /**
+         * Creates a result object that conveys success.
+         */
         static FilterGraphResult ok();
 
         /**
          * Creates a result object that convey an error.
          */
         static FilterGraphResult error();
+
+        /**
+         * Default ctor - same as FilterGraphResult::error()
+         */
+        FilterGraphResult();
+
+        /**
+         * Copy constructor
+         */
+        FilterGraphResult( const FilterGraphResult& rhs );
         
         /**
          * Gets whether the FilterGraph compilation succeeded.
          */
         bool isOK() const;
+
+        const GeoExtent& getExtent() const;
+
+        SpatialReference* getSRS() const;
         
     private:
         FilterGraphResult( bool ok );
+        FilterGraphResult( bool ok, const GeoExtent& extent, const SpatialReference* srs );
         
         bool is_ok;
+        GeoExtent out_extent;
+        osg::ref_ptr<SpatialReference> out_srs;
     };
+
+    typedef std::list<FilterGraphResult> FilterGraphResultList;
     
     
     /**

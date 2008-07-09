@@ -139,7 +139,13 @@ namespace osgGIS
         /**
          * Counts the number of geodes in a scene graph.
          */
-        static int getNumGeodes( osg::Node* node );
+        //static int getNumGeodes( osg::Node* node );
+
+        /**
+         * Returns true if the subgraph contains one or more geodes, proxy nodes, or
+         * paged LODs (i.e. the potential for geometry).
+         */
+        static bool hasDrawables( osg::Node* node );
 
         /**
          * Sets the data variance for all nodes/drawables in a scene graph.

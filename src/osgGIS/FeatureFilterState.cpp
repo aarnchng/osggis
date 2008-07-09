@@ -46,7 +46,6 @@ FeatureFilterState::push( const FeatureList& input )
     for( FeatureList::const_iterator i = input.begin(); i != input.end(); i++ )
         if ( i->get()->hasShapeData() )
             in_features.push_back( i->get() );
-    //in_features.insert( in_features.end(), input.begin(), input.end() );
 }
 
 bool
@@ -57,9 +56,10 @@ FeatureFilterState::traverse( FilterEnv* in_env )
     if ( in_features.size() > 0 )
     {
         // clone a new environment:
-        osg::ref_ptr<FilterEnv> env = in_env->advance();
+        current_env = in_env->advance();
+        //osg::ref_ptr<FilterEnv> env = in_env->advance();
 
-        FeatureList output = filter->process( in_features, env.get() );
+        FeatureList output = filter->process( in_features, current_env.get() );
         
         FilterState* next = getNextState();
         if ( next )
@@ -84,13 +84,8 @@ FeatureFilterState::traverse( FilterEnv* in_env )
                 CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
                 state->push( output );
             }
-            //else if ( dynamic_cast<DisperseFilterState*>( next ) )
-            //{
-            //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
-            //    state->push( output );
-            //}
 
-            ok = next->traverse( env.get() );
+            ok = next->traverse( current_env.get() );
         }
     }
     else

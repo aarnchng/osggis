@@ -158,6 +158,8 @@ main(int argc, char* argv[])
                         new osg::CullFace(),
                         osg::StateAttribute::ON );
 
+                    terrain_node->getOrCreateStateSet()->setMode( GL_BLEND, osg::StateAttribute::ON );
+
                     // Optionally disable lighting on the terrain:
                     if ( unlit_terrain )
                     {

@@ -96,7 +96,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, const 
         }
     }
 
-    if ( GeomUtils::getNumGeodes( lod.get() ) > 0 )
+    if ( GeomUtils::hasDrawables( lod.get() ) )
     {
         if ( getOverlay() )
         {

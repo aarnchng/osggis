@@ -75,19 +75,20 @@ NodeFilterState::traverse( FilterEnv* in_env )
 {
     bool ok = true;
 
-    osg::ref_ptr<FilterEnv> env = in_env->advance();
+    current_env = in_env->advance();
+    //osg::ref_ptr<FilterEnv> env = in_env->advance();
 
     if ( in_features.size() > 0 )
     {
-        out_nodes = filter->process( in_features, env.get() );
+        out_nodes = filter->process( in_features, current_env.get() );
     }
     else if ( in_fragments.size() > 0 )
     {
-        out_nodes = filter->process( in_fragments, env.get() );
+        out_nodes = filter->process( in_fragments, current_env.get() );
     }
     else if ( in_nodes.size() > 0 )
     {
-        out_nodes = filter->process( in_nodes, env.get() );
+        out_nodes = filter->process( in_nodes, current_env.get() );
     }
     
     FilterState* next = getNextState();
@@ -105,7 +106,7 @@ NodeFilterState::traverse( FilterEnv* in_env )
         }
 
         out_nodes.clear();
-        ok = next->traverse( env.get() );
+        ok = next->traverse( current_env.get() );
     }
 
     in_features.clear();

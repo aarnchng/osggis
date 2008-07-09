@@ -374,7 +374,6 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
 
                 osg::ref_ptr<osg::StateSet> raster_ss = new osg::StateSet();
                 if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), &image ) )
-//                if ( raster->applyToStateSet( raster_ss.get(), tex_extent, getRasterOverlayMaxSize(), builder.str(), &image ) )
                 {
                     image->setFileName( builder.str() );
                     geom->setStateSet( raster_ss.get() );

@@ -62,14 +62,15 @@ FragmentFilterState::traverse( FilterEnv* in_env )
 {
     bool ok = true;
 
-    osg::ref_ptr<FilterEnv> env = in_env->advance();
+    current_env = in_env->advance();
+    //osg::ref_ptr<FilterEnv> env = in_env->advance();
 
     FilterState* next = getNextState();
     if ( next )
     {
         FragmentList output =
-            in_features.size() > 0? filter->process( in_features, env.get() ) :
-            in_fragments.size() > 0? filter->process( in_fragments, env.get() ) :
+            in_features.size() > 0? filter->process( in_features, current_env.get() ) :
+            in_fragments.size() > 0? filter->process( in_fragments, current_env.get() ) :
             FragmentList();
         
         if ( dynamic_cast<NodeFilterState*>( next ) )
@@ -87,13 +88,8 @@ FragmentFilterState::traverse( FilterEnv* in_env )
             CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
             state->push( output );
         }
-        //else if ( dynamic_cast<DisperseFilterState*>( next ) )
-        //{
-        //    DisperseFilterState* state = static_cast<DisperseFilterState*>( next );
-        //    state->push( output );
-        //}
 
-        ok = next->traverse( env.get() );
+        ok = next->traverse( current_env.get() );
     }
 
     in_features.clear();

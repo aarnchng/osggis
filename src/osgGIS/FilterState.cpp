@@ -41,6 +41,12 @@ FilterState::getNextState()
     return next_state.get();
 }
 
+FilterEnv*
+FilterState::getLastKnownFilterEnv()
+{
+    return current_env.get();
+}
+
 FilterState*
 FilterState::appendState( FilterState* _state )
 {

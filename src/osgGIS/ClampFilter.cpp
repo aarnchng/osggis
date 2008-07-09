@@ -297,6 +297,14 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                        SmartReadCallback*      read_cache,
                        GeoPartList&            out_parts )
 {
+    // For a geocentic part, we first clamp each point. Then we can use the polytope
+    // intersector to refine the line in between.
+    if ( srs->isGeocentric() )
+    {
+        double out_z = 0.0;
+        clampPointPartToTerrain( in_part, terrain, srs, ignore_z, read_cache, out_z );
+    }
+
     RelaxedIntersectionVisitor iv;
 
     if ( read_cache )
@@ -311,7 +319,8 @@ clampLinePartToTerrain(GeoPointList&           in_part,
         if ( p0 == p1 )
             continue;
 
-        double z = p0.getDim() < 3 || ignore_z? 0.0 : p0.z();
+        //TODO: fix: only works for projected...needs to work for geocentric too
+        double z = p0.getDim() < 3 || ignore_z || !p0.getSRS()->isProjected()? 0.0 : p0.z();
 
         osg::Vec3d p0_world = p0 * srs->getInverseReferenceFrame();
         osg::Vec3d p1_world = p1 * srs->getInverseReferenceFrame();
@@ -337,19 +346,15 @@ clampLinePartToTerrain(GeoPointList&           in_part,
             osg::Vec3d midpoint_normal = midpoint;
             midpoint_normal.normalize();
 
-            planes[2] = osg::Plane(
-                midpoint_normal,
-                osg::Vec3d(0,0,0) );
+            //midpoint -= midpoint_normal*seg_length;
+            //planes[2].set( midpoint_normal, midpoint );
 
-            osg::Vec3d normal1 = p1_world;
-            normal1.normalize();
+            planes[2] = osg::Plane( midpoint_normal, osg::Vec3d(0,0,0) );
 
             osg::Polytope polytope( planes );
 
-            osg::Plane plane(
-                p0_world,
-                p1_world,
-                osg::Vec3d(0,0,0) );
+            //osg::Plane plane( p0_world, p1_world, midpoint );
+            osg::Plane plane( p0_world, p1_world, osg::Vec3d(0,0,0) );
 
             isector = new osgUtil::PlaneIntersector( plane, polytope );
         }
@@ -364,15 +369,6 @@ clampLinePartToTerrain(GeoPointList&           in_part,
             p0_normal.normalize();
             planes[0] = osg::Plane( p0_normal, p0_world );
             planes[1] = osg::Plane( -p0_normal, p1_world );
-
-            //osg::BoundingBox bbox;
-            //bbox.expandBy( p0_world + normal * ALTITUDE_EXTENSION );
-            //bbox.expandBy( p0_world - normal * ALTITUDE_EXTENSION );
-            //bbox.expandBy( p1_world + normal * ALTITUDE_EXTENSION );
-            //bbox.expandBy( p1_world - normal * ALTITUDE_EXTENSION );
-            //
-            //osg::Polytope polytope;
-            //polytope.setToBoundingBox( bbox );
 
             osg::Polytope polytope( planes );
 

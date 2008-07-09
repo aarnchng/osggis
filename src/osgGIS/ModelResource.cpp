@@ -80,16 +80,14 @@ ModelResource::createNode()
 osg::Node*
 ModelResource::createProxyNode()
 {
-    osg::Group* dummy = new osg::Group();
-    dummy->setDataVariance( osg::Object::STATIC );
+    osg::ProxyNode* proxy = new osg::ProxyNode();
+    proxy->setDataVariance( osg::Object::STATIC );
+    proxy->setFileName( 0, getAbsoluteURI() );
+    return proxy;
 
-    //osg::ProxyNode* proxy = new osg::ProxyNode();
-    //proxy->addChild( dummy, getAbsoluteModelPath() );
-    //return proxy;
-
-    osg::PagedLOD* plod = new osg::PagedLOD();
-    plod->addChild( dummy, 0.0f, 15000.0f, getAbsoluteURI() );
-    return plod;
+    //osg::PagedLOD* plod = new osg::PagedLOD();
+    //plod->addChild( dummy, 0.0f, 15000.0f, getAbsoluteURI() );
+    //return plod;
 }
 
 ModelResourceQuery::ModelResourceQuery()

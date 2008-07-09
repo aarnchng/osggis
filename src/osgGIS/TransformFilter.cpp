@@ -161,26 +161,78 @@ TransformFilter::getProperties() const
 
 
 FeatureList
+TransformFilter::process( FeatureList& input, FilterEnv* env )
+{
+    // first time through, establish a working SRS for output data.
+    if ( !working_srs.valid() )
+    {
+        // first try to use the terrain SRS if so directed:
+        osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
+        if ( !new_out_srs.valid() )
+        {
+            // failing that, see if we have an SRS in a resource:
+            if ( !getSRS() && getSRSScript() )
+            {
+                ScriptResult r = env->getScriptEngine()->run( getSRSScript(), env );
+                if ( r.isValid() )
+                {
+                    setSRS( env->getSession()->getResources()->getSRS( r.asString() ) );
+                }
+            }
+
+            new_out_srs = srs.get();
+        }
+
+        // set the "working" SRS that will be used for all features passing though this filter:
+        working_srs = new_out_srs.valid()? new_out_srs.get() : env->getInputSRS();
+
+        // LOCALIZE points around a local origin (the working extent's centroid)
+        if ( working_srs.valid() && getLocalize() ) //&& env->getExtent().getArea() > 0.0 )
+        {
+            if ( env->getExtent().getSRS()->isGeographic() && env->getExtent().getWidth() > 179.0 )
+            {
+                //NOP - no localization for big geog extent ... needs more thought perhaps
+            }
+            else
+            {
+                GeoPoint centroid = new_out_srs.valid()?
+                    new_out_srs->transform( env->getExtent().getCentroid() ) :
+                    env->getExtent().getCentroid();
+
+                osg::Matrixd localizer;
+
+                // For geocentric datasets, we need a special localizer matrix:
+                if ( working_srs->isGeocentric() )
+                {                    
+                    localizer = working_srs->getEllipsoid().createGeocentricInvRefFrame( centroid );
+                    localizer.invert( localizer );
+                }
+
+                // For projected datasets, just a simple translation:
+                else
+                {
+                    localizer = osg::Matrixd::translate( -centroid );
+                }
+
+                working_srs = working_srs->cloneWithNewReferenceFrame( localizer );
+            }
+        }
+    }
+
+    // we have to assign the output SRS on each pass
+    if ( working_srs.valid() )
+    {
+        env->setOutputSRS( working_srs.get() );
+    }
+
+    return FeatureFilter::process( input, env );
+}
+
+
+FeatureList
 TransformFilter::process( Feature* input, FilterEnv* env )
 {
     FeatureList output;
-
-    // first try to use the terrain SRS if so directed:
-    osg::ref_ptr<SpatialReference> new_out_srs = getUseTerrainSRS()? env->getTerrainSRS() : NULL;
-    if ( !new_out_srs.valid() )
-    {
-        // failing that, see if we have an SRS in a resource:
-        if ( !getSRS() && getSRSScript() )
-        {
-            ScriptResult r = env->getScriptEngine()->run( getSRSScript(), input, env );
-            if ( r.isValid() )
-            {
-                setSRS( env->getSession()->getResources()->getSRS( r.asString() ) );
-            }
-        }
-
-        new_out_srs = srs.get();
-    }
 
     // resolve the xlate shortcut
     osg::Matrix working_matrix = xform_matrix;
@@ -193,59 +245,12 @@ TransformFilter::process( Feature* input, FilterEnv* env )
             working_matrix = osg::Matrix::translate( r.asVec3() );
     }
 
-    SpatialReference* working_srs = new_out_srs.valid()? 
-        new_out_srs.get() : 
-        env->getInputSRS(); //NULL;
-
-    // LOCALIZE points around a local origin (the working extent's centroid)
-    if ( working_srs && getLocalize() && env->getExtent().getArea() > 0.0 )
-    {
-        if ( env->getExtent().getSRS()->isGeographic() &&
-             env->getExtent().getWidth() > 179.0 )
-        {
-            //NOP - no localization for big geog extent
-        }
-        else
-        {
-            //working_srs = new_out_srs.get();
-
-            GeoPoint centroid = new_out_srs.valid()?
-                new_out_srs->transform( env->getExtent().getCentroid() ) :
-                env->getExtent().getCentroid();
-
-            osg::Matrixd localizer;
-
-
-            // For geocentric datasets, we need a special localizer matrix
-            if ( working_srs->isGeocentric() )
-            {                    
-                localizer = working_srs->getEllipsoid().createGeocentricInvRefFrame( centroid );
-                localizer = osg::Matrixd::inverse( localizer );
-            }
-            else
-            {
-                localizer = osg::Matrixd::translate( -centroid );
-            }
-            working_srs = working_srs->cloneWithNewReferenceFrame( localizer );
-        }
-    }
-    
-    if ( working_srs )
-    {
-        env->setOutputSRS( working_srs );
-    }
-
-    if ( working_srs || ( working_matrix.valid() && !working_matrix.isIdentity() ) )
+    if ( working_srs.valid() || ( working_matrix.valid() && !working_matrix.isIdentity() ) )
     {
         for( GeoShapeList::iterator shape = input->getShapes().begin(); 
              shape!= input->getShapes().end();
              shape++ )
         {
-            if ( working_srs && !working_srs->equivalentTo( env->getInputSRS() ) ) //???
-            {
-                working_srs->transformInPlace( *shape );
-            }
-
             if ( working_matrix.valid() && !working_matrix.isIdentity() )
             {
                 struct XformVisitor : public GeoPointVisitor {
@@ -260,6 +265,11 @@ TransformFilter::process( Feature* input, FilterEnv* env )
                 XformVisitor visitor;
                 visitor.mat = working_matrix;
                 shape->accept( visitor );
+            }
+
+            if ( working_srs.valid() && !working_srs->equivalentTo( env->getInputSRS() ) )
+            {
+                working_srs->transformInPlace( *shape );
             }
         }
     }
