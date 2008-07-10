@@ -75,6 +75,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "Optional:" << ENDL;
     NOUT << "    --list-targets       - show all available targets in project" << ENDL;
     NOUT << "    --threads <num>      - number of parallel build threads to use" << ENDL;
+    NOUT << "    --version            - dumps the osgGIS library version and exits" << ENDL;
 }
 
 
@@ -115,6 +116,12 @@ parseCommandLine( int argc, char** argv )
     if ( arguments.read( "--threads", temp ) )
     {
         sscanf( temp.c_str(), "%d", &num_threads );
+    }
+
+    if ( arguments.read( "--version" ) )
+    {
+        osg::notify(osg::NOTICE) << "osgGIS version " << OSGGIS_VERSION_STRING << std::endl;
+        exit(0);
     }
 
     if ( argc > 1 )
