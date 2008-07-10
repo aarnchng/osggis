@@ -1,0 +1,95 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_GDAL_RASTER_STORE_H_
+#define _OSGGIS_GDAL_RASTER_STORE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/RasterStore>
+#include <string>
+#include <gdal_priv.h>
+
+namespace osgGIS
+{
+    /* (internal - no api docs)
+     * 
+     * Implementation of a RasterStore that reads data via the GDAL library.
+     */
+	class GDAL_RasterStore : public RasterStore
+	{
+	public:
+        /**
+         * Constructs a new GDAL raster store
+         *
+         * @param uri
+         *      URI of GDAL data store to which to connect
+         */
+		GDAL_RasterStore(const std::string& uri );
+		
+		
+	public: // osgGIS::RasterStore
+	
+		bool isReady() const;
+
+        const std::string& getName() const;
+		
+		SpatialReference* getSRS() const;
+		
+		const GeoExtent& getExtent() const;
+
+        GLenum getImagePixelFormat() const;
+
+        osg::Image* createImage( 
+            const GeoExtent& extent, 
+            int max_span_pixels,
+            bool force_power_of_2_dimensions ) const;
+
+        osg::Image* createImage(
+            const GeoExtent& extent,
+            unsigned int     image_width,
+            unsigned int     image_height ) const;
+
+        bool getOptimalImageSize(
+            const GeoExtent& aoi,
+            unsigned int     max_pixel_span,
+            bool             force_power_of_2,
+            unsigned int&    out_image_width,
+            unsigned int&    out_image_height ) const;
+
+        osg::HeightField* createHeightField(
+            const GeoExtent& aoi ) const;
+		
+	public:
+		virtual ~GDAL_RasterStore();
+		
+	private:
+        std::string uri;
+        GDALDataset* dataset;
+        double geo_transform[6];
+        bool has_geo_transform;
+        int size_x, size_y, num_bands;
+        double res_x, res_y;
+		osg::ref_ptr<SpatialReference> spatial_ref;
+		GeoExtent extent;
+        
+        void calcExtent();
+	};
+}
+
+#endif // _OSGGIS_GDAL_RASTER_STORE_H_

@@ -1,0 +1,126 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_CLAMP_FILTER_H_
+#define _OSGGIS_CLAMP_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /**
+     * Clamps incoming features to a terrain.
+     *
+     * This filter will a) clamp the incoming feature points to the terrain skin,
+     * and b) subdivide edges/lines so that they conform to the underlying terrain
+     * (effectively draping them).
+     * 
+     * Note that this filter will NOT create draped filled polygons that conform to
+     * a terrain. To do that, you should build the polygons without clamping
+     * (i.e. don't use this filter) and then use the osgSim::OverlayNode to
+     * project them onto the terrain skin at runtime. (You can use the
+     * osggis_viewer app with the "--overlay" option to preview draped layers.)
+     */
+    class OSGGIS_EXPORT ClampFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( ClampFilter );  
+
+    public:
+        /**
+         * Constucts a new clamp filter.
+         */
+        ClampFilter();
+
+        /**
+         * Copy constructor.
+         */
+        ClampFilter( const ClampFilter& rhs );
+
+
+    public: // properties
+
+        /**
+         * Sets whether to ignore existing Z values in the input feature
+         * data. If you choose to ignore Z's, feature Z will be replaced
+         * with the clamped value. If you do not ignore Z's, feature Z 
+         * will be adjusted so that it is relative to the terrain Z at 
+         * that point.
+         *
+         * @param value
+         *      True to ignore the Z coordinate of the incoming feature
+         */
+        void setIgnoreZ( bool value );
+
+        /**
+         * Gets whether to ignore the Z vlaues in input feature data.
+         *
+         * @return
+         *      True to ignore the Z coordinate of the incoming feature
+         */
+        bool getIgnoreZ() const;
+
+        /**
+         * Sets the name of an attribute to which the filter will write the
+         * minimum Z value of the feature after clamping.
+         *
+         * @param value
+         *      Attribute name to which to write clamped Z value
+         */
+        void setClampedZOutputAttribute( const std::string& value );
+        
+        /**
+         * Gets the name of an attribute to which the filter will write the
+         * minimum Z value of the feature after clamping.
+         *
+         * @return
+         *      Name of attribute to which to write clamped Z value
+         */
+        const std::string& getClampedZOutputAttribute() const;
+
+        /**
+         * Sets the script tha will evaluate to the name of the elevation resource
+         * to use for clamping.
+         */
+//        void setElevationResourceScript( Script* script );
+
+        /**
+         * Gets the script that will evaluate to the name of the elevation resource
+         * to use for clamping.
+         */
+//        Script* getElevationResourceScript() const;
+
+    public: // Filter overrides
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    public: // FeatureFilter overrides
+        virtual FeatureList process( Feature* input, FilterEnv* env );
+
+        virtual ~ClampFilter();
+
+    private:
+        bool ignore_z;
+        std::string clamped_z_output_attribute;
+        osg::ref_ptr<Script> elevation_resource_script;
+    };
+};
+
+#endif // _OSGGIS_CLAMP_FILTER_H_

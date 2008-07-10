@@ -1,0 +1,306 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ATTRIBUTE_H_
+#define _OSGGIS_ATTRIBUTE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Property>
+#include <string>
+#include <map>
+#include <list>
+
+namespace osgGIS
+{
+    /**
+     * A single name/value pair, representing a GIS feature attribute record.
+     */
+    class OSGGIS_EXPORT Attribute
+    {
+    public:
+        enum Type {
+            TYPE_UNSPECIFIED,
+            TYPE_STRING,
+            TYPE_INT,
+            TYPE_DOUBLE,
+            TYPE_BOOL
+        };
+
+    public:
+        /**
+         * Constructs an "invalid" attribute that can be used to convey an
+         * error status for a method returning type Attribute.
+         */
+        Attribute();
+
+        /**
+         * Constructs a new string attribute.
+         */
+        Attribute( const std::string& key, const std::string& value );
+        
+        /**
+         * Constructs a new string attribute.
+         */
+        Attribute( const std::string& key, const char* value );
+
+        /**
+         * Constructs a new integer attribute.
+         */
+        Attribute( const std::string& key, int value );
+
+        /**
+         * Constructs a new double attribute.
+         */
+        Attribute( const std::string& key, double value );
+        
+        /**
+         * Constructs a new boolean attribute.
+         */
+        Attribute( const std::string& key, bool value );
+
+        /**
+         * Gets the key (i.e. name) of this attribute.
+         */
+        const std::string& getKey() const;
+        
+        /**
+         * Checks whether this attribute represents a valid name/value pair.
+         */
+        bool isValid() const;
+
+        /**
+         * Gets the data type of this attribute's value.
+         */
+        const Type& getType() const;
+
+        /**
+         * Gets the value of this attribute as a string.
+         */
+        const char* asString() const;
+
+        /**
+         * Gets the value of this attribute as an integer.
+         */
+        int asInt() const;
+         
+        /**
+         * Gets the value of this attribute as a double.
+         */
+        double asDouble() const;
+        
+        /**
+         * Gets the value of this attribute as a boolean.
+         */
+        bool asBool() const;
+        
+    public:
+        /**
+         * Creates an "invalid" (error condition) attribute.
+         */
+        static Attribute invalid();
+
+    public:
+        virtual ~Attribute();
+
+    private:
+        bool        valid;
+        std::string key;
+        Type        type;
+        std::string string_value;
+        int         int_value;
+        double      double_value;
+    };
+
+    /**
+     * A lookup-table of attributes indexed by name.
+     */
+    typedef std::map<std::string,Attribute> AttributeTable;
+    
+    /**
+     * A linked list of Attribute objects.
+     */
+    typedef std::list<Attribute> AttributeList;
+    
+    /**
+     * Describes an attribute by name and type.
+     *
+     * This is basically just an Attribute without the value; but this class can
+     * also convey custom domain-specific properties.
+     */
+    class OSGGIS_EXPORT AttributeSchema
+    {
+    public:
+        /**
+         * Constructs a new, empty attribute schema.
+         */
+        AttributeSchema() { }
+        
+        /**
+         * Constructs an attribute schema.
+         */
+        AttributeSchema( const std::string& attr_name, const Attribute::Type& type );
+        
+        /**
+         * Constructs a new attribute schema with custom properties.
+         */
+        AttributeSchema( const std::string& attr_name, const Attribute::Type& type, const Properties& props );
+        
+        /**
+         * Gets the name of the attribute.
+         */
+        const std::string& getName() const;
+        
+        /**
+         * Gets the value type of the attribute.
+         */
+        const Attribute::Type& getType() const;
+        
+        /**
+         * Gets the set of custom properties associated with the attribute.
+         */
+        const Properties& getProperties() const;
+        
+    private:
+        std::string     name;
+        Attribute::Type type;
+        Properties      props;
+    };
+    
+    /**
+     * A lookup table that maps names to AttributeSchema instances.
+     */
+    typedef std::map<std::string,AttributeSchema> AttributeSchemaTable;
+    
+    /**
+     * A linked-list of AttributeSchema objects.
+     */
+    typedef std::list<AttributeSchema> AttributeSchemaList;
+    
+    
+    /**
+     * Convenience base-class interface for any class that has a list of Attributes.
+     */
+    class OSGGIS_EXPORT Attributed : public osg::Referenced
+    {
+    public:
+        /**
+         * Gets a copy of the attribute associated with a key string
+         * @param key
+         *      Name of the attribute to return
+         */
+        virtual Attribute getAttribute( const std::string& key ) const =0;
+        
+        /**
+         * Gets a (copied) collection of all attributes in this feature.
+         */
+        virtual AttributeList getAttributes() const =0;
+        
+        /**
+         * Gets a copy of the full attribute schema for each attribute.
+         */
+        virtual AttributeSchemaList getAttributeSchemas() const =0;
+
+        /**
+         * Sets an attribute to a string value.
+         */
+        virtual void setAttribute( const std::string& key, const std::string& value ) =0;
+
+        /**
+         * Sets an attribute to an integer value.
+         */
+        virtual void setAttribute( const std::string& key, int value ) =0;
+
+        /**
+         * Sets an attribute to a double value.
+         */
+        virtual void setAttribute( const std::string& key, double value ) =0;
+
+        /**
+         * Sets an attribute to a boolean value.
+         */
+        virtual void setAttribute( const std::string& key, bool value ) =0;
+
+        /**
+         * Sets an attribute to a copy of another attribute.
+         */
+        virtual void setAttribute( const Attribute& attr ) =0;
+    };
+    
+    /**
+     * Base class for any object containing an Attribute table.
+     */
+    class OSGGIS_EXPORT AttributedBase : public Attributed
+    {
+    public:
+        /**
+         * Gets a copy of the attribute associated with a key string
+         * @param key
+         *      Name of the attribute to return
+         */
+        virtual Attribute getAttribute( const std::string& key ) const;
+        
+        /**
+         * Gets a (copied) collection of all attributes in this feature.
+         */
+        virtual AttributeList getAttributes() const;   
+        
+        /**
+         * Gets a copy of the full attribute schema for each attribute.
+         */
+        virtual AttributeSchemaList getAttributeSchemas() const;
+        
+        /**
+         * Sets an attribute to a string value.
+         */
+        virtual void setAttribute( const std::string& key, const std::string& value );
+
+        /**
+         * Sets an attribute to an integer value.
+         */
+        virtual void setAttribute( const std::string& key, int value );
+
+        /**
+         * Sets an attribute to a double value.
+         */
+        virtual void setAttribute( const std::string& key, double value );
+
+        /**
+         * Sets an attribute to a boolean value.
+         */
+        virtual void setAttribute( const std::string& key, bool value );
+
+        /**
+         * Sets an attribute to a copy of another attribute.
+         */
+        virtual void setAttribute( const Attribute& attr );
+
+    protected:
+
+        /**
+         * Gets the set of user-created attributes.
+         */
+        const AttributeTable& getUserAttrs() const;
+
+    private:
+        
+        AttributeTable  user_attrs;
+    };
+}
+
+#endif // _OSGGIS_ATTRIBUTE_H_

@@ -1,0 +1,9 @@
+/*
+** Lua binding: Lua_ScriptEngine_tolua
+** Generated automatically by tolua 5.1b on 05/29/08 18:00:05.
+*/
+
+/* Exported function */
+TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
+LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
+

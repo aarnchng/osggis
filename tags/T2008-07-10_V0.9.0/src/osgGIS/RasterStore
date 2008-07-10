@@ -1,0 +1,124 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_RASTER_STORE_H_
+#define _OSGGIS_RASTER_STORE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/SpatialReference>
+#include <osgGIS/GeoExtent>
+#include <osg/Image>
+#include <osg/Shape>
+
+namespace osgGIS
+{
+    /**
+     * Interface to a raster data backing store.
+     *
+     * A RasterStore holds an arbitrarily large georeferenced image.
+     */
+	class OSGGIS_EXPORT RasterStore : public osg::Referenced
+	{
+	public:
+        /**
+         * Gets whether a connection to the store was successfully established.
+         */
+		virtual bool isReady() const =0;
+
+        /**
+         * Gets the name of the store.
+         */
+        virtual const std::string& getName() const =0;
+		
+        /**
+         * Gets the spatial reference system (SRS) of the geodata in the
+         * store. This may be NULL is no SRS is specified.
+         */
+		virtual SpatialReference* getSRS() const =0;
+		
+        /**
+         * Gets the minimum bounding rectangle containing the entire raster.
+         */
+		virtual const GeoExtent& getExtent() const =0;		
+
+        /**
+         * Extracts an RGBA image from the raster store.
+         *
+         * @param aoi
+         *      Spatial extent of the area of interest to extract
+         * @param image_width
+         *      Width of the resulting osg::Image (in pixels)
+         * @param image_height
+         *      Height of the resulting osg::Image (in pixels)
+         * @return
+         *      An osg::Image object. Caller is responsible for deleting the return object.
+         */
+        virtual osg::Image* createImage(
+            const GeoExtent& aoi,
+            unsigned int     image_width,
+            unsigned int     image_height ) const =0;
+
+        /**
+         * Gets the pixel format of images returned from createImage.
+         *
+         * @return A pixel format (e.g. GL_RGBA, GL_RGB, etc.)
+         */
+        virtual GLenum getImagePixelFormat() const =0;
+
+        /**
+         * Calculates and returns an image size that will best accomodate an osg::Image
+         * that spans the provided AOI. Typically you would call this and use the generated
+         * size in a call to createImage().
+         *
+         * @param aoi
+         *      Spatial extent of raster area to query
+         * @param max_pixel_span
+         *      Maximum number of pixels in either dimension
+         * @param force_power_of_2
+         *      Round the resulting dimensions so that they are powers of 2
+         * @param out_image_width
+         *      Upon success, stores the calculated width to this variable
+         * @param out_image_height
+         *      Upon success, stores the calcluates height to this variable.
+         *
+         * @return
+         *      True upon success, False upon failure.
+         */
+        virtual bool getOptimalImageSize(
+            const GeoExtent& aoi,
+            unsigned int     max_pixel_span,
+            bool             force_power_of_2,
+            unsigned int&    out_image_width,
+            unsigned int&    out_image_height ) const =0;
+
+        /* (NOT YET IMPLEMENTED)
+         * Extracts a height field from the raster store.
+         *
+         * @param aoi
+         *      Spatial extent of the area of interest to extract
+         * @return
+         *      An OSG height field
+         */
+        virtual osg::HeightField* createHeightField(
+            const GeoExtent& aoi ) const =0;
+	};
+}
+
+
+#endif // _OSGGIS_RASTER_STORE_H_

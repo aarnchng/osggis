@@ -1,0 +1,164 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_GRIDDED_LAYER_COMPILER_H_
+#define _OSGGIS_GRIDDED_LAYER_COMPILER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/LayerCompiler>
+#include <osgGIS/FeatureLayer>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /**
+     * Compiles a feature layer into a scene graph by breaking it down into a
+     * grid of rows and columns and running the graph against each tile - optionally
+     * as concurrent threads.
+     *
+     * The entire process as a whole operates under a single Session object. Each
+     * grid cell compilation operates under its own FilterEnv that is a child of that
+     * shared Session.
+     *
+     * Define the grid structure either by a) setting the number of row and
+     * columns, or b) by setting the row size and column size in feature store
+     * units (e.g., if the source data is expressed in degrees, these values should
+     * also be in degrees).
+     */
+    class OSGGIS_EXPORT GriddedLayerCompiler : public LayerCompiler
+    {
+    public:
+        /**
+         * Creates a new gridded compiler.
+         */
+        GriddedLayerCompiler();
+
+        /**
+         * Sets the horizontal extent of each grid cell. Mutually 
+         * exclusive of setNumRows().
+         *
+         * @param Grid cell width, in feature store units.
+         */
+        void setRowSize( double value );
+
+        /**
+         * Gets the horizontal extent of each grid cell.
+         *
+         * @return Grid cell height, in feature store units.
+         */
+        double getRowSize() const;
+
+        /**
+         * Sets the vertical extent of each grid cell. Mutually
+         * exclusive of setNumColumns().
+         *
+         * @param Grid cell height, in feature store units.
+         */
+        void setColumnSize( double value );
+
+        /**
+         * Gets the vertical extent of each grid cell.
+         *
+         * @return Grid cell height, in feature store units.
+         */
+        double getColumnSize() const;
+
+        /**
+         * Sets the number of rows in the grid. Mutually exclusive
+         * of setRowSize().
+         *
+         * @param value
+         *      Number of grid rows.
+         */
+        void setNumRows( int value );
+
+        /**
+         * Gets the number of rows in the grid.
+         *
+         * @return Number of grid rows
+         */
+        int getNumRows() const;
+
+        /**
+         * Sets the number of columns in the grid. Mutually exclusive
+         * of setColumnSize().
+         *
+         * @param value
+         *      Number of grid columns
+         */
+        void setNumColumns( int value );
+
+        /**
+         * Gets the number of columns in the grid.
+         * 
+         * @return Number of grid columns
+         */
+        int getNumColumns() const;
+
+        /**
+         * Sets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        void setPaged( bool value );
+
+        /**
+         * Gets whether the compiler should generate PagedLODs instead
+         * of normal LODs, where applicable.
+         */
+        bool getPaged() const;
+
+        /**
+         * Compiles a non-paged feature layer into a scene graph. Only use this method
+         * for non-paged output. For paged output, use the variant that takes an
+         * output URI.
+         *
+         * @layer
+         *      Source feature layer.
+         * @return
+         *      Root node of the resulting scene graph
+         */
+        osg::Node* compile( FeatureLayer* layer );
+
+        /**
+         * Compiles a feature layer into a scene graph.
+         *
+         * @layer
+         *      Source feature layer.
+         * @output_file
+         *      Top-level output file to which to write the root node of a paged dataset.
+         * @return
+         *      Root node of the resulting scene graph
+         */
+        osg::Node* compile( FeatureLayer* layer, const std::string& output_file );
+        
+    public:
+        virtual Properties getProperties();
+        virtual void setProperties( Properties& props ); 
+
+    public:
+        virtual ~GriddedLayerCompiler();
+
+    private:
+        double row_size, col_size;
+        int num_rows, num_cols;
+        bool paged;
+    };
+}
+
+#endif // _OSGGIS_GRIDDED_LAYER_COMPILER_H_

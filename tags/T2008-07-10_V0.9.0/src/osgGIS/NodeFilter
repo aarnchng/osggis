@@ -1,0 +1,129 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_NODE_FILTER_H_
+#define _OSGGIS_NODE_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/AttributedNode>
+#include <osgGIS/CollectionFilter>
+#include <osgGIS/FragmentFilter>
+#include <osgGIS/FeatureFilter>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /**
+     * A filter that processes feature or fragment data into osg::Node scene graphs.
+     *
+     * A NodeFilter can take as input Feautres, Fragments or osg::Nodes. It generates
+     * a list of osg::Node instances. To implement a NodeFilter you create a subclass and
+     * implement the appropriate process(...) method(s).
+     */
+    class OSGGIS_EXPORT NodeFilter : public Filter
+    {
+    public:
+        /**
+         * Processes a single feature into a collection of nodes.
+         *
+         * @param input
+         *      Individual feature to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( Feature* input, FilterEnv* env );
+        
+        /**
+         * Processes a collection of features into a collection of nodes.
+         *
+         * @param input
+         *      Batch of features to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( FeatureList& input, FilterEnv* env );
+
+        /**
+         * Processes a single fragment into a collection of nodes.
+         *
+         * @param input
+         *      Individual fragment to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( Fragment* input, FilterEnv* env );
+        
+        /**
+         * Processes a collection of fragments into a collection of nodes.
+         *
+         * @param input
+         *      Batch of fragments to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( FragmentList& input, FilterEnv* env );
+        
+        /**
+         * Processes a single node into a collection of nodes.
+         *
+         * @param input
+         *      Individual node to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( AttributedNode* input, FilterEnv* env );
+        
+        /**
+         * Processes a collection of nodes into a collection of nodes.
+         *
+         * @param input
+         *      Batch of nodes to process
+         * @param env
+         *      Contextual compilation environment
+         * @return
+         *      Resulting node list
+         */
+        virtual AttributedNodeList process( AttributedNodeList& input, FilterEnv* env );
+        
+    public:
+
+        FilterState* newState() const;
+        
+    protected:
+        NodeFilter();
+        NodeFilter( const NodeFilter& rhs );
+        virtual ~NodeFilter();  
+
+    protected:
+        void embedAttributes( osg::Node* node, const AttributeList& attrs );
+    };
+}
+
+
+#endif // _OSGGIS_NODE_FILTER_H_

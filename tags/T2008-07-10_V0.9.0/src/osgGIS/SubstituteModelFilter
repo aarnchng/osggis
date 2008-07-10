@@ -1,0 +1,229 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SUBSTITUTE_MODEL_FILTER_H_
+#define _OSGGIS_SUBSTITUTE_MODEL_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/NodeFilter>
+#include <map>
+
+namespace osgGIS
+{
+    /**
+     * Builds nodes by placing externally loaded models at feature locations.
+     */
+    class OSGGIS_EXPORT SubstituteModelFilter : public NodeFilter
+    {
+        OSGGIS_META_FILTER( SubstituteModelFilter );
+
+    public:
+        /**
+         * Constructs a model substitution filter.
+         */
+        SubstituteModelFilter();
+
+        /**
+         * Copy constructor.
+         */
+        SubstituteModelFilter( const SubstituteModelFilter& rhs );
+
+
+    public: //properties
+
+        /**
+         * Sets a script that evaluates to the name of the ModelResource to use.
+         *
+         * @param script
+         *      Script that generates a ModelResource name
+         */
+        void setModelScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the ModelResource to use.
+         *
+         * @return Script that generates a ModelResource name
+         */
+        Script* getModelScript() const;
+        
+        /**
+         * Sets a script that evaluates to the absolute pathname of the model
+         * to use (rather than specifying a resource name expression as you do with
+         * setModelScript).
+         *
+         * @param script
+         *      Script that generates an absolute pathname
+         */
+        void setModelPathScript( Script* script );
+        
+        /**
+         * Gets the script that evaluates to the absolute pathname of the model
+         * to use. 
+         *
+         * @return Script that generates an absolute pathname
+         */
+        Script* getModelPathScript() const;
+        
+        /**
+         * Sets whether to materialize models within the generated scene graph. If true,
+         * the filter will incorporate the model's geometry within the output node,
+         * rather than reference it externally via proxy. If false, a ProxyNode will
+         * reference each instance.
+         *
+         * If true, this will also cluster instance groups for performance purposes.
+         * For example, if you have a point cluster in which each point represents an
+         * extref to a tree model, just precede this filter with a CollectionFilter and
+         * this filter will inline, localize, and optimize the tree references for you.
+         *
+         * NOTE: clustering only works when this filter is preceded by a Collection filter
+         * that batches features together.
+         *
+         * @param value
+         *      True to cluster; false to not cluster (default)
+         */
+        void setCluster( bool value );
+        
+        /**
+         * Gets whether to cluster materialized model references. See setCluster() for details.
+         *
+         * @return True to cluster; false to not cluster (default).
+         */
+        bool getCluster() const;
+        
+        /**
+         * Sets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         *
+         * @param script
+         *      Script that generates a vec3
+         */
+        void setModelScaleScript( Script* script );
+        
+        /**
+         * Gets a script that evaluates to a 3-D scale factor for the model instance (a vec3).
+         *
+         * @return Script that generates an vec3
+         */
+        Script* getModelScaleScript() const;
+
+        /**
+         * Sets a script that evalutes to the heading (in degrees) of the model instance (double).
+         *
+         * @param script
+         *      Script that generates a double
+         */
+        void setModelHeadingScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the heading (in degrees) of the model instance.
+         *
+         * @return Script that generates a double
+         */
+        Script* getModelHeadingScript() const;
+
+        /**
+         * Sets a script that evaluates to a string that will be set as the model instance's
+         * node name. (Note: Setting a feature name will disable clustering, since each feature
+         * will need to be in its own group.)
+         *
+         * @param script
+         *      Script that generates a string
+         */
+        void setFeatureNameScript( Script* script );
+
+        /**
+         * Gets a script that evaluates to a string that will be set as the model instance's
+         * node name.
+         *
+         * @return Script that generates a string
+         */
+        Script* getFeatureNameScript() const;
+
+        /**
+         * Sets whether to run the osgUtil Optimizer on a model before substituting it.
+         *
+         * @param value
+         *      True to run the optimizer on the model; false to leave it as-is (false)
+         */
+        void setOptimizeModel( bool value );
+
+        /**
+         * Gets whether to run the osgUtil Optimizer on a model before substituting it.
+         *
+         * @return True to optimize, false to not optimize (default)
+         */
+        bool getOptimizeModel() const;
+
+        /**
+         * Sets whether to load the model into the scene graph, instead of referencing
+         * it externally via a proxy node. (If getCluster() is true, this property is
+         * ignored.)
+         *
+         * @param value
+         *      True to inline the model; false to externally reference it
+         */
+        void setInlineModel( bool value );
+        
+        /**
+         * Gets whether to load the model into the scene graph or to reference it
+         * externally via a proxy node. (If getCluster() is true, this property is
+         * ignored.)
+         *
+         * @return True to inline the model; false to externally refernece it
+         */
+        bool getInlineModel() const;
+
+    public:
+    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    public:
+
+        virtual AttributedNodeList process( FeatureList& input, FilterEnv* env );
+
+        virtual AttributedNodeList process( Feature* input, FilterEnv* env );
+        
+    protected:        
+
+        virtual ~SubstituteModelFilter();
+        
+    private:
+        osg::Node* materializeAndClusterFeatures( const FeatureList& features, FilterEnv* env, osg::Node* model );
+        void assignFeatureName( osg::Node* node, Feature* input, FilterEnv* env );
+        osg::Node* buildOutputNode( osg::Node* model_node, Feature* input, FilterEnv* env );
+        osg::Node* getNodeFromModelCache( ModelResource* model );
+        osg::Node* cloneAndCacheModelNode( ModelResource* model, FilterEnv* env );
+    
+        osg::ref_ptr<Script> model_script;
+        osg::ref_ptr<Script> model_path_script;
+        osg::ref_ptr<Script> model_scale_script;
+        osg::ref_ptr<Script> model_heading_script;
+        osg::ref_ptr<Script> feature_name_script;
+        bool cluster;
+        bool optimize_model;
+        bool inline_model;
+
+        typedef std::map<std::string,osg::ref_ptr<osg::Node> > ModelCache;
+        ModelCache non_clustered_model_cache;
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_LABELS_FILTER_H_
+

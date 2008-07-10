@@ -1,0 +1,98 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_WRITE_TEXT_FILTER_H_
+#define _OSGGIS_WRITE_TEXT_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    /**
+     * Writes text to stdout or to a text file. This is a "pass-thru" filter
+     * that has no effect on incoming feature data.
+     */
+    class OSGGIS_EXPORT WriteTextFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( WriteTextFilter );
+
+    public:
+        /**
+         * Constructs a new text-writer filter.
+         */
+        WriteTextFilter();
+
+        /**
+         * Copy constructor.
+         */
+        WriteTextFilter( const WriteTextFilter& rhs );
+
+    public:
+        /**
+         * Sets a script that evaluates to the name of a PathResource
+         * which holds the path of the output file to which to write
+         * text.
+         */
+        void setOutputPathResourceNameScript( Script* script );
+
+        /**
+         * Gets a script that evaluates to the name of a PathResource
+         * which holds the path of the output file to which to write
+         * text.
+         */
+        Script* getOutputPathResourceNameScript() const;
+
+        /* (nyi) */
+        void setAppend( bool value );
+
+        /* (nyi) */
+        bool getAppend() const;
+
+        /**
+         * Sets a script that evaluates to the text string to output.
+         *
+         * @param script 
+         *      Script that generates a line of text
+         */
+        void setTextScript( Script* script );
+
+        /**
+         * Gets a script that evalutes to the text string to output.
+         *
+         * @return Script that generates a line of text
+         */
+        Script* getTextScript() const;
+
+    public:
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+        
+    public:
+        virtual FeatureList process( Feature* input, FilterEnv* env );
+
+    private:
+        bool append;
+        osg::ref_ptr<Script> output_path_resource_name_script;
+        osg::ref_ptr<Script> text_script;
+    };
+}
+
+#endif // _OSGGIS_WRITE_TEXT_FILTER_H_
+

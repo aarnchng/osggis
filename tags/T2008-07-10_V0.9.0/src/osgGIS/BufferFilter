@@ -1,0 +1,92 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUFFER_FILTER_H_
+#define _OSGGIS_BUFFER_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    /**
+     * Creates a polygon representing a region containing all points within a certain 
+     * distance of all points on the source feature.
+     *
+     * Given a linear feature, this filter will output a polygon that encloses 
+     * all points less than or equal to a given distance from that feature's geometry.
+     *
+     * This filter only performs simple linear buffering. It does not "dissolve" 
+     * overlapping regions, nor does it currently build rounded end-caps.
+     */
+    class OSGGIS_EXPORT BufferFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( BufferFilter );  
+
+    public:
+        /**
+         * Constructs a new buffering filter.
+         */
+        BufferFilter();
+
+        /**
+         * Copy constructor.
+         */
+        BufferFilter( const BufferFilter& rhs );
+
+        /**
+         * Constructs a new buffering filter.
+         *
+         * @param distance
+         *      Buffer distance. This is usually positive but can be negative if you wish to "shrink" a polygon.
+         */
+        BufferFilter( double distance );
+
+        ~BufferFilter();
+
+    public: // properties
+
+        /**
+         * Sets the buffering distance.
+         *
+         * @param value
+         *      Buffering distance, in meters.
+         */
+        void setDistance( double value );
+
+        /**
+         * Gets the buffering distance.
+         *
+         * @return Buffering distance, in meters.
+         */
+        double getDistance() const;
+
+    public: // FeatureFilter overrides
+        FeatureList process( Feature* input, FilterEnv* env );
+
+    public: // Filter overrides
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    protected:
+        double distance;
+    };
+}
+
+#endif // _OSGGIS_BUFFER_FILTER_H_

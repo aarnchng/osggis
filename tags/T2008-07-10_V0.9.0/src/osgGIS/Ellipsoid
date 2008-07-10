@@ -1,0 +1,120 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ELLIPSOID_H_
+#define _OSGGIS_ELLIPSOID_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/Vec3d>
+#include <osg/Matrixd>
+
+namespace osgGIS
+{
+    class GeoPoint;
+
+    /**
+     * A geographic ellipsoid representing the shape of the planet.
+     *
+     * Much of this code is borrowed from osg::Ellipsoid
+     */
+    class Ellipsoid
+    {
+    public:
+        /**
+         * Constructs a default WGS 1984 ellipsoid.
+         */
+        Ellipsoid();
+
+        /**
+         * Constructs a new ellipsoid.
+         * 
+         * @param semi_major_axis
+         *      Distance from the center of the earth to lat 0, long 0
+         * @param semi_minor_axis
+         *      Distance from the center of the earth to the north pole
+         */
+        Ellipsoid( double semi_major_axis, double semi_minor_axis );
+
+        /**
+         * Converts a longitude/latitude point to earth-centered (ECEF) coordinates.
+         *
+         * @param input_degrees
+         *      Input lon/lat point (in degrees) with height above ellipsoid (in meters)
+         */
+        osg::Vec3d latLongToGeocentric( 
+            const osg::Vec3d& input_degrees ) const;
+            
+        /**
+         * Converts XYZ ECEF coordinates to lat/long/height (degrees/meters).
+         *
+         * @param input_xyz
+         *      Input XYZ coords, in ECEF meters
+         * @return
+         *      Output coords, in lon/lat (degrees) and height above ellipsoid (meters).
+         */
+        osg::Vec3d geocentricToLatLong(
+            const osg::Vec3d& input_xyz ) const;
+
+        /**
+         * Creates a matrix that you can use to transform a localized point from
+         * 0,0,0 to a point on the earth surface in geocentric coordinates.
+         *
+         * @param input
+         *      Input point (geocentric)
+         */
+        osg::Matrixd createGeocentricInvRefFrame(
+            const GeoPoint& input ) const;
+
+        /**
+         * Converts a geocentric location to lat/long + height above ellipsoid.
+         *
+         * @param x, y, z
+         *      Geocentric coordinates to convert
+         * @param lat_rad, lon_rad, height
+         *      Output variables that will contain latitude and longitude (in radians) and height
+         *      above the ellipsoid (in meters)
+         */
+        void xyzToLatLonHeight( 
+            double x, double y, double z, 
+            double& lat_rad, double& lon_rad, double& height ) const;
+
+        /**
+         * Gets the length of the semi-major axis (distance from earth-center to lat 0, long 0)
+         *
+         * @return
+         *      Length of semi-major axis, in meters
+         */
+        double getSemiMajorAxis() const;
+
+        /**
+         * Gets the length of the semi-minor axis (distance from earth-center to north pole)
+         *
+         * @return
+         *      Length of the semi-minor axis, in meters
+         */
+        double getSemiMinorAxis() const;
+
+    private:
+        double semi_major_axis;
+        double semi_minor_axis;
+        double ecc2;
+    };
+}
+
+#endif // _OSGGIS_ELLIPSOID_H_

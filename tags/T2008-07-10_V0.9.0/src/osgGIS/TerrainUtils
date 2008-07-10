@@ -1,0 +1,66 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_TERRAIN_UTILS_H_
+#define _OSGGIS_TERRAIN_UTILS_H_ 1
+
+#include <osgGIS/GeoExtent>
+#include <osg/Node>
+#include <vector>
+
+namespace osgGIS
+{
+    /* (internal)
+     * Utility functions for terrain data
+     */
+    class TerrainUtils
+    {
+    public:
+        /**
+         * Searches a terrain graph and finds the node that optimally
+         * contains an area of interest.
+         *
+         * @param terrain
+         *     Terrain to search
+         * @param terrain_extent
+         *     Full extent of terrain to search
+         * @param aoi
+         *     Area of interest for which to find minimum bounding node
+         *
+         * @return Node optimally containing the serach_extent
+         */
+        static osg::Node* findMinimumBoundingNode( 
+            osg::Node*       terrain,
+            const GeoExtent& terrain_extent,
+            const GeoExtent& aoi );
+            
+        static GeoExtent getSubExtent(
+            const GeoExtent& extent,
+            int              num_children,
+            int              child_no);
+            
+        static void calculateSubExtents(
+            const GeoExtent&        extent,
+            unsigned int            num_children,
+            std::vector<GeoExtent>& out );
+    };
+}
+
+#endif //_OSGGIS_TERRAIN_UTILS_H_
+

@@ -1,0 +1,140 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_UNITS_H_
+#define _OSGGIS_UNITS_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/Vec2d>
+
+namespace osgGIS
+{
+    /**
+     * Handles units representation and conversion.
+     */
+    class OSGGIS_EXPORT Units
+    {
+    public:
+        static class Units METERS;
+        static class Units FEET;
+        static class Units MILES;
+        static class Units KILOMETERS;
+        static class Units DEGREES;
+        static class Units RADIANS;
+
+    public:
+        enum Type {
+            TYPE_LINEAR,
+            TYPE_ANGULAR
+        };
+
+    public:
+        /**
+         * Converts a value from one unit to another. The "from" and "to" units must be
+         * of the same type (linear or angular).
+         *
+         * @param value
+         *      Value to convert
+         * @param from
+         *      Units of source value
+         * @param to
+         *      Units to which to convert
+         * @param output
+         *      Output value
+         * @return
+         *      True if the conversion was successful; false if it was illegal
+         */
+        static bool convert( double value, const Units& from, const Units& to, double& output );
+
+        /**
+         * Approximates the 2D cartesian (x/y) distance between two angular (lat/long) points.
+         *
+         * @param p0_in
+         *      First angular point
+         * @param p1_in
+         *      Second angular point
+         * @param from
+         *      Units of p0_in and p1_in
+         * @param to
+         *      Units of out_linear_vector
+         * @param out_linear_vector
+         *      Cartesian (x,y) vector approximating the linear distance between the two points
+         * @return
+         *      True if the calculation succeeded; false if it was illegal.
+         */
+        static bool convertAngularToLinearVector(
+            const osg::Vec2d& p0_in, const osg::Vec2d& p1_in,
+            const Units& from,
+            const Units& to,
+            osg::Vec2d& out_linear_vector );
+
+        /**
+         * Approximates the geographic endpoint of a vector starting at a given geographic point
+         * (lat/long), and extending along a projected cartesian vector.
+         *
+         * @param input_in
+         *      Input cartesian linear vector
+         * @param from
+         *      Units of input vector
+         * @param to
+         *      Units of output angular coordinates
+         * @param angular_p0
+         *      Angular reference point (starting point of vector)
+         * @param out_angular_p1
+         *      Output angular endpoint
+         */
+        static bool convertLinearToAngularVector(
+            const osg::Vec2d& input_in,
+            const Units& from,
+            const Units& to,
+            const osg::Vec2d& angular_p0,
+            osg::Vec2d& out_angular_p1);
+
+        /**
+         * Checks whether the Units are angular (e.g. lat/long)
+         * @return True if angular, false if linear
+         */
+        bool isAngular() const;
+
+        /**
+         * Checks whether the Units are linear (e.g. xy)
+         * @return True if linear, false if angular
+         */
+        bool isLinear() const;
+
+        /**
+         * Gets the baseline unit for conversion
+         * @return Baseline unit value
+         */
+        double getBaseline() const;
+
+        /**
+         * Gets the units type
+         * @return Units type
+         */
+        Type getType() const;
+
+    protected:
+        Units( Type, double to_baseline );
+        double to_baseline;
+        Type type;
+    };
+}
+
+#endif // _OSGGIS_UNITS_H_

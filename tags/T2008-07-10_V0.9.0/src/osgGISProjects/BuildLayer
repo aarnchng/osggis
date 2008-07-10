@@ -1,0 +1,98 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_BUILD_LAYER_H_
+#define _OSGGISPROJECTS_BUILD_LAYER_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/BuildLayerSlice>
+#include <osgGISProjects/Source>
+#include <osgGISProjects/Terrain>
+#include <list>
+
+namespace osgGISProjects
+{
+    class OSGGISPROJECTS_EXPORT BuildLayer : public osg::Referenced
+    {
+    public:
+        enum LayerType {
+          TYPE_SIMPLE,
+          TYPE_GRIDDED,
+          TYPE_CORRELATED
+        };
+        
+    public:
+        BuildLayer();
+
+        BuildLayer( const std::string& name );
+
+        const std::string& getName() const;
+
+        void setName( const std::string& name );
+        
+        void setBaseURI( const std::string& base_uri );
+        
+        Source* getSource();
+        
+        void setSource( Source* source );
+        
+        Terrain* getTerrain();
+        
+        void setTerrain( Terrain* terrain );
+        
+        void setTargetPath( const std::string& uri );
+
+        const std::string& getTargetPath() const;
+        
+        const std::string getAbsoluteTargetPath() const;
+        
+        const BuildLayerSliceList& getSlices() const;
+
+        BuildLayerSliceList& getSlices();
+        
+        void setType( LayerType value );
+        
+        LayerType getType() const;
+        
+        Properties& getProperties();
+        
+        const Properties& getProperties() const;
+        
+        int getPropertyAsInt( const std::string& name ) const;
+        
+        std::string getPropertyAsString( const std::string& name ) const;
+        
+        double getPropertyAsDouble( const std::string& name ) const;
+        
+    private:
+        std::string name;
+        std::string base_uri;
+        BuildLayerSliceList slices;
+        osg::ref_ptr<Source> source;
+        osg::ref_ptr<Terrain> terrain;
+        std::string target_path;
+        LayerType type;
+        Properties properties;
+    };
+    
+    typedef std::list<osg::ref_ptr<BuildLayer> > BuildLayerList;
+}
+
+#endif // _OSGGISPROJECTS_BUILD_LAYER_H_
+

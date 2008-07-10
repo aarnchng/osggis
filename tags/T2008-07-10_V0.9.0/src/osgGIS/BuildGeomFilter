@@ -1,0 +1,174 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUILD_GEOM_FILTER_H_
+#define _OSGGIS_BUILD_GEOM_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FragmentFilter>
+
+namespace osgGIS
+{
+    /**
+     * Assembles feature data into basic fragments (i.e. attributed drawables).
+     *
+     * This filter takes Feature data as input, and generates Fragment data as output. 
+     * (A Fragment is an osg::Drawable with an AttributeTable.) In other words it
+     * create basic OSG geometry from GIS feature data.
+     */
+    class OSGGIS_EXPORT BuildGeomFilter : public FragmentFilter
+    {
+        OSGGIS_META_FILTER( BuildGeomFilter );
+
+    public:
+        /**
+         * Constructs a new filter for converting features into geometry.
+         */
+        BuildGeomFilter();
+
+        /**
+         * Copy constructor.
+         */
+        BuildGeomFilter( const BuildGeomFilter& rhs );
+
+
+    public: //properties
+    
+        /**
+         * Sets the overall color to assign to generated primitives.
+         *
+         * @param color
+         *      A Vec4 color
+         */
+        void setColor( const osg::Vec4f& color );
+        
+        /**
+         * Gets the overall color to assign to generated primitives.
+         *
+         * @return OSG color vector
+         */
+        const osg::Vec4f& getColor() const;
+
+        /**
+         * Sets the script that evalutes to the color to apply to the geometry.
+         *
+         * @param script Script that generates the geometry color
+         */
+        void setColorScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the color to apply to the 
+         * geometry.
+         *
+         * @return Script that generates the geometry color
+         */
+        Script* getColorScript() const;
+        
+        /**
+         * Sets a script that evaluates to the name of the RasterResource
+         * to use to texture the geometry.
+         *
+         * @param script
+         *      Script that generates the resource name
+         */
+        void setRasterOverlayScript( Script* script );
+        
+        /**
+         * Gets the script that evaluates to the name of the RasterResource
+         * to use to texture the geometry.
+         *
+         * @return Script that generates the resource name
+         */
+        Script* getRasterOverlayScript() const;
+        
+        /**
+         * Sets the maximum size (width or height) of a texture created from
+         * the raster referenced by the raster script. Set this to 0 to disable
+         * the capping.
+         *
+         * @param max_size
+         *      Maximum width or height of the overlay texture
+         */
+        void setRasterOverlayMaxSize( int max_size );
+        
+        /**
+         * Gets the maximum size (width or height) or a texture created from
+         * the raster referenced by the raster script. A value less than or
+         * equal to 0 means no capping.
+         *
+         * @return Maximum texture dimension
+         */
+        int getRasterOverlayMaxSize() const;
+        
+        /**
+         * Sets a script that evaluates to a string that this filter set as the
+         * OSG node name.
+         *
+         * Important note: setting a feature name forces the filter to place 
+         * each feature's geometry under a separate Geode. This prevents certain
+         * optimizations (such as merging geometries) and can ultimatley affect
+         * runtime performance.
+         *
+         * @param script
+         *      Script that generates the feature node name
+         */
+        void setFeatureNameScript( Script* script );
+        
+        /**
+         * Gets a script that evaluates to the string that this filter sets as the
+         * OSG node name.
+         *
+         * @return
+         *      Script that generates the feature node name
+         */
+        Script* getFeatureNameScript() const;
+
+        
+    public: // Filter overrides    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    protected: // FragmentFilter overrides
+        virtual FragmentList process( FeatureList& input, FilterEnv* env );
+        virtual FragmentList process( Feature* input, FilterEnv* env );
+        
+    protected:
+        virtual osg::Vec4 getColorForFeature( Feature* input, FilterEnv* env );
+        void applyFragmentName( Fragment*, Feature*, FilterEnv* );
+        void applyOverlayTexturing( osg::Geometry* geom, Feature* input, FilterEnv* env );
+        void generateNormals( osg::Geometry* geom );
+
+        virtual ~BuildGeomFilter();
+        
+    protected:
+        osg::ref_ptr<Script> color_script;
+        osg::ref_ptr<Script> feature_name_script;
+        osg::Vec4            overall_color;
+        osg::ref_ptr<Script> raster_overlay_script;
+        int                  raster_overlay_max_size;
+        bool                 embed_attributes;
+
+    private: // transients
+        bool      is_batch;
+        osg::Vec4 batch_feature_color;
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_GEOM_FILTER_H_

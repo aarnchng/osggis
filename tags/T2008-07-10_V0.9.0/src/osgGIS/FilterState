@@ -1,0 +1,84 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FILTER_STATE_H_
+#define _OSGGIS_FILTER_STATE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FilterEnv>
+
+namespace osgGIS
+{
+    class Filter;
+    class FilterFactory;
+
+    /* (no api docs)
+     * Maintains the flow of data through a filter.
+     */
+    class FilterState : public osg::Referenced
+    {
+    public:
+        /**
+         * Runs the filter logic within the contextual environment, pushing the
+         * filter's output to the next filter in the chain.
+         *
+         * @param env
+         *      Contextual compilation environment.
+         * @return
+         *      True if traversal succeeded, false upon error.
+         */
+        virtual bool traverse( FilterEnv* env ) =0;
+
+        /** 
+         * Notifies this filter that a compilation checkpoint has been reached.
+         * This supports batching/metering of data by CollectionFilters.
+         *
+         * @return
+         *      True if traversal succeeded, false upon error.
+         */
+        virtual bool signalCheckpoint();
+        
+        /**
+         * Gets the next filter state in the chain.
+         */
+        FilterState* getNextState();
+
+        /**
+         * Gets a reference to the last filter environment object that passed
+         * through this filter.
+         *
+         * @return A filter environment
+         */
+        FilterEnv* getLastKnownFilterEnv();
+
+    protected:    
+        FilterState();
+
+        osg::ref_ptr<FilterState> next_state;
+        osg::ref_ptr<Filter> filter_prototype;
+        std::string name;
+        osg::ref_ptr<FilterEnv> current_env;
+        
+        friend class FilterGraph;
+        FilterState* setNextState( FilterState* state );
+        FilterState* appendState( FilterState* state );
+    };
+}
+
+#endif // _OSGGIS_FILTER_STATE_H_

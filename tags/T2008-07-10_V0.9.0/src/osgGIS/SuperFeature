@@ -1,0 +1,64 @@
+/**
+ * osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SUPER_FEATURE_H_
+#define _OSGGIS_SUPER_FEATURE_H_
+
+#include <osgGIS/Common>
+#include <osgGIS/Feature>
+#include <vector>
+
+namespace osgGIS
+{
+    /**
+     * TBD. NOT YET IMPLEMENTED.
+     */
+    class OSGGIS_EXPORT SuperFeature : public osg::Referenced
+    {
+    public:
+        SuperFeature();
+
+        void addFeature( Feature* f );
+
+        FeatureList& getFeatures();
+
+    public:
+        virtual ~SuperFeature();
+
+    private:
+        FeatureList features;
+    };
+    
+    
+    typedef std::vector< osg::ref_ptr<SuperFeature> > SuperFeatureList;
+    
+    
+    class OSGGIS_EXPORT SuperFeatureCursor
+    {
+    public:
+        virtual void reset() =0;
+        
+        virtual bool hasNext() =0;
+        
+        virtual SuperFeature* next() =0;
+    };
+}
+
+
+#endif // _OSGGIS_SUPER_FEATURE_H_

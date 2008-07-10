@@ -1,0 +1,253 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FILTER_ENV_H_
+#define _OSGGIS_FILTER_ENV_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoExtent>
+#include <osgGIS/SpatialReference>
+#include <osgGIS/SmartReadCallback>
+#include <osgGIS/ScriptEngine>
+#include <osgGIS/Session>
+#include <osgGIS/Property>
+#include <osgGIS/OptimizerHints>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /**
+     * Contains the context under which a filter processes data.
+     *
+     * Even though filters are meant to operate as independent units, they do need
+     * access to a shared context that governs the environment in which they work. This
+     * class provides that shared context.
+     *
+     * A FilterEnv contains information that applies across the entire FilterGraph, such as
+     * a spatial extent and spatial reference systems. It also provides access to shared data
+     * (like a reference terrain) and session-level services like the ResourceLibrary (for
+     * accessing external resources) and a scripting engine (for running user code).
+     *
+     * There is exactly one FilterEnv per compiler. By definition, that means it exists in one
+     * thread. References to objects above the scope of the FilterEnv (like the Session, terrain
+     * node, etc.) are not necessarily thread-safe however. You can access to Session Mutex
+     * to account for this if necessary.
+     */
+    class OSGGIS_EXPORT FilterEnv : public osg::Referenced
+    {
+    private:
+        friend class Session;
+
+        /**
+         * Constructs a new, default filter environment.
+         *
+         * @param session
+         *      Session in which this filter environment exists.
+         */
+        FilterEnv( Session* session );
+        
+    public:
+        /**
+         * Copy constructor.
+         */
+        FilterEnv( const FilterEnv& to_copy );
+
+        /**
+         * Gets an exact copy of this instance.
+         *
+         * @return Exact copy of the FilterEnv
+         */
+        FilterEnv* clone() const;
+        
+        /**
+         * Gets a copy of the instance, copying output data to the input slots.
+         * Specifically advance() will make a copy and move the source's output
+         * spatial reference to be the new object's input spatial reference.
+         *
+         * @return A new FilterEnv
+         */
+        FilterEnv* advance() const;
+        
+        /**
+         * Sets the spatial bounds that a filter should consider relevant under
+         * this environment.
+         *
+         * @param extent Working spatial extent
+         */
+        void setExtent( const GeoExtent& extent );
+
+        /**
+         * Gets the spatial bounds that a filter should consider relevant.
+         *
+         * @return Working spatial extent
+         */
+        const GeoExtent& getExtent() const;
+        
+        /**
+         * Sets the spatial reference system in which the filter's input geodata
+         * is expressed.
+         *
+         * @param SRS of input data
+         */
+        void setInputSRS( const SpatialReference* srs );
+        
+        /**
+         * Gets the spatial reference system in which the filter's input geodata
+         * is expressed.
+         *
+         * @return SRS of input data
+         */
+        const SpatialReference* getInputSRS() const;
+
+        /**
+         * Gets the spatial reference system in which the filter's input geodata
+         * is expressed.
+         *
+         * @return SRS of input data
+         */
+        SpatialReference* getInputSRS();
+        
+        /**
+         * Sets the spatial reference system in which the filter's output geodata
+         * is expressed. The filter itself would call this to inform the next filter
+         * that it had changed the spatial reference of the data stream. 
+         *
+         * For example, if you implement a transformation filter that reprojects the
+         * incoming data, you must call setOutputSRS() so that the next filter knows
+         * about the transformation.
+         *
+         * @param srs
+         *      SRS of output data
+         */
+        void setOutputSRS( const SpatialReference* srs );
+        
+        /**
+         * Gets the spatial reference system in which the filter's output geodata
+         * is expressed.
+         *
+         * @return SRS of output data
+         */
+        const SpatialReference* getOutputSRS() const;
+
+        /**
+         * Sets a terrain scene graph that the filter should consider relevant to 
+         * its operation. This only applies to filters that need to know about a
+         * reference terrain (e.g., for conforming data to a terrain).
+         *
+         * TODO: move this up to the Session level?
+         *
+         * @param node
+         *      Root node of the reference terrain scene graph
+         */
+        void setTerrainNode( osg::Node* node );
+
+        /**
+         * Gets a terrain scene graph that the filter should consider relevant.
+         * The filter would call this method to fetch a terrain if it needs one to
+         * do its processing.
+         *
+         * @return Root node of the reference terrain scene graph
+         */
+        osg::Node* getTerrainNode();
+
+        /**
+         * Gets the spatial reference system of the terrain.
+         *
+         * @return SRS of the reference terrain
+         */
+        SpatialReference* getTerrainSRS() const;
+
+        /**
+         * Sets the spatial reference system of the terrain.
+         *
+         * @param srs
+         *      SRS of the reference terrain
+         */
+        void setTerrainSRS( const SpatialReference* srs );
+
+        /**
+         * Sets the read callback that terrain intersectors can share.
+         *
+         * @param cb
+         *      Read callback for caching and paged-lod traversal
+         */
+        void setTerrainReadCallback( SmartReadCallback* cb );
+
+        /** 
+         * Gets the read callback that terrain intersections share.
+         *
+         * @return Read callback for caching and paged-lod traversal
+         */
+        SmartReadCallback* getTerrainReadCallback();
+
+        /**
+         * Gets the compiler session under which this filterenv exists.
+         *
+         * @return The filter environment's parent Session
+         */
+        Session* getSession();
+
+        /**
+         * Sets the script engine
+         *
+         * @param engine A scripting engine
+         */
+        void setScriptEngine( ScriptEngine* engine );
+
+        /**
+         * Gets the scripting engine. Shortcut for getSession()->getScriptEngine()
+         *
+         * @return A scripting engine
+         */
+        ScriptEngine* getScriptEngine();
+        
+        /**
+         * Gets the optimizer hints - a filter can use this to control the general
+         * optimizer that runs at the end (if applicable)
+         *
+         * @param A set of optimizer hints for this compilation
+         */
+        OptimizerHints& getOptimizerHints();
+
+    public:
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties& getProperties();
+        virtual Property getProperty( const char* name ) const;
+        virtual Property getProperty( const std::string& name ) const;
+
+    protected:
+                
+        virtual ~FilterEnv();
+        
+    private:
+        GeoExtent extent;
+        osg::ref_ptr<SpatialReference>  in_srs;
+        osg::ref_ptr<SpatialReference>  out_srs;
+        osg::ref_ptr<SpatialReference>  terrain_srs;
+        osg::ref_ptr<osg::Node>         terrain_node;
+        osg::ref_ptr<SmartReadCallback> terrain_read_cb;
+        osg::ref_ptr<ScriptEngine>      script_engine;
+        osg::ref_ptr<Session>           session;
+        Properties                      properties;
+        OptimizerHints                  optimizer_hints;
+    };
+}
+
+#endif // _OSGGIS_FILTER_ENV_H_

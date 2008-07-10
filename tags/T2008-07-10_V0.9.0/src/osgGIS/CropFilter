@@ -1,0 +1,75 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_CROP_FILTER_H_
+#define _OSGGIS_CROP_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    /**
+     * Filter that crops feature geometry to a spatial extent.
+     *
+     * This filter takes input features and crops them so that no part lies outside the
+     * working spatial extent (as conveyed in the FilterEnv). This filter only operates
+     * in 2D (x and y).
+     *
+     * For POINT data, points falling outside the spatial extent are simply discarded.
+     *
+     * For LINE data, each line segment is cut to fit inside the extent. This may result in
+     * continuous line features being broken up into multiple line segment.
+     *
+     * For POLYGON data, the area is again cropped to fit the extent. This may result in single
+     * polygon shapes being broken up into multiple areas. Also note that cropping may have
+     * unexpected affects on multi-part polygons with holes (i.e. counter-wound polygon parts).
+     *
+     * Note: This may result in a feature shape being broken up into multiple parts. but it
+     * will not affect the feature attributes set.
+     */
+    class OSGGIS_EXPORT CropFilter : public FeatureFilter
+    {        
+        OSGGIS_META_FILTER( CropFilter );  
+
+    public:
+        /**
+         * Constructs a new cropping filter.
+         */
+        CropFilter();
+
+        /**
+         * Copy constructor.
+         */
+        CropFilter( const CropFilter& rhs );
+
+    public: // Filter overrides
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    public: // FeatureFilter overrides
+        FeatureList process( Feature* input, FilterEnv* env );
+        
+    public:
+        virtual ~CropFilter();
+
+    };
+}
+
+#endif // _OSGGIS_CROP_FILTER_H_

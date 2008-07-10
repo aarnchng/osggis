@@ -1,0 +1,91 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SCRIPT_ENGINE_H_
+#define _OSGGIS_SCRIPT_ENGINE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Script>
+
+namespace osgGIS
+{
+    class Feature;
+    class FilterEnv;
+
+    /**
+     * Interface for executing dynamic codes scripts and returning the results.
+     *
+     * @see Script for more information on scripting
+     */
+    class OSGGIS_EXPORT ScriptEngine : public osg::Referenced
+    {
+    public:
+        /**
+         * Installs a script into the global namespace. This is a good way to add
+         * shared code or functions. Scripts that run via the run() method will be able
+         * to access functions or variables installed using this method.
+         *
+         * @param script
+         *      Script containing code to install
+         */
+        virtual void install( Script* script ) =0;
+        
+        /**
+         * Runs a script and returns the result.
+         *
+         * @param script
+         *      Script to execute
+         * @return
+         *      State and data resulting from Script execution
+         */
+        virtual ScriptResult run( Script* script ) =0;
+
+        /**
+         * Runs a script and returns the result.
+         *
+         * @param script
+         *      Script to execute
+         * @param env
+         *      Filter environment/context to pass to the script code
+         * @return
+         *      State and data resulting from Script execution
+         */
+        virtual ScriptResult run( Script* script, FilterEnv* env ) =0;
+
+        /**
+         * Runs a script and returns the result.
+         *
+         * @param script
+         *      Script to execute
+         * @param feature
+         *      Feature to pass to the script code
+         * @param env
+         *      Filter environment/context to pass to the script code
+         * @return
+         *      State and data resulting from Script execution
+         */
+        virtual ScriptResult run( Script* script, Feature* feature, FilterEnv* env ) =0;
+
+    protected:
+        ScriptEngine() { }
+    };
+}
+
+#endif // _OSGGIS_SCRIPT_ENGINE_H_ 
+

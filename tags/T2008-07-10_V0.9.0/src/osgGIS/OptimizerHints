@@ -1,0 +1,75 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_OPTIMIZER_HINTS_H_
+#define _OSGGIS_OPTIMIZER_HINTS_H_ 1
+
+#include <osgGIS/Common>
+#include <osgUtil/Optimizer>
+
+namespace osgGIS
+{
+    /**
+     * A collection of hints that tells the osgUtil::Optimizer to expressly include or 
+     * exclude certain optimization options.
+     *
+     * Filters that do their own optimization may wish to instruct the general OSG
+     * optimizer to include or exclude certain optimization techniques. The FilterEnv
+     * carries an OptimizerHints object that can be used for this purpose.
+     */
+    class OSGGIS_EXPORT OptimizerHints
+    {
+    public:
+        /**
+         * Constructs a empty hints object.
+         */
+        OptimizerHints();
+        
+        /**
+         * Copy constructor.
+         */
+        OptimizerHints( const OptimizerHints& rhs );
+
+        /**
+         * Adds optimizer options that the general optimizer should use.
+         */
+        void include( osgUtil::Optimizer::OptimizationOptions options );
+
+        /**
+         * Adds optimizer options that the general optimizer should NOT use.
+         */
+        void exclude( osgUtil::Optimizer::OptimizationOptions options );
+
+        /**
+         * Gets the mask of options that the optimzer should expressly include.
+         */
+        osgUtil::Optimizer::OptimizationOptions getIncludedOptions() const;
+
+        /**
+         * Gets the mask of options that the optimizer should expressly exclude.
+         */
+        osgUtil::Optimizer::OptimizationOptions getExcludedOptions() const;
+
+    private:
+        int included;
+        int excluded;
+    };
+}
+
+#endif // _OSGGIS_OPTIMIZER_HINTS_H_

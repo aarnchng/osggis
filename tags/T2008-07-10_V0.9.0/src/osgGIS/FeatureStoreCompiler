@@ -1,0 +1,104 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FEATURE_STORE_COMPILER_H
+#define _OSGGIS_FEATURE_STORE_COMPILER_H 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/FeatureLayer>
+#include <osgGIS/Session>
+
+namespace osgGIS
+{
+    /**
+     * Uses a filter graph to compile a feature layer into a feature store.
+     *
+     * This compiler connects to a source feature layer, reads all features, and
+     * runs them through a user-defined FilterGraph, and writes the resulting
+     * features out to a new FeatureStore.
+     *
+     * Since the output is a feature set, the FilterGraph can contain only FeatureFilter
+     * and CollectionFilter filter types.
+     */
+    class OSGGIS_EXPORT FeatureStoreCompiler : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new compiler (with a default session).
+         *
+         * @param layer
+         *      Feature layer to compile
+         * @param graph
+         *      Graph to use to compile the feature layer
+         */
+        FeatureStoreCompiler( FeatureLayer* layer, FilterGraph* graph );
+        
+        /**
+         * Compiles the feature layer into another feature layer.
+         *
+         * @param output_uri
+         *      URI of the FeatureStore to create for the output features.
+         * @param env
+         *      Initial filter environment
+         * @return
+         *      True if the compilation succeeded
+         */
+        bool compile( const std::string& output_uri, FilterEnv* env );
+        
+
+    public:
+
+        /**
+         * Gets the source filter layer from which to pull features.
+         *
+         * @return The source FeatureLayer
+         */
+        FeatureLayer* getFeatureLayer();
+
+        /**
+         * Gets the FilterGraph that will be used to compile features.
+         *
+         * @return The FilterGraph 
+         */
+        FilterGraph* getFilterGraph();
+
+        /**
+         * Gets the compilation session associated with this compiler, creating
+         * a new one if it does not already exist.
+         *
+         * @return The compilation session.
+         */         
+        Session* getSession();
+
+
+    public:
+
+        virtual ~FeatureStoreCompiler();
+
+        
+    private:
+        osg::ref_ptr<FeatureLayer> layer;
+        osg::ref_ptr<FilterGraph>  graph;
+        osg::ref_ptr<Session>      session;
+    };
+}
+
+
+#endif // _OSGGIS_FEATURE_STORE_COMPILER_H

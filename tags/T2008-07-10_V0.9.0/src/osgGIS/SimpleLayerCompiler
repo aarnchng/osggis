@@ -1,0 +1,100 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SIMPLE_LAYER_COMPILER_H_
+#define _OSGGIS_SIMPLE_LAYER_COMPILER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/LayerCompiler>
+#include <osgGIS/FeatureLayer>
+#include <osgGIS/FilterGraph>
+#include <osg/Node>
+#include <string>
+
+namespace osgGIS
+{
+    /**
+     * Compiles all or part of a FeatureLayer into an OSG scene graph.
+     *
+     * This layer compiler runs feature data though one or more FilterGraphs
+     * in order to produce an in-memory OSG scene graph. It does not support
+     * PagedLODs or parallel compilation.
+     */
+    class OSGGIS_EXPORT SimpleLayerCompiler : public LayerCompiler
+    {
+    public:
+        /**
+         * Constructs a new compiler.
+         */
+        SimpleLayerCompiler();
+
+        /**
+         * Constructs a new compiler.
+         *
+         * @param graph
+         *      Single filter graph to compile.
+         */
+        SimpleLayerCompiler( FilterGraph* graph );
+
+        /**
+         * Compiles a feature layer.
+         *
+         * @param layer
+         *      Feature layer to compile
+         * @param output_file
+         *      If getLocalizeResources() == true, the compiler will localize
+         *      external resources to the directory containing the specified
+         *      file. This compiler does not actually write anything to the
+         *      named file however.
+         * @return
+         *      Resulting scene graph, or NULL upon error
+         */
+        osg::Node* compile(
+            FeatureLayer*      layer,
+            const std::string& output_file ="");
+
+        /**
+         * Compiles a feature layer.
+         *
+         * @param layer
+         *      Feature layer to compile
+         * @param cursor
+         *      Iterator over custom connection of features to compile
+         * @param output_file
+         *      If getLocalizeResources() == true, the compiler will localize
+         *      external resources to the directory containing the specified
+         *      file. This compiler does not actually write anything to the
+         *      named file however.
+         * @return
+         *      Resulting scene graph, or NULL upon error
+         */
+        osg::Node* compile(
+            FeatureLayer*      layer,
+            FeatureCursor&     cursor,
+            const std::string& output_file ="");
+            
+    private:
+        osg::Node* compileLOD(
+            FeatureLayer*  layer,
+            FeatureCursor& cursor,
+            FilterGraph*   graph );
+    };
+}
+
+#endif // _OSGGIS_SIMPLE_LAYER_COMPILER_H_

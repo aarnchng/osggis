@@ -1,0 +1,171 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SCRIPT_H_
+#define _OSGGIS_SCRIPT_H_
+
+#include <osgGIS/Common>
+#include <osgGIS/Property>
+#include <map>
+#include <list>
+
+namespace osgGIS
+{
+    /**
+     * Code that the scripting engine can execute at compile-time.
+     *
+     * A Script is a piece of dynamically executed source code that you can embed in the
+     * feature compilation process. Many filters accept Scripts as property values. A Script
+     * has access to feature attributes and other data that is only available at compile-time.
+     * This awards a great deal of flexibility to the build process.
+     */
+    class OSGGIS_EXPORT Script : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new, empty script.
+         */
+        Script();
+
+        /**
+         * Constructs a new script with code in the default language.
+         *
+         * @param code
+         *      Source code/expression to be executed
+         */
+        Script( const std::string& code );
+
+        /**
+         * Constructs a new script with code in the specified language.
+         *
+         * @param name
+         *      Name of the script
+         * @param language
+         *      Language in which the script is written (e.g., "lua")
+         * @param code
+         *      Source code/expression to be executed
+         */
+        Script( const std::string& name, const std::string& language, const std::string& code );
+        
+        /**
+         * Sets the name of this script.
+         *
+         * @param name
+         *      Name of the script
+         */
+        void setName( const std::string& name );
+
+        /**
+         * Gets the name of this script.
+         *
+         * @return Name of the script
+         */
+        const std::string& getName() const;
+
+        /** 
+         * Sets the scripting language used by the code in this script.
+         *
+         * @param language
+         *      Language in which the script is written (e.g., "lua")
+         */
+        void setLanguage( const std::string& language );
+
+        /**
+         * Gets the scripting language used by this script.
+         *
+         * @return Lanuage in which the script is written (e.g., "lua")
+         */
+        const std::string& getLanguage() const;
+
+        /**
+         * Sets the script code to execute.
+         *
+         * @param code
+         *      Source code/expression to execute
+         */
+        void setCode( const std::string& code );
+        
+        /**
+         * Gets the source code to execute.
+         *
+         * @return Source code/expression
+         */
+        const std::string& getCode() const;
+
+    private:
+        std::string name;
+        std::string language;
+        std::string code;
+    };
+
+    typedef std::list< osg::ref_ptr<Script> > ScriptList;
+    typedef std::map<std::string, osg::ref_ptr<Script> > ScriptsByName;
+
+
+    /**
+     * Status and return data resulting from the execution of a Script.
+     */
+    class OSGGIS_EXPORT ScriptResult
+    {
+    public:
+        /**
+         * The data type of the return value of the Script.
+         */
+        enum ReturnType
+        {
+            TYPE_BOOL,
+            TYPE_INT,
+            TYPE_DOUBLE,
+            TYPE_STRING,
+            TYPE_VEC3,
+            TYPE_VEC4,
+            TYPE_REF
+        };
+
+    public:
+        static ScriptResult Error( const std::string& msg );
+
+        ScriptResult();
+        ScriptResult( const std::string& val );
+        ScriptResult( float val );
+        ScriptResult( double val );
+        ScriptResult( int val );
+        ScriptResult( bool val );
+        ScriptResult( osg::Referenced* ref );
+
+        bool isValid();
+
+        std::string asString() const;
+        float       asFloat( float def ) const;
+        double      asDouble( double def ) const;
+        int         asInt( int def ) const;
+        bool        asBool( bool def) const;
+        osg::Vec3   asVec3() const;
+        osg::Vec4   asVec4() const;
+        osg::Referenced* asRef();
+
+    private:
+        ScriptResult( bool, const std::string& );
+        ReturnType type;
+        bool valid;
+        Property prop;
+    };
+}
+
+#endif // _OSGGIS_SCRIPT_H_

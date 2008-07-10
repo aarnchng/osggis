@@ -1,0 +1,89 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_GROUP_FILTER_H_
+#define _OSGGIS_GROUP_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/CollectionFilter>
+
+namespace osgGIS
+{
+    /**
+     * A filter that groups feature based on a script expression.
+     *
+     * Use this filter to batch features into named groups.
+     */
+    class OSGGIS_EXPORT GroupFilter : public CollectionFilter
+    {
+        OSGGIS_META_FILTER( GroupFilter );  
+
+    public:
+        /**
+         * Constructs a new grouping filter.
+         */
+        GroupFilter();
+
+        /**
+         * Copy constructor
+         */
+        GroupFilter( const GroupFilter& rhs );
+
+
+    public: // properties
+
+        /**
+         * Sets a script that evaluates to the name of the group into which
+         * to put a feature.
+         *
+         * @param script
+         *      Script that generates group name
+         */
+        void setGroupScript( Script* script );
+
+        /**
+         * Gets the scripts that evaluates to the name of the group into which
+         * to put a feature.
+         *
+         * @return Script that generates group name
+         */
+        Script* getGroupScript() const;
+
+    
+    public:
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    public:
+
+        virtual ~GroupFilter();
+
+    public:
+
+        virtual std::string assign( Feature*, FilterEnv* );
+
+    private:
+
+        osg::ref_ptr<Script> group_script;
+    };
+}
+
+
+#endif // _OSGGIS_GROUP_FILTER_H_

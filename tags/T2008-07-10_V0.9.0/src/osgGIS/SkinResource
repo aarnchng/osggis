@@ -1,0 +1,237 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SKIN_RESOURCE_H_
+#define _OSGGIS_SKIN_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Resource>
+#include <osg/Vec4>
+#include <osg/StateSet>
+#include <osg/TexEnv>
+
+namespace osgGIS
+{
+    /**
+     * Resource pointing to an non-geo-referenced image that can be used as a texture map.
+     */
+    class OSGGIS_EXPORT SkinResource : public Resource
+    {
+        OSGGIS_META_RESOURCE(SkinResource);
+
+    public:
+        /**
+         * Constructs a new skin.
+         */
+        SkinResource();
+
+        /**
+         * Constructs a new skin.
+         * @param name
+         *      Name of the skin resource
+         */
+        SkinResource( const std::string& name );
+
+        /**
+         * Constructs a new single-use skin directly from an image bitmap.
+         *
+         * @param image
+         *      Image to embed in the resource.
+         */
+        SkinResource( osg::Image* image );
+
+    public: // properties
+
+        /**
+         * Sets the real-world width, in meters, of the image.
+         *
+         * @param value
+         *      Tetxture width (in meters)
+         */
+        void setTextureWidthMeters( double value );
+
+        /**
+         * Gets the real-world width of the image
+         *
+         * @return Texture width (meters)
+         */
+        double getTextureWidthMeters() const;
+
+        /**
+         * Sets the real-world height of the image
+         *
+         * @param value
+         *      Texture height (in meters)
+         */
+        void setTextureHeightMeters( double value );
+
+        /**
+         * Gets the real-world height of the image
+         *
+         * @return Texture height (in meters)
+         */
+        double getTextureHeightMeters() const;
+
+        /**
+         * Sets the minimum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @param value
+         *      Texture height (in meters )
+         */
+        void setMinTextureHeightMeters( double value );
+
+        /**
+         * Gets the minimum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @return Texture height (in meters )
+         */
+        double getMinTextureHeightMeters() const;
+
+        /**
+         * Sets the maximum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @param value
+         *      Texture height (in meters )
+         */
+        void setMaxTextureHeightMeters( double value );
+        
+        /**
+         * Gets the maximum acceptable real-world height for which this
+         * image would make an appropriate texture
+         *
+         * @return Texture height (in meters )
+         */
+        double getMaxTextureHeightMeters() const;
+
+        /**
+         * Sets whether this is a repeating texture in the Y direction.
+         *
+         * @param value
+         *      True if it repeats; false if not.
+         */
+        void setRepeatsVertically( bool value );
+        
+        /**
+         * Gets whether this is a repeating texture in the Y direction.
+         *
+         * @return True if it repeats; false if not.
+         */
+        bool getRepeatsVertically() const;
+
+        /**
+         * Sets the OpenGL texture mapping mode for the image (default
+         * is GL_MODULATE)
+         *
+         * @param mode
+         *      OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
+        void setTextureMode( const osg::TexEnv::Mode& mode );
+        
+        /**
+         * Gets the OpenGL texture mapping mode for the image
+         *
+         * @return OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
+        const osg::TexEnv::Mode& getTextureMode() const;
+
+        void setColor( const osg::Vec4& value );
+        const osg::Vec4& getColor() const;
+        
+    public:
+
+        osg::StateSet* createStateSet();
+        
+        osg::Image* getImage();
+
+    public: 
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual ~SkinResource();
+
+    private:
+        double tex_width_m;
+        double tex_height_m;
+        double min_tex_height_m;
+        double max_tex_height_m;
+        bool repeats_vertically;
+        osg::TexEnv::Mode texture_mode;
+        osg::Vec4 color;
+        osg::ref_ptr<osg::Image> image;
+
+        void init();
+    };
+
+    typedef std::vector< osg::ref_ptr<SkinResource> > SkinResourceVec;
+
+    typedef std::list< std::string > TagList;
+
+    class OSGGIS_EXPORT SkinResourceQuery : public osg::Referenced
+    {
+    public:
+        SkinResourceQuery();
+
+        void setTextureHeight( double value );
+        bool hasTextureHeight() const;
+        double getTextureHeight() const;
+
+        void setMinTextureHeight( double value );
+        bool hasMinTextureHeight() const;
+        double getMinTextureHeight() const;
+
+        void setMaxTextureHeight( double value );
+        bool hasMaxTextureHeight() const;
+        double getMaxTextureHeight() const;
+
+        void setRepeatsVertically( bool value );
+        bool hasRepeatsVertically() const;
+        bool getRepeatsVertically() const;
+
+        void addTag( const char* tag );
+        const TagList& getTags() const;
+
+        const std::string& getHashCode();
+
+    private:
+        bool has_tex_height;
+        double tex_height;
+
+        bool has_min_tex_height;
+        double min_tex_height;
+
+        bool has_max_tex_height;
+        double max_tex_height;
+
+        bool has_repeat_vert;
+        bool repeat_vert;
+
+        TagList tags;
+
+        std::string hash_code;
+    };
+}
+
+#endif // _OSGGIS_RESOURCE_H_
+

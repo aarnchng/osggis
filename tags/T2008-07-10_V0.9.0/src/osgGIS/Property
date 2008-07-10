@@ -1,0 +1,219 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+ 
+#ifndef _OSGGIS_PROPERTY_H_
+#define _OSGGIS_PROPERTY_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/Vec2>
+#include <osg/Vec3>
+#include <osg/Vec4>
+#include <osg/Matrix>
+#include <vector>
+
+namespace osgGIS
+{
+    /**
+     * A type-morphing name/value pair.
+     *
+     * A Property is a name/value pair that will accept various primitives like strings,
+     * integers, floats, doubles, and booleans for the value. You can then read the value
+     * back as any of the above types as well and the object will give you the best possible
+     * representation available.
+     *
+     * A Property can also hold various non-primitive values, like osg::Vec2, osg::Vec3, osg::Vec4,
+     * osg::Matrix, and a general osg::Referenced pointer.
+     */
+    class OSGGIS_EXPORT Property
+    {
+    public:
+        /**
+         * Constructs a new empty property.
+         */
+        Property();
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, const std::string& value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, int value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, float value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, double value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, bool value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, const osg::Vec2f& value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, const osg::Vec3f& value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, const osg::Vec4f& value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, const osg::Matrix& value );
+
+        /**
+         * Constructs a new property.
+         */
+        Property( const std::string& name, osg::Referenced* value );
+
+        /**
+         * Gets the property's name.
+         */
+        const std::string& getName() const;
+
+        /**
+         * Gets the property's value as a string.
+         */
+        const std::string& getValue() const;
+
+        /**
+         * Gets the property's value as an integer (with fallback)
+         */
+        int getIntValue( int def ) const;
+
+        /**
+         * Gets the property's value as a float (with fallback)
+         */
+        float getFloatValue( float def ) const;
+
+        /**
+         * Gets the property's value as a double (with fallback)
+         */
+        double getDoubleValue( double def ) const;
+
+        /**
+         * Gets the property's value as a boolean (with fallback)
+         */
+        bool getBoolValue( bool def ) const;
+
+        /**
+         * Gets the property's value as an osg::Vec2
+         */
+        osg::Vec2 getVec2Value() const;
+
+        /**
+         * Gets the property's value as an osg::Vec3
+         */
+        osg::Vec3 getVec3Value() const;
+
+        /**
+         * Gets the property's value as an osg::Vec4
+         */
+        osg::Vec4 getVec4Value() const;
+
+        /**
+         * Gets the property's value as an osg::Matrix
+         */
+        osg::Matrix getMatrixValue() const;
+
+        /**
+         * Gets the property's value as an osg::Referenced*
+         */
+        osg::Referenced* getRefValue();
+
+        /**
+         * Gets true if the property holds a valid value.
+         */
+        bool isValid() const;
+
+        /**
+         * Gets the property's value as a string
+         */
+        const char* asString() const;
+
+        /**
+         * Gets the property's value as a double
+         */
+        double asDouble() const;
+
+        /**
+         * Gets the property's value as an integer
+         */
+        int asInt() const;
+
+        /**
+         * Gets the property's value as a boolean
+         */
+        bool asBool() const;
+
+        Property static invalid();
+
+    private:
+        std::string name;
+        std::string value;
+        osg::ref_ptr<osg::Referenced> ref_value;
+        bool valid;
+    };
+    
+    /**
+     * A collection of Property objects.
+     */
+    class OSGGIS_EXPORT Properties : public std::vector<Property>
+    {
+    public:
+        bool exists( const std::string& name ) const;
+        int getIntValue( const std::string& name, int def ) const;
+        float getFloatValue( const std::string& name, float def ) const;
+        double getDoubleValue( const std::string& name, double def ) const;
+        bool getBoolValue( const std::string& name, bool def ) const;
+        osg::Vec2 getVec2Value( const std::string& name ) const;
+        osg::Vec3 getVec3Value( const std::string& name ) const;
+        osg::Vec4 getVec4Value( const std::string& name ) const;
+        std::string getValue( const std::string& name, std::string def ) const;
+        osg::Referenced* getRefValue( const std::string& name );
+        void remove( const std::string& key );
+        Property get( const std::string& name ) const;
+        void set( const Property& p );
+    };
+        
+    class /*interface*/ OSGGIS_EXPORT IObjectWithProperties
+    {
+    public:
+        virtual void setProperty( const Property& prop ) =0;        
+        virtual Properties getProperties() const =0;
+    };
+}
+
+#endif //_OSGGIS_PROPERTY_H_

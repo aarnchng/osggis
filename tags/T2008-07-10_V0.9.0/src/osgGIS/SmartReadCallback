@@ -1,0 +1,72 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SMART_READ_CALLBACK_H_
+#define _OSGGIS_SMART_READ_CALLBACK_H_ 1
+
+#include <osgUtil/IntersectionVisitor>
+#include <osg/BoundingSphere>
+
+namespace osgGIS
+{
+    /* (internal class)
+     *
+     * Read callback for the IntersectionVisitor that traverses PagedLODs, maintains a
+     * cache, and tracks the MRU node. The MRU dramatically speeds up multiple localized
+     * intersection tests.
+     */
+    class SmartReadCallback : public osgUtil::IntersectionVisitor::ReadCallback
+    {
+    public:
+        SmartReadCallback();
+
+        osg::Node* getMruNode();
+        
+        void setMruNode( osg::Node* );
+        
+        osg::Node* getMruNodeIfContains( 
+            const osg::Vec3d& p,
+            osg::Node*        fallback );
+            
+        osg::Node* getMruNodeIfContains( 
+            const osg::Vec3d& p1,
+            const osg::Vec3d& p2,
+            osg::Node*        fallback );
+        
+        float getMruHitRatio() const;
+    
+    public: // ReadCallback
+
+        virtual osg::Node* readNodeFile( const std::string& filename );
+
+    private:
+        typedef std::map<std::string, osg::ref_ptr<osg::Node> > FileNameSceneMap;
+
+        unsigned int max_cache_size;
+        //OpenThreads::Mutex  _mutex;
+        FileNameSceneMap    cache;
+        osg::ref_ptr<osg::Node> mru_node;
+        osg::BoundingSphere mru_world_bs;
+        int mru_tries, mru_hits;
+    };
+}
+
+
+#endif // _OSGGIS_SMART_READ_CALLBACK_H_
+

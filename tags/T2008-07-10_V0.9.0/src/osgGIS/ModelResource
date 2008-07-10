@@ -1,0 +1,111 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_MODEL_RESOURCE_H_
+#define _OSGGIS_MODEL_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Resource>
+
+namespace osgGIS
+{
+    /**
+     * A Resource that references an external 3D model.
+     */
+    class OSGGIS_EXPORT ModelResource : public Resource
+    {
+        OSGGIS_META_RESOURCE(ModelResource);
+
+    public: 
+        /**
+         * Creates a new, empty model resource.
+         */
+        ModelResource();
+
+        /**
+         * Creates a new names model resource.
+         */
+        ModelResource( const std::string& name );
+        
+    public:
+
+        /**
+         * Loads the model from its URI and returns it.
+         *
+         * @return Root node of the model. The caller is responsible for
+         *         deleting the returned object.
+         */
+        osg::Node* createNode();
+        
+        /**
+         * Creates an returns a new osg::ProxyNode that references the
+         * URI of this model resource.
+         *
+         * @return A new osg::ProxyNode. The caller is responsible for
+         *         deleting the returned object.
+         */
+        osg::Node* createProxyNode();
+
+    public: 
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual ~ModelResource();
+
+    private:
+
+        void init();
+    };
+
+    typedef std::vector< osg::ref_ptr<ModelResource> > ModelResourceVec;
+
+    /**
+     * Structure used to query the resource library for model resources.
+     */
+    class OSGGIS_EXPORT ModelResourceQuery : public osg::Referenced
+    {
+    public:
+        /**
+         * Creates a new model query structure.
+         */
+        ModelResourceQuery();
+
+        /** 
+         * Adds a tag to include in the search.
+         */
+        void addTag( const char* tag );
+
+        /**
+         * Gets the collection of tags to use in the model search.
+         */
+        const TagList& getTags() const;
+
+        const std::string& getHashCode();
+
+    private:
+        TagList tags;
+
+        std::string hash_code;
+    };
+}
+
+#endif // _OSGGIS_MODEL_RESOURCE_H_

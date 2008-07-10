@@ -1,0 +1,88 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_REPORT_H_
+#define _OSGGIS_REPORT_H_
+
+#include <osgGIS/Common>
+#include <osgGIS/Property>
+
+namespace osgGIS
+{
+    /**
+     * A summary of information created by some functional process.
+     *
+     * The reporting mechanism lets any subsystem generate information about
+     * the status of its processing responsibilities by generating a Report.
+     *
+     * Reports can be hierarchical, each Report deliniating summary information
+     * about its child reports.
+     */
+    class OSGGIS_EXPORT Report : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new, empty report
+         */
+        Report();
+
+        /**
+         * Copy constructor
+         */
+        Report( const Report& rhs );
+
+        /**
+         * Sets the name of this report.
+         *
+         * @param name
+         *      A human-readable string
+         */
+        void setName( const std::string& name );
+
+        /**
+         * Gets the name of this report.
+         *
+         * @return A human-readable string
+         */
+        const std::string& getName() const;
+
+    public:
+
+        /**
+         * Sets one of the report's properties by name.
+         */
+        virtual void setProperty( const Property& prop );
+
+        /**
+         * Gets a collection of all this report's properties.
+         */
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual ~Report();
+        
+    private:
+        std::string name;
+    };
+    
+    typedef std::vector< osg::ref_ptr<Report> > ReportList;
+}
+
+#endif // _OSGGIS_REPORT_H_

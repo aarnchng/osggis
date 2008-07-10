@@ -1,0 +1,160 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SESSION_H_
+#define _OSGGIS_SESSION_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/ScriptEngine>
+#include <osgGIS/ResourceLibrary>
+#include <OpenThreads/Mutex>
+#include <OpenThreads/ReentrantMutex>
+
+namespace osgGIS
+{
+    class FilterEnv;
+    
+    /**
+     * A state object that exists throughout the life of one or more related compilations.
+     *
+     * A Session holds shared, re-usable data elements (like Scripts and Resources) that can
+     * be accessed at compile time by Filters. 
+     *
+     * Whereas a FilterEnv exists thoughout the life of a single compilation (a single
+     * FilterGraph/FilterEnv), a Session exists one level above this and governs any number of
+     * "related" compilations (e.g., the compilation of many grid cells comprising a single
+     * feature layer).
+     *
+     * A Session may be shared across compilations that exist in separate threads -- therefore
+     * access to the session's resources is protected by mutex.
+     */
+    class OSGGIS_EXPORT Session : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new session.
+         */
+        Session();
+        
+        /**
+         * Creates a shallow clone of this session that references the same scripts
+         * and resource library (but not the transient elements like the properties
+         * and resource-use information).
+         *
+         * @return A derived Session. Caller is responsible for deleting the return object.
+         */
+        Session* derive();
+
+        /**
+         * Creates a new scripting engine that incorporates any scripts stored in this
+         * session.
+         *
+         * @return A script evaluation engine. Caller is responsible for deleting the
+         *         return object.
+         */
+        ScriptEngine* createScriptEngine();
+        
+        /**
+         * Creates a new filter environment context that will operate under this session.
+         *
+         * @return A Filter context. Caller is responsible for deleting the return object.
+         */
+        FilterEnv* createFilterEnv();
+
+        /**
+         * Adds a Script to this session. The script will be available in ScriptEngine's created
+         * by calling createScriptEngine() (but NOT to a ScriptEngine created before adding the
+         * new Script).
+         *
+         * @param script
+         *      Script to install
+         */
+        void addScript( Script* script );
+
+        /**
+         * Gets a read-only reference to the resource library that manages shared resources
+         * for this session.
+         *
+         * @return Read-only resource library reference
+         */
+        const ResourceLibrary* getResources() const;
+        
+        /**
+         * Gets a reference to the resource library that manages shared
+         * resources for this session.
+         *
+         * @return Resource library reference
+         */
+        ResourceLibrary* getResources();
+
+        /**
+         * Stores an indicator that the specified resource was used during the course of
+         * this Session.
+         *
+         * @param resource
+         *      Resource to mark as "used"
+         */
+        void markResourceUsed( Resource* resource );
+
+        /**
+         * Gets a collection of the resources that have been marked as "used" in this
+         * session (by calling markResourceUsed).
+         *
+         * @param reset
+         *      Whether to clear the "used" list after returning from this method
+         * @return
+         *      List of resources marked as "used"
+         */
+        ResourceList getResourcesUsed( bool reset =false );
+        
+        /**
+         * Accesses the session-wide mutex. Filter can use this to perform
+         * session-thread-safe operations (like opening or writing to a shared
+         * file, for example).
+         *
+         * Use this sparingly or risk hurting performance!
+         *
+         * @return A mutex
+         */
+        OpenThreads::ReentrantMutex& getSessionMutex();
+        
+        /**
+         * Gets the session-level user data.
+         */
+        virtual Property getProperty( const std::string& name );
+        
+        /**
+         * Sets a session-level user data property.
+         */
+        virtual void setProperty( const Property& prop );
+
+    protected:
+        virtual ~Session();
+
+    private:
+        ScriptList scripts;
+        osg::ref_ptr<ResourceLibrary> resources;
+        OpenThreads::ReentrantMutex session_mtx;
+        Properties properties;
+        ResourceList resources_used;
+        bool localize_resources;
+    };
+}
+
+#endif //_OSGGIS_SESSION_H_

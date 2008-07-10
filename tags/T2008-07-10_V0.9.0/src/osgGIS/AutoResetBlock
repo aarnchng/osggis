@@ -1,0 +1,112 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_AUTO_RESET_EVENT_H_
+#define _OSGGIS_AUTO_RESET_EVENT_H_ 1
+
+#include <osgGIS/Common>
+#include <OpenThreads/Mutex>
+#include <OpenThreads/Condition>
+#include <OpenThreads/ScopedLock>
+
+namespace osgGIS
+{
+    /**
+     * A threading barrier that accumulates signals.
+     *
+     * Similar to the OpenThreads::Block class, this method maintains a "signalled" state
+     * counter. A thread will only block (upon calling block()) when the number of signals
+     * is zero. This simluates the behavior of the .NET AutoResetEvent class.
+     */
+    class AutoResetBlock
+    {
+    public:
+        /**
+         * Constructs a new AutoResetBlock.
+         */
+        AutoResetBlock()
+        { 
+            signal_count = 0;
+        }
+
+        /**
+         * Blocks the calling thread until another thread posts a signal. If at least one
+         * signal is already posted upon calling this method, the call will not block.
+         * Either way, upon returning this method will consume one posted signal.
+         *
+         * @return
+         *      True if the call succesfully blocked until it was able to consume a signal,
+         *      or False if the block failed and no signals were consumed.
+         */
+        inline bool block()
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
+            bool result = true;
+            if ( signal_count == 0 ) {
+                result = cond.wait( &mut ) == 0;
+            }
+            if ( result )
+                signal_count = signal_count == 0? 0 : signal_count-1;
+            return result;
+        }
+
+        /**
+         * Blocks the calling thread until another thread posts a signal, or until the 
+         * block times out. If at least one signal is already posted upon calling this
+         * method, the call will not block. Either way, upon returning this method will
+         * consume one posted signal.
+         *
+         * @param timeout
+         *      Time to block before giving up, in milliseconds.
+         *
+         * @return
+         *      True if the call succesfully blocked until it was able to consume a signal,
+         *      or False if the block attempt timed out and no signals were consumed.
+         */
+        inline bool block( unsigned long timeout )
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
+            bool result = true;
+            if ( signal_count == 0 ) {
+                result = cond.wait( &mut, timeout ) == 0;
+            }
+            if ( result )
+                signal_count = signal_count == 0? 0 : signal_count-1;
+            return result;
+        }
+        
+        /**
+         * Posts a signal, and informs any blocked threads to attempt to unblock and
+         * consume the signal. If no threads are currently blocked, the signal will 
+         * persist until the next block attempt.
+         */
+        inline void signal() {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
+            signal_count++;
+            cond.broadcast();
+        }
+        
+    private:
+        int signal_count;
+        OpenThreads::Mutex mut;
+        OpenThreads::Condition cond;
+    };
+}
+
+#endif // _OSGGIS_AUTO_RESET_EVENT_H_

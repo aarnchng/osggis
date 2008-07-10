@@ -1,0 +1,87 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_TAG_HELPER_H_
+#define _OSGGIS_TAG_HELPER_H_ 1
+
+#include <osgGIS/Common>
+#include <set>
+#include <list>
+#include <algorithm>
+
+namespace osgGIS
+{    
+    typedef std::list< std::string > TagList;
+
+    /* (internal)
+     * Helper class that implements tagging.
+     */
+    class TagHelper
+    {
+    public:
+        TagHelper() { }
+        
+        void addTag( const std::string& _tag ) {
+            tags.insert( normalize( _tag ) );
+        }
+        void removeTag( const std::string& _tag ) {
+            tags.erase( normalize( _tag ) );
+        }
+        bool containsTag( const std::string& _tag ) const {
+            return tags.find( normalize( _tag )) != tags.end();
+        }
+        bool containsTags( const TagList& _tags ) const {
+            for( TagList::const_iterator i = _tags.begin(); i != _tags.end(); i++ ) {
+                if ( tags.find( normalize( *i ) ) == tags.end() )
+                    return false;
+            }
+            return true;
+        }
+
+    private:
+        std::set<std::string> tags;
+        std::string normalize( const std::string& input ) const {
+            std::string output = input;
+            std::transform( output.begin(), output.end(), output.begin(), tolower );
+            return output;
+        }
+    };
+
+    class /*interface*/ OSGGIS_EXPORT IObjectWithTags
+    {
+    public:  
+        virtual void addTag( const std::string& tag ) =0;       
+        virtual void removeTag( const std::string& tag ) =0;        
+        virtual bool containsTag( const std::string& tag ) const =0;        
+        virtual bool containsTags( const TagList& tags ) const =0;
+    };
+
+    class OSGGIS_EXPORT ObjectWithTags : public IObjectWithTags
+    {
+    public:
+        virtual void addTag( const std::string& tag ) { helper.addTag( tag ); }    
+        virtual void removeTag( const std::string& tag ) { helper.removeTag( tag ); }
+        virtual bool containsTag( const std::string& tag ) const { return helper.containsTag( tag ); }
+        virtual bool containsTags( const TagList& tags ) const { return helper.containsTags( tags ); }
+    private:
+        TagHelper helper;
+    };
+}
+
+#endif // _OSGGIS_TAG_HELPER_H_

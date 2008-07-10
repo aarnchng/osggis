@@ -1,0 +1,113 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_RASTER_RESOURCE_H_
+#define _OSGGIS_RASTER_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Resource>
+#include <osgGIS/RasterStore>
+#include <osg/Vec4>
+#include <osg/StateSet>
+
+namespace osgGIS
+{
+    /**
+     * A resource referencing a georeferenced raster that can be used as an 
+     * overlay texture.
+     *
+     * The raster can be either a single-source raster or a composite
+     * raster (a mosaic of multiple rasters stiched together).
+     */
+    class OSGGIS_EXPORT RasterResource : public Resource
+    {
+        OSGGIS_META_RESOURCE(RasterResource);
+
+    public:
+        /**
+         * Constructs an empty raster resource.
+         */
+        RasterResource();
+
+        /**
+         * Constructs a named raster resource.
+         *
+         * @param name
+         *     Readable name of the new resource
+         */
+        RasterResource( const std::string& name );
+
+    public:
+
+        /**
+         * Assembles an osg::Image from the raster data and applies it to a state set
+         * as a 2D texture map.
+         *
+         * @param state_set
+         *      State set to which to apply the texture containing the extracted image
+         * @param aoi
+         *      Region of the raster to extract into the image
+         * @param max_pixels
+         *      Maximum width or height of the image to extract
+         * @param image_name
+         *      Name to assign to the extracted image
+         * @param out_image
+         *      Store the image pointer to this variable upon success
+         *
+         * @return true upon success, false upon failure
+         */
+        bool applyToStateSet( 
+            osg::StateSet*     state_set,
+            const GeoExtent&   aoi,
+            unsigned int       max_pixel_span,
+            osg::Image**       out_image =0L );
+
+        /**
+         * Adds a part to a composite raster.
+         *
+         * @param uri
+         *      URI (absolute, or relative to the base URI of this resource) of one
+         *      part of the raster data.
+         */
+        void addPartURI( const std::string& uri );
+
+    public: 
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    protected:
+
+        virtual ~RasterResource();
+
+    private:
+        void init();
+        void initParts();
+
+        typedef std::pair< GeoExtent, std::string > RasterPart;
+        typedef std::list< RasterPart > RasterParts;
+        RasterParts parts;
+        bool parts_initialized;
+        GLenum pixel_format;
+    };
+    
+    typedef std::vector< osg::ref_ptr<RasterResource> > RasterResourceVec;
+}
+
+#endif // _OSGGIS_RASTER_RESOURCE_H_

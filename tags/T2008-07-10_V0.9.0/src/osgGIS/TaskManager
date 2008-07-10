@@ -1,0 +1,176 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_TASK_MANAGER_H
+#define _OSGGIS_TASK_MANAGER_H 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Task>
+#include <osgGIS/AutoResetBlock>
+#include <OpenThreads/Thread>
+#include <OpenThreads/Mutex>
+#include <osg/Timer>
+#include <map>
+
+namespace osgGIS
+{
+    class OSGGIS_EXPORT TaskManager;
+    
+    /* (internal)
+     * Object that a TaskManager uses to run a Task in a separate thread.
+     */
+    class TaskThread : public OpenThreads::Thread
+    {
+    public:
+        enum State {
+            STATE_READY,
+            STATE_RUNNING,
+            STATE_RESULT_READY,
+            STATE_EXIT
+        };
+      
+    public:
+        TaskThread( int id, AutoResetBlock& activity_block );
+
+        int getID();
+
+        State getState();
+        void runTask( Task* task );
+        void dispose();
+
+        double getResultDuration();
+        osg::ref_ptr<Task> getResult();
+      
+    public:
+        void run(); // override
+      
+    private:
+        void setState( State );
+
+    private:
+        int                id;
+        osg::ref_ptr<Task> task;
+        AutoResetBlock&    activity_block;
+        bool               done;
+        AutoResetBlock     run_block;
+        State              state;
+        OpenThreads::Mutex state_mutex;
+        osg::Timer_t       start, end;
+    };
+    
+    typedef std::list<TaskThread*> TaskThreadList;
+    typedef std::map<int,TaskThread*> TaskThreadMap;
+    
+    
+    /**
+     * Dispatches Task objects and tracks their progress.
+     *
+     * A TaskManager maintains a queue of Task instances, and dispatches them one
+     * by one, each in its own thread (TaskThread).
+     *
+     * Each time you call wait(), the TaskManager will check for completed tasks and
+     * dispatch pending tasks if there are threads available. You can then call
+     * getNextCompletedTask() to dequeue a task that has finished.
+     *
+     * So the usage pattern is:
+     *
+     * <pre>
+     *   task_man->queueTask( task1 );
+     *   task_man->queyeTask( task2 );
+     *   ...
+     *   while( task_man->wait() )
+     *   {
+     *      osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
+     *      ...
+     *   }
+     * </pre>
+     */
+    class OSGGIS_EXPORT TaskManager : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new task manager. The task manager will allocate a pool of
+         * working threads equal to the number of logical processors found on the
+         * system.
+         */
+        TaskManager();
+
+        /** 
+         * Constructs a new task manager.
+         *
+         * @param max_threads
+         *      Maximum number of threads to allocate for running Tasks.
+         */
+        TaskManager( int max_threads );
+
+        virtual ~TaskManager();
+
+        /**
+         * Enqueue a task for execution. The task will run when you call wait(),
+         * the task has reached the front of the queue, and there is a working
+         * thread available.
+         *
+         * @param task
+         *      Task to put on the dispatch queue
+         */
+        void queueTask( Task* task );
+        
+        /**
+         * Keep calling this method until it returns false.
+         *
+         * Calling wait() checks for completed tasks, checks for pending tasks and
+         * dispatching them to available threads, and then blocks until the first
+         * running task completes.
+         *
+         * @return True if there are still more tasks pending or running; False if
+         *         all known tasks have completed.
+         */
+        bool wait();
+        
+        /**
+         * Checks whether there are any uncompleted tasks.
+         *
+         * @return True if there are still tasks that have not completed.
+         */
+        bool hasMoreTasks();
+
+        /**
+         * Gets the next completed task and returns it to the user
+         *
+         * @returns A completed task wrapped in a reference pointer.
+         */
+        osg::ref_ptr<Task> getNextCompletedTask();
+
+    private:
+        TaskThreadList threads;
+        TaskQueue      pending_tasks;
+        TaskQueue      completed_tasks;
+        int            num_running_tasks;
+        OpenThreads::Mutex q_mutex;  
+        AutoResetBlock activity_block;
+        friend class TaskThread;
+        
+    private:
+        void init( int num_threads );
+        void update();
+    };
+}
+
+#endif //_OSGGIS_TASK_MANAGER_H
+

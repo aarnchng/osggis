@@ -1,0 +1,213 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FILTER_GRAPH_H_
+#define _OSGGIS_FILTER_GRAPH_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+#include <osgGIS/FeatureStore>
+#include <osgGIS/NodeFilter>
+#include <osgGIS/FilterEnv>
+#include <list>
+
+namespace osgGIS
+{
+    /**
+     * Holds the results of a filter graph compilation.
+     */
+    class OSGGIS_EXPORT FilterGraphResult
+    {
+    public:
+        /**
+         * Creates a result object that conveys success.
+         */
+        static FilterGraphResult ok( const GeoExtent& out_extent, const SpatialReference* out_srs );
+
+        /**
+         * Creates a result object that conveys success.
+         */
+        static FilterGraphResult ok();
+
+        /**
+         * Creates a result object that convey an error.
+         */
+        static FilterGraphResult error();
+
+        /**
+         * Default ctor - same as FilterGraphResult::error()
+         */
+        FilterGraphResult();
+
+        /**
+         * Copy constructor
+         */
+        FilterGraphResult( const FilterGraphResult& rhs );
+        
+        /**
+         * Gets whether the FilterGraph compilation succeeded.
+         */
+        bool isOK() const;
+
+        const GeoExtent& getExtent() const;
+
+        SpatialReference* getSRS() const;
+        
+    private:
+        FilterGraphResult( bool ok );
+        FilterGraphResult( bool ok, const GeoExtent& extent, const SpatialReference* srs );
+        
+        bool is_ok;
+        GeoExtent out_extent;
+        osg::ref_ptr<SpatialReference> out_srs;
+    };
+
+    typedef std::list<FilterGraphResult> FilterGraphResultList;
+    
+    
+    /**
+     * A sequential chain of filters.
+     *
+     * A FilterGraph is a sequence of discrete data-processing units called Filters.
+     * The compiler will run a graph using a set of input features (typically
+     * from a FeatureLayer), and a filter environment (FilterEnv) that contains shared
+     * context information. The compiler passes data from filter to filter until it reaches
+     * the end of the chain. It then results the results in a FilterGraphResult object.
+     *
+     * Although some basic type validation occurs, the responsibility lies with the caller
+     * to build a working graph that passes compatible data down the chain.
+     */
+    class OSGGIS_EXPORT FilterGraph : public osg::Referenced
+    {
+    public:
+        /**
+         * Construct a new, empty filter graph.
+         */
+        FilterGraph();
+
+        /**
+         * Gets the name of this graph.
+         *
+         * @return Name string
+         */
+        const std::string& getName() const;
+
+        /**
+         * Sets the name of this graph.
+         * 
+         * @param name Name of the graph
+         */
+        void setName( const std::string& name );
+
+        /**
+         * Appends a filter to the end of the graph's filter chain.
+         *
+         * @param filter
+         *      Filter to attach to the end of the chain. The filter's input
+         *      requirements much be commpatible with the preceding filter's
+         *      output specification.
+         *
+         * @return
+         *      True if the filter appended succesfully.
+         */
+        bool appendFilter( Filter* filter );
+        
+        /**
+         * Runs the graph to generate a scene graph.
+         *
+         * Executes the graph by passing features to the first filter in the
+         * chain. That filter will process the data, pass the results along to
+         * the next filter, and so on until completion.
+         *
+         * @param cursor
+         *      Source cursor for features to process
+         * @param env
+         *      Contextual compilation environment
+         * @param output
+         *      Group node that, upon success, contains resulting nodes of compiled scene
+         *      as its children
+         * @return
+         *      A structure describing the result of the compilation.
+         */
+        FilterGraphResult computeNodes( 
+            FeatureCursor& cursor, 
+            FilterEnv*     env,
+            osg::Group*&   output );
+        
+        
+        /**
+         * Runs the graph to generate a feature store. The graph should only
+         * contain FeatureFilter and CollectionFilter type filters.
+         *
+         * Executes the graph by passing features to the first filter in the
+         * chain. That filter will process the data, pass the results along to
+         * the next filter, and so on until completion.
+         *
+         * @param cursor
+         *      Source cursor for features to process
+         * @param env
+         *      Contextual compilation environment
+         * @param output_uri
+         *      URI of a feature store to create and in which to store the results
+         * @return
+         *      A structure describing the result of the compilation.
+         */
+        FilterGraphResult computeFeatureStore(
+            FeatureCursor&     cursor, 
+            FilterEnv*         env,
+            const std::string& output_uri );
+
+        /**
+         * Finds a filter by its name. 
+         * 
+         * @param name
+         *      Name of the filter to find
+         * @return
+         *      Filter found, or NULL if it was not found
+         */
+        Filter* getFilter( const std::string& name );
+
+        /**
+         * Gets the collection of filters in the graph.
+         *
+         * @return a sequential collection of filters
+         */
+        const FilterList& getFilters() const;
+
+        /**
+         * Gets the collection of filters in the graph.
+         *
+         * @return a sequential collection of filters
+         */
+        FilterList& getFilters();
+
+    public:
+
+        virtual ~FilterGraph();
+
+    private:
+        std::string name;
+        FilterList filter_prototypes;
+    };
+
+    typedef std::list<osg::ref_ptr<FilterGraph> > FilterGraphList;
+}
+
+
+#endif // _OSGGIS_FILTER_GRAPH_H_

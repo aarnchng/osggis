@@ -1,0 +1,99 @@
+$#include <osgGIS/Attribute>
+$#include <osgGIS/Feature>
+$#include <osgGIS/FilterEnv>
+$#include <osgGIS/Property>
+$#include <osgGIS/Resource>
+$#include <osgGIS/ResourceLibrary>
+$#include <osgGIS/Lua_ScriptEngine>
+$#include <string>
+$using namespace osgGIS;
+
+$extern "C" {
+
+class Feature
+{
+  int getOID();
+  Attribute getAttribute( const char* );
+  GeoExtent getExtent();
+};
+
+class Attribute
+{
+  bool        isValid();
+  const char* asString();
+  double      asDouble();
+  int         asInt();
+  bool        asBool();
+};
+
+class Property
+{
+  bool        isValid();
+  const char* asString();
+  double      asDouble();
+  int         asInt();
+  bool        asBool();
+};
+
+class FilterEnv
+{
+  GeoExtent getExtent();
+  SpatialReference* getInputSRS();
+  Property getProperty( const char* );
+};
+
+class GeoExtent
+{
+  double getXMin();
+  double getYMin();
+  double getXMax();
+  double getYMax();
+  bool contains( double x, double y );
+  bool contains( GeoPoint p );
+  bool contains( GeoExtent e );
+  double getArea();
+  GeoPoint getCentroid();
+};
+
+class GeoPoint
+{
+  GeoPoint(double x, double y, SpatialReference* srs);
+  double x();
+  double y();
+  double z();
+};
+
+class SpatialReference
+{
+  GeoPoint transform( GeoPoint in );
+  SpatialReference* getGeographicSRS();
+};
+
+class ResourceList_Lua
+{
+  int size();
+  const char* getName(int index);
+};
+
+class SkinResourceQuery
+{
+  void setTextureHeight( double value );
+  void setMinTextureHeight( double value );
+  void setMaxTextureHeight( double value );
+  void setRepeatsVertically( bool value );
+  void addTag( const char* value );
+};
+
+class ResourceLibrary_Lua
+{
+  SkinResourceQuery newSkinQuery();
+  ResourceList_Lua getSkins( SkinResourceQuery query );
+  ResourceList_Lua getSkins();
+  const char* getPath( const char* name );
+};
+
+
+
+
+$} // extern "C"
+

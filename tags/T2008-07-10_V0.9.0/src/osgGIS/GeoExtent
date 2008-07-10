@@ -1,0 +1,296 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_GEOEXTENT_H_
+#define _OSGGIS_GEOEXTENT_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoPoint>
+#include <osgGIS/SpatialReference>
+#include <osg/Referenced>
+
+namespace osgGIS
+{
+    /**
+     * A 2D spatially referenced bounding rectangle.
+     */
+	class OSGGIS_EXPORT GeoExtent
+	{
+	public:
+        /**
+         * Constructs a new, empty (but valid) extent.
+         */
+		GeoExtent();
+		
+        /**
+         * Copy constructor.
+         */
+		GeoExtent( const GeoExtent& to_copy );
+		
+        /**
+         * Constructs a new extent.
+         *
+         * @param sw Southwest corner
+         * @param ne Northeast corner
+         */
+		GeoExtent( const GeoPoint& sw, const GeoPoint& ne );
+		
+        /**
+         * Constructs a new extent.
+         *
+         * @param sw Southwest corner
+         * @param ne Northeast corner
+         * @param srs Spatial reference system
+         */
+		GeoExtent( const GeoPoint& sw, const GeoPoint& ne, const SpatialReference* srs );
+		
+        /**
+         * Constructs a new extent.
+         *
+         * @param xmin West edge off bounding rectangle
+         * @param ymin South edge of bounding rectangle
+         * @param xmax East edge of boundinng rectangle
+         * @param ymax North edge of bounding rectangle
+         */
+		GeoExtent( double xmin, double ymin, double xmax, double ymax, const SpatialReference* srs );
+
+        /**
+         * Checks whether the extent is valid.
+         */
+		bool isValid() const;
+		
+        /**
+         * Checks whether the extent is of infinite size (yet still valid).
+         */
+		bool isInfinite() const;
+
+        /**
+         * Checks whether the extent is of finite size (and valid). Analagous
+         * to getArea() > 0.
+         */
+        bool isFinite() const;
+
+        /**
+         * Checks whether the extent represents a single point (area == 0).
+         */
+        bool isPoint() const;
+
+        /**
+         * Gets the spatial reference system of the extent points.
+         */
+		const SpatialReference* getSRS() const;
+		
+        /**
+         * Gets the spatial reference system of the extent points.
+         */
+		SpatialReference* getSRS();
+
+        /**
+         * Gets whether the extent is empty (yet still valid).
+         */
+		bool isEmpty() const;
+
+        /** 
+         * Returns true if a point falls within the extent.
+         * @param input
+         *      Point to test against extent rectangle.
+         */
+		bool intersects( const GeoPoint& input ) const;
+
+        /**
+         * Returns true if another extent intersects this extent.
+         * @param input
+         *      Extent to test against this extent.
+         */
+		bool intersects( const GeoExtent& input ) const;
+
+        /**
+         * Returns an extent representing the intersection two extents.
+         * @param input
+         *      Extent to intersect with this object.
+         * @return
+         *      Intersection extent.
+         */
+        GeoExtent getIntersection( const GeoExtent& input ) const;
+
+        /**
+         * Returns true if this extent intersects the minimum bounding rectangle
+         * that encompasses a set of points.
+         * @param input
+         *      Points to test against extent.
+         */
+        bool intersectsExtent( const GeoPointList& input ) const;
+
+        /**
+         * Returns true if a point falls within this extent.
+         * @param input
+         *      Point to test against this extent.
+         */
+        bool contains( double x, double y ) const;
+		
+        /**
+         * Returns true if a point falls within this extent.
+         * @param input
+         *      Point to test against this extent.
+         */
+		bool contains( const GeoPoint& input ) const;
+		
+        /**
+         * Returns true if an extent falls completely within this extent.
+         * @param input
+         *      Extent to test for containment.
+         */
+		bool contains( const GeoExtent& input ) const;
+		
+        /**
+         * Returns if an entire set of points falls within this extent.
+         * @param input
+         *      Set of points to test.
+         */
+		bool contains( const GeoPointList& input ) const;
+
+        /**
+         * Gets the southwest corner of this extent.
+         */
+		const GeoPoint& getSouthwest() const;
+		
+        /**
+         * Gets the southeast corner of this extent.
+         */
+		const GeoPoint& getSoutheast() const;
+
+        /**
+         * Gets the northeast corner of this extent.
+         */
+		const GeoPoint& getNortheast() const;
+		
+        /**
+         * Gets the northwest corner of this extent.
+         */
+		const GeoPoint& getNorthwest() const;
+
+        /**
+         * Gets the west edge of this extent.
+         */
+        const double getXMin() const;
+
+        /**
+         * Gets the south edge of this extent.
+         */
+        const double getYMin() const;
+
+        /**
+         * Gets the east edge of this extent.
+         */
+        const double getXMax() const;
+
+        /**
+         * Gets the north edge of this extent.
+         */
+        const double getYMax() const;
+
+        /**
+         * Gets the width of this extent.
+         */
+        const double getWidth() const;
+
+        /** 
+        * Gets the height of this extent.
+        */
+        const double getHeight() const;
+
+        /**
+         * Gets the center point of this extent.
+         */
+        GeoPoint getCentroid() const;
+        
+        /** 
+         * Gets the area of this extent. An empty extent (isEmpty() == true) has
+         * an area of 0. An infinite or invalid extent (isInfinite() || !isValid())
+         * has an area of -1.
+         */
+        double getArea() const;
+		
+        /**
+         * Returns a readable representation of this extent.
+         */
+		std::string toString() const;
+		
+        /**
+         * Modified this extent to include a point.
+         * @param point
+         *      Point to include.
+         */
+		void expandToInclude( const GeoPoint& point );
+		
+        /**
+         * Modifies this extent to include a set of points.
+         * @param points
+         *      Points to include.
+         */
+		void expandToInclude( const GeoPointList& points );
+		
+        /** 
+         * Modifies this extent to include another extent.
+         * @param extent
+         *      Extent to include.
+         */
+		void expandToInclude( const GeoExtent& extent );
+		
+	public:
+        /**
+         * Creates an invalid extent.
+         */
+	    static GeoExtent invalid();
+	    
+        /**
+         * Creates an infininte (yet valid) extent.
+         */
+	    static GeoExtent infinite();
+
+        /**
+         * Creates an empty extent.
+         */
+        static GeoExtent empty();
+
+    public:
+        virtual ~GeoExtent();
+
+	private:
+	    bool is_valid;
+	    bool is_infinite;
+	    GeoPoint sw, ne, se, nw;
+		
+	private:
+	    GeoExtent( bool is_valid, bool is_infinite );	
+	    void recalc();
+	};
+	
+	
+	class OSGGIS_EXPORT RefGeoExtent : public GeoExtent, public osg::Referenced
+	{
+	    public:
+	        RefGeoExtent( const GeoExtent& rhs ) : GeoExtent( rhs ) { }
+	        
+	    protected:
+	        virtual ~RefGeoExtent() { }
+	};
+}
+
+#endif // _OSGGIS_GEOEXTENT_H_

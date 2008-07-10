@@ -1,0 +1,144 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FEATURE_H_
+#define _OSGGIS_FEATURE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoShape>
+#include <osgGIS/Attribute>
+#include <vector>
+#include <list>
+#include <queue>
+
+namespace osgGIS
+{
+    /** Unique feature identifier type. */
+	typedef long FeatureOID;
+	
+    /**
+     * The basic unit of a GIS vector dataset.
+     *
+     * A Feature defines a single "object" within a GIS vector dataset. It combines a 
+     * geometry (i.e. a shape or collection of shapes) with an AttributeTable (a set of
+     * name/value pairs).
+     *
+     * Typically all shapes within a single feature layer will be of the same type (point,
+     * line, or polygon) but this is not always the case. Likewise, all features in a
+     * layer will generally share the same attribute schema as well.
+     */
+	class OSGGIS_EXPORT Feature : public AttributedBase
+	{
+	public:		
+        /**
+         * Gets the unique object identifier (primary key) for this feature.
+         * This ID is unique within the feature store from which the feature
+         * was read.
+         *
+         * @return A feature OID
+         */
+		virtual const FeatureOID& getOID() const =0;
+		
+        /** 
+         * Gets the geodata associated with the feature. The geodata conveys
+         * sets of coordinates, how they are to be interpreted (e.g. point,
+         * line, polygon) and the spatial reference system (SRS) in which the
+         * coordinates are expressed.
+         *
+         * @return Immutable list of shapes
+         */
+		virtual const GeoShapeList& getShapes() const =0;
+		
+        /**
+         * Gets the geodata associated with the feature (writable). 
+         *
+         * @return List of shapes
+         */
+		virtual GeoShapeList& getShapes() =0;
+		
+		/**
+		 * Checks whether the feature has at least one point in its shape set.
+         *
+         * @return True if the feature has geometry; false if not
+		 */
+		virtual bool hasShapeData() const =0;
+		
+		/**
+		 * Gets the shape type of this feature.
+         *
+         * @return A shape type
+		 */
+		virtual GeoShape::ShapeType getShapeType() const =0;
+		
+		/**
+		 * Gets the dimensionality of the geometry in this feature.
+         *
+         * @return Dimension of the shape data (usually 2 or 3)
+		 */
+		virtual int getShapeDim() const =0;
+		
+        /**
+         * Gets the 2D minimum bounding rectangle containing all the points in
+         * the feature's geodata.
+         *
+         * @return Geospatial bounding box encompassing the shape data
+         */
+		virtual const GeoExtent& getExtent() const =0;
+	};
+	
+
+	/** A list of reference-counted features. */
+	typedef std::vector< osg::ref_ptr<Feature> > FeatureList;
+	
+    /** A queue of reference-counted features. */
+    typedef std::queue< osg::ref_ptr<Feature> > FeatureQueue;
+
+    /** A list of feautre OIDs. */
+	typedef std::vector< FeatureOID > FeatureOIDList;
+
+
+    /* (internal class - no api docs)
+     *
+     * Common base class for Feature implementations.
+     */
+    class FeatureBase : public Feature
+    {
+    public:
+        virtual bool hasShapeData() const;
+        
+		virtual GeoShape::ShapeType getShapeType() const;
+		
+		virtual int getShapeDim() const;
+    };
+
+
+    /* (internal class - no api docs)
+     *
+     * Functor used to supply custom feature-related functionality to various
+     * components in the library
+     */
+    template<class T>
+    class OSGGIS_EXPORT FeatureFunctor : public osg::Referenced
+    {
+    public:
+        virtual T get( Feature* f ) =0;
+    };
+}
+
+#endif // _OSGGIS_FEATURE_H_

@@ -1,0 +1,94 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ATTRIBUTE_INDEX_H
+#define _OSGGIS_ATTRIBUTE_INDEX_H 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureStore>
+#include <osgGIS/FeatureCursor>
+#include <string>
+#include <map>
+
+namespace osgGIS
+{
+    // not yet implemented - no docs
+    template<typename T> class OSGGIS_EXPORT AttributeIndex : public osg::Referenced
+    {
+    public:
+        AttributeIndex( FeatureStore* store, const std::string& attr_name );
+
+        virtual ~AttributeIndex();
+
+    public:		
+		virtual FeatureCursor getCursor( const T& value );
+
+    private:
+        inline buildIndex();
+
+    private:
+        osg::ref_ptr<FeatureStore> store;
+        std::string attr_name;
+        std::map<T,FeatureOIDList> table;
+    };
+    
+    
+    
+    
+    /***** inlines *******************************************************************/
+    
+    template<typename T>
+    AttributeIndex::AttributeIndex( FeatureStore* _store, const std::string& _attr_name )
+    {
+        store = _store;
+        attr_name = _attr_name;
+        buildIndex();
+    }
+
+    template<typename T>
+    AttributeIndex::~AttributeIndex()
+    {
+        //NOP
+    }
+
+    template<typename T>
+    FeatureCursor
+    AttributeIndex::getCursor( const T& value )
+    {
+        std::map<T,FeatureOIDList>::iterator i = table.find( value );
+        return FeatureCursor( i != table.end()? (*i).second() : FeatureOIDList() );
+    }
+    
+    template<typename T>
+    void
+    AttributeIndex::buildIndex()
+    {
+       osg::ref_ptr<FeatureCursor> c = store.createCursor();
+       while( c->hasNext() )
+       { 
+           Feature* f = c->next();
+           Attribute attr = f->getAttribute( attr_name );
+           T value;
+           attr.getValue( value );
+           table[value].push_back( f->getOID() );
+       }
+    }
+}
+
+#endif // _OSGGIS_ATTRIBUTE_INDEX_H

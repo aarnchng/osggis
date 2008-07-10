@@ -1,0 +1,179 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_UTILS_H_
+#define _OSGGIS_UTILS_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/GeoShape>
+#include <osgDB/Archive>
+#include <string>
+
+namespace osgGIS
+{
+    /* (internal)
+     */
+    struct OSGGIS_EXPORT StringUtils
+    {
+        /**
+         * Returns true if one string starts with another string.
+         */
+        static bool startsWith(
+            const std::string& str,
+            const std::string& prefix,
+            bool  case_sensitive =false );
+
+        /** 
+         *  Returns true if one string ends with another string.
+         */
+        static bool endsWith( 
+            const std::string& str,
+            const std::string& suffix,
+            bool  case_sensitive =false );
+
+        /**
+         * Replaces all occurances of "sub" within "s" with "other", in place.
+         */
+        static std::string& replaceIn( 
+            std::string& s, 
+            const std::string& sub,
+            const std::string& other );
+
+        /**
+         * Returns a copy of the input string with all the characters converted
+         * to lower case.
+         */
+        static std::string toLower(
+            const std::string& in );
+
+        /**
+         * Returns a copy of the input string with all leading and trailing
+         * spaces removed.
+         */
+        static std::string trim(
+            const std::string& in );
+    };
+    
+    /* (internal)
+     */
+    struct OSGGIS_EXPORT PathUtils
+    {
+        static bool isAbsPath(
+            const std::string& path );
+            
+        static std::string getAbsPath(
+            const std::string& base_path,
+            const std::string& input_path );
+            
+        static std::string combinePaths(
+            const std::string& left,
+            const std::string& right );
+    };
+    
+    /* (internal)
+     */
+    struct OSGGIS_EXPORT FileUtils
+    {
+        static long getFileTimeUTC(
+            const std::string& path );
+    };
+    
+    /* (internal)
+     */
+    struct OSGGIS_EXPORT GeomUtils
+    {
+        /**
+         * Returns true if the point lies inside the polygon.
+         *
+         * Note: SRS are ignored; the method assumes the point and the
+         * polygon share the same SRS
+         */
+        static bool isPointInPolygon(
+            const GeoPoint& point,
+            const GeoPointList& polygon );
+            
+        /**
+         * Returns true if the polygon is wound clockwise.
+         */
+        static bool isPolygonCW( const GeoPointList& polygon );
+
+        /**
+         * Returns true if the polygon is wound counter-clockwise.
+         */
+        static bool isPolygonCCW( const GeoPointList& polygon );
+
+        /**
+         * Gets the area of a polygon. Note, the result may be negative (if the poly
+         * is wound clockwise) so be sure to take the abs is necessary.
+         */
+        static double getPolygonArea2D( const GeoPointList& polygon );
+
+        /**
+         * "Opens" a polygon in place; i.e. removes the endpoint if it matches the
+         * first point.
+         */
+        static void openPolygon( GeoPointList& polygon );
+        
+        /**
+         * "Closes" a polygon in place; i.e. makes sure the last point is a duplicate
+         * of the last point.
+         */
+        static void closePolygon( GeoPointList& polygon );
+
+        /**
+         * Counts the number of geodes in a scene graph.
+         */
+        //static int getNumGeodes( osg::Node* node );
+
+        /**
+         * Returns true if the subgraph contains one or more geodes, proxy nodes, or
+         * paged LODs (i.e. the potential for geometry).
+         */
+        static bool hasDrawables( osg::Node* node );
+
+        /**
+         * Sets the data variance for all nodes/drawables in a scene graph.
+         */
+        static void setDataVarianceRecursively(
+            osg::Node* node,
+            const osg::Object::DataVariance& variance );
+    };
+    
+    /* (internal)
+     */
+    struct OSGGIS_EXPORT ImageUtils
+    {
+        static osg::Image* convertRGBAtoDDS( 
+            osg::Image* in_rgba );
+
+        static bool copyAsSubImage( osg::Image* source, osg::Image* dest, int dest_col, int dest_row );
+
+        static bool hasAlpha( osg::Image* image );
+            
+        static unsigned long roundUpToPowerOf2( 
+            unsigned long n,
+            unsigned long cap =0 );
+        
+        static unsigned long roundToNearestPowerOf2( 
+            unsigned long n );
+    };
+}
+
+#endif //_OSGGIS_TERRAIN_UTILS_H_
+

@@ -1,0 +1,226 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_REGISTRY_H_
+#define _OSGGIS_REGISTRY_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureLayer>
+#include <osgGIS/SpatialReferenceFactory>
+#include <osgGIS/FeatureStoreFactory>
+#include <osgGIS/RasterStoreFactory>
+#include <osgGIS/Filter>
+#include <osgGIS/Resource>
+#include <osgGIS/ScriptEngine>
+
+namespace osgGIS
+{
+    /**
+     * The Registry is a package-wide singleton that stores factory objects
+     * and global settings for the osgGIS library.
+     *
+     * All the get*() methods return a default implementation that is
+     * automatically installed in the Registry. You only need to set a factory
+     * implementation if you are replacing the stock factory with your own
+     * custom implementation.
+     */
+    class OSGGIS_EXPORT Registry
+	{
+	public:
+        /**
+         * Gets the singleton registry instance.
+         */
+		static Registry* instance();
+
+        /**
+         * Gets the active SRS facotry. This is a convenience function that
+         * simply calls Registry::instance()->getSRSFactory().
+         */
+        static SpatialReferenceFactory* SRSFactory();
+
+	public:
+        /**
+         * Creates a feature layer by connecting to a feature store.
+         *
+         * @param uri
+         *      URI of the feature store to use as the underlying data
+         *      source for this layer.
+         * @return
+         *      A new feature layer. Caller is responsible for deleting
+         *      the return object.
+         */
+        FeatureLayer* createFeatureLayer( const std::string& uri );
+
+	public:
+
+        /**
+         * Gets an interface for creating spatial reference systems.
+         *
+         * @return A spatial reference factory object
+         */
+		SpatialReferenceFactory* getSRSFactory();
+		
+        /** 
+         * Sets the interface for creating spatial reference systems.
+         * You can call this to replace the default implememtation with
+         * another one.
+         *
+         * @param factory
+         *      New spatial reference factory implementation.
+         */
+		void setSRSFactory( SpatialReferenceFactory* factory );
+		
+        /**
+         * Gets the interface for creating feature store connections.
+         *
+         * @return A feature store factory interface
+         */
+		FeatureStoreFactory* getFeatureStoreFactory();
+		
+        /** 
+         * Sets the interface for creating feature store connections. You
+         * can call this to replace the default implementation with a
+         * custom one.
+         *
+         * @param factory
+         *      New feature store factory implementation.
+         */
+		void setFeatureStoreFactory( FeatureStoreFactory* factory );
+		
+		/**
+		 * Gets the interface for creating raster store connections.
+         *
+         * @return A raster store factory interface
+		 */
+		RasterStoreFactory* getRasterStoreFactory();
+
+        /**
+         * Sets the interface for creating raster store connections. You
+         * can call this to replace the default implementation with a
+         * custom one.
+         *
+         * @param factory
+         *      New raster store factory implementation.
+         */
+        void setRasterStoreFactory( RasterStoreFactory* factory );
+        
+        /**
+         * Creates a new interface for evaluating scripts.
+         *
+         * @return A scripting engine. Caller is responsible for deleting
+         *         the return object.
+         */
+        ScriptEngine* createScriptEngine();
+		
+
+    public:
+
+        /**
+         * Creates a new instance of a typed Filter implementation. The type must
+         * have been previously registered via addFilterType().
+         *
+         * @param type
+         *      Type name of filter to create
+         * @return
+         *      New filter instance. Caller is responsible for deleting the
+         *      return object.
+         */
+        Filter* createFilterByType( const std::string& type );
+
+        /**
+         * Adds a filter type so that createFilterByType() can be called to create
+         * filter instances.
+         *
+         * @param type
+         *      Type name of the filter factory to install
+         * @param factory
+         *      Factory that will create instances of the filter type
+         * @return
+         *      True upon success, false upon failure
+         */
+        bool addFilterType( const std::string& type, FilterFactory* factory );
+
+        /**
+         * Creates a new instance of a typed Resource implementation. The type must
+         * have been previously registered via addResourceType().
+         *
+         * @param type
+         *      Type name of Resource to create
+         * @return
+         *      New Resource instance. Caller is responsible for deleting the
+         *      return object.
+         */
+        Resource* createResourceByType( const std::string& type );
+
+        /**
+         * Adds a Resource type so that createResourceByType() can be called to create
+         * Resource instances.
+         *
+         * @param type
+         *      Type name of the Resource factory to install
+         * @param factory
+         *      Factory that will create instances of the Resource type
+         * @return 
+         *      True upon success, false upon failure
+         */
+        bool addResourceType( const std::string& type, ResourceFactory* factory );
+        
+        
+        /**
+         * Sets the absolute path of a directory in which system components can
+         * store temporary files.
+         *
+         * @param abs_path
+         *      Absolute pathname of a directory
+         */
+        void setWorkDirectory( const std::string& abs_path );
+        
+        /**
+         * Gets the absolute path of a directory in which system components can
+         * store temporary files.
+         *
+         * @return Absolute pathname of a directory
+         */
+        const std::string& getWorkDirectory() const;
+        
+        /**
+         * Checks whether a work directory is set.
+         *
+         * @return True is a work directory is set; false if not.
+         */
+        bool hasWorkDirectory() const;
+        
+	private:
+		Registry();
+		
+		osg::ref_ptr<SpatialReferenceFactory> spatial_ref_factory;
+		osg::ref_ptr<FeatureStoreFactory>     feature_store_factory;
+		osg::ref_ptr<RasterStoreFactory>      raster_store_factory;
+        FilterFactoryMap                      filter_factories;
+        ResourceFactoryMap                    resource_factories;
+        std::string                           work_dir;
+
+		static Registry* singleton;
+		
+	public:
+		virtual ~Registry();
+	};
+}
+
+#endif // _OSGGIS_REGISTRY_H_

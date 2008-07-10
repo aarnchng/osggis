@@ -1,0 +1,139 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_ALIGN_FILTER_H_
+#define _OSGGIS_ALIGN_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+#include <osgGIS/FeatureLayer>
+
+namespace osgGIS
+{
+    /**
+     * Aligns point features to the nearest line feature segment.
+     *
+     * This filter calculates a heading for each incoming feature such that
+     * the feature will be "aligned" with the nearest linear feature in a secondary
+     * feature store.
+     *
+     * For example, you can use this feature to calculate a heading for
+     * street lights (point features) so that they will always face the
+     * closest street segment.
+     *
+     * This filter does not alter any feature geometry. Instead is stores
+     * the calculated heading in an "output attribute". You can later use
+     * the TransformFilter or the SubstituteModelFilter to apply that
+     * heading information.
+     *
+     * NOTE: When generating a geocentric scene graph, use this filter BEFORE
+     * applying the TransformFilter to convert into geocentric space.
+     */
+    class OSGGIS_EXPORT AlignFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( AlignFilter );  
+
+    public:
+        /**
+         * Constructs a new AlignFilter.
+         */
+        AlignFilter();
+
+        /**
+         * Copy constructor.
+         */
+        AlignFilter( const AlignFilter& rhs );
+
+        ~AlignFilter();
+
+    public: // properties
+
+        /**
+         * Sets the search radius (in meters). This is the radius around the
+         * input point's centroid for which to search for a nearest feature
+         * to which to align the point.
+         *
+         * @param value
+         *      New search radius, in meters.
+         */
+        void setRadius( double value );
+
+        /**
+         * Gets the search radius (in meters). This is the radius around the
+         * input point's centroid for which to search for a nearest feature
+         * to which to align the point.
+         *
+         * @return Search radius, in meters.
+         */
+        double getRadius() const;
+
+        /**
+         * Sets the name of the FeatureLayerResource that holds the linear
+         * features to which we are aligning.
+         *
+         * @param name
+         *      Name of FeatureLayerResource.
+         */
+        void setAlignmentLayerResourceName( const std::string& name );
+
+        /**
+         * Gets the name of the FeatureLayerResource that holds the linear
+         * features to which we are aligning.
+         *
+         * @return Name of FeatureLayerResource.
+         */
+        const std::string& getAlignmentLayerResourceName() const;
+
+        /**
+         * Sets the name of the feature attribute to which to assign
+         * the calculated heading.
+         *
+         * @param name
+         *      Output attribute name.
+         */
+        void setOutputAttribute( const std::string& name );
+        
+        /**
+         * Gets the name of the feature attribute to which to assign
+         * the calculated heading.
+         *
+         * @return Output attribute name.
+         */
+        const std::string& getOutputAttribute() const;
+
+    public: // FeatureFilter overrides
+        FeatureList process( Feature* input, FilterEnv* env );
+
+    public: // Filter overrides
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    protected:
+        // properties
+        double radius;
+        std::string output_attribute;
+        std::string alignment_layer_name;
+
+        // transients
+        osg::ref_ptr<FeatureLayer> alignment_layer;
+        double radius_input_srs;
+    };
+}
+
+#endif // _OSGGIS_ALIGN_FILTER_H_

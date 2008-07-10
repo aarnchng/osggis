@@ -1,0 +1,74 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_FADE_HELPER_H_
+#define _OSGGIS_FADE_HELPER_H_ 1
+
+#include <osgGIS/Common>
+#include <osg/StateSet>
+
+namespace osgGIS
+{
+    /**
+     * Configures osg::StateSet objects to support fading.
+     *
+     * This is a helper class that can set up state sets so that the geometry will
+     * fade in and out based on its distance from the camera. How well the effect
+     * works depends on the contents of the scene.
+     *
+     * Note that in its current form, this helper uses shaders to perform real-time
+     * adjustment of the alpha channel for fading. However it DOES NOT implement a
+     * texturing pipeline ... so it is only useful for untextured geometry.
+     */
+    class OSGGIS_EXPORT FadeHelper
+    {
+    public:
+        /**
+         * Activates fading on the specified state set.
+         *
+         * @param set
+         *      State set on which to enable automatic fading.
+         */
+        static void enableFading( osg::StateSet* set );
+        
+        /**
+         * Sets the distance from the eyepoint at which geometry will
+         * completely fade out and become invisible. This should be 
+         * greater than the inner distance.
+         *
+         * @param range
+         *      Distance at which to fade out geometry
+         * @param set
+         *      State set for which to set fade out range
+         */
+        static void setOuterFadeDistance( float range, osg::StateSet* set ); 
+        
+        /** 
+         * Sets the distance from the eyepoint at which geometry will
+         * be completely faded in and rendered as normal. This value must be
+         * less than the outer distance.
+         */
+        static void setInnerFadeDistance( float range, osg::StateSet* set );
+        
+    private:
+        FadeHelper() { }
+    };
+}
+
+#endif // _OSGGIS_FADE_HELPER_H_

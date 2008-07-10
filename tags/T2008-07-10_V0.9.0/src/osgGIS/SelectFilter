@@ -1,0 +1,81 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SELECT_FILTER_H_
+#define _OSGGIS_SELECT_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureFilter>
+
+namespace osgGIS
+{
+    /**
+     * Filter that determines whether to include or exclude individual features.
+     *
+     * This is a custom filtering mechanism that lets you use a Script to look at each Feature
+     * and decide whether to let it continue through the FilterGraph.
+     */
+    class OSGGIS_EXPORT SelectFilter : public FeatureFilter
+    {
+        OSGGIS_META_FILTER( SelectFilter );  
+
+    public:
+        /**
+         * Constructs a new select filter.
+         */
+        SelectFilter();
+
+        /**
+         * Copy constructor
+         */
+        SelectFilter( const SelectFilter& rhs );
+
+    public: // properties
+
+        /**
+         * Sets a script that evaluates to true or false; true = include the feature;
+         * false = exclude the feature.
+         *
+         * @param script
+         *      Script that generates a boolean
+         */
+        void setSelectScript( Script* script );
+
+        /**
+         * Gets a script that evalutes to true or false; true = include the feature;
+         * false = exclude the feature.
+         *
+         * @return Script that generates a boolean
+         */
+        Script* getSelectScript() const;
+
+    public:
+        FeatureList process( Feature* input, FilterEnv* env );
+
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+
+    protected:
+        osg::ref_ptr<Script> select_script;
+
+        ~SelectFilter();
+    };
+}
+
+#endif // _OSGGIS_SELECT_FILTER_H_

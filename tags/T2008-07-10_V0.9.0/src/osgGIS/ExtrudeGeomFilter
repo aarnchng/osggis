@@ -1,0 +1,138 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_EXTRUDE_GEOM_FILTER_H_
+#define _OSGGIS_EXTRUDE_GEOM_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/BuildGeomFilter>
+#include <osgGIS/SkinResource>
+#include <osgGIS/Script>
+
+namespace osgGIS
+{
+    /**
+     * Filter that extrudes vector footprint polygons or lines into 3D geometries.
+     *
+     * This filter will take each segment of a polygon or line feature and create an
+     * extruded "wall" polygon from it. For polygons, it will also create a "roof" atop
+     * the extruded walls, completing a solid 3D shape.
+     *
+     * You can configure the filter to apply textures to the walls by referencing
+     * a SkinResource (for the walls). (If you want to texture the roof -- see the 
+     * BuildGeomFilter or the BuildNodesFilter).
+     *
+     * This filter is especially useful for generating 3D buildings, walls, and fences.
+     */
+    class OSGGIS_EXPORT ExtrudeGeomFilter : public BuildGeomFilter
+    {
+        OSGGIS_META_FILTER( ExtrudeGeomFilter );  
+
+    public:
+        /**
+         * Constructs a new extrusion filter.
+         */
+        ExtrudeGeomFilter();
+
+        /**
+         * Copy constructor.
+         */
+        ExtrudeGeomFilter( const ExtrudeGeomFilter& rhs );
+
+        virtual ~ExtrudeGeomFilter();
+        
+    public: //properties
+
+        /**
+         * Sets a Script that evaluates to the height to which to extrude a feature.
+         *
+         * @param script
+         *      Script that generates a height value
+         */
+        void setHeightScript( Script* script );
+
+        /**
+         * Gets the script that evalutes to the height to which to extrude a feature.
+         *
+         * @return
+         *      Script that generates a height value
+         */
+        Script* getHeightScript() const;
+        
+        /**
+         * Sets a Script that evalutes to the name of a SkinResource that the filter
+         * will use to texture the extruded wall polygons.
+         *
+         * @param script
+         *      Script that generates a SkinResource name
+         */
+        void setWallSkinScript( Script* script );
+        
+        /**
+         * Gets the Script that evalutes to the name of a SkinResource that the filter
+         * will use to texture the extruded wall polygons.
+         *
+         * @return
+         *      Script that generates a SkinResource name
+         */
+        Script* getWallSkinScript() const;
+
+        /**
+         * Sets whether to extrude all points on the feature to the same
+         * absolute Z. If true, the points comprising the top of the extruded
+         * feature walls will all be at the same Z (good for buildings).
+         * If false, the contour of the top will match the contour of the footprint
+         * (ideal for fences perhaps).
+         *
+         * @param value
+         *      True for uniform height, false for coutoured height
+         */
+        void setUniformHeight( bool value );
+
+        /**
+         * Gets twhether to extrude all points on the feature to the same absolute Z.
+         *
+         * @return
+         *      True for uniform height; false for contoured height
+         */
+        bool getUniformHeight() const;
+        
+
+    protected: // FragmentFilter overrides
+        virtual FragmentList process( FeatureList& input, FilterEnv* env );
+        virtual FragmentList process( Feature* input, FilterEnv* env );
+        
+    public: // Filter overrides
+        virtual void setProperty( const Property& p );
+        virtual Properties getProperties() const;
+        
+    private:
+        osg::ref_ptr<Script> height_script;
+        osg::ref_ptr<Script> wall_skin_script;
+        bool uniform_height;
+        
+        SkinResource* getWallSkinForFeature( Feature* f, FilterEnv* env );
+
+    private: // transients
+        osg::ref_ptr<SkinResource> batch_wall_skin;
+    };
+}
+
+
+#endif // _OSGGIS_EXTRUDE_GEOM_FILTER_H_

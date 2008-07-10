@@ -1,0 +1,85 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_MAP_H_
+#define _OSGGISPROJECTS_MAP_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/Terrain>
+#include <osgGISProjects/MapLayer>
+#include <list>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{    
+    class OSGGISPROJECTS_EXPORT Map : public osg::Referenced
+    {        
+    public:
+        /**
+         * Constructs a new, empty map.
+         */
+        Map();
+        
+        /**
+         * Sets the URI at the base of relative paths used by this map.
+         */
+        void setBaseURI( const std::string& base_uri );
+        
+        /**
+         * Gets the name of this map, unique within the current build.
+         */
+        const std::string& getName() const;
+        
+        /**
+         * Sets the name of this map.
+         */
+        void setName( const std::string& value );
+
+        /**
+         * Sets the terrain underlying this map.
+         */
+        void setTerrain( Terrain* );
+
+        /**
+         * Gets the terrain underlying this map.
+         */
+        Terrain* getTerrain() const;
+
+        /**
+         * Gets the list of layers comprising this map (read-only).
+         */
+        const MapLayerList& getMapLayers() const;
+
+        /**
+         * Gets the list of layers comprising this map.
+         */
+        MapLayerList& getMapLayers();
+
+    private:
+        std::string name;
+        osg::ref_ptr<Terrain> terrain;
+        MapLayerList map_layers;        
+    };
+
+    typedef std::list< osg::ref_ptr<Map> > MapList;
+}
+
+#endif // _OSGGISPROJECTS_SOURCE_H_
+

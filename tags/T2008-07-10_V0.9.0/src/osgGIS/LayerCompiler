@@ -1,0 +1,240 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_LAYER_COMPILER_H_
+#define _OSGGIS_LAYER_COMPILER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureLayer>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/Session>
+#include <osgGIS/SmartReadCallback>
+#include <osgGIS/TaskManager>
+#include <osg/Node>
+#include <osgDB/Archive>
+#include <string>
+
+namespace osgGIS
+{
+    /**
+     * Base class for feature layer compilers.
+     */
+    class OSGGIS_EXPORT LayerCompiler
+    {
+    protected:
+        /**
+         * Constructs a new compiler.
+         */
+        LayerCompiler();
+
+    public:
+        struct FilterGraphRange {
+            float min_range, max_range;
+            osg::ref_ptr<FilterGraph> graph;
+        };
+        typedef std::list<FilterGraphRange> FilterGraphRangeList;
+
+    public:
+        /**
+         * Adds a graph that should be used to build geometry within
+         * the specified visibility range.
+         *
+         * @param min_range
+         *      Minimum visibility range - get any closer and the geometry 
+         *      disappeares.
+         * @param max_range
+         *      Maximum visibility range - get any further and the geometry
+         *      disappears.
+         * @param graph
+         *      Compile geometry using this graph for the given range.
+         */
+        void addFilterGraph( float min_range, float max_range, FilterGraph* graph );
+        
+        /**
+         * Gets the list of graphs and the visibility range associated 
+         * with each one.
+         */
+        FilterGraphRangeList& getFilterGraphs();
+        
+        /** 
+         * Sets the reference terrain against which to compile.
+         */
+        void setTerrain(
+            osg::Node*              terrain, 
+            const SpatialReference* terrain_srs,
+            const GeoExtent&        terrain_extent );
+           
+        /** 
+         * Sets the reference terrain against which to compile.
+         */ 
+        void setTerrain(
+            osg::Node*              terrain, 
+            const SpatialReference* terrain_srs );
+            
+        /**
+         * Gets the scene graph holding the reference terrain, if set.
+         */
+        osg::Node* getTerrainNode();
+        
+        /**
+         * Gets the spatial reference system of the reference terrain, if set.
+         */
+        SpatialReference* getTerrainSRS();
+        
+        /**
+         * Gets the geospatial extents of the reference terrain, if set.
+         */
+        const GeoExtent& getTerrainExtent() const;
+            
+        /**
+         * Sets the archive to which the compiler should write files,
+         * if applicable.
+         */
+        void setArchive( osgDB::Archive* archive, const std::string& filename );
+        
+        /**
+         * Gets the archive to which the compiler should write files, if set.
+         */
+        osgDB::Archive* getArchive();
+
+        const std::string& getArchiveFileName() const;
+
+        /**
+         * Sets whether to apply fading to LOD nodes.
+         */
+        void setFadeLODs( bool value );
+
+        /** 
+         * Gets whether to apply fading to LOD nodes.
+         */
+        bool getFadeLODs() const;
+
+        /**
+         * Sets the render order for the layer. This will disable depth testing
+         * for the output layer as well.
+         * -1 means no ordered rendering.
+         */
+        void setRenderOrder( int value );
+        
+        /**
+         * Gets the render order, or -1 if none has been set.
+         */
+        int getRenderOrder() const;
+        
+        /**
+         * Sets whether the compiled graph should be converted into an
+         * overlay graph (i.e. projected onto the terrain)
+         */
+        void setOverlay( bool value );
+        
+        /**
+         * Gets whether the compiled graph should be returns as an 
+         * overlay graph (i.e. projected onto the terrain)
+         */
+        bool getOverlay() const;
+        
+        /**
+         * Assigns a task manager to use to build the layer. This will
+         * enable multi-threaded layer compilation when it's possible.
+         */
+        void setTaskManager( TaskManager* tm );
+        
+        /**
+         * Gets the task manager to use when compiling the layer.
+         */
+        TaskManager* getTaskManager();
+        
+        /**
+         * Assigns a session object for this compiler to use. The session
+         * tracks common data and stats across related compilations.
+         */
+        void setSession( Session* session );
+        
+        /**
+         * Gets the session assigned to this compiler, or creates and
+         * returns a new one if setSession() was never called.
+         */
+        Session* getSession();
+        
+        /**
+         * Sets the extent of the layer to compile. By default, the compiler
+         * will just use the full extent of the feature layer's contents. You
+         * can use this to override that value and specify an area of interest
+         * manually.
+         */
+        void setAreaOfInterest( double xmin, double ymin, double xmax, double ymax );
+         
+        /**
+         * Gets the layer extent that this compiler will use. If this is set
+         * to GeoExtent::Infinite, that compiler will query the feature layer
+         * for its full extent and use that as the AOI.
+         */
+        GeoExtent getAreaOfInterest( FeatureLayer* layer );
+        
+        void setLocalizeResources( bool value );
+        bool getLocalizeResources() const;
+        
+        /**
+         * Sets whether to compress textures upon localization.
+         */
+        void setCompressTextures( bool value );
+        
+        /**
+         * Gets whether to compress textures upon localization.
+         */
+        bool getCompressTextures() const;
+                
+        
+    public:
+        virtual Properties getProperties();
+        virtual void setProperties( Properties& props );
+        
+    public:
+
+        /* rewrites any texture image or proxy node file references so that they
+           reference files we've moved inside the archive. */
+        void localizeResourceReferences( osg::Node* );
+        
+    protected:
+        FilterGraphRangeList            graph_ranges;
+        osg::ref_ptr<osg::Node>         terrain;
+        osg::ref_ptr<SpatialReference>  terrain_srs;
+        GeoExtent                       terrain_extent;            
+        osg::ref_ptr<SmartReadCallback> read_cb;
+        int                             render_order;
+        bool                            fade_lods;
+        bool                            overlay;
+        osg::ref_ptr<osgDB::Archive>    archive;
+        std::string                     archive_filename;
+        osg::ref_ptr<TaskManager>       task_manager;
+        osg::ref_ptr<Session>           session;
+        double                          aoi_xmin,aoi_ymin,aoi_xmax,aoi_ymax;
+        bool                            localize_resources;
+        bool                            compress_textures;
+
+    protected:
+
+        void localizeResources( const std::string& output_folder );
+
+        osg::Node* convertToOverlay( osg::Node* input );
+        
+    };
+}
+
+#endif // _OSGGIS_SIMPLE_LAYER_COMPILER_H_

@@ -1,0 +1,144 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_BUILD_LABELS_FILTER_H_
+#define _OSGGIS_BUILD_LABELS_FILTER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/BuildGeomFilter>
+#include <osgText/Font>
+
+namespace osgGIS
+{
+    /**
+     * Builds osgText labels for features. (UNDER CONSTRUCTION)
+     *
+     * This filter is still under construction!
+     */
+    class OSGGIS_EXPORT BuildLabelsFilter : public BuildGeomFilter
+    {
+        OSGGIS_META_FILTER( BuildLabelsFilter );
+
+    public:
+        /**
+         * Constructs a new filter for converting features into labels.
+         */
+        BuildLabelsFilter();
+
+        BuildLabelsFilter( const BuildLabelsFilter& rhs );
+
+
+    public: //properties
+
+        /**
+         * Sets the script that evaluates to the label text.
+         * @param script
+         *      Script that generates text
+         */
+        void setTextScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the label text.
+         * @return
+         *      Script that generates text
+         */
+        Script* getTextScript() const;
+
+        /**
+         * Sets the script that evaluates to a font size for the text.
+         * @param script
+         *      Script that generates a font size
+         */
+        void setFontSizeScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to a font size for the text.
+         * @return
+         *      Script that generates a font size
+         */
+        Script* getFontSizeScript() const;
+
+        /**
+         * Sets the name of the font to use.
+         *
+         * @param font_name
+         *      Name of the font file to use, e.g. "arial.ttf"
+         */
+        void setFontName( const std::string& font_name );
+
+        /**
+         * Gets the name of the font to use.
+         *
+         * @return Font file name, e.g. "arial.ttf"
+         */
+        const std::string& getFontName() const;
+
+        /**
+         * Sets a script that evalutes to the text color.
+         *
+         * @param script
+         *      Foreground color for text
+         */
+        void setTextColorScript( Script* script );
+
+        /**
+         * Gets the script that evaluates to the text color (vec4)
+         *
+         * @return A script
+         */
+        Script* getTextColorScript() const;
+        
+        /**
+         * Sets whether to disable depth testing on the text label geometry.
+         * @param value
+         *      True to turn off depth buffer testing, false otherwise
+         */
+        void setDisableDepthTest( bool value );
+        
+        /**
+         * Gets whether to disable depth testing on the text label geometry.
+         */
+        bool getDisableDepthTest() const;
+
+        
+    public: // Filter overrides    
+        virtual void setProperty( const Property& );
+        virtual Properties getProperties() const;
+
+    protected: // FragmentFilter overrides
+        virtual FragmentList process( FeatureList& input, FilterEnv* env );
+        virtual FragmentList process( Feature* input, FilterEnv* env );
+
+        virtual ~BuildLabelsFilter();
+        
+    private:
+        osg::ref_ptr<Script> text_script;
+        osg::ref_ptr<Script> font_size_script;
+        osg::ref_ptr<Script> text_color_script;
+        std::string          font_name;
+        bool                 disable_depth_test;
+
+    private: //transient
+        osg::ref_ptr<osgText::Font> font;
+
+    };
+}
+
+
+#endif // _OSGGIS_BUILD_LABELS_FILTER_H_

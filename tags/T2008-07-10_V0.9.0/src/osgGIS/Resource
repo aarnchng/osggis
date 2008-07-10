@@ -1,0 +1,169 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_RESOURCE_H_
+#define _OSGGIS_RESOURCE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/Property>
+#include <osgGIS/Tags>
+#include <OpenThreads/ReentrantMutex>
+#include <list>
+#include <set>
+#include <vector>
+#include <map>
+
+namespace osgGIS
+{
+    /**
+     * Pointer to an external piece of data or information.
+     *
+     * A Resource is anything data that exists externally to the core feature store
+     * mechanism. External textures (skins), 3D models, spatial references, or rasters
+     * are all examples of Resource types.
+     *
+     * Concrete classes will implement the Resource interface.
+     */
+    class OSGGIS_EXPORT Resource : public osg::Referenced, public ObjectWithTags
+    {
+    public:
+        /**
+         * Gets the name of this resource.
+         *
+         * @return String
+         */
+        const char* getName() const;
+
+        /**
+         * Sets the name of this resource.
+         *
+         * @param name
+         *      Name of the resource (for lookup)
+         */
+        virtual void setName( const std::string& name );
+        
+        /**
+         * Gets the primary URI of the Resource. This is the location of the external
+         * object that the Resource references. (NOTE: You will usually want to call
+         * getAbsoluteURI() instead of this method, sine this may return a relative
+         * value.)
+         *
+         * @return Relative (to getBaseURI) or absolute URI
+         */
+        virtual const std::string& getURI() const;
+        
+        /**
+         * Sets the primary URI of the Resource. This is the locaiton of the external
+         * object that the Resource references.
+         *
+         * @param uri
+         *      Relative (to getBaseURI) or absolute URI of the external object
+         */
+        virtual void setURI( const std::string& uri );
+        
+        virtual const std::string& getAbsoluteURI() const;
+        
+        
+        /**
+         * Sets the base URI path to which relative paths should be appended
+         *
+         * @param base_uri
+         *      A URI prefix to which relative primary URIs shall be appended
+         */
+        void setBaseURI( const std::string& base_uri );
+
+        /**
+         * Gets the base URI for relative paths.
+         *
+         * @return The base URI to which relative primary URIs shall be appended
+         */
+        const std::string& getBaseURI() const;
+        
+        /**
+         * Checks whether this is a one-time-only Resource.
+         *
+         * @return True if this is marked as a "single-use" resource; i.e. it is unique to
+         *         a specific application within the build. The layer compiler will remove
+         *         single-use resources from the ResourceLibrary once them are used. An
+         *         example would be a rooftop-ortho texture, which is applied one time and
+         *         never shared.
+         */
+        bool isSingleUse() const;
+        
+        /**
+         * Sets the resource as being "single-use" or not. By default, resources are
+         * not single-use; i.e. they are multi-use.
+         */
+        void setSingleUse( bool value );
+
+    public: 
+
+        virtual void setProperty( const Property& prop );
+        virtual Properties getProperties() const;
+
+    public:
+        virtual std::string getResourceType() =0;
+
+    protected:
+    
+        Resource();
+        Resource( const std::string& name );
+
+        virtual ~Resource();
+        
+        OpenThreads::ReentrantMutex& getMutex();
+        
+    private:
+        std::string name;
+        std::string uri;
+        std::string base_uri;
+        bool single_use;
+        std::string cached_abs_path;
+
+        OpenThreads::ReentrantMutex* mutex;
+        bool owns_mutex;
+        friend class ResourceLibrary;
+        void setMutex( OpenThreads::ReentrantMutex& _m );
+    };
+    
+    typedef std::vector< osg::ref_ptr<Resource> > ResourceList;
+
+    typedef std::set< std::string > ResourceNames;
+
+    struct ResourceFactory : public osg::Referenced {
+        virtual Resource* createResource() =0;
+    };
+    template<typename T> struct ResourceFactoryImpl : public ResourceFactory {
+        Resource* createResource() { return new T(); }
+    };    
+
+    typedef std::map<std::string,osg::ref_ptr<ResourceFactory> > ResourceFactoryMap;
+
+#define OSGGIS_META_RESOURCE(name) \
+    public: \
+        virtual std::string getResourceType() { return getStaticResourceType(); } \
+        static std::string getStaticResourceType() { return #name; } \
+        static ResourceFactory* getResourceFactory() { return new ResourceFactoryImpl<name>(); }        
+
+#define OSGGIS_DEFINE_RESOURCE(name) \
+    static bool _osggsis_dr = osgGIS::Registry::instance()->addResourceType( name::getStaticResourceType(), name::getResourceFactory() )
+
+}
+
+#endif // _OSGGIS_RESOURCE_H_

@@ -1,0 +1,190 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_SPATIAL_REFERENCE_FACTORY_H_
+#define _OSGGIS_SPATIAL_REFERENCE_FACTORY_H_
+
+#include <osgGIS/Common>
+#include <osgGIS/SpatialReference>
+#include <osg/Referenced>
+#include <osg/Matrixd>
+#include <osg/CoordinateSystemNode>
+#include <string>
+
+namespace osgGIS
+{
+    /**
+     * Interface for creating SpatialReference instances.
+     */
+    class OSGGIS_EXPORT SpatialReferenceFactory : public osg::Referenced
+    {
+    public:
+        /**
+         * Creates a new WGS84 geographic SRS.
+         *
+         * @return A spatial reference. Caller is responsible for deleting
+         *         the return object.
+         */
+        virtual SpatialReference* createWGS84() =0;
+
+        /**
+         * Creates a new SRS from an OSG WKT string.
+         *
+         * @param wkt
+         *      OGC WKT (well-known text) SRS definition
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromWKT( 
+            const std::string& wkt ) =0;
+
+        /**
+         * Creates a new SRS from an OSG WKT string.
+         *
+         * @param wkt
+         *      OGC WKT (well-known text) SRS definition
+         * @param reference_frame
+         *      Reference frame to apply to points in this SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromWKT(
+            const std::string&  wkt,
+            const osg::Matrixd& reference_frame ) =0;
+        
+        /**
+         * Creates a new SRS from an ESRI-style WKT/PRJ string.
+         *
+         * @param wkt
+         *      ESRI-style WKT (well-known text) SRS definition
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromESRI( 
+            const std::string& wkt ) =0;
+
+        /**
+         * Creates a new SRS from an ESRI-style WKT/PRJ string.
+         *
+         * @param wkt
+         *      ESRI-style WKT (well-known text) SRS definition
+         * @param reference_frame
+         *      Reference frame to apply to points in this SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromESRI(
+            const std::string&  wkt,
+            const osg::Matrixd& reference_frame ) =0;
+
+        /**
+         * Creates a new SRS from an OSG WKT string in a file.
+         *
+         * @param abs_path
+         *      Absoulte pathname of a text file that contains an
+         *      OGC WKT (well-known text) SRS definition
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromWKTfile(
+            const std::string& abs_path ) =0;
+
+        /**
+         * Creates a new SRS from data found in a scene graph.
+         *
+         * @param node
+         *      Scene graph for which to determine the SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromTerrain(
+            osg::Node* node ) =0;
+
+        /**
+         * Creates a new geocentric SRS based on the WGS84 datum.
+         *
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createGeocentricSRS() =0;
+
+        /**
+         * Creates a new geocentric SRS based on the user-supplied 
+         * geographic basic SRS.
+         *
+         * @param basis
+         *      Geographic SRS upon which to base the new geocentric SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createGeocentricSRS( 
+            const SpatialReference* basis ) =0;
+
+        /**
+         * Creates a new geocentric SRS based on the user-supplied 
+         * geographic basic SRS.
+         *
+         * @param basis
+         *      Geographic SRS upon which to base the new geocentric SRS
+         * @param reference_frame
+         *      Reference frame to apply to points in this SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createGeocentricSRS(
+            const SpatialReference* basis,
+            const osg::Matrixd&     reference_frame ) =0;
+
+        /**
+         * Creates a new SRS from data found in an osg::CoordinateSystemNode.
+         *
+         * @param cs_node
+         *      Node for which to determine the SRS
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createGeocentricSRS(
+            const osg::CoordinateSystemNode* cs_node ) =0;
+
+        /**
+         * Examines an SRS and if broken, attempts to repair it so that it works.
+         *
+         * @param validateSRS
+         *      SRS to repair if necessary
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* validateSRS(
+            SpatialReference* srs_to_validate ) =0;
+    };
+}
+
+#endif // _OSGGIS_SPATIAL_REFERENCE_FACTORY_H_
+

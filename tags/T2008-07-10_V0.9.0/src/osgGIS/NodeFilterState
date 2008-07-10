@@ -1,0 +1,87 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_NODE_FILTER_STATE_H_
+#define _OSGGIS_NODE_FILTER_STATE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FilterState>
+#include <osgGIS/NodeFilter>
+#include <osg/Node>
+
+namespace osgGIS
+{
+    /* (internal - no public api docs)
+     *
+     */
+    class NodeFilterState : public FilterState
+    {
+    public:
+        NodeFilterState( NodeFilter* filter );  
+        
+        bool traverse( FilterEnv* env );
+
+        /**
+         * Pushes a feature onto this filter's input data queue.
+         */
+        void push( Feature* input );
+
+        /**
+         * Pushes a collection of features onto this filter's input data queue.
+         */
+        void push( FeatureList& input );
+
+        /**
+         * Pushes a Fragment onto this filter's input data queue.
+         */
+        void push( Fragment* input );
+
+        /**
+         * Pushes a collection of Fragments onto this filter's input data queue.
+         */
+        void push( FragmentList& input );
+
+        /**
+         * Pushes a single node onto this filter's input data queue.
+         */
+        void push( AttributedNode* input );
+
+        /**
+         * Pushes a collection of nodes onto this filter's input data queue.
+         */
+        void push( AttributedNodeList& input );
+
+        
+        /**
+         * Gets the output node collection from this filter. Since a NodeFilter
+         * can be the final node in a graphs's filter chain, this method allows
+         * the compiler to retrieve the final results.
+         */
+        AttributedNodeList& getOutput();
+
+    protected:
+        osg::ref_ptr<NodeFilter> filter;
+        FeatureList in_features;
+        FragmentList in_fragments;
+        AttributedNodeList in_nodes;
+        AttributedNodeList out_nodes;
+    };
+}
+
+#endif // _OSGGIS_NODE_FILTER_STATE_H_
