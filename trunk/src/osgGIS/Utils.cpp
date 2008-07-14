@@ -162,31 +162,6 @@ GeomUtils::isPolygonCW( const GeoPointList& points )
     return getPolygonArea2D( points ) < 0.0;
 }
 
-//    // find the ymin point:
-//    double ymin = DBL_MAX;
-//    unsigned int i_lowest = 0;
-//
-//    for( GeoPointList::const_iterator i = points.begin(); i != points.end(); i++ )
-//    {
-//        if ( i->y() < ymin ) 
-//        {
-//            ymin = i->y();
-//            i_lowest = i-points.begin();
-//        }
-//    }
-//
-//    // next cross the 2 vector converging at that point:
-//    osg::Vec3d p0 = *( points.begin() + ( i_lowest > 0? i_lowest-1 : points.size()-1 ) );
-//    osg::Vec3d p1 = *( points.begin() + i_lowest );
-//    osg::Vec3d p2 = *( points.begin() + ( i_lowest < points.size()-1? i_lowest+1 : 0 ) );
-//
-//    osg::Vec3d cp = (p1-p0) ^ (p2-p1);
-//
-//    //TODO: need to rotate into ref frame - for now just use this filter before xforming
-//    return cp.z() > 0;
-//}
-
-
 void
 GeomUtils::openPolygon( GeoPointList& polygon )
 {
@@ -203,30 +178,6 @@ GeomUtils::closePolygon( GeoPointList& polygon )
             polygon.push_back( polygon[0] );
     }
 }
-
-//struct GeodeCounter : public osg::NodeVisitor {
-//    GeodeCounter() : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), count(0) { }
-//    void apply( osg::Geode& geode ) {
-//        count++;
-//        // no traverse required
-//    }
-//    int count;
-//};
-//
-//int
-//GeomUtils::getNumGeodes( osg::Node* node )
-//{
-//    if ( node )
-//    {
-//        GeodeCounter c;
-//        node->accept( c );
-//        return c.count;
-//    }
-//    else
-//    {
-//        return 0;
-//    }
-//}
 
 // note: none of the apply() overrides needs to call traverse(); this is intentional
 struct HasDrawablesVisitor : public osg::NodeVisitor {
@@ -276,6 +227,25 @@ GeomUtils::setDataVarianceRecursively( osg::Node* node, const osg::Object::DataV
     }
 }
 
+struct NamedNodeFinder : public osg::NodeVisitor {
+    NamedNodeFinder( const std::string& _name ) : osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), name(_name) { }
+    void apply( osg::Node& node ) {
+        if ( node.getName() == name )
+            result = &node;
+        else
+            traverse( node );
+    }
+    std::string name;
+    osg::ref_ptr<osg::Node> result;
+};
+
+osg::Node*
+GeomUtils::findNamedNode( const std::string& name, osg::Node* root )
+{
+    NamedNodeFinder v( name );
+    root->accept( v );
+    return v.result.get();
+}
 
 
 /*************************************************************************/

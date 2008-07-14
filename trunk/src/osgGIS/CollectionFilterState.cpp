@@ -162,6 +162,7 @@ CollectionFilterState::signalCheckpoint()
             else
             {
                 ok = false;
+                osg::notify( osg::WARN ) << "No input data for " << filter->getFilterType() << std::endl;
             }
         }
         else if ( dynamic_cast<FragmentFilterState*>( next ) )
@@ -184,6 +185,7 @@ CollectionFilterState::signalCheckpoint()
             else
             {
                 ok = false;
+                osg::notify( osg::WARN ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
             }
         }
         else if ( dynamic_cast<NodeFilterState*>( next ) )
@@ -212,6 +214,7 @@ CollectionFilterState::signalCheckpoint()
             }
             else
             {
+                osg::notify( osg::WARN ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
                 ok = false;
             }
         }
@@ -241,7 +244,8 @@ CollectionFilterState::signalCheckpoint()
             }
             else
             {
-                ok = false;         
+                osg::notify( osg::NOTICE ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;   
+                ok = false;      
             }
         }
 

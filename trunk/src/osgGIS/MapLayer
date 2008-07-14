@@ -1,0 +1,212 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_MAP_LAYER_H_
+#define _OSGGIS_MAP_LAYER_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/FeatureLayer>
+#include <osgGIS/FilterGraph>
+#include <osgGIS/Session>
+#include <osg/BoundingSphere>
+
+namespace osgGIS
+{
+    /* (internal)
+     * A single level of detail for a MapLayer.
+     */
+    class MapLayerLevelOfDetail : public osg::Referenced
+    {
+    public:
+        MapLayerLevelOfDetail( FeatureLayer* layer, FilterGraph* graph, float min_range, float max_range, bool replace_previous );
+
+        FeatureLayer* getFeatureLayer() const;
+        FilterGraph* getFilterGraph() const;
+        float getMinRange() const;
+        float getMaxRange() const;
+        bool getReplacePrevious() const;
+
+    private:
+        osg::ref_ptr<FeatureLayer> layer;
+        osg::ref_ptr<FilterGraph>  graph;
+        float                      min_range, max_range;
+        bool                       replace_previous;
+    };
+    typedef std::vector<osg::ref_ptr<MapLayerLevelOfDetail> > MapLayerLevelsOfDetail;
+
+    /* (internal)
+     * A single cell within a MapLayer.
+     */
+    class OSGGIS_EXPORT MapLayerCell : public osg::Referenced
+    {
+    public:
+        MapLayerCell(
+            unsigned int col, unsigned int row, unsigned int level, 
+            const GeoExtent& extent, MapLayerLevelOfDetail* def );
+
+        unsigned int getCellRow() const;
+        unsigned int getCellColumn() const;
+        unsigned int getLevel() const;
+        const GeoExtent& getExtent() const;
+        MapLayerLevelOfDetail* getDefinition() const;
+
+        std::string toString() const;
+        std::string makeURIFromTemplate( const std::string& uri_tempate );
+        osg::BoundingSphere getBoundingSphere( SpatialReference* srs =NULL);
+
+    private:
+        unsigned int row, col, level;
+        GeoExtent extent;
+        osg::ref_ptr<MapLayerLevelOfDetail> def;
+    };
+
+    /**
+     * A complete definition of a single runtime map layer, which is a set of one or
+     * more feature layers and their compilation configurations. This object is input
+     * for a MapLayerCompiler.
+     */
+    class OSGGIS_EXPORT MapLayer : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new map layer definition.
+         */
+        MapLayer();
+
+        /**
+         * Sets the geospatial extent bounding the area we want to build.
+         *
+         * @param extent Geospatial area of interest
+         */
+        void setAreaOfInterest( const GeoExtent& extent );
+
+        /**
+         * Gets the geospatial extent bounding the area to build.
+         *
+         * @return The geospatial area of interest
+         */
+        const GeoExtent& getAreaOfInterest() const;
+
+        /**
+         * Sets the east-west extent of each cell in the map layer.
+         *
+         * @param width Extent (in source data units)
+         */
+        void setCellWidth( double width );
+
+        /**
+         * Gets the east-west extent of each cell in the map layer.
+         *
+         * @return Extent (in source data units)
+         */
+        double getCellWidth() const;
+
+        /**
+         * Sets the north-source extent of each cell in the map layer.
+         *
+         * @param height Extent (in source data units)
+         */
+        void setCellHeight( double height );
+        
+        /**
+         * Gets the north-south extent of each cell in the map layer.
+         *
+         * @return Extent (in source data units)
+         */
+        double getCellHeight() const;
+
+        /**
+         * Pushes source data onto the level of detail queue. Levels of detail are
+         * interpreted from front to back.
+         *
+         * @param layer
+         *      Feature layer from which to read source data
+         * @param graph
+         *      Filter graph to use to build scene graph
+         * @param min_range
+         *      Minimum visibility range of this level of detail
+         * @param max_range
+         *      Maximum visibility range of this level of detail
+         * @param replace
+         *      If true, this detail level will replace the ones before it. If false, it
+         *      will join the scene graph without removing the previous levels.
+         */
+        void push( FeatureLayer* layer, FilterGraph* graph, float min_range, float max_range, bool replace );
+
+        /**
+         * Gets the spatial reference system of the output when this layer is compiled.
+         *
+         * @param session
+         *      Session under which to examine this map layer
+         * @param terrain_srs
+         *      Optional terrain SRS
+         *
+         * @return A spatial reference
+         */
+        SpatialReference* getOutputSRS( Session* session, SpatialReference* terrain_srs =NULL) const;
+
+        /**
+         * Calculates the number of rows in the resulting cell grid.
+         *
+         * @return Integer column count
+         */
+        unsigned int getNumCellColumns() const;
+
+        /**
+         * Calculates the number of rows in the resulting cell grid.
+         *
+         * @return Integer row count.
+         */
+        unsigned int getNumCellRows() const;
+
+        /**
+         * Gets the number of detail levels at each grid location cell location.
+         *
+         * @return Number of detail levels
+         */
+        unsigned int getNumCellLevels() const;
+
+        /**
+         * Creates and returns a cell definition for a given cell location.
+         *
+         * @param col, row
+         *      Column and row for which to create a cell definition
+         * @param level
+         *      Detail level for which to create a cell definition
+         * @return
+         *      Cell definition
+         */
+        MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
+
+    private:
+        MapLayerLevelsOfDetail levels;
+        double cell_width, cell_height;
+        GeoExtent aoi_auto, aoi_manual;
+
+        // cached calculated grid setup:
+        double dx, last_dx, dy, last_dy;
+        unsigned int num_rows, num_cols;
+        bool grid_valid;
+        osg::ref_ptr<SpatialReference> output_srs;
+
+        void recalculateGrid();
+    };
+}
+
+#endif // _OSGGIS_MAP_LAYER_H_

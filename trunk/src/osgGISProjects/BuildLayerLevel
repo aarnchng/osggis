@@ -1,0 +1,174 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_BUILD_LAYER_LEVEL_H_
+#define _OSGGISPROJECTS_BUILD_LAYER_LEVEL_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/Source>
+#include <osgGIS/FilterGraph>
+#include <list>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    class OSGGISPROJECTS_EXPORT BuildLayerLevel;
+
+    typedef std::list<osg::ref_ptr<BuildLayerLevel> > BuildLayerLevelList;
+
+    /**
+     * 
+     */
+    class OSGGISPROJECTS_EXPORT BuildLayerLevel : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new, empty layer level.
+         */
+        BuildLayerLevel();
+
+        /**
+         * Gets the data source to use when building this level.
+         *
+         * @return A data source
+         */
+        Source* getSource() const;
+
+        /**
+         * Sets the data source to use when building this level.
+         *
+         * @param source A data source
+         */
+        void setSource( Source* source );
+        
+        /**
+         * Gets the filter graph that will be used to build geometry for this
+         * layer level.
+         *
+         * @return A Filter graph
+         */
+        FilterGraph* getFilterGraph();
+        
+        /**
+         * Sets the filter graph that will generate geometry for this level.
+         *
+         * @param graph A filter graph
+         */
+        void setFilterGraph( FilterGraph* graph );
+
+        /**
+         * Gets the sub-levels under this level.
+         *
+         * @return A list of levels
+         */
+        BuildLayerLevelList& getSubLevels();
+        const BuildLayerLevelList& getSubLevels() const;
+        
+        /**
+         * Gets the minimum visibility range of this level.
+         *
+         * @return visibility distance (in scene units)
+         */
+        float getMinRange() const;
+        
+        /**
+         * Sets the minimum visibility range of this level.
+         *
+         * @param value visibility distance (in scene units)
+         */
+        void setMinRange( float value );
+        
+        /**
+         * Gets the maximum visibility range of this level.
+         *
+         * @return visibility distance (in scene units)
+         */
+        float getMaxRange() const;
+        
+        /**
+         * Sets the maximum visibility range of this level.
+         *
+         * @param value visibility distance (in scene units)
+         */
+        void setMaxRange( float value );
+
+        /**
+         * Gets the east-west extent of each cell that will be created
+         * when this level is subdivided into a grid
+         *
+         * @return east-west extent (in Source units)
+         */
+        double getCellWidth() const;
+
+        /**
+         * Sets the east-west extent of each cell that will be created
+         * when this level is subdivided into a grid
+         *
+         * @param width east-west extent (in Source units)
+         */
+        void setCellWidth( double width );
+
+        /**
+         * Gets the north-south extent of each cell that will be created
+         * when this level is subdivided into a grid
+         *
+         * @return north-south extent (in Source units)
+         */
+        double getCellHeight() const;
+        /**
+         * Sets the north-south extent of each cell that will be created
+         * when this level is subdivided into a grid
+         *
+         * @param height north-south extent (in Source units)
+         */
+        void setCellHeight( double height );
+
+        /**
+         * Gets a cell-size multiplier that expresses the cell width and cell height
+         * for this level as a multiple of the parent level. For example, if the
+         * parent cell width is 1000, and this level has a cell size factor of
+         * 0.5, this level's cell width will be 500.
+         *
+         * @return A multiplication factor (0 < x < 1)
+         */
+        double getCellSizeFactor() const;
+
+        /**
+         * Gets a cell-size multiplier that expresses the cell width and cell height
+         * for this level as a multiple of the parent level. For example, if the
+         * parent cell width is 1000, and this level has a cell size factor of
+         * 0.5, this level's cell width will be 500.
+         *
+         * @param factor Cell size factor multiplier (0 < x <= 1)
+         */
+        void setCellSizeFactor( double factor );
+
+    private:
+        osg::ref_ptr<FilterGraph> graph;
+        osg::ref_ptr<Source> source;
+        float min_range, max_range;
+        double cell_width, cell_height;
+        double cell_size_factor;
+        BuildLayerLevelList sub_levels;
+    };
+}
+
+#endif // _OSGGISPROJECTS_BUILD_LAYER_LEVEL_H_
+

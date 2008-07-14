@@ -234,7 +234,7 @@ public:
 
                 if ( results.size() > 0 && results.front().getSRS() ) // always true, i think
                 {
-                    SpatialReference* geom_srs = results.front().getSRS();
+                    const SpatialReference* geom_srs = results.front().getSRS();
                     osg::Vec3d p0 = geom_srs->transform( tile_extent.getSouthwest() ).getAbsolute();
                     osg::Vec3d p1 = geom_srs->transform( tile_extent.getNortheast() ).getAbsolute();
                     osg::BoundingSphere bs;

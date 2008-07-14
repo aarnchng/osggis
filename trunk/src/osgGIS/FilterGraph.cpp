@@ -38,39 +38,38 @@ FilterGraphResult::FilterGraphResult()
 
 FilterGraphResult::FilterGraphResult( const FilterGraphResult& rhs )
 : is_ok( rhs.is_ok ),
-  out_extent( rhs.out_extent ),
-  out_srs( rhs.out_srs.get() )
+  out_env( rhs.out_env )
 {
 }
 
 FilterGraphResult
-FilterGraphResult::ok( const GeoExtent& extent, const SpatialReference* srs )
+FilterGraphResult::ok( FilterEnv* _out_env )
 {
-    return FilterGraphResult( true, extent, srs );
+    return FilterGraphResult( true, _out_env );
 }
 
 FilterGraphResult
 FilterGraphResult::ok()
 {
-    return FilterGraphResult( true, GeoExtent::invalid(), NULL );
+    return FilterGraphResult( true, NULL ); //GeoExtent::invalid(), NULL );
 }
 
 FilterGraphResult
-FilterGraphResult::error()
+FilterGraphResult::error( const std::string& msg )
 {
-    return FilterGraphResult( false );
+    return FilterGraphResult( false, msg );
 }
 
-FilterGraphResult::FilterGraphResult( bool _is_ok )
+FilterGraphResult::FilterGraphResult( bool _is_ok, const std::string& _msg )
 {
     is_ok = _is_ok;
+    msg = _msg;
 }
 
-FilterGraphResult::FilterGraphResult( bool _is_ok, const GeoExtent& extent, const SpatialReference* srs )
+FilterGraphResult::FilterGraphResult( bool _is_ok, FilterEnv* _out_env )
 {
     is_ok = _is_ok;
-    out_extent = extent;
-    out_srs = const_cast<SpatialReference*>( srs );
+    out_env = _out_env;
 }
 
 bool
@@ -79,18 +78,23 @@ FilterGraphResult::isOK() const
     return is_ok;
 }
 
-const GeoExtent&
-FilterGraphResult::getExtent() const
-{
-    return out_extent;
-}
-
-SpatialReference*
+const SpatialReference*
 FilterGraphResult::getSRS() const
 {
-    return out_srs.get();
+    return out_env.valid()? out_env->getOutputSRS() : NULL;
 }
 
+FilterEnv*
+FilterGraphResult::getOutputFilterEnv()
+{
+    return out_env.get();
+}
+
+const std::string&
+FilterGraphResult::getMessage() const
+{
+    return msg;
+}
 
 /*****************************************************************************/
 
@@ -168,7 +172,7 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
         if ( !dynamic_cast<FeatureFilter*>( filter ) )
         {
             osg::notify(osg::WARN) << "Error: illegal filter of type \"" << filter->getFilterType() << "\" in graph. Only feature features are allowed." << std::endl;
-            return FilterGraphResult::error();
+            return FilterGraphResult::error( "Illegal first filter type in filter graph" );
         }
 
         FilterState* next_state = filter->newState();
@@ -185,7 +189,7 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     if ( !first.valid() )
     {
         osg::notify(osg::WARN) << "Error: filter graph \"" << getName() << "\" is empty." << std::endl;
-        return FilterGraphResult::error();
+        return FilterGraphResult::error( "Illegal: empty filter graph" );
     }
 
     // next, append a WriteFeatures filter that will generate the output
@@ -221,14 +225,11 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
 
     if ( ok )
     {
-        FilterEnv* final_env = output_state->getLastKnownFilterEnv();
-        return final_env?
-            FilterGraphResult::ok( final_env->getExtent(), final_env->getOutputSRS() ) :
-            FilterGraphResult::ok();
+        return FilterGraphResult::ok( output_state->getLastKnownFilterEnv() );
     }
     else
     {
-        return FilterGraphResult::error();
+        return FilterGraphResult::error( "Filter graph failed to compute feature store" );
     }
 }
 
@@ -353,14 +354,11 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
     
     if ( ok )
     {
-        FilterEnv* final_env = output_state.valid()? output_state->getLastKnownFilterEnv() : NULL;
-        return final_env?
-            FilterGraphResult::ok( final_env->getExtent(), final_env->getOutputSRS() ) :
-            FilterGraphResult::ok();
+        return FilterGraphResult::ok( output_state->getLastKnownFilterEnv() );
     }
     else
     {
-        return FilterGraphResult::error();
+        return FilterGraphResult::error( "Filter graph failed to compute any nodes" );
     }
 }
 

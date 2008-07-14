@@ -28,6 +28,7 @@
 #include <osgGIS/Resource>
 #include <osgGIS/FeatureStoreCompiler>
 #include <osgGIS/Utils>
+#include <osgGIS/MapLayerCompiler>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -356,8 +357,48 @@ Builder::build( BuildLayer* layer )
         num_threads < 1? new TaskManager() :
         NULL;
 
+    if ( layer->getType() == BuildLayer::TYPE_NEW ) // testing out the NEW process
+    {
+        osgGIS::MapLayer* map_layer = new osgGIS::MapLayer();
+        
+        map_layer->setCellWidth( layer->getProperties().getDoubleValue( "col-size", 0.0 ) );
+        map_layer->setCellHeight( layer->getProperties().getDoubleValue( "row-size", 0.0 ) );
+        
+        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+        {
+            map_layer->push(
+                feature_layer.get(),
+                i->get()->getFilterGraph(),
+                i->get()->getMinRange(),
+                i->get()->getMaxRange(),
+                true );
+        }
+
+        MapLayerCompiler compiler( map_layer, session.get() );
+
+        compiler.setAbsoluteOutputURI( output_file );
+        compiler.setPaged( true );
+        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler.setArchive( archive.get(), archive_file );
+                
+        bool ok = compiler.compile( manager.get() );
+        if ( ok )
+        {
+            osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
+            if ( archive.valid() )
+            {
+                archive->writeNode( *compiler.getSceneGraph(), output_file, options );
+            }
+            else
+            {
+                osgDB::writeNodeFile( *compiler.getSceneGraph(), output_file, options );
+            }
+        }
+    }
+
     // if we have a valid terrain, use the paged layer compiler. otherwise
     // use a simple compiler.
+    else
     if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
     {
         PagedLayerCompiler compiler;

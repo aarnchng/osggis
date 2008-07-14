@@ -12,6 +12,7 @@ SET(LIB_PUBLIC_HEADERS
     Build
     Builder
     BuildLayer
+    BuildLayerLevel
     BuildLayerSlice
     BuildTarget
     Common
@@ -34,6 +35,7 @@ ADD_LIBRARY(${LIB_NAME}
     Build.cpp
     Builder.cpp
     BuildLayer.cpp
+    BuildLayerLevel.cpp
     BuildLayerSlice.cpp
     BuildTarget.cpp
     Document.cpp
