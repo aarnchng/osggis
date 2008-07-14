@@ -103,8 +103,7 @@ TaskThread::getResult()
     return result;
 }
 
-
-
+/* ========================================================================= */
 
 TaskManager::TaskManager()
 {
@@ -113,7 +112,7 @@ TaskManager::TaskManager()
 
 TaskManager::TaskManager( int _max_running_tasks )
 {
-    init( _max_running_tasks );
+    init( std::max( 0, _max_running_tasks ) );
 }
 
 TaskManager::~TaskManager()
@@ -128,7 +127,9 @@ TaskManager::~TaskManager()
 void
 TaskManager::init( int num_threads )
 {   
-    if ( osg::Referenced::getThreadSafeReferenceCounting() == false )
+    multi_threaded = num_threads > 0;
+
+    if ( multi_threaded && osg::Referenced::getThreadSafeReferenceCounting() == false )
     {
         osg::notify(osg::FATAL) 
             << "ERROR: use of the osgGIS Task Manager REQUIRES thread-safe reference counting be enabled"
@@ -144,7 +145,10 @@ TaskManager::init( int num_threads )
         threads.push_back( new TaskThread( i, activity_block ) );
     }
 
-    osg::notify( osg::NOTICE ) << "Task manager started; threads = " << num_threads << std::endl;
+    if ( multi_threaded )
+        osg::notify( osg::NOTICE ) << "Task manager started; threads = " << num_threads << std::endl;
+    else        
+        osg::notify( osg::NOTICE ) << "Task manager started (single-threaded)" << std::endl;
 }
 
 void
@@ -164,9 +168,11 @@ TaskManager::wait()
     if ( !hasMoreTasks() )
         return false;
 
-    activity_block.block();
-
-    update();
+    if ( multi_threaded )
+    {
+        activity_block.block();
+        update();
+    }
 
     return true;
 }
@@ -196,32 +202,58 @@ TaskManager::getNextCompletedTask()
 void
 TaskManager::update()
 {
-    for( TaskThreadList::iterator i = threads.begin(); i != threads.end(); i++ )
+    if ( multi_threaded )
     {
-        TaskThread* thread = *i;
-
-        //osg::notify(osg::FATAL) <<
-        //    "UPDATE: pending=" << pending_tasks.size() << ", running=" << num_running_tasks << ", completed=" << completed_tasks.size() 
-        //    << std::endl;
-
-        // handle any completed tasks:
-        if ( thread->getState() == TaskThread::STATE_RESULT_READY )
+        for( TaskThreadList::iterator i = threads.begin(); i != threads.end(); i++ )
         {
-            double seconds = thread->getResultDuration();
-            osg::ref_ptr<Task> task = thread->getResult();
-            completed_tasks.push( task.get() );
-            num_running_tasks--;
-            osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
-        }
+            TaskThread* thread = *i;
 
-        // dispatch any pending tasks:
-        if ( thread->getState() == TaskThread::STATE_READY && pending_tasks.size() > 0 )
+            //osg::notify(osg::FATAL) <<
+            //    "UPDATE: pending=" << pending_tasks.size() << ", running=" << num_running_tasks << ", completed=" << completed_tasks.size() 
+            //    << std::endl;
+
+            // handle any completed tasks:
+            if ( thread->getState() == TaskThread::STATE_RESULT_READY )
+            {
+                double seconds = thread->getResultDuration();
+                osg::ref_ptr<Task> task = thread->getResult();
+                completed_tasks.push( task.get() );
+                num_running_tasks--;
+                osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+            }
+
+            // dispatch any pending tasks:
+            if ( thread->getState() == TaskThread::STATE_READY && pending_tasks.size() > 0 )
+            {
+                osg::ref_ptr<Task> task = pending_tasks.front().get();
+                pending_tasks.pop();
+                num_running_tasks++;
+                thread->runTask( task.get() );
+                osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
+            }
+        }
+    }
+    else // single-threaded mode:
+    {
+        // pop and run the next task:
+        if ( pending_tasks.size() > 0 )
         {
             osg::ref_ptr<Task> task = pending_tasks.front().get();
             pending_tasks.pop();
-            num_running_tasks++;
-            thread->runTask( task.get() );
-            osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
+
+            if ( task.valid() )
+            {
+                osg::notify(osg::NOTICE) << "0> " << task->getName() << ": started" << std::endl;
+
+                osg::Timer_t t0 = osg::Timer::instance()->tick();
+                task->run();
+                completed_tasks.push( task.get() );
+                osg::Timer_t t1 = osg::Timer::instance()->tick();
+
+                double seconds = osg::Timer::instance()->delta_s( t0, t1 );
+
+                osg::notify(osg::NOTICE) << "0> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+            }
         }
     }
 }

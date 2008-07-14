@@ -1,0 +1,188 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_MAP_LAYER_COMPILER_
+#define _OSGGIS_MAP_LAYER_COMPILER_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/MapLayer>
+#include <osgGIS/TaskManager>
+#include <osgDB/Archive>
+
+namespace osgGIS
+{
+    /**
+     * Compiles scene graphs from MapLayer definitions.
+     */
+    class OSGGIS_EXPORT MapLayerCompiler
+    {
+    public:
+        /**
+         * Constructs a new map layer compiler.
+         *
+         * @param map_layer
+         *      Layer that we are going to compile.
+         *
+         * @param session
+         *      Session under which to compiler the map layer
+         */
+        MapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
+
+        /**
+         * Sets whether the map layer is to be compiled into paged geometry.
+         *
+         * @param paged
+         *      True to compile into paged cells, false for non-paged cells.
+         */
+        void setPaged( bool paged );
+
+        /**
+         * Gets whether to build a paged dataset.
+         *
+         * @return True if the map cells will be paged; false if not
+         */
+        bool getPaged() const;
+
+        /**
+         * Sets the absolute URI or pathname of the compiler output. This value will be
+         * used as a template for creating output names for paged data cells as well as
+         * localized resource files (textures, external models).
+         *
+         * This value is required if either the Paged of the CopyResourcesToOutputLocation
+         * property is set to true. 
+         *
+         * @param uri
+         *      Absolute URI/pathname
+         */
+        void setAbsoluteOutputURI( const std::string& uri );
+
+        /**
+         * Sets whether to copy referenced resources (like skins and external models) to the
+         * output location upon compilation.
+         *
+         * @param value True to copy external resources locally; false to leave them where they are
+         */
+        void setCopyResourcesToOutputLocation( bool value );
+
+        /**
+         * Gets whether to copy referenced resources (like skins and external models) to the
+         * output location after compilation.
+         *
+         * @return True to copy external resources locally; false to leave them where they are
+         */
+        bool getCopyResourcesToOutputLocation() const;
+                
+        /** 
+         * Sets the reference terrain against which to compile.
+         */
+        void setTerrain(
+            osg::Node*              terrain, 
+            const SpatialReference* terrain_srs,
+            const GeoExtent&        terrain_extent );
+           
+        /** 
+         * Sets the reference terrain against which to compile.
+         */ 
+        void setTerrain(
+            osg::Node*              terrain, 
+            const SpatialReference* terrain_srs );
+            
+        /**
+         * Gets the scene graph holding the reference terrain, if set.
+         */
+        osg::Node* getTerrainNode();
+        
+        /**
+         * Gets the spatial reference system of the reference terrain, if set.
+         */
+        SpatialReference* getTerrainSRS() const;
+        
+        /**
+         * Gets the geospatial extents of the reference terrain, if set.
+         */
+        const GeoExtent& getTerrainExtent() const;
+            
+        /**
+         * Sets the archive to which the compiler should write files,
+         * if applicable.
+         */
+        void setArchive( osgDB::Archive* archive, const std::string& filename );
+        
+        /**
+         * Gets the archive to which the compiler should write files, if set.
+         */
+        osgDB::Archive* getArchive();
+        const std::string& getArchiveFileName() const;
+
+    public:
+        /**
+         * Gets the node graph containing the structure for data cells.
+         *
+         * @return A node graph
+         */
+        osg::Node* getSceneGraph();
+
+        /**
+         * Compiles the entire cell graph.
+         *
+         * @param task_man
+         *      Task manager to employ for parallel/distributed compilation
+         *
+         * @return
+         *      True if the compilation succeeded, false if it failed.
+         */
+        virtual bool compile( TaskManager* task_man );
+
+    protected:
+
+        /* Builds the cell graph structure with placeholders for each cell geometry. */
+        void buildSceneGraphSkeleton();
+
+        /* Scans the cell graph and assembles a list of cells that need compiling. */
+        void assemblePagedTasks( TaskList& out_tasks );
+        void assembleNonPagedTasks( TaskList& out_tasks );
+
+        /* Processes a compiled cell's resources and merges it with the cell graph */
+        void processCompletedTask( Task* task );
+
+        /* Gets the session under which this compiler will operate. */
+        Session* getSession();
+
+    private:
+        osg::ref_ptr<MapLayer>         map_layer;
+
+        bool                           paged;
+        bool                           copy_resources;
+        std::string                    output_uri;
+
+        osg::ref_ptr<osgDB::Archive>   archive;
+        std::string                    archive_filename;
+
+        osg::ref_ptr<osg::Node>        terrain_node;
+        osg::ref_ptr<SpatialReference> terrain_srs;
+        GeoExtent                      terrain_extent;
+
+        osg::ref_ptr<Session>          session;
+
+        osg::ref_ptr<osg::Group>       scene_graph;
+
+    };
+}
+
+#endif // _OSGGIS_MAP_LAYER_COMPILER_

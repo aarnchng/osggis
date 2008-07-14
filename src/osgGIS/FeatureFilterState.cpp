@@ -90,8 +90,8 @@ FeatureFilterState::traverse( FilterEnv* in_env )
     }
     else
     {
-        //osg::notify( osg::WARN ) << "Traverse called before all inputs were set" << std::endl;
-        ok = false;
+        osg::notify( osg::NOTICE ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
+        ok = true; //false;
     }
 
     // clean up

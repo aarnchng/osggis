@@ -420,6 +420,8 @@ decodeLayer( XmlElement* e, Project* proj )
             layer->setType( BuildLayer::TYPE_CORRELATED );
         else if ( type == "gridded" )
             layer->setType( BuildLayer::TYPE_GRIDDED );
+        else if ( type == "new" )
+            layer->setType( BuildLayer::TYPE_NEW );
         
         std::string source = e->getAttr( "source" );
         layer->setSource( proj->getSource( source ) != NULL?

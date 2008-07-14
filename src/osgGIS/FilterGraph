@@ -38,7 +38,8 @@ namespace osgGIS
         /**
          * Creates a result object that conveys success.
          */
-        static FilterGraphResult ok( const GeoExtent& out_extent, const SpatialReference* out_srs );
+        //static FilterGraphResult ok( const GeoExtent& out_extent, const SpatialReference* out_srs );
+        static FilterGraphResult ok( FilterEnv* final_env );
 
         /**
          * Creates a result object that conveys success.
@@ -48,7 +49,7 @@ namespace osgGIS
         /**
          * Creates a result object that convey an error.
          */
-        static FilterGraphResult error();
+        static FilterGraphResult error( const std::string& msg );
 
         /**
          * Default ctor - same as FilterGraphResult::error()
@@ -65,17 +66,19 @@ namespace osgGIS
          */
         bool isOK() const;
 
-        const GeoExtent& getExtent() const;
+        const SpatialReference* getSRS() const;
 
-        SpatialReference* getSRS() const;
+        FilterEnv* getOutputFilterEnv();
+
+        const std::string& getMessage() const;
         
     private:
-        FilterGraphResult( bool ok );
-        FilterGraphResult( bool ok, const GeoExtent& extent, const SpatialReference* srs );
+        FilterGraphResult( bool ok, const std::string& msg );
+        FilterGraphResult( bool ok, FilterEnv* env );
         
         bool is_ok;
-        GeoExtent out_extent;
-        osg::ref_ptr<SpatialReference> out_srs;
+        osg::ref_ptr<FilterEnv> out_env;
+        std::string msg;
     };
 
     typedef std::list<FilterGraphResult> FilterGraphResultList;

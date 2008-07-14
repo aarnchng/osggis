@@ -137,11 +137,6 @@ namespace osgGIS
         static void closePolygon( GeoPointList& polygon );
 
         /**
-         * Counts the number of geodes in a scene graph.
-         */
-        //static int getNumGeodes( osg::Node* node );
-
-        /**
          * Returns true if the subgraph contains one or more geodes, proxy nodes, or
          * paged LODs (i.e. the potential for geometry).
          */
@@ -153,6 +148,13 @@ namespace osgGIS
         static void setDataVarianceRecursively(
             osg::Node* node,
             const osg::Object::DataVariance& variance );
+
+        /**
+         * Searches a node graph for the first node with the given name.
+         */
+        static osg::Node* findNamedNode(
+            const std::string& name,
+            osg::Node* tree );
     };
     
     /* (internal)

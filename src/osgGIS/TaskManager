@@ -158,6 +158,7 @@ namespace osgGIS
         osg::ref_ptr<Task> getNextCompletedTask();
 
     private:
+        bool           multi_threaded;
         TaskThreadList threads;
         TaskQueue      pending_tasks;
         TaskQueue      completed_tasks;

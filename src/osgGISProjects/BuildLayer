@@ -34,7 +34,8 @@ namespace osgGISProjects
         enum LayerType {
           TYPE_SIMPLE,
           TYPE_GRIDDED,
-          TYPE_CORRELATED
+          TYPE_CORRELATED,
+          TYPE_NEW
         };
         
     public:

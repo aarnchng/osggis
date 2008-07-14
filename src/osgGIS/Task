@@ -55,7 +55,7 @@ namespace osgGIS
         
     public:
         /** 
-         * Executes the task.
+         * Executes the task (possibly in another thread)
          */
         virtual void run() =0;
         

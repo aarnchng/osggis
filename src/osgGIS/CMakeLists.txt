@@ -18,6 +18,7 @@ SET(LIB_PUBLIC_HEADERS
     BuildGeomFilter
     BuildLabelsFilter
     BuildNodesFilter
+    CellCompiler
     ChangeShapeTypeFilter
     ClampFilter
     CollectionFilter
@@ -41,6 +42,7 @@ SET(LIB_PUBLIC_HEADERS
     FeatureFilter
     FeatureFilterState
     FeatureLayer
+    FeatureLayerCompiler
     FeatureLayerResource
     FeatureStore
     FeatureStoreCompiler
@@ -64,6 +66,8 @@ SET(LIB_PUBLIC_HEADERS
     LocalizeNodesFilter
     Lua_ScriptEngine
     Lua_ScriptEngine_tolua
+    MapLayer
+    MapLayerCompiler
     ModelResource
     NodeFilter
     NodeFilterState
@@ -73,6 +77,7 @@ SET(LIB_PUBLIC_HEADERS
     OGR_SpatialReferenceFactory
     OGR_Utils
     OptimizerHints
+    PagedCellCompiler
     PagedLayerCompiler
     PathResource
     Property
@@ -125,6 +130,7 @@ ADD_LIBRARY(${LIB_NAME}
     BuildGeomFilter.cpp
     BuildLabelsFilter.cpp
     BuildNodesFilter.cpp
+    CellCompiler.cpp
     ChangeShapeTypeFilter.cpp
     ClampFilter.cpp
     CollectionFilter.cpp
@@ -145,6 +151,7 @@ ADD_LIBRARY(${LIB_NAME}
     FeatureFilter.cpp
     FeatureFilterState.cpp
     FeatureLayer.cpp
+    FeatureLayerCompiler.cpp
     FeatureLayerResource.cpp
     FeatureStoreCompiler.cpp
     Filter.cpp
@@ -166,6 +173,8 @@ ADD_LIBRARY(${LIB_NAME}
     LocalizeNodesFilter.cpp
     Lua_ScriptEngine.cpp
     Lua_ScriptEngine_tolua.cpp
+    MapLayer.cpp
+    MapLayerCompiler.cpp
     ModelResource.cpp
     NodeFilter.cpp
     NodeFilterState.cpp
@@ -175,6 +184,7 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_SpatialReferenceFactory.cpp
     OGR_Utils.cpp
     OptimizerHints.cpp
+    PagedCellCompiler.cpp
     PagedLayerCompiler.cpp
     PathResource.cpp
     Property.cpp
