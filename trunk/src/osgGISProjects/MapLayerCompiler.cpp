@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGIS/MapLayerCompiler>
+#include <osgGISProjects/MapLayerCompiler>
 #include <osgGIS/FeatureLayerCompiler>
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/Report>
@@ -32,6 +32,7 @@
 #include <sstream>
 
 using namespace osgGIS;
+using namespace osgGISProjects;
 using namespace OpenThreads;
 
 /*****************************************************************************/

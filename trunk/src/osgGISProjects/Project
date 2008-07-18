@@ -25,7 +25,7 @@
 #include <osgGISProjects/BuildLayer>
 #include <osgGISProjects/BuildTarget>
 #include <osgGISProjects/Terrain>
-#include <osgGISProjects/Map>
+#include <osgGISProjects/RuntimeMap>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Script>
 #include <osgGIS/ResourceLibrary>
@@ -97,11 +97,11 @@ namespace osgGISProjects
         BuildTarget* getTarget( const std::string& name );
 
 
-        const MapList& getMaps() const;
+        const RuntimeMapList& getMaps() const;
 
-        MapList& getMaps();
+        RuntimeMapList& getMaps();
 
-        Map* getMap( const std::string& name );
+        RuntimeMap* getMap( const std::string& name );
         
 
         const ResourceList& getResources() const;
@@ -123,7 +123,7 @@ namespace osgGISProjects
         TerrainList     terrains;
         BuildLayerList  layers;
         BuildTargetList targets;
-        MapList         maps;
+        RuntimeMapList  maps;
         ScriptList      scripts;
         ResourceList    resources;
         

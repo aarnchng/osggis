@@ -17,48 +17,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGISProjects/Map>
+#include <osgGISProjects/RuntimeMap>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
 
-Map::Map()
+RuntimeMap::RuntimeMap()
 {
     //NOP
 }
 
 void
-Map::setName( const std::string& value )
+RuntimeMap::setName( const std::string& value )
 {
     name = value;
 }
 
 const std::string&
-Map::getName() const
+RuntimeMap::getName() const
 {
     return name;
 }
 
 void
-Map::setTerrain( Terrain* value )
+RuntimeMap::setTerrain( Terrain* value )
 {
     terrain = value;
 }
 
 Terrain*
-Map::getTerrain() const
+RuntimeMap::getTerrain() const
 {
     return terrain.get();
 }
 
-MapLayerList&
-Map::getMapLayers()
+RuntimeMapLayerList&
+RuntimeMap::getMapLayers()
 {
     return map_layers;
 }
 
-const MapLayerList&
-Map::getMapLayers() const
+const RuntimeMapLayerList&
+RuntimeMap::getMapLayers() const
 {
     return map_layers;
 }

@@ -65,14 +65,6 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
         {
             osg::notify( osg::INFO ) << "ResourcePackager: rewriting resources references" << std::endl;
         }
-
-        //RewriteImageVisitor( const std::string& _archive_name, bool _compress_textures )
-        //    : archive_name( osgDB::getSimpleFileName( _archive_name ) ),
-        //      compress_textures( _compress_textures ),
-        //      osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN )
-        //{ 
-        //    osg::notify( osg::INFO ) << "ResourcePackager: Localizing resources references" << std::endl;
-        //}
         
         //std::string archive_name;
         bool compress_textures;
