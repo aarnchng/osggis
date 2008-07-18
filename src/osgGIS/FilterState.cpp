@@ -22,7 +22,36 @@
 
 using namespace osgGIS;
 
+FilterStateResult::FilterStateResult()
+: status( STATUS_NONE )
+{
+    //NOP
+}
+
+FilterStateResult::FilterStateResult( Status _status, Filter* _filter, const std::string& _msg )
+{
+    set( _status, _filter, _msg );
+}
+
+FilterStateResult::FilterStateResult( const FilterStateResult& rhs )
+: status( rhs.status ),
+  filter( rhs.filter.get() ),
+  msg( rhs.msg )
+{
+}
+
+void
+FilterStateResult::set( Status _status, Filter* _filter, const std::string& _msg )
+{
+    status = _status;
+    filter = _filter,
+    msg    = _msg;
+}
+
+/* ========================================================================= */
+
 FilterState::FilterState()
+: report( new Report() )
 {
     //NOP
 }
@@ -47,6 +76,12 @@ FilterState::getLastKnownFilterEnv()
     return current_env.get();
 }
 
+Report*
+FilterState::getReport() const
+{
+    return report.get();
+}
+
 FilterState*
 FilterState::appendState( FilterState* _state )
 {
@@ -62,11 +97,11 @@ FilterState::appendState( FilterState* _state )
     return next_state.get();
 }
 
-bool
+FilterStateResult
 FilterState::signalCheckpoint()
 {
     FilterState* next = getNextState();
-    return next? next->signalCheckpoint() : true;
+    return next? next->signalCheckpoint() : FilterStateResult();
 }
 
 

@@ -393,13 +393,17 @@ decodeSlice( XmlElement* e, Project* proj )
         if ( e->getAttr( "max_range" ).length() > 0 )
             slice->setMaxRange( atof( e->getAttr( "max_range" ).c_str() ) );
 
-        if ( e->getAttr( "min_level" ).length() > 0 )
-            slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
-        if ( e->getAttr( "max_level" ).length() > 0 )
-            slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
+        //if ( e->getAttr( "min_level" ).length() > 0 )
+        //    slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
+        //if ( e->getAttr( "max_level" ).length() > 0 )
+        //    slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
 
+        // required filter graph:
         std::string graph = e->getAttr( "graph" );
         slice->setFilterGraph( proj->getFilterGraph( graph ) ); //TODO: warning?
+       
+        // optional source:
+        slice->setSource( proj->getSource( e->getAttr( "source" ) ) );
     }
     return slice;
 }
@@ -424,14 +428,10 @@ decodeLayer( XmlElement* e, Project* proj )
             layer->setType( BuildLayer::TYPE_NEW );
         
         std::string source = e->getAttr( "source" );
-        layer->setSource( proj->getSource( source ) != NULL?
-            proj->getSource( source ) : 
-            new Source( source ) );    
+        layer->setSource( proj->getSource( source ) );
 
         std::string terrain = e->getAttr( "terrain" );
-        layer->setTerrain( proj->getTerrain( terrain ) != NULL?
-            proj->getTerrain( terrain ) :
-            new Terrain( terrain ) );
+        layer->setTerrain( proj->getTerrain( terrain ) );
 
         layer->setTargetPath( e->getAttr( "target" ) );
 

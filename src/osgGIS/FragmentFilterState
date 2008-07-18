@@ -31,7 +31,7 @@ namespace osgGIS
     public:
         FragmentFilterState( FragmentFilter* filter );
 
-        bool traverse( FilterEnv* );
+        FilterStateResult traverse( FilterEnv* );
 
         void push( Feature* input );
         void push( const FeatureList& input );

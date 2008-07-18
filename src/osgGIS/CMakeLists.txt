@@ -18,7 +18,6 @@ SET(LIB_PUBLIC_HEADERS
     BuildGeomFilter
     BuildLabelsFilter
     BuildNodesFilter
-    CellCompiler
     ChangeShapeTypeFilter
     ClampFilter
     CollectionFilter
@@ -77,7 +76,6 @@ SET(LIB_PUBLIC_HEADERS
     OGR_SpatialReferenceFactory
     OGR_Utils
     OptimizerHints
-    PagedCellCompiler
     PagedLayerCompiler
     PathResource
     Property
@@ -91,6 +89,7 @@ SET(LIB_PUBLIC_HEADERS
     Report
     Resource
     ResourceLibrary
+    ResourcePackager
     RTree
     RTreeSpatialIndex
     Script
@@ -130,7 +129,6 @@ ADD_LIBRARY(${LIB_NAME}
     BuildGeomFilter.cpp
     BuildLabelsFilter.cpp
     BuildNodesFilter.cpp
-    CellCompiler.cpp
     ChangeShapeTypeFilter.cpp
     ClampFilter.cpp
     CollectionFilter.cpp
@@ -184,7 +182,6 @@ ADD_LIBRARY(${LIB_NAME}
     OGR_SpatialReferenceFactory.cpp
     OGR_Utils.cpp
     OptimizerHints.cpp
-    PagedCellCompiler.cpp
     PagedLayerCompiler.cpp
     PathResource.cpp
     Property.cpp
@@ -196,6 +193,7 @@ ADD_LIBRARY(${LIB_NAME}
     Report.cpp
     Resource.cpp
     ResourceLibrary.cpp
+    ResourcePackager.cpp
     RTreeSpatialIndex.cpp
     Script.cpp
     SelectFilter.cpp

@@ -70,13 +70,12 @@ NodeFilterState::push( AttributedNodeList& input )
     in_nodes.insert( in_nodes.end(), input.begin(), input.end() );
 }
 
-bool
+FilterStateResult
 NodeFilterState::traverse( FilterEnv* in_env )
 {
-    bool ok = true;
+    FilterStateResult result;
 
     current_env = in_env->advance();
-    //osg::ref_ptr<FilterEnv> env = in_env->advance();
 
     if ( in_features.size() > 0 )
     {
@@ -92,28 +91,35 @@ NodeFilterState::traverse( FilterEnv* in_env )
     }
     
     FilterState* next = getNextState();
-    if ( next && out_nodes.size() > 0 )
+    if ( next )
     {
-        if ( dynamic_cast<NodeFilterState*>( next ) )
+        if ( out_nodes.size() > 0 )
         {
-            NodeFilterState* state = static_cast<NodeFilterState*>( next );
-            state->push( out_nodes );
-        }
-        else if ( dynamic_cast<CollectionFilterState*>( next ) )
-        {
-            CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
-            state->push( out_nodes );
-        }
+            if ( dynamic_cast<NodeFilterState*>( next ) )
+            {
+                NodeFilterState* state = static_cast<NodeFilterState*>( next );
+                state->push( out_nodes );
+            }
+            else if ( dynamic_cast<CollectionFilterState*>( next ) )
+            {
+                CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
+                state->push( out_nodes );
+            }
 
-        out_nodes.clear();
-        ok = next->traverse( current_env.get() );
+            out_nodes.clear();
+            result = next->traverse( current_env.get() );
+        }
+        else
+        {
+            result.set( FilterStateResult::STATUS_NODATA, filter.get() );
+        }
     }
 
     in_features.clear();
     in_fragments.clear();
     in_nodes.clear();
 
-    return ok;
+    return result;
 }
 
 AttributedNodeList&

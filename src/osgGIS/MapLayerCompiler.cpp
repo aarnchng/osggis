@@ -19,6 +19,8 @@
 
 #include <osgGIS/MapLayerCompiler>
 #include <osgGIS/FeatureLayerCompiler>
+#include <osgGIS/ResourcePackager>
+#include <osgGIS/Report>
 #include <osgGIS/Session>
 #include <osgGIS/Utils>
 #include <osgDB/FileUtils>
@@ -52,7 +54,7 @@ public:
         FeatureLayerCompiler::run();
     }
 
-    virtual void runSynchronousPostProcess() { }
+    virtual void runSynchronousPostProcess( Report* report ) { }
 };
 
 /*****************************************************************************/
@@ -62,8 +64,14 @@ public:
 class NonPagedCellCompiler : public CellCompiler
 {
 public:
-    NonPagedCellCompiler( const std::string& name, FeatureLayer* layer, FilterGraph* graph, FilterEnv* env, osg::Node* _placeholder )
+    NonPagedCellCompiler(const std::string& name, 
+                         FeatureLayer*      layer, 
+                         FilterGraph*       graph, 
+                         FilterEnv*         env,
+                         ResourcePackager*  _packager,
+                         osg::Node*         _placeholder )
         : CellCompiler( name, layer, graph, env ),
+          packager( _packager ),
           placeholder( _placeholder )
     {
         //NOP
@@ -72,21 +80,39 @@ public:
     virtual void run()
     {
         // compile the cell:
-        CellCompiler::run();
+        CellCompiler::run();    
+        
+        if ( getResult().isOK() && getResultNode() && packager.valid() )
+        {
+            packager->rewriteResourceReferences( getResultNode() );
+        }
     }
     
-    virtual void runSynchronousPostProcess()
+    virtual void runSynchronousPostProcess( Report* report )
     {
         // attach the result to its parent.
         // TODO: instead of doing this, we probably want to have a "postRun" method that gets called from
         // the main thread .. in case the user it doing this at runtime.
         if ( getResult().isOK() && placeholder.valid() && placeholder->getNumParents() > 0 )
         {
-            placeholder->getParent(0)->replaceChild( placeholder.get(), getResultNode() );
+            if ( GeomUtils::hasDrawables( getResultNode() ) )
+            {
+                if ( packager.valid() )
+                {
+                    packager->packageResources( env->getSession(), report );
+                }
+
+                placeholder->getParent(0)->replaceChild( placeholder.get(), getResultNode() );
+            }
+            else
+            {
+                placeholder->getParent(0)->removeChild( placeholder.get() );
+            }
         }
     }
 
 private:
+    osg::ref_ptr<ResourcePackager> packager;
     osg::ref_ptr<osg::Node> placeholder;
 };
 
@@ -101,9 +127,11 @@ public:
                       FeatureLayer*      layer,
                       FilterGraph*       graph,
                       FilterEnv*         env,
+                      ResourcePackager*  _packager,
                       osg::PagedLOD*     _parent,
                       osgDB::Archive*    _archive =NULL )
         : CellCompiler( _abs_output_uri, layer, graph, env ),
+          packager( _packager ),
           parent( _parent ),
           abs_output_uri( _abs_output_uri ),
           archive( _archive )
@@ -121,23 +149,44 @@ public:
         // TODO: consider whether this belongs in the runSynchronousPostProcess() method
         if ( getResult().isOK() && getResultNode() )
         {
-            if ( osgDB::makeDirectoryForFile( abs_output_uri ) )
+            has_drawables = GeomUtils::hasDrawables( getResultNode() );
+
+            if ( has_drawables )
             {
+                if ( packager.valid() )
+                {
+                    // update any texture/model refs in preparation for packaging:
+                    packager->rewriteResourceReferences( getResultNode() );
+                }
+
                 if ( archive.valid() )
                 {
-                    //todo
+                    std::string file = osgDB::getSimpleFileName( abs_output_uri );
+                    osgDB::ReaderWriter::WriteResult r = archive->writeNode( *getResultNode(), file );
+                    if ( !r.success() )
+                    {
+                        result = FilterGraphResult::error( "Cell built OK, but failed to write to archive" );
+                    }
                 }
-                else if ( !osgDB::writeNodeFile( *getResultNode(), abs_output_uri ) )
+                else
                 {
-                    result = FilterGraphResult::error( "Cell built OK, but failed to write to disk" );
+                    bool write_ok = osgDB::makeDirectoryForFile( abs_output_uri );
+                    if ( write_ok )
+                    {
+                        write_ok = osgDB::writeNodeFile( *getResultNode(), abs_output_uri );
+                    }
+                    if ( !write_ok )
+                    {
+                        result = FilterGraphResult::error( "Cell built OK, but failed to write to disk" );
+                    }
                 }
             }
         }
     }
 
-    virtual void runSynchronousPostProcess()
+    virtual void runSynchronousPostProcess( Report* report )
     {
-        if ( getResultNode() )
+        if ( getResult().isOK() && getResultNode() && has_drawables )
         {
             osg::BoundingSphere bs = getResultNode()->getBound();
             if ( parent->getRadius() > 0.0 )
@@ -146,6 +195,17 @@ public:
             }
             parent->setCenter( bs.center() );
             parent->setRadius( bs.radius() );
+
+            if ( packager.valid() )
+            {
+                packager->packageResources( env->getSession(), report );
+            }
+        }
+        else
+        {
+            //TODO: something else?
+            // for now, make it invisible. for now we're not removing it.
+            parent->setNodeMask( 0 );
         }
     }
 
@@ -153,6 +213,8 @@ private:
     std::string abs_output_uri;
     osg::ref_ptr<osg::PagedLOD> parent;
     osg::ref_ptr<osgDB::Archive> archive;
+    osg::ref_ptr<ResourcePackager> packager;
+    bool has_drawables;
 };
 
 
@@ -160,10 +222,9 @@ private:
 
 MapLayerCompiler::MapLayerCompiler( MapLayer* _layer, Session* _session )
 {
-    map_layer   = _layer;
-    session     = _session;
-    paged       = false;
-    output_uri  = "";
+    map_layer = _layer;
+    session   = _session;
+    paged     = false;
 }
 
 void
@@ -241,6 +302,11 @@ MapLayerCompiler::getArchiveFileName() const
     return archive_filename;
 }
 
+void
+MapLayerCompiler::setResourcePackager( ResourcePackager* value ) {
+    resource_packager = value;
+}
+
 osg::Node*
 MapLayerCompiler::getSceneGraph()
 {
@@ -295,9 +361,11 @@ MapLayerCompiler::buildSceneGraphSkeleton()
                         next++;
 
                         // calculate and store the PagedLOD centroid/radius
-                        osg::BoundingSphere bs = cell->getBoundingSphere( output_srs );
-                        plod->setCenter( bs.center() );
-                        plod->setRadius( bs.radius() );
+                        //osg::BoundingSphere bs = cell->getBoundingSphere( output_srs );
+                        //plod->setCenter( bs.center() );
+                        //plod->setRadius( bs.radius() );
+
+                        plod->setRadius( -1.0 );
                     }
                 }
 
@@ -372,6 +440,7 @@ MapLayerCompiler::assemblePagedTasks( TaskList& out_tasks )
                         FilterEnv* cell_env = env_template->clone();
                         cell_env->setInputSRS( def->getFeatureLayer()->getSRS() );
                         cell_env->setExtent( cell->getExtent() );
+                        cell_env->setProperty( Property( "compiler.cell_id", cell->toString() ) );
 
                         // create and add the new task.
                         Task* task = new PagedCellCompiler(
@@ -379,7 +448,9 @@ MapLayerCompiler::assemblePagedTasks( TaskList& out_tasks )
                             def->getFeatureLayer(),
                             def->getFilterGraph(),
                             cell_env,
-                            plod );
+                            resource_packager.get(),
+                            plod,
+                            getArchive() );
 
                         out_tasks.push_back( task );
                     }
@@ -418,6 +489,7 @@ MapLayerCompiler::assembleNonPagedTasks( TaskList& out_tasks )
                         FilterEnv* cell_env = env_template->clone();
                         cell_env->setInputSRS( def->getFeatureLayer()->getSRS() );
                         cell_env->setExtent( cell->getExtent() );
+                        cell_env->setProperty( Property( "compiler.cell_id", cell->toString() ) );
 
                         // create and add the new task.
                         Task* task = new NonPagedCellCompiler(
@@ -425,6 +497,7 @@ MapLayerCompiler::assembleNonPagedTasks( TaskList& out_tasks )
                             def->getFeatureLayer(),
                             def->getFilterGraph(),
                             cell_env,
+                            resource_packager.get(),
                             placeholder );
 
                         out_tasks.push_back( task );
@@ -454,11 +527,16 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     else
         assembleNonPagedTasks( tasks );
 
+    unsigned int total_tasks = tasks.size();
+
     // add all tasks to the task manager:
     for( TaskList::iterator i = tasks.begin(); i != tasks.end(); i++ )
     {
         task_man->queueTask( i->get() );
     }
+
+    tasks.clear();
+    
 
     // run until we're done.
     //
@@ -466,15 +544,30 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     //       until everything is complete...and compileSome() will return a list of everything that
     //       was started and everything that completed during that pass. This will allow for
     //       intermediate processing for UI's etc.
-    while( task_man->wait() )
+
+    if ( resource_packager.valid() )
+    {
+        resource_packager->setArchive( getArchive() );
+        resource_packager->setOutputLocation( osgDB::getFilePath( output_uri ) );
+    }
+
+    osg::ref_ptr<Report> default_report = new Report();
+
+    osg::Timer_t start_time = osg::Timer::instance()->tick();
+
+    int tasks_completed = 0;
+
+    while( task_man->wait( 5000L ) )
     {
         osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
         if ( completed_task.valid() )
         {
+            tasks_completed++;
+
             CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
             if ( compiler->getResult().isOK() )
             {
-                compiler->runSynchronousPostProcess();
+                compiler->runSynchronousPostProcess( default_report.get() );
 
                 // TODO: after each task completes, we will need to "localizeResources" which 
                 // flushes the "used-resource" list and copies files locally if necessary.
@@ -483,8 +576,23 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
                 // Session... or at least store the "single use" used-resource list in the 
                 // FilterEnv.
 
-                FilterEnv* output_env = compiler->getResult().getOutputFilterEnv();
-                //TODO:localization of resources
+                // progress
+                // TODO: get rid of this.. replace with a callback or with the user calling
+                // compileMore() multiple times.
+                osg::Timer_t now = osg::Timer::instance()->tick();
+                float p = 100.0f * (float)tasks_completed/(float)total_tasks;
+                float elapsed = osg::Timer::instance()->delta_s( start_time, now );
+                float avg_task_time = elapsed/(float)tasks_completed;
+                float time_remaining = ((float)total_tasks-(float)tasks_completed)*avg_task_time;
+
+                unsigned int hrs,mins,secs;
+                TimeUtils::getHMSDuration( time_remaining, hrs, mins, secs );
+
+                char buf[10];
+                sprintf( buf, "%02d:%02d:%02d", hrs, mins, secs );
+                osg::notify(osg::NOTICE) << tasks_completed << "/" << total_tasks 
+                    << " tasks (" << (int)p << "%) complete, " 
+                    << buf << " remaining" << std::endl;
             }
             else
             {
@@ -496,6 +604,28 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
             }
         }
     }
+
+    // finally, resolve any references at the root level and optimize the root graph.
+    if ( getSceneGraph() )
+    {
+        if ( resource_packager.valid() )
+        {
+            resource_packager->rewriteResourceReferences( getSceneGraph() );
+        }
+
+        osgUtil::Optimizer opt;
+        opt.optimize( getSceneGraph(), 
+            osgUtil::Optimizer::SPATIALIZE_GROUPS |
+            osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
+            osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
+    }
+    
+    osg::Timer_t end_time = osg::Timer::instance()->tick();
+    double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
+
+    osg::notify( osg::NOTICE )
+        << "Compilation finished, total time = " << duration_s << " seconds"
+        << std::endl;
 
     return true;
 }

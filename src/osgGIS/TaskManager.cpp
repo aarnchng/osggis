@@ -30,7 +30,6 @@ TaskThread::setState( State _state )
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> sl(state_mutex);
     state = _state;
-    //osg::notify(osg::NOTICE) << "[thread " << getID() << " went to state " << state << "]" << std::endl;
 }
 
 TaskThread::State
@@ -158,7 +157,7 @@ TaskManager::queueTask( Task* task )
 }
 
 bool
-TaskManager::wait()
+TaskManager::wait( unsigned long timeout_ms )
 {
     update();
 
@@ -170,7 +169,11 @@ TaskManager::wait()
 
     if ( multi_threaded )
     {
-        activity_block.block();
+        if ( timeout_ms > 0L )
+            activity_block.block( timeout_ms );
+        else
+            activity_block.block();
+
         update();
     }
 
@@ -208,7 +211,7 @@ TaskManager::update()
         {
             TaskThread* thread = *i;
 
-            //osg::notify(osg::FATAL) <<
+            //osg::notify(osg::ALWAYS) <<
             //    "UPDATE: pending=" << pending_tasks.size() << ", running=" << num_running_tasks << ", completed=" << completed_tasks.size() 
             //    << std::endl;
 

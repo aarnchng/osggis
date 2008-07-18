@@ -38,7 +38,6 @@ namespace osgGIS
         /**
          * Creates a result object that conveys success.
          */
-        //static FilterGraphResult ok( const GeoExtent& out_extent, const SpatialReference* out_srs );
         static FilterGraphResult ok( FilterEnv* final_env );
 
         /**

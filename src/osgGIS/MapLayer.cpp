@@ -113,8 +113,11 @@ MapLayerCell::makeURIFromTemplate( const std::string& uri_template )
 {
     std::stringstream buf;
 
-    buf << osgDB::getFilePath( uri_template ) << "/" 
-        << osgDB::getStrippedName( uri_template )
+    std::string file_path = osgDB::getFilePath( uri_template );
+    if ( file_path.length() > 0 )
+        buf << file_path << "/";
+
+    buf << osgDB::getStrippedName( uri_template )
         << "_X" << col << "_Y" << row << "_L" << level 
         << "." << osgDB::getLowerCaseFileExtension( uri_template );
 

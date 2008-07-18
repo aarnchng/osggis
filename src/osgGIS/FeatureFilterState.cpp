@@ -21,7 +21,6 @@
 #include <osgGIS/FeatureFilter>
 #include <osgGIS/FragmentFilterState>
 #include <osgGIS/CollectionFilterState>
-//#include <osgGIS/DisperseFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
 
@@ -48,21 +47,20 @@ FeatureFilterState::push( const FeatureList& input )
             in_features.push_back( i->get() );
 }
 
-bool
+FilterStateResult
 FeatureFilterState::traverse( FilterEnv* in_env )
 {
-    bool ok = true;
+    FilterStateResult result;
 
-    if ( in_features.size() > 0 )
+    // clone a new environment:
+    current_env = in_env->advance();
+
+    FeatureList output = filter->process( in_features, current_env.get() );
+    
+    FilterState* next = getNextState();
+    if ( next )
     {
-        // clone a new environment:
-        current_env = in_env->advance();
-        //osg::ref_ptr<FilterEnv> env = in_env->advance();
-
-        FeatureList output = filter->process( in_features, current_env.get() );
-        
-        FilterState* next = getNextState();
-        if ( next )
+        if ( output.size() > 0 )
         {
             if ( dynamic_cast<FeatureFilterState*>( next ) )
             {
@@ -85,18 +83,17 @@ FeatureFilterState::traverse( FilterEnv* in_env )
                 state->push( output );
             }
 
-            ok = next->traverse( current_env.get() );
+            result = next->traverse( current_env.get() );            
         }
-    }
-    else
-    {
-        osg::notify( osg::NOTICE ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
-        ok = true; //false;
+        else
+        {
+            result.set( FilterStateResult::STATUS_NODATA, filter.get() );
+        }
     }
 
     // clean up
     in_features.clear();
 
-    return true;
+    return result;
 }
 

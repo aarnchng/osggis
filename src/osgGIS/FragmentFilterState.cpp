@@ -19,7 +19,6 @@
 
 #include <osgGIS/FragmentFilterState>
 #include <osgGIS/CollectionFilterState>
-//#include <osgGIS/DisperseFilterState>
 #include <osgGIS/NodeFilterState>
 #include <osg/Notify>
 
@@ -57,13 +56,12 @@ FragmentFilterState::push( const FragmentList& input )
     in_fragments.insert( in_fragments.end(), input.begin(), input.end() );
 }
 
-bool
+FilterStateResult
 FragmentFilterState::traverse( FilterEnv* in_env )
 {
-    bool ok = true;
+    FilterStateResult result;
 
     current_env = in_env->advance();
-    //osg::ref_ptr<FilterEnv> env = in_env->advance();
 
     FilterState* next = getNextState();
     if ( next )
@@ -73,28 +71,35 @@ FragmentFilterState::traverse( FilterEnv* in_env )
             in_fragments.size() > 0? filter->process( in_fragments, current_env.get() ) :
             FragmentList();
         
-        if ( dynamic_cast<NodeFilterState*>( next ) )
+        if ( output.size() > 0 )
         {
-            NodeFilterState* state = static_cast<NodeFilterState*>( next );
-            state->push( output );
-        }
-        else if ( dynamic_cast<FragmentFilterState*>( next ) )
-        {
-            FragmentFilterState* state = static_cast<FragmentFilterState*>( next );
-            state->push( output );
-        }
-        else if ( dynamic_cast<CollectionFilterState*>( next ) )
-        {
-            CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
-            state->push( output );
-        }
+            if ( dynamic_cast<NodeFilterState*>( next ) )
+            {
+                NodeFilterState* state = static_cast<NodeFilterState*>( next );
+                state->push( output );
+            }
+            else if ( dynamic_cast<FragmentFilterState*>( next ) )
+            {
+                FragmentFilterState* state = static_cast<FragmentFilterState*>( next );
+                state->push( output );
+            }
+            else if ( dynamic_cast<CollectionFilterState*>( next ) )
+            {
+                CollectionFilterState* state = static_cast<CollectionFilterState*>( next );
+                state->push( output );
+            }
 
-        ok = next->traverse( current_env.get() );
+            result = next->traverse( current_env.get() );
+        }
+        else
+        {
+            result.set( FilterStateResult::STATUS_NODATA, filter.get() );
+        }
     }
 
     in_features.clear();
     in_fragments.clear();
 
-    return ok;
+    return result;
 }
 

@@ -22,11 +22,45 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/FilterEnv>
+#include <osgGIS/Report>
 
 namespace osgGIS
 {
     class Filter;
     class FilterFactory;
+
+    /*(internal)
+     * Transmits a result state for a filter state operation
+     */
+    class FilterStateResult
+    {
+    public:
+        enum Status {
+            STATUS_NONE,
+            STATUS_ERROR,
+            STATUS_NODATA
+        };
+
+        bool isOK() const { return status != STATUS_ERROR; }
+        bool isError() const { return status == STATUS_ERROR; }
+        bool isNoData() const { return status == STATUS_NODATA; }
+        bool hasData() const { return isOK() && !isNoData(); }
+        Status getStatus() const { return status; }
+        const std::string& getMessage() const { return msg; }
+        Filter* getFilter() const { return filter.get(); }
+
+    public:
+        FilterStateResult();
+        FilterStateResult( const FilterStateResult& rhs );
+        FilterStateResult( Status status, Filter* filter =NULL, const std::string& msg ="" );
+
+        void set( Status status, Filter* filter =NULL, const std::string& msg ="" );
+
+    private:
+        Status status;
+        std::string msg;
+        osg::ref_ptr<Filter> filter;
+    };
 
     /* (no api docs)
      * Maintains the flow of data through a filter.
@@ -43,7 +77,7 @@ namespace osgGIS
          * @return
          *      True if traversal succeeded, false upon error.
          */
-        virtual bool traverse( FilterEnv* env ) =0;
+        virtual FilterStateResult traverse( FilterEnv* env ) =0;
 
         /** 
          * Notifies this filter that a compilation checkpoint has been reached.
@@ -52,7 +86,7 @@ namespace osgGIS
          * @return
          *      True if traversal succeeded, false upon error.
          */
-        virtual bool signalCheckpoint();
+        virtual FilterStateResult signalCheckpoint();
         
         /**
          * Gets the next filter state in the chain.
@@ -67,6 +101,13 @@ namespace osgGIS
          */
         FilterEnv* getLastKnownFilterEnv();
 
+        /**
+         * Gets the report associated with this object.
+         *
+         * @return A Report
+         */
+        Report* getReport() const;
+
     protected:    
         FilterState();
 
@@ -74,6 +115,7 @@ namespace osgGIS
         osg::ref_ptr<Filter> filter_prototype;
         std::string name;
         osg::ref_ptr<FilterEnv> current_env;
+        osg::ref_ptr<Report> report;
         
         friend class FilterGraph;
         FilterState* setNextState( FilterState* state );

@@ -26,12 +26,12 @@ BuildLayerSlice::BuildLayerSlice()
 {
     min_range = 0.0f;
     max_range = FLT_MAX;
-    min_res_level = -1;
-    max_res_level = -1;
+    //min_res_level = -1;
+    //max_res_level = -1;
 }
 
 FilterGraph*
-BuildLayerSlice::getFilterGraph()
+BuildLayerSlice::getFilterGraph() const
 {
     return graph.get();
 }
@@ -43,29 +43,29 @@ BuildLayerSlice::setFilterGraph( FilterGraph* _graph )
 }
 
 
-int
-BuildLayerSlice::getMinResolutionLevel() const
-{
-    return min_res_level;
-}
-
-void
-BuildLayerSlice::setMinResolutionLevel( int value )
-{
-    min_res_level = value;
-}
-
-int
-BuildLayerSlice::getMaxResoltuionLevel() const
-{
-    return max_res_level;
-}
-
-void
-BuildLayerSlice::setMaxResolutionLevel( int value )
-{
-    max_res_level = value;
-}
+//int
+//BuildLayerSlice::getMinResolutionLevel() const
+//{
+//    return min_res_level;
+//}
+//
+//void
+//BuildLayerSlice::setMinResolutionLevel( int value )
+//{
+//    min_res_level = value;
+//}
+//
+//int
+//BuildLayerSlice::getMaxResoltuionLevel() const
+//{
+//    return max_res_level;
+//}
+//
+//void
+//BuildLayerSlice::setMaxResolutionLevel( int value )
+//{
+//    max_res_level = value;
+//}
 
 float
 BuildLayerSlice::getMinRange() const
@@ -92,4 +92,14 @@ BuildLayerSlice::setMaxRange( float value )
     if ( max_range < 0 ) max_range = FLT_MAX;
 }
 
+void
+BuildLayerSlice::setSource( Source* value )
+{
+    source = value;
+}
 
+Source*
+BuildLayerSlice::getSource() const
+{
+    return source.get();
+}
