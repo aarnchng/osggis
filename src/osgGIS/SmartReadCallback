@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgUtil/IntersectionVisitor>
 #include <osg/BoundingSphere>
+#include <queue>
 
 namespace osgGIS
 {
@@ -58,6 +59,18 @@ namespace osgGIS
 
     private:
         typedef std::map<std::string, osg::ref_ptr<osg::Node> > FileNameSceneMap;
+
+        struct NodeRef : public osg::Referenced {
+            NodeRef( const std::string& _name, osg::Node* _node ) : name( _name ), node( _node ) { }
+            std::string name;
+            osg::ref_ptr<osg::Node> node;
+        };
+
+        typedef std::queue<osg::ref_ptr<NodeRef> > MRUQueue;
+        typedef std::map<std::string,osg::ref_ptr<NodeRef> > NodeMap;
+
+        MRUQueue mru_queue;
+        NodeMap  node_map;
 
         unsigned int max_cache_size;
         //OpenThreads::Mutex  _mutex;

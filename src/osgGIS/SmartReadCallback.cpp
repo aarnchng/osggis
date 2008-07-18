@@ -13,7 +13,47 @@ SmartReadCallback::SmartReadCallback()
     mru_hits = 0;
 }
 
+osg::Node*
+SmartReadCallback::readNodeFile( const std::string& filename )
+{
+    NodeRef* n = NULL;
+    NodeMap::iterator i = node_map.find( filename );
+    if ( i != node_map.end() )
+    {
+        n = i->second.get();
+    }
+    else
+    {
+        osg::Node* node = osgDB::readNodeFile( filename );
+        if ( node )
+        {
+            n = new NodeRef( filename, node );
+            node_map[filename] = n;
+        }
+    }
 
+    if ( n )
+    {
+        mru_queue.push( n );
+        
+        if ( mru_queue.size() == max_cache_size )
+        {
+            while( mru_queue.size() > (int)(0.9f*(float)max_cache_size) )
+            {
+                NodeRef* n = mru_queue.front().get();
+                if ( n->referenceCount() < 2 )
+                {
+                    node_map.erase( node_map.find( n->name ) );
+                }
+                mru_queue.pop();                
+            }
+        }
+    }
+
+    return n? n->node.get() : NULL;
+}
+
+/*
 osg::Node*
 SmartReadCallback::readNodeFile( const std::string& filename )
 {
@@ -72,6 +112,7 @@ SmartReadCallback::readNodeFile( const std::string& filename )
 
     return node.release();
 }
+*/
 
 
 osg::Node*
