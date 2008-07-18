@@ -12,15 +12,16 @@ SET(LIB_PUBLIC_HEADERS
     Build
     Builder
     BuildLayer
-    BuildLayerLevel
     BuildLayerSlice
     BuildTarget
     Common
     Document
     Export
-    Map
     MapLayer
+    MapLayerCompiler
     Project
+    RuntimeMap
+    RuntimeMapLayer
     Serializer
     Source
     Terrain
@@ -35,13 +36,14 @@ ADD_LIBRARY(${LIB_NAME}
     Build.cpp
     Builder.cpp
     BuildLayer.cpp
-    BuildLayerLevel.cpp
     BuildLayerSlice.cpp
     BuildTarget.cpp
     Document.cpp
-    Map.cpp
     MapLayer.cpp
+    MapLayerCompiler.cpp
     Project.cpp
+    RuntimeMap.cpp
+    RuntimeMapLayer.cpp
     Serializer.cpp
     Source.cpp
     Terrain.cpp
