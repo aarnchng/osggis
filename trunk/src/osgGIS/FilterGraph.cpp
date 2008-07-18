@@ -202,28 +202,29 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
     first->appendState( output_state.get() );
 
     // now run the graph.
-    ok = true;
+    FilterStateResult state_result;
     int count = 0;
     osg::Timer_t start = osg::Timer::instance()->tick();
     
     env->setOutputSRS( env->getInputSRS() );
 
     FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
-    while( ok && cursor.hasNext() )
+    while( state_result.isOK() && cursor.hasNext() )
     {
         state->push( cursor.next() );
-        ok = state->traverse( env );
+        state_result = state->traverse( env );
         count++;
     }
-    if ( ok )
+
+    if ( state_result.isOK() )
     {
-        ok = state->signalCheckpoint();
+        state_result = state->signalCheckpoint();
     }
 
     osg::Timer_t end = osg::Timer::instance()->tick();
     double dur = osg::Timer::instance()->delta_s( start, end );
 
-    if ( ok )
+    if ( state_result.isOK() )
     {
         return FilterGraphResult::ok( output_state->getLastKnownFilterEnv() );
     }
@@ -260,7 +261,7 @@ wind( Feature* input )
 FilterGraphResult
 FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& output )
 {
-    bool ok = false;
+    FilterStateResult state_result;
     output = NULL;
 
     osg::ref_ptr<NodeFilterState> output_state;
@@ -288,7 +289,6 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
     // now traverse the states.
     if ( first.valid() )
     {
-        ok = true;
         int count = 0;
         osg::Timer_t start = osg::Timer::instance()->tick();
         
@@ -297,43 +297,43 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
         if ( dynamic_cast<FeatureFilterState*>( first.get() ) )
         {
             FeatureFilterState* state = static_cast<FeatureFilterState*>( first.get() );
-            while( ok && cursor.hasNext() )
+            while( state_result.isOK() && cursor.hasNext() )
             {
                 state->push( wind( cursor.next() ) );
-                ok = state->traverse( env );
+                state_result = state->traverse( env );
                 count++;
             }
-            if ( ok )
+            if ( state_result.isOK() )
             {
-                ok = state->signalCheckpoint();
+                state_result = state->signalCheckpoint();
             }
         }
         else if ( dynamic_cast<FragmentFilterState*>( first.get() ) )
         {
             FragmentFilterState* state = static_cast<FragmentFilterState*>( first.get() );
-            while( ok && cursor.hasNext() )
+            while( state_result.isOK() && cursor.hasNext() )
             {
                 state->push( wind( cursor.next() ) );
-                ok = state->traverse( env );
+                state_result = state->traverse( env );
                 count++;           
             }
-            if ( ok )
+            if ( state_result.isOK() )
             {
-                ok = state->signalCheckpoint();
+                state_result = state->signalCheckpoint();
             }
         }
         else if ( dynamic_cast<CollectionFilterState*>( first.get() ) )
         {
             CollectionFilterState* state = static_cast<CollectionFilterState*>( first.get() );
-            while( ok && cursor.hasNext() )
+            while( state_result.isOK() && cursor.hasNext() )
             {
                 state->push( wind( cursor.next() ) );
-                ok = state->traverse( env );
+                state_result = state->traverse( env );
                 count++;           
             }
-            if ( ok )
+            if ( state_result.isOK() )
             {
-                ok = state->signalCheckpoint();
+                state_result = state->signalCheckpoint();
             }
         }
 
@@ -342,17 +342,21 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
         double dur = osg::Timer::instance()->delta_s( start, end );
         //osg::notify( osg::ALWAYS ) << std::endl << "Time = " << dur << " s; Per Feature Avg = " << (dur/(double)count) << " s" << std::endl;
     }
+    else
+    {
+        state_result.set( FilterStateResult::STATUS_NODATA );
+    }
 
-    if ( output_state.valid() )
+    if ( output_state.valid() && state_result.hasData() )
     {
         output = new osg::Group();
         for( AttributedNodeList::iterator i = output_state->getOutput().begin(); i != output_state->getOutput().end(); i++ )
         {
-            output->addChild( (*i)->getNode() ); //i->get() );
+            output->addChild( (*i)->getNode() );
         }
     }
     
-    if ( ok )
+    if ( state_result.isOK() )
     {
         return FilterGraphResult::ok( output_state->getLastKnownFilterEnv() );
     }

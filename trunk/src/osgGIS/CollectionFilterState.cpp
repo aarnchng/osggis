@@ -81,67 +81,60 @@ CollectionFilterState::push( AttributedNode* input )
 }
 
 
-bool 
+FilterStateResult 
 CollectionFilterState::traverse( FilterEnv* env )
 {
     // just save a copy of the env for checkpoint time.
     current_env = env->advance();
-    //saved_env = env->advance();
-    return true;
+    return FilterStateResult();
 }
 
 template<typename A, typename B>
-static bool
+static FilterStateResult
 meterData( A source, B state, unsigned int metering, FilterEnv* env )
 {
-    bool ok = true;
-
-    //osg::notify( osg::ALWAYS ) << "Metering " << source.size() << " units." << std::endl;
+    FilterStateResult result;
 
     if ( metering == 0 )
     {
         state->push( source );
-        ok = state->traverse( env );
+        result = state->traverse( env );
     }
     else
     {
         unsigned int batch_size = 0;
-        for( typename A::iterator i = source.begin(); i < source.end() && ok; i += batch_size )
+        for( typename A::iterator i = source.begin(); i < source.end() && result.isOK(); i += batch_size )
         {
             unsigned int remaining = source.end()-i;
             batch_size = std::min( remaining, metering );
             A partial;
             partial.insert( partial.end(), i, i + batch_size );
             state->push( partial );
-            ok = state->traverse( env );
-
-            //osg::notify( osg::ALWAYS )
-            //    << "Metered: " << i-source.begin() << "/" << source.end()-source.begin()
-            //    << std::endl;
+            result = state->traverse( env );
         }
     }
-    return ok;
+    return result;
 }
 
 template<typename A, typename B>
-static bool
+static FilterStateResult
 meterGroups( CollectionFilter* filter, A source, B state, unsigned int metering, FilterEnv* env )
 {
-    bool ok = true;
-    for( typename A::iterator i = source.begin(); i != source.end() && ok; i++ )
+    FilterStateResult result;
+
+    for( typename A::iterator i = source.begin(); i != source.end() && result.isOK(); i++ )
     {
         filter->preMeter( i->second, env );
-        ok = meterData( i->second, state, metering, env );
+        result = meterData( i->second, state, metering, env );
     }
-    return ok;
+    return result;
 }
 
 
-bool 
+FilterStateResult 
 CollectionFilterState::signalCheckpoint()
 {
-    bool ok = true;
-    bool has_data = false;
+    FilterStateResult result;
 
     FilterState* next = getNextState();
     if ( next )
@@ -157,12 +150,11 @@ CollectionFilterState::signalCheckpoint()
                     feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
 
                 FeatureFilterState* state = static_cast<FeatureFilterState*>( next );
-                ok = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
             }
             else
             {
-                ok = false;
-                osg::notify( osg::WARN ) << "No input data for " << filter->getFilterType() << std::endl;
+                result.set( FilterStateResult::STATUS_NODATA, filter.get() );
             }
         }
         else if ( dynamic_cast<FragmentFilterState*>( next ) )
@@ -173,19 +165,18 @@ CollectionFilterState::signalCheckpoint()
                 FeatureGroups groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else
             {
-                ok = false;
-                osg::notify( osg::WARN ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
+                result.set( FilterStateResult::STATUS_NODATA, filter.get() );
             }
         }
         else if ( dynamic_cast<NodeFilterState*>( next ) )
@@ -196,26 +187,25 @@ CollectionFilterState::signalCheckpoint()
                 FeatureGroups feature_groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
                     feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
                 for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else
             {
-                osg::notify( osg::WARN ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;
-                ok = false;
+                result.set( FilterStateResult::STATUS_NODATA, filter.get() );
             }
         }
         else if ( dynamic_cast<CollectionFilterState*>( next ) )
@@ -226,32 +216,31 @@ CollectionFilterState::signalCheckpoint()
                 FeatureGroups feature_groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
                     feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
                 for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
                     groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
-                ok = meterGroups( filter.get(), groups, state, metering, current_env.get() );
+                result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else
             {
-                osg::notify( osg::NOTICE ) << "NOTICE: No input data for " << filter->getFilterType() << std::endl;   
-                ok = false;      
+                result.set( FilterStateResult::STATUS_NODATA, filter.get() );    
             }
         }
 
-        if ( ok )
+        if ( result.isOK() )
         {
-            ok = next->signalCheckpoint();
+            result = next->signalCheckpoint();
         }
     }
 
@@ -259,8 +248,9 @@ CollectionFilterState::signalCheckpoint()
     features.clear();
     fragments.clear();
     nodes.clear();
+
     current_env = NULL;
 
-    return ok;
+    return result;
 }
 

@@ -29,6 +29,7 @@
 #include <osgGIS/FeatureStoreCompiler>
 #include <osgGIS/Utils>
 #include <osgGIS/MapLayerCompiler>
+#include <osgGIS/ResourcePackager>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -271,17 +272,19 @@ Builder::build( BuildLayer* layer )
 
     // now establish the source data record form this layer and open a feature layer
     // that connects to that source.
-    Source* source = layer->getSource();
-    if ( !source )
-    {
-        //TODO: log error
-        osg::notify( osg::WARN ) 
-            << "No source specified for layer \"" << layer->getName() << "\"." << std::endl;
-        return false;
-    }
+    Source* source = layer->getSource(); // default source.. may be overriden in slices
+    //if ( !source )
+    //{
+    //    //TODO: log error
+    //    osg::notify( osg::WARN ) 
+    //        << "No source specified for layer \"" << layer->getName() << "\"." << std::endl;
+    //    return false;
+    //}
+
+
 
     // recursively build any sources that need building.
-    if ( !build( source, session.get() ) )
+    if ( source && !build( source, session.get() ) )
     {
         osg::notify( osg::WARN )
             << "Unable to build source \"" << source->getName() << "\" or one of its dependencies." 
@@ -289,16 +292,20 @@ Builder::build( BuildLayer* layer )
         return false;
     }    
 
-    osg::ref_ptr<FeatureLayer> feature_layer = Registry::instance()->createFeatureLayer(
-        source->getAbsoluteURI() );
+    osg::ref_ptr<FeatureLayer> feature_layer;
 
-    if ( !feature_layer.valid() )
+    if ( source )
     {
-        //TODO: log error
-        osg::notify( osg::WARN ) 
-            << "Cannot access source \"" << source->getName() 
-            << "\" for layer \"" << layer->getName() << "\"." << std::endl;
-        return false;
+        feature_layer = Registry::instance()->createFeatureLayer( source->getAbsoluteURI() );
+
+        if ( !feature_layer.valid() )
+        {
+            //TODO: log error
+            osg::notify( osg::WARN ) 
+                << "Cannot access source \"" << source->getName() 
+                << "\" for layer \"" << layer->getName() << "\"." << std::endl;
+            return false;
+        }
     }
 
     // The reference terrain:
@@ -361,27 +368,76 @@ Builder::build( BuildLayer* layer )
     {
         osgGIS::MapLayer* map_layer = new osgGIS::MapLayer();
         
-        map_layer->setCellWidth( layer->getProperties().getDoubleValue( "col-size", 0.0 ) );
-        map_layer->setCellHeight( layer->getProperties().getDoubleValue( "row-size", 0.0 ) );
-        
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {
-            map_layer->push(
-                feature_layer.get(),
-                i->get()->getFilterGraph(),
-                i->get()->getMinRange(),
-                i->get()->getMaxRange(),
-                true );
-        }
+        {    
+            BuildLayerSlice* slice = i->get();
 
+            if ( slice->getSource() && !build( slice->getSource(), session.get() ) )
+            {
+                osg::notify( osg::WARN )
+                    << "Unable to build source \"" << slice->getSource()->getName() << "\" or one of its dependencies." 
+                    << std::endl;
+                return false;
+            }
+
+            Source* slice_source = slice->getSource()? slice->getSource() : source;
+
+            if ( slice_source )
+            {
+                FeatureLayer* feature_layer = Registry::instance()->createFeatureLayer(
+                    slice_source->getAbsoluteURI() );
+
+                if ( !feature_layer )
+                {
+                    osg::notify( osg::WARN ) 
+                        << "Cannot access source \"" << slice_source->getName() 
+                        << "\" for layer \"" << layer->getName() << "\"." << std::endl;
+                    return false;
+                }
+
+                map_layer->push(
+                    feature_layer,
+                    slice->getFilterGraph(),
+                    slice->getMinRange(),
+                    slice->getMaxRange(),
+                    true );
+            }
+        }    
+        
+        // calculate the grid cell size:
+        double col_size = layer->getProperties().getDoubleValue( "col-size", -1.0 );
+        double row_size = layer->getProperties().getDoubleValue( "row-size", -1.0 );
+        if ( col_size <= 0.0 || row_size <= 0.0 )
+        {
+            int num_cols = std::max( 1, layer->getProperties().getIntValue( "num-cols", 1 ) );
+            int num_rows = std::max( 1, layer->getProperties().getIntValue( "num-rows", 1 ) );
+            col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
+            row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
+        }
+        map_layer->setCellWidth( col_size );
+        map_layer->setCellHeight( row_size );
+
+        // create and confiugure the compiler:
         MapLayerCompiler compiler( map_layer, session.get() );
 
         compiler.setAbsoluteOutputURI( output_file );
-        compiler.setPaged( true );
+        compiler.setPaged( layer->getProperties().getBoolValue( "paged", false ) );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get(), archive_file );
+
+        // a resource packager if necessary will copy ext-ref files to the output location:
+        if ( layer->getProperties().getBoolValue( "localize-resources", false ) )
+        {
+            ResourcePackager* packager = new ResourcePackager();
+            packager->setArchive( archive.get() );
+            packager->setOutputLocation( osgDB::getFilePath( output_file ) );
+            packager->setCompressTextures( layer->getProperties().getBoolValue( "compress-textures", false ) );
+            compiler.setResourcePackager( packager );
+        }
                 
+        // build the layer and write the root file to output:
         bool ok = compiler.compile( manager.get() );
+
         if ( ok )
         {
             osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();

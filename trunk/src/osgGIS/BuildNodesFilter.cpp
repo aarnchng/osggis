@@ -425,10 +425,20 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
             if ( raster )
             {
                 osg::Image* image = NULL;
-                double x = env->getExtent().getCentroid().x();
-                double y = env->getExtent().getCentroid().y();
+
                 std::stringstream builder;
-                builder << std::setprecision(10) << "gtex_" << x << "x" << y << ".jpg";
+
+                std::string cell_id = env->getProperties().getValue( "compiler.cell_id", "" );
+                if ( cell_id.length() > 0 )
+                {
+                    builder << "R_" << cell_id << ".jpg";
+                }
+                else
+                {
+                    double x = env->getExtent().getCentroid().x();
+                    double y = env->getExtent().getCentroid().y();
+                    builder << std::setprecision(10) << "R_" << x << "x" << y << ".jpg";
+                }
 
                 if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), &image ) )
                 {

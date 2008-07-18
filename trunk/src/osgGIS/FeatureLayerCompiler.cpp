@@ -50,21 +50,6 @@ FeatureLayerCompiler::getResultNode() {
     return result_node.get();
 }
 
-//FeatureLayer*
-//FeatureLayerCompiler::getFeatureLayer() {
-//    return layer.get();
-//}
-//
-//FilterGraph*
-//FeatureLayerCompiler::getFilterGraph() {
-//    return filter_graph.get();
-//}
-//
-//FilterEnv*
-//FeatureLayerCompiler::getFilterEnv() { 
-//    return env;
-//}
-
 void
 FeatureLayerCompiler::run()
 {

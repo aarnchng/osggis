@@ -20,6 +20,8 @@
 #include <osgGIS/Ellipsoid>
 #include <osgGIS/Utils>
 #include <osg/CoordinateSystemNode>
+#include <osgUtil/IntersectionVisitor>
+#include <osgUtil/LineSegmentIntersector>
 
 using namespace osgGIS;
 
@@ -159,6 +161,45 @@ TransformFilter::getProperties() const
     return p;
 }
 
+static GeoPoint
+clampToTerrain( const GeoPoint& input, FilterEnv* env )
+{
+    if ( env->getTerrainNode() )
+    {
+        osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
+
+        if ( input.getSRS()->isGeocentric() )
+        {
+            osg::Vec3d vec = input;
+            vec.normalize();    
+            isector = new osgUtil::LineSegmentIntersector(
+                vec * input.getSRS()->getEllipsoid().getSemiMajorAxis() * 1.2,
+                osg::Vec3d(0,0,0) );
+        }
+        else
+        {
+            osg::Vec3d p = input;
+            osg::Vec3d vec(0,0,1);
+            isector = new osgUtil::LineSegmentIntersector(
+                p + vec * 1e7,
+                p - vec * 1e7 );
+        }
+
+        RelaxedIntersectionVisitor iv;
+        iv.setIntersector( isector.get() );
+        iv.setReadCallback( env->getTerrainReadCallback() );
+        
+        env->getTerrainNode()->accept( iv );
+        if ( isector->containsIntersections() )
+        {
+            return GeoPoint(
+                isector->getFirstIntersection().getWorldIntersectPoint(),
+                input.getSRS() );
+        }
+    }
+    return input;
+}
+
 
 FeatureList
 TransformFilter::process( FeatureList& input, FilterEnv* env )
@@ -198,6 +239,9 @@ TransformFilter::process( FeatureList& input, FilterEnv* env )
                 GeoPoint centroid = new_out_srs.valid()?
                     new_out_srs->transform( env->getExtent().getCentroid() ) :
                     env->getExtent().getCentroid();
+
+                // we do want the localizer point on the surface if possible:
+                centroid = clampToTerrain( centroid, env );
 
                 osg::Matrixd localizer;
 

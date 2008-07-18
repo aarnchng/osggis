@@ -21,6 +21,7 @@
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/LineSegmentIntersector2>
 #include <osgGIS/ElevationResource>
+#include <osgGIS/Utils>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/PlaneIntersector>
 #include <osg/PagedLOD>
@@ -116,45 +117,6 @@ ClampFilter::getProperties() const
 
 #define ALTITUDE_EXTENSION 250000
 #define DEFAULT_OFFSET_EXTENSION 0
-
-
-// custom intersection visitor that can "fall back" on lower resolution tiles when
-// a pages lod subtile cannot be found.
-//
-// NOTE: I submitted this change to the OSG core -- it will become the default behavior in
-// the 2.6 stable release.
-class RelaxedIntersectionVisitor : public osgUtil::IntersectionVisitor
-{
-public:
-    RelaxedIntersectionVisitor() { }
-
-    virtual void apply( osg::PagedLOD& plod ) // override
-    {
-        if (!enter(plod)) return;
-
-        if (plod.getNumFileNames()>0)
-        {
-            osg::ref_ptr<osg::Node> highestResChild;
-
-            if (plod.getNumFileNames() != plod.getNumChildren() && _readCallback.valid())
-            {
-                highestResChild = _readCallback->readNodeFile( plod.getDatabasePath() + plod.getFileName(plod.getNumFileNames()-1) );
-            }
-
-            if ( !highestResChild.valid() && plod.getNumChildren() > 0 )
-            {
-                highestResChild = plod.getChild( plod.getNumChildren()-1 );
-            }
-
-            if (highestResChild.valid())
-            {
-                highestResChild->accept(*this);
-            }
-        }
-
-        leave();
-    }
-};
 
 
 static int

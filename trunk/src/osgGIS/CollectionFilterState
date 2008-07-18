@@ -38,8 +38,8 @@ namespace osgGIS
     public:
         CollectionFilterState( CollectionFilter* filter );
 
-        bool traverse( FilterEnv* );
-        virtual bool signalCheckpoint();
+        FilterStateResult traverse( FilterEnv* );
+        virtual FilterStateResult signalCheckpoint();
 
         void push( Feature* input );
         void push( const FeatureList& input );

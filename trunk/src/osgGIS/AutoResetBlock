@@ -58,11 +58,14 @@ namespace osgGIS
         {
             OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
             bool result = true;
-            if ( signal_count == 0 ) {
+            if ( signal_count == 0 )
+            {
                 result = cond.wait( &mut ) == 0;
             }
             if ( result )
+            {
                 signal_count = signal_count == 0? 0 : signal_count-1;
+            }
             return result;
         }
 
@@ -83,11 +86,14 @@ namespace osgGIS
         {
             OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
             bool result = true;
-            if ( signal_count == 0 ) {
+            if ( signal_count == 0 )
+            {
                 result = cond.wait( &mut, timeout ) == 0;
             }
             if ( result )
+            {
                 signal_count = signal_count == 0? 0 : signal_count-1;
+            }
             return result;
         }
         
@@ -96,7 +102,8 @@ namespace osgGIS
          * consume the signal. If no threads are currently blocked, the signal will 
          * persist until the next block attempt.
          */
-        inline void signal() {
+        inline void signal()
+        {
             OpenThreads::ScopedLock<OpenThreads::Mutex> mutlock( mut );
             signal_count++;
             cond.broadcast();

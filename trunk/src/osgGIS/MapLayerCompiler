@@ -22,6 +22,7 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/MapLayer>
+#include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
 #include <osgDB/Archive>
 
@@ -73,20 +74,14 @@ namespace osgGIS
         void setAbsoluteOutputURI( const std::string& uri );
 
         /**
-         * Sets whether to copy referenced resources (like skins and external models) to the
-         * output location upon compilation.
+         * Assigns an optional resource packager to the compiler. The resource packager will
+         * prepare referenced resources (like texture skins and external models) and copy them
+         * to the output location.
          *
-         * @param value True to copy external resources locally; false to leave them where they are
+         * @param packager
+         *      Packager to use with this compiler.
          */
-        void setCopyResourcesToOutputLocation( bool value );
-
-        /**
-         * Gets whether to copy referenced resources (like skins and external models) to the
-         * output location after compilation.
-         *
-         * @return True to copy external resources locally; false to leave them where they are
-         */
-        bool getCopyResourcesToOutputLocation() const;
+        void setResourcePackager( ResourcePackager* packager );
                 
         /** 
          * Sets the reference terrain against which to compile.
@@ -165,22 +160,22 @@ namespace osgGIS
         Session* getSession();
 
     private:
-        osg::ref_ptr<MapLayer>         map_layer;
+        osg::ref_ptr<MapLayer>          map_layer;
 
-        bool                           paged;
-        bool                           copy_resources;
-        std::string                    output_uri;
+        bool                            paged;
+        std::string                     output_uri;
+        osg::ref_ptr<ResourcePackager>  resource_packager;
 
-        osg::ref_ptr<osgDB::Archive>   archive;
-        std::string                    archive_filename;
+        osg::ref_ptr<osgDB::Archive>    archive;
+        std::string                     archive_filename;
 
-        osg::ref_ptr<osg::Node>        terrain_node;
-        osg::ref_ptr<SpatialReference> terrain_srs;
-        GeoExtent                      terrain_extent;
+        osg::ref_ptr<osg::Node>         terrain_node;
+        osg::ref_ptr<SpatialReference>  terrain_srs;
+        GeoExtent                       terrain_extent;
 
-        osg::ref_ptr<Session>          session;
+        osg::ref_ptr<Session>           session;
 
-        osg::ref_ptr<osg::Group>       scene_graph;
+        osg::ref_ptr<osg::Group>        scene_graph;
 
     };
 }

@@ -88,13 +88,13 @@ Lua_ScriptEngine::run( Script* script )
         }
         else
         {
-            result << "Error in LUA script; root: " << script->getCode();
+            result << "Error in LUA script; from: " << script->getCode();
         }
         lua_pop( L, 1 );
     }
     else
     {
-        result << "Error in LUA script; root: " << script->getCode();
+        result << "Error in LUA script; from: " << script->getCode();
         lua_pop( L, 1 );
     }
 
@@ -143,7 +143,7 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
         {
             int error = lua_gettop( L );
             lua_pop( L, 1 );
-            result << "Error in LUA script; root: " << script->getCode();
+            result << "Error in LUA script; from: " << script->getCode();
         }
         //lua_pop( L, 1 ); // pop the script
         
@@ -151,8 +151,7 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
     }
     else
     {
-        result << "Error in LUA script";
-        osg::notify(osg::NOTICE) << "luaL_loadstring failed" << std::endl;
+        result << "Error in LUA script; from: " << script->getCode();
         lua_pop( L, 1 );
     }
 
@@ -210,16 +209,14 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
         {
             int error = lua_gettop( L );
             lua_pop( L, 1 );
-            result << "Error in LUA script; root: " << script->getCode();
+            result << "Error in LUA script; from: " << script->getCode();
         }
-        //lua_pop( L, 1 ); // pop the script
 
         delete reslib_wrapper;
     }
     else
     {
-        result << "Error in LUA script; root: " << script->getCode();
-        osg::notify(osg::NOTICE) << "luaL_loadstring failed" << std::endl;
+        result << "Error in LUA script; from: " << script->getCode();
         lua_pop( L, 1 );
     }
 

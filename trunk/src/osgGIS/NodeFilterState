@@ -35,7 +35,7 @@ namespace osgGIS
     public:
         NodeFilterState( NodeFilter* filter );  
         
-        bool traverse( FilterEnv* env );
+        FilterStateResult traverse( FilterEnv* env );
 
         /**
          * Pushes a feature onto this filter's input data queue.

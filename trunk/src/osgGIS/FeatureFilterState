@@ -58,7 +58,7 @@ namespace osgGIS
          * @param env
          *      Runtime processing environment
          */
-        bool traverse( FilterEnv* env );
+        FilterStateResult traverse( FilterEnv* env );
 
     protected:
         FeatureList in_features;

@@ -10,6 +10,17 @@
 
 using namespace osgGIS;
 
+void
+TimeUtils::getHMSDuration(double total_seconds,
+                          unsigned int& out_hours,
+                          unsigned int& out_minutes,
+                          unsigned int& out_seconds )
+{
+    out_hours = (unsigned int)(total_seconds/3600.0f);
+    out_minutes = (unsigned int)::fmod( (double)(total_seconds/60.0f), 60.0 );
+    out_seconds = (unsigned int)::fmod( (double)total_seconds, 60.0 );
+}
+
 bool
 StringUtils::startsWith(const std::string& input,
                         const std::string& prefix,

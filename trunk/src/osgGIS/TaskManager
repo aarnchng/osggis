@@ -138,10 +138,13 @@ namespace osgGIS
          * dispatching them to available threads, and then blocks until the first
          * running task completes.
          *
+         * @param timeout_ms
+         *      Time (in milliseconds) to block waiting for something to happen.
+         *
          * @return True if there are still more tasks pending or running; False if
          *         all known tasks have completed.
          */
-        bool wait();
+        bool wait( unsigned long timeout_ms =0L );
         
         /**
          * Checks whether there are any uncompleted tasks.
