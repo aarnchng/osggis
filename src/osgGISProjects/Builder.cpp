@@ -19,6 +19,7 @@
 
 #include <osgGISProjects/Builder>
 #include <osgGISProjects/Build>
+#include <osgGISProjects/MapLayerCompiler>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/SimpleLayerCompiler>
 #include <osgGIS/PagedLayerCompiler>
@@ -28,7 +29,6 @@
 #include <osgGIS/Resource>
 #include <osgGIS/FeatureStoreCompiler>
 #include <osgGIS/Utils>
-#include <osgGIS/MapLayerCompiler>
 #include <osgGIS/ResourcePackager>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
@@ -366,7 +366,7 @@ Builder::build( BuildLayer* layer )
 
     if ( layer->getType() == BuildLayer::TYPE_NEW ) // testing out the NEW process
     {
-        osgGIS::MapLayer* map_layer = new osgGIS::MapLayer();
+        MapLayer* map_layer = new MapLayer();
         
         for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
         {    

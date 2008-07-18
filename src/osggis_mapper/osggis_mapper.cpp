@@ -323,7 +323,7 @@ main(int argc, char* argv[])
 
     // Look for the specified build target. If not found, fall back on "default"; otherwise fall back on the
     // first one found.
-    osg::ref_ptr<osgGISProjects::Map> map;
+    osg::ref_ptr<osgGISProjects::RuntimeMap> map;
     if ( map_name.length() > 0 )
         map = project->getMap( map_name );
     if ( !map.valid() )
@@ -387,9 +387,9 @@ main(int argc, char* argv[])
 
     // Now find and load each feature layer. For each feature layer, install an event handler
     // that will perform the spatial lookup when you click on the map.
-    for( osgGISProjects::MapLayerList::const_iterator i = map->getMapLayers().begin(); i != map->getMapLayers().end(); i++ )
+    for( osgGISProjects::RuntimeMapLayerList::const_iterator i = map->getMapLayers().begin(); i != map->getMapLayers().end(); i++ )
     {
-        osgGISProjects::MapLayer* map_layer = i->get();
+        osgGISProjects::RuntimeMapLayer* map_layer = i->get();
         osgGISProjects::BuildLayer* layer = map_layer->getBuildLayer();
         if ( layer )
         {

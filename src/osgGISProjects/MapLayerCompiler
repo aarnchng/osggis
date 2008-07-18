@@ -17,21 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _OSGGIS_MAP_LAYER_COMPILER_
-#define _OSGGIS_MAP_LAYER_COMPILER_ 1
+#ifndef _OSGGISPROJECTS_MAP_LAYER_COMPILER_
+#define _OSGGISPROJECTS_MAP_LAYER_COMPILER_ 1
 
-#include <osgGIS/Common>
-#include <osgGIS/MapLayer>
+#include <osgGISProjects/Common>
+#include <osgGISProjects/MapLayer>
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
 #include <osgDB/Archive>
 
-namespace osgGIS
+using namespace osgGIS;
+
+namespace osgGISProjects
 {
     /**
      * Compiles scene graphs from MapLayer definitions.
      */
-    class OSGGIS_EXPORT MapLayerCompiler
+    class OSGGISPROJECTS_EXPORT MapLayerCompiler
     {
     public:
         /**
@@ -180,4 +182,4 @@ namespace osgGIS
     };
 }
 
-#endif // _OSGGIS_MAP_LAYER_COMPILER_
+#endif // _OSGGISPROJECTS_MAP_LAYER_COMPILER_

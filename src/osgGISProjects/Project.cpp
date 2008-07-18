@@ -225,22 +225,22 @@ Project::getTarget( const std::string& key )
     return NULL;
 }
 
-MapList&
+RuntimeMapList&
 Project::getMaps()
 {
     return maps;
 }
 
-const MapList&
+const RuntimeMapList&
 Project::getMaps() const
 {
     return maps;
 }
 
-Map*
+RuntimeMap*
 Project::getMap( const std::string& name )
 {
-    for( MapList::const_iterator i = maps.begin(); i != maps.end(); i++ )
+    for( RuntimeMapList::const_iterator i = maps.begin(); i != maps.end(); i++ )
     {
         if ( i->get()->getName() == name )
             return i->get();

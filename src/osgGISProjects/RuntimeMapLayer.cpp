@@ -17,61 +17,61 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <osgGISProjects/MapLayer>
+#include <osgGISProjects/RuntimeMapLayer>
 
 using namespace osgGISProjects;
 using namespace osgGIS;
 
-MapLayer::MapLayer()
+RuntimeMapLayer::RuntimeMapLayer()
 {
     searchable = false;
     visible = true;
 }
 
 void
-MapLayer::setBuildLayer( BuildLayer* value )
+RuntimeMapLayer::setBuildLayer( BuildLayer* value )
 {
     build_layer = value;
 }
 
 BuildLayer*
-MapLayer::getBuildLayer()
+RuntimeMapLayer::getBuildLayer()
 {
     return build_layer.get();
 }
 
 void
-MapLayer::setSearchLayer( BuildLayer* value )
+RuntimeMapLayer::setSearchLayer( BuildLayer* value )
 {
     search_layer = value;
 }
 
 BuildLayer*
-MapLayer::getSearchLayer()
+RuntimeMapLayer::getSearchLayer()
 {
     return search_layer.valid()? search_layer.get() : getBuildLayer();
 }
 
 void
-MapLayer::setSearchable( bool value )
+RuntimeMapLayer::setSearchable( bool value )
 {
     searchable = value;
 }
 
 bool
-MapLayer::getSearchable() const
+RuntimeMapLayer::getSearchable() const
 {
     return searchable;
 }
 
 void
-MapLayer::setVisible( bool value )
+RuntimeMapLayer::setVisible( bool value )
 {
     visible = value;
 }
 
 bool
-MapLayer::getVisible() const
+RuntimeMapLayer::getVisible() const
 {
     return visible;
 }

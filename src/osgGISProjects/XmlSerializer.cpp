@@ -109,13 +109,13 @@ XmlSerializer::store( Document* doc, std::ostream& out )
     osg::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
 }
 
-static MapLayer*
-decodeMapLayer( XmlElement* e, Project* proj )
+static RuntimeMapLayer*
+decodeRuntimeMapLayer( XmlElement* e, Project* proj )
 {
-    MapLayer* layer = NULL;
+    RuntimeMapLayer* layer = NULL;
     if ( e )
     {
-        layer = new MapLayer();
+        layer = new RuntimeMapLayer();
         layer->setBuildLayer( proj->getLayer( e->getAttr( "layer" ) ) );
         layer->setSearchLayer( proj->getLayer( e->getAttr( "searchlayer" ) ) );
         if ( e->getAttr( "searchable" ) == "true" )
@@ -126,13 +126,13 @@ decodeMapLayer( XmlElement* e, Project* proj )
     return layer;
 }
 
-static Map*
-decodeMap( XmlElement* e, Project* proj )
+static RuntimeMap*
+decodeRuntimeMap( XmlElement* e, Project* proj )
 {
-    Map* map = NULL;
+    RuntimeMap* map = NULL;
     if ( e )
     {
-        map = new Map();
+        map = new RuntimeMap();
         map->setName( e->getAttr( "name" ) );
         map->setTerrain( proj->getTerrain( e->getAttr( "terrain" ) ) );
         
@@ -140,7 +140,7 @@ decodeMap( XmlElement* e, Project* proj )
         for( XmlNodeList::const_iterator i = map_layers.begin(); i != map_layers.end(); i++ )
         {
             XmlElement* e2 = (XmlElement*)i->get();
-            MapLayer* map_layer = decodeMapLayer( e2, proj );
+            RuntimeMapLayer* map_layer = decodeRuntimeMapLayer( e2, proj );
             if ( map_layer )
                 map->getMapLayers().push_back( map_layer );
         }
@@ -612,7 +612,7 @@ decodeProject( XmlElement* e, const std::string& source_uri )
         XmlNodeList maps = e->getSubElements( "map" );
         for( XmlNodeList::const_iterator j = maps.begin(); j != maps.end(); j++ )
         {
-            Map* map = decodeMap( static_cast<XmlElement*>( j->get() ), project );
+            RuntimeMap* map = decodeRuntimeMap( static_cast<XmlElement*>( j->get() ), project );
             if ( map )
                 project->getMaps().push_back( map );
         }

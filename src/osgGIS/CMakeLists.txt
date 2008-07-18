@@ -65,8 +65,6 @@ SET(LIB_PUBLIC_HEADERS
     LocalizeNodesFilter
     Lua_ScriptEngine
     Lua_ScriptEngine_tolua
-    MapLayer
-    MapLayerCompiler
     ModelResource
     NodeFilter
     NodeFilterState
@@ -171,8 +169,6 @@ ADD_LIBRARY(${LIB_NAME}
     LocalizeNodesFilter.cpp
     Lua_ScriptEngine.cpp
     Lua_ScriptEngine_tolua.cpp
-    MapLayer.cpp
-    MapLayerCompiler.cpp
     ModelResource.cpp
     NodeFilter.cpp
     NodeFilterState.cpp
