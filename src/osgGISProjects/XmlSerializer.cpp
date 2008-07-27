@@ -393,17 +393,21 @@ decodeSlice( XmlElement* e, Project* proj )
         if ( e->getAttr( "max_range" ).length() > 0 )
             slice->setMaxRange( atof( e->getAttr( "max_range" ).c_str() ) );
 
-        //if ( e->getAttr( "min_level" ).length() > 0 )
-        //    slice->setMinResolutionLevel( atoi( e->getAttr( "min_level" ).c_str() ) );
-        //if ( e->getAttr( "max_level" ).length() > 0 )
-        //    slice->setMaxResolutionLevel( atoi( e->getAttr( "max_level" ).c_str() ) );
-
         // required filter graph:
         std::string graph = e->getAttr( "graph" );
         slice->setFilterGraph( proj->getFilterGraph( graph ) ); //TODO: warning?
        
         // optional source:
         slice->setSource( proj->getSource( e->getAttr( "source" ) ) );
+
+        // now decode sub-slices:
+        XmlNodeList slices = e->getSubElements( "slice" );
+        for( XmlNodeList::const_iterator i = slices.begin(); i != slices.end(); i++ )
+        {
+            BuildLayerSlice* child = decodeSlice( static_cast<XmlElement*>( i->get() ), proj );
+            if ( child )
+                slice->getSubSlices().push_back( child );
+        }
     }
     return slice;
 }
@@ -424,8 +428,8 @@ decodeLayer( XmlElement* e, Project* proj )
             layer->setType( BuildLayer::TYPE_CORRELATED );
         else if ( type == "gridded" )
             layer->setType( BuildLayer::TYPE_GRIDDED );
-        else if ( type == "new" )
-            layer->setType( BuildLayer::TYPE_NEW );
+        else if ( type == "quadtree" || type == "new" )
+            layer->setType( BuildLayer::TYPE_QUADTREE );
         
         std::string source = e->getAttr( "source" );
         layer->setSource( proj->getSource( source ) );

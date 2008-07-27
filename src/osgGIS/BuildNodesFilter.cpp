@@ -431,13 +431,13 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
                 std::string cell_id = env->getProperties().getValue( "compiler.cell_id", "" );
                 if ( cell_id.length() > 0 )
                 {
-                    builder << "R_" << cell_id << ".jpg";
+                    builder << "r" << cell_id << ".jpg";
                 }
                 else
                 {
                     double x = env->getExtent().getCentroid().x();
                     double y = env->getExtent().getCentroid().y();
-                    builder << std::setprecision(10) << "R_" << x << "x" << y << ".jpg";
+                    builder << std::setprecision(10) << "r" << x << "x" << y << ".jpg";
                 }
 
                 if ( raster->applyToStateSet( result->getOrCreateStateSet(), env->getExtent(), getRasterOverlayMaxSize(), &image ) )
@@ -454,7 +454,11 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
     if ( getOptimize() )
     {
         osgUtil::Optimizer opt;
-        int opt_mask = osgUtil::Optimizer::ALL_OPTIMIZATIONS; //getOptimizerOptions();
+        int opt_mask = 
+            osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS |
+            osgUtil::Optimizer::MERGE_GEODES |
+            osgUtil::Optimizer::TRISTRIP_GEOMETRY |
+            osgUtil::Optimizer::SPATIALIZE_GROUPS; //::ALL_OPTIMIZATIONS; //getOptimizerOptions();
 
         // disable texture atlases, since they mess with our shared skin resources and
         // don't work correctly during multi-threaded building

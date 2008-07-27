@@ -73,6 +73,9 @@ namespace osgGIS
 
         SpatialReference* validateSRS(
             SpatialReference* srs_to_validate );
+
+    private:
+        osg::ref_ptr<SpatialReference> wgs84;
     };
 }
 

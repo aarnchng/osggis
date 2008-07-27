@@ -6,12 +6,13 @@
 
 using namespace osgGIS;
 
-SmartReadCallback::SmartReadCallback()
+SmartReadCallback::SmartReadCallback( int max_lru )
 {
-    max_cache_size = 2000;
+    max_cache_size = max_lru > 0? max_lru : 25;
     mru_tries = 0;
     mru_hits = 0;
 }
+
 
 osg::Node*
 SmartReadCallback::readNodeFile( const std::string& filename )

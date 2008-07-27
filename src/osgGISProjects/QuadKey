@@ -1,0 +1,105 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_QUADKEY_H_
+#define _OSGGISPROJECTS_QUADKEY_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGIS/GeoExtent>
+#include <list>
+#include <set>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    /* (internal)
+     * A quad-tree map setup that defines the layout of a QuadKey cell
+     * hierarchy.
+     */
+    class QuadMap
+    {
+    public:
+        QuadMap();
+
+        QuadMap( const QuadMap& rhs );
+
+        QuadMap( const GeoExtent& bounds );
+
+        bool isValid() const;
+
+        const GeoExtent& getBounds() const;
+
+        void getCellSize( unsigned int lod, double& out_width, double& out_height ) const;
+
+        unsigned int getStartingLodForCellsOfSize( double cell_width, double cell_height ) const;
+
+        /**
+         * Gets the cell range that incorporates the AOI at the specified LOD.
+         */
+        bool getCells(
+            const GeoExtent& aoi, unsigned int lod,
+            unsigned int& out_cell_xmin, unsigned int& out_cell_ymin,
+            unsigned int& out_cell_xmax, unsigned int& out_cell_ymax ) const;
+
+    private:
+        GeoExtent bounds;
+    };
+
+    /* (internal)
+     * Quadkey implementation that's similar to MSVE's tiling structure, except
+     * that at the top-level we only have two cells (0=western hemi, 1=eastern hemi)
+     * and the other 2 cells (2 and 3) are below the south pole and unused.
+     */
+    class QuadKey
+    {
+    public:
+        QuadKey( const QuadKey& rhs );
+
+        QuadKey( const std::string& key_string, const QuadMap& map );
+
+        QuadKey( unsigned int cell_x, unsigned int cell_y, unsigned int lod, const QuadMap& map );
+
+        const GeoExtent& getExtent() const;
+
+        unsigned int getLOD() const;
+
+        void getCellSize( double& out_width, double& out_height ) const;
+
+        QuadKey createSubKey( unsigned int quadrant ) const;
+
+        QuadKey createParentKey() const;
+
+        const std::string& toString() const;
+
+        const QuadMap& getMap() const;
+
+        bool operator< ( const QuadKey& rhs ) const;
+
+    private:
+        std::string qstr;
+        QuadMap map;
+        GeoExtent extent;
+    };
+
+    typedef std::list<QuadKey> QuadKeyList;
+    typedef std::set<QuadKey> QuadKeySet;
+}
+
+#endif // _OSGGISPROJECTS_QUADKEY_H_

@@ -21,6 +21,7 @@
 #define _OSGGISPROJECTS_MAP_LAYER_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGISProjects/QuadKey>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Session>
@@ -36,19 +37,27 @@ namespace osgGISProjects
     class MapLayerLevelOfDetail : public osg::Referenced
     {
     public:
-        MapLayerLevelOfDetail( FeatureLayer* layer, FilterGraph* graph, float min_range, float max_range, bool replace_previous );
+        MapLayerLevelOfDetail( 
+            FeatureLayer* layer,
+            FilterGraph* graph,
+            float min_range,
+            float max_range,
+            bool replace_previous,
+            unsigned int depth );
 
         FeatureLayer* getFeatureLayer() const;
         FilterGraph* getFilterGraph() const;
         float getMinRange() const;
         float getMaxRange() const;
         bool getReplacePrevious() const;
+        unsigned int getDepth() const;
 
     private:
         osg::ref_ptr<FeatureLayer> layer;
         osg::ref_ptr<FilterGraph>  graph;
         float                      min_range, max_range;
         bool                       replace_previous;
+        unsigned int               depth;
     };
     typedef std::vector<osg::ref_ptr<MapLayerLevelOfDetail> > MapLayerLevelsOfDetail;
 
@@ -148,8 +157,16 @@ namespace osgGISProjects
          * @param replace
          *      If true, this detail level will replace the ones before it. If false, it
          *      will join the scene graph without removing the previous levels.
+         * @param depth
+         *      Level of detail depth (0 = top level)
          */
-        void push( FeatureLayer* layer, FilterGraph* graph, float min_range, float max_range, bool replace );
+        void push(
+            FeatureLayer* layer,
+            FilterGraph* graph,
+            float min_range,
+            float max_range,
+            bool replace,
+            unsigned int depth );
 
         /**
          * Gets the spatial reference system of the output when this layer is compiled.
@@ -195,6 +212,10 @@ namespace osgGISProjects
          *      Cell definition
          */
         MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
+
+        MapLayerLevelsOfDetail& getLevels() { return levels; }
+
+        MapLayerLevelOfDetail* getDefinition( const QuadKey& key ) const;
 
     private:
         MapLayerLevelsOfDetail levels;

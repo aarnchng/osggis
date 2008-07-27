@@ -29,17 +29,19 @@ MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer* _layer,
                                              FilterGraph*  _graph,
                                              float         _min_range,
                                              float         _max_range,
-                                             bool          _replace_previous)
+                                             bool          _replace_previous,
+                                             unsigned int  _depth )
 {
-    layer = _layer;
-    graph = _graph;
-    min_range = _min_range;
-    max_range = _max_range;
+    layer            = _layer;
+    graph            = _graph;
+    min_range        = _min_range;
+    max_range        = _max_range;
     replace_previous = _replace_previous;
+    depth            = _depth;
 }
 
 FeatureLayer*
-MapLayerLevelOfDetail::getFeatureLayer() const  {
+MapLayerLevelOfDetail::getFeatureLayer() const {
     return layer.get();
 }
 
@@ -61,6 +63,11 @@ MapLayerLevelOfDetail::getMaxRange() const {
 bool
 MapLayerLevelOfDetail::getReplacePrevious() const {
     return replace_previous;
+}
+
+unsigned int
+MapLayerLevelOfDetail::getDepth() const {
+    return depth;
 }
 
 // ============================================================================
@@ -192,7 +199,9 @@ MapLayer::getCellHeight() const
 }
 
 void
-MapLayer::push( FeatureLayer* layer, FilterGraph* graph, float min_range, float max_range, bool replace_previous )
+MapLayer::push(FeatureLayer* layer, FilterGraph* graph, 
+               float min_range, float max_range, 
+               bool replace_previous, unsigned int depth )
 {
     if ( layer && graph )
     {
@@ -203,7 +212,7 @@ MapLayer::push( FeatureLayer* layer, FilterGraph* graph, float min_range, float 
             aoi_auto.expandToInclude( layer->getExtent() );
 
         // store the LOD definition:
-        levels.push_back( new MapLayerLevelOfDetail( layer, graph, min_range, max_range, replace_previous ) );
+        levels.push_back( new MapLayerLevelOfDetail( layer, graph, min_range, max_range, replace_previous, depth ) );
         
         grid_valid = false;
     }  
@@ -351,4 +360,17 @@ MapLayer::recalculateGrid()
 
         grid_valid = true;
     }
+}
+
+MapLayerLevelOfDetail*
+MapLayer::getDefinition( const QuadKey& key ) const
+{
+    unsigned first_lod = key.getMap().getStartingLodForCellsOfSize( getCellWidth(), getCellHeight() );
+    unsigned depth_to_find = key.getLOD() - first_lod;
+    for( MapLayerLevelsOfDetail::const_iterator i = levels.begin(); i != levels.end(); i++ )
+    {
+        if ( i->get()->getDepth() == depth_to_find )
+            return i->get();
+    }
+    return NULL;
 }

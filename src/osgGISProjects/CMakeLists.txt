@@ -20,6 +20,7 @@ SET(LIB_PUBLIC_HEADERS
     MapLayer
     MapLayerCompiler
     Project
+    QuadKey
     RuntimeMap
     RuntimeMapLayer
     Serializer
@@ -41,7 +42,9 @@ ADD_LIBRARY(${LIB_NAME}
     Document.cpp
     MapLayer.cpp
     MapLayerCompiler.cpp
+    MapLayerCompiler2.cpp
     Project.cpp
+    QuadKey.cpp
     RuntimeMap.cpp
     RuntimeMapLayer.cpp
     Serializer.cpp

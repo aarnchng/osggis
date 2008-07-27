@@ -22,8 +22,10 @@
 
 #include <osgGISProjects/Common>
 #include <osgGISProjects/MapLayer>
+#include <osgGISProjects/QuadKey>
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
+#include <osgGIS/SmartReadCallback>
 #include <osgDB/Archive>
 
 using namespace osgGIS;
@@ -161,6 +163,17 @@ namespace osgGISProjects
         /* Gets the session under which this compiler will operate. */
         Session* getSession();
 
+        osg::Node* createIntermediateIndexNode( const QuadKey& key, float min_range, float max_range );
+        osg::Node* createLeafIndexNode( const QuadKey& key );
+        std::string createAbsPathFromTemplate( const std::string& core );
+        std::string createRelPathFromTemplate( const std::string& core );
+        //osg::Vec3d calculateCentroid( const QuadKey& key );        
+        Task* createQuadKeyTask( const QuadKey& key );
+        void collectGeometryKeys( const QuadMap& qmap, QuadKeyList& geom_keys );
+        void buildQuadMapIndex( const QuadMap& qmap );
+        void scrubQuadKeyIndex( const QuadKeyList& build_keys );
+        void setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key );
+
     private:
         osg::ref_ptr<MapLayer>          map_layer;
 
@@ -178,6 +191,7 @@ namespace osgGISProjects
         osg::ref_ptr<Session>           session;
 
         osg::ref_ptr<osg::Group>        scene_graph;
+        osg::ref_ptr<SmartReadCallback> read_callback;
 
     };
 }
