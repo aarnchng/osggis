@@ -36,7 +36,7 @@ namespace osgGIS
     class OSGGIS_EXPORT SmartReadCallback : public osgUtil::IntersectionVisitor::ReadCallback
     {
     public:
-        SmartReadCallback();
+        SmartReadCallback( int max_lru =25 );
 
         osg::Node* getMruNode();
         

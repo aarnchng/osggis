@@ -241,6 +241,55 @@ Builder::build( Source* source, Session* session )
 
 
 bool
+Builder::addSlicesToMapLayer(BuildLayerSliceList& slices, MapLayer* map_layer,
+                             unsigned int depth, Session* session,
+                             Source* parent_source )
+{
+    for( BuildLayerSliceList::iterator i = slices.begin(); i != slices.end(); i++ )
+    {    
+        BuildLayerSlice* slice = i->get();
+
+        if ( slice->getSource() && !build( slice->getSource(), session ) )
+        {
+            osg::notify( osg::WARN )
+                << "Unable to build source \"" << slice->getSource()->getName() << "\" or one of its dependencies." 
+                << std::endl;
+            return false;
+        }
+
+        Source* slice_source = slice->getSource()? slice->getSource() : parent_source;
+
+        if ( slice_source )
+        {
+            FeatureLayer* feature_layer = Registry::instance()->createFeatureLayer(
+                slice_source->getAbsoluteURI() );
+
+            if ( !feature_layer )
+            {
+                osg::notify( osg::WARN ) 
+                    << "Cannot access source \"" << slice_source->getName() << std::endl;
+                return false;
+            }
+
+            map_layer->push(
+                feature_layer,
+                slice->getFilterGraph(),
+                slice->getMinRange(),
+                slice->getMaxRange(),
+                true,
+                depth );
+        }
+
+        // now add any sub-slice children:
+        if ( !addSlicesToMapLayer( slice->getSubSlices(), map_layer, depth+1, session, slice_source ) )
+            return false;
+    }  
+
+    return true;
+}
+
+
+bool
 Builder::build( BuildLayer* layer )
 {
     std::string work_dir_name = project->getAbsoluteWorkingDirectory();
@@ -364,45 +413,15 @@ Builder::build( BuildLayer* layer )
         num_threads < 1? new TaskManager() :
         NULL;
 
-    if ( layer->getType() == BuildLayer::TYPE_NEW ) // testing out the NEW process
+    if ( layer->getType() == BuildLayer::TYPE_QUADTREE ) // testing out the NEW process
     {
         MapLayer* map_layer = new MapLayer();
-        
-        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {    
-            BuildLayerSlice* slice = i->get();
 
-            if ( slice->getSource() && !build( slice->getSource(), session.get() ) )
-            {
-                osg::notify( osg::WARN )
-                    << "Unable to build source \"" << slice->getSource()->getName() << "\" or one of its dependencies." 
-                    << std::endl;
-                return false;
-            }
-
-            Source* slice_source = slice->getSource()? slice->getSource() : source;
-
-            if ( slice_source )
-            {
-                FeatureLayer* feature_layer = Registry::instance()->createFeatureLayer(
-                    slice_source->getAbsoluteURI() );
-
-                if ( !feature_layer )
-                {
-                    osg::notify( osg::WARN ) 
-                        << "Cannot access source \"" << slice_source->getName() 
-                        << "\" for layer \"" << layer->getName() << "\"." << std::endl;
-                    return false;
-                }
-
-                map_layer->push(
-                    feature_layer,
-                    slice->getFilterGraph(),
-                    slice->getMinRange(),
-                    slice->getMaxRange(),
-                    true );
-            }
-        }    
+        if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, 0, session.get(), source ) )
+        {
+            osg::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
+            return false;
+        }
         
         // calculate the grid cell size:
         double col_size = layer->getProperties().getDoubleValue( "col-size", -1.0 );
@@ -477,6 +496,7 @@ Builder::build( BuildLayer* layer )
             feature_layer.get(),
             output_file );
     }
+
     else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
     {
         GriddedLayerCompiler compiler;

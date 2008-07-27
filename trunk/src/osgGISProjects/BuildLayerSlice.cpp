@@ -26,8 +26,6 @@ BuildLayerSlice::BuildLayerSlice()
 {
     min_range = 0.0f;
     max_range = FLT_MAX;
-    //min_res_level = -1;
-    //max_res_level = -1;
 }
 
 FilterGraph*
@@ -41,31 +39,6 @@ BuildLayerSlice::setFilterGraph( FilterGraph* _graph )
 {
     graph = _graph;
 }
-
-
-//int
-//BuildLayerSlice::getMinResolutionLevel() const
-//{
-//    return min_res_level;
-//}
-//
-//void
-//BuildLayerSlice::setMinResolutionLevel( int value )
-//{
-//    min_res_level = value;
-//}
-//
-//int
-//BuildLayerSlice::getMaxResoltuionLevel() const
-//{
-//    return max_res_level;
-//}
-//
-//void
-//BuildLayerSlice::setMaxResolutionLevel( int value )
-//{
-//    max_res_level = value;
-//}
 
 float
 BuildLayerSlice::getMinRange() const
@@ -102,4 +75,16 @@ Source*
 BuildLayerSlice::getSource() const
 {
     return source.get();
+}
+
+BuildLayerSliceList&
+BuildLayerSlice::getSubSlices()
+{
+    return sub_slices;
+}
+
+const BuildLayerSliceList&
+BuildLayerSlice::getSubSlices() const
+{
+    return sub_slices;
 }

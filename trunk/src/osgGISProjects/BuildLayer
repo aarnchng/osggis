@@ -35,7 +35,7 @@ namespace osgGISProjects
           TYPE_SIMPLE,
           TYPE_GRIDDED,
           TYPE_CORRELATED,
-          TYPE_NEW
+          TYPE_QUADTREE
         };
         
     public:

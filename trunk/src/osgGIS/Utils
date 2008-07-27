@@ -22,6 +22,9 @@
 
 #include <osgGIS/Common>
 #include <osgGIS/GeoShape>
+#include <osgGIS/SmartReadCallback>
+#include <osgGIS/SpatialReference>
+#include <osgGIS/GeoPoint>
 #include <osgDB/Archive>
 #include <osgUtil/IntersectionVisitor>
 #include <osg/Timer>
@@ -171,6 +174,15 @@ namespace osgGIS
         static osg::Node* findNamedNode(
             const std::string& name,
             osg::Node* tree );
+
+        /**
+         * Clamps a point to the terrain.
+         */
+        static GeoPoint clampToTerrain(
+            const GeoPoint& input,
+            osg::Node* terrain,
+            SpatialReference* terrain_srs,
+            SmartReadCallback* read_cb );
     };
     
     /* (internal)

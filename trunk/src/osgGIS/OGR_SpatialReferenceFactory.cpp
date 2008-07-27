@@ -49,7 +49,11 @@ OGR_SpatialReferenceFactory::~OGR_SpatialReferenceFactory()
 SpatialReference*
 OGR_SpatialReferenceFactory::createWGS84()
 {
-    return createSRSfromWKT( WKT_WGS84 );
+    if ( !wgs84.valid() )
+    {
+        wgs84 = createSRSfromWKT( WKT_WGS84 );
+    }
+    return wgs84.get();
 }
 
 
