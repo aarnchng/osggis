@@ -19,6 +19,7 @@
 
 #include <osgGIS/BuildNodesFilter>
 #include <osgGIS/Utils>
+#include <osgGIS/GeometryCleaner>
 #include <osg/Geode>
 #include <osg/Depth>
 #include <osg/LineWidth>
@@ -473,6 +474,9 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
         opt_mask &= ~( env->getOptimizerHints().getExcludedOptions() );
 
         opt.optimize( result.get(), opt_mask );
+
+        GeometryCleaner cleaner;
+        cleaner.clean( result.get() );
     }
 
     AttributedNodeList output;

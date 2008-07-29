@@ -56,6 +56,7 @@ SET(LIB_PUBLIC_HEADERS
     GDAL_RasterStore
     GeocentricSpatialReference
     GeoExtent
+    GeometryCleaner
     GeoPoint
     GeoShape
     GriddedLayerCompiler
@@ -160,6 +161,7 @@ ADD_LIBRARY(${LIB_NAME}
     GDAL_RasterStore.cpp
     GeocentricSpatialReference.cpp
     GeoExtent.cpp
+    GeometryCleaner.cpp
     GeoPoint.cpp
     GeoShape.cpp
     GriddedLayerCompiler.cpp
