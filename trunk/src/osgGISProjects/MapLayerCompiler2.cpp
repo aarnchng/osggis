@@ -39,6 +39,7 @@ using namespace osgGIS;
 using namespace osgGISProjects;
 using namespace OpenThreads;
 
+#define MY_PRIORITY_SCALE 1.0f //0.5f
 
 /*****************************************************************************/
 /* (internal)
@@ -299,20 +300,6 @@ MapLayerCompiler::createQuadKeyTask( const QuadKey& key )
     return task;
 }
 
-//osg::Vec3d
-//MapLayerCompiler::calculateCentroid( const QuadKey& key )
-//{
-//    // first get the output srs centroid:
-//    const GeoExtent& cell_extent = key.getExtent();    
-//    GeoPoint centroid = map_layer->getOutputSRS( getSession(), terrain_srs.get() )->transform( cell_extent.getCentroid() );
-//    
-//    if ( terrain_node.valid() && terrain_srs.valid() )
-//    {
-//        centroid = GeomUtils::clampToTerrain( centroid, terrain_node.get(), terrain_srs.get(), read_callback.get() );
-//    }
-//    return centroid;
-//}
-
 void
 MapLayerCompiler::setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key )
 {
@@ -527,6 +514,7 @@ MapLayerCompiler::createIntermediateIndexNode( const QuadKey& key, float min_ran
             plod->setFileName( 1, createRelPathFromTemplate( "i" + subkey.toString() ) );
             //plod->setRange( 1, min_range, max_range ); // last one should always be min=0
             plod->setRange( 1, 0, max_range ); // last one should always be min=0
+            plod->setPriorityScale( 1, MY_PRIORITY_SCALE );
             //plod->setCenter( calculateCentroid( key ) );
             setCenterAndRadius( plod, key );
 
@@ -751,6 +739,7 @@ MapLayerCompiler::buildQuadMapIndex( const QuadMap& qmap ) //, QuadKeyList& keys
                         plod->setFileName( 0, createRelPathFromTemplate( "i" + key.toString() ) );
                         plod->setRange( 0, top_min_range, level_def->getMaxRange() );
                         //plod->setCenter( calculateCentroid( key ) );
+                        plod->setPriorityScale( 0, MY_PRIORITY_SCALE );
                         setCenterAndRadius( plod, key );
 
                         scene_graph->addChild( plod );
