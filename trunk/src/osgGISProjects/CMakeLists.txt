@@ -42,7 +42,6 @@ ADD_LIBRARY(${LIB_NAME}
     Document.cpp
     MapLayer.cpp
     MapLayerCompiler.cpp
-    MapLayerCompiler2.cpp
     Project.cpp
     QuadKey.cpp
     RuntimeMap.cpp

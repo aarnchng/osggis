@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Lua_ScriptEngine_tolua
-** Generated automatically by tolua 5.1b on 05/29/08 18:00:05.
+** Generated automatically by tolua 5.1b on 07/29/08 08:25:58.
 */
 
 #ifndef __cplusplus
@@ -9,8 +9,6 @@
 #include "string.h"
 
 #include "tolua.h"
-
-
 #include <osgGIS/Attribute>
 #include <osgGIS/Feature>
 #include <osgGIS/FilterEnv>
@@ -22,9 +20,11 @@
 using namespace osgGIS;
 
 extern "C" {
+
 /* Exported function */
 TOLUA_API int tolua_Lua_ScriptEngine_tolua_open (lua_State* tolua_S);
 LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S);
+
 
 /* function to release collected object */
 #ifdef __cplusplus
@@ -193,6 +193,36 @@ static int tolua_Lua_ScriptEngine_tolua_Feature_getExtent00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'getExtent'.",&tolua_err);
+ return 0;
+#endif
+}
+
+/* method: getArea of class  Feature */
+static int tolua_Lua_ScriptEngine_tolua_Feature_getArea00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Feature",0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Feature* self = (Feature*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getArea'",NULL);
+#endif
+ {
+  double tolua_ret = (double)  self->getArea();
+ tolua_pushnumber(tolua_S,(double)tolua_ret);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getArea'.",&tolua_err);
  return 0;
 #endif
 }
@@ -1449,6 +1479,7 @@ LUALIB_API int luaopen_Lua_ScriptEngine_tolua (lua_State* tolua_S)
  tolua_function(tolua_S,"getOID",tolua_Lua_ScriptEngine_tolua_Feature_getOID00);
  tolua_function(tolua_S,"getAttribute",tolua_Lua_ScriptEngine_tolua_Feature_getAttribute00);
  tolua_function(tolua_S,"getExtent",tolua_Lua_ScriptEngine_tolua_Feature_getExtent00);
+ tolua_function(tolua_S,"getArea",tolua_Lua_ScriptEngine_tolua_Feature_getArea00);
  tolua_endmodule(tolua_S);
 #ifdef __cplusplus
  tolua_cclass(tolua_S,"Attribute","Attribute","",tolua_collect_Attribute);

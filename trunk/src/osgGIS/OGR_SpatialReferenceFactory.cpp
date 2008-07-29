@@ -34,6 +34,7 @@
 using namespace osgGIS;
 
 #define WKT_WGS84 "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]"
+#define PROJ4_CEA_METERS "+proj=cea +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +units=m"
 
 OGR_SpatialReferenceFactory::OGR_SpatialReferenceFactory()
 {
@@ -49,6 +50,7 @@ OGR_SpatialReferenceFactory::~OGR_SpatialReferenceFactory()
 SpatialReference*
 OGR_SpatialReferenceFactory::createWGS84()
 {
+    OGR_SCOPE_LOCK();
     if ( !wgs84.valid() )
     {
         wgs84 = createSRSfromWKT( WKT_WGS84 );
@@ -56,6 +58,38 @@ OGR_SpatialReferenceFactory::createWGS84()
     return wgs84.get();
 }
 
+SpatialReference*
+OGR_SpatialReferenceFactory::createSRSfromPROJ4( const std::string& proj4 )
+{
+    OGR_SCOPE_LOCK();
+
+    osg::ref_ptr<SpatialReference> result = NULL;
+
+	void* handle = OSRNewSpatialReference( NULL );
+    if ( OSRImportFromProj4( handle, proj4.c_str() ) == OGRERR_NONE )
+	{
+        result = new OGR_SpatialReference( handle, true, osg::Matrixd::identity() );
+        //result = validateSRS( result.get() );
+	}
+	else 
+	{
+		osg::notify(osg::WARN) << "Unable to create spatial reference from PROJ4: " << proj4 << std::endl;
+		OSRDestroySpatialReference( handle );
+	}
+
+	return result.release();
+}
+
+SpatialReference*
+OGR_SpatialReferenceFactory::createCEA()
+{
+    OGR_SCOPE_LOCK();
+    if ( !cea.valid() )
+    {
+        cea = createSRSfromPROJ4( PROJ4_CEA_METERS );
+    }
+    return cea.get();
+}
 
 SpatialReference*
 OGR_SpatialReferenceFactory::createSRSfromWKT( const std::string& wkt )
