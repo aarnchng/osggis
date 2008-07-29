@@ -44,6 +44,14 @@ namespace osgGIS
         virtual SpatialReference* createWGS84() =0;
 
         /**
+         * Creates a new Cylindrical Equal Area projection.
+         *
+         * @return A spatial reference. Caller is responsible for deleting
+         *         the return object.
+         */
+        virtual SpatialReference* createCEA() =0;
+
+        /**
          * Creates a new SRS from an OSG WKT string.
          *
          * @param wkt
@@ -109,6 +117,18 @@ namespace osgGIS
          */
         virtual SpatialReference* createSRSfromWKTfile(
             const std::string& abs_path ) =0;
+
+        /**
+         * Creates a new SRS from a PROJ4 init string.
+         *
+         * @param proj4_def
+         *      PROJ4 initialization string
+         * @return
+         *      A spatial reference. Caller is responsible for deleting
+         *      the return object.
+         */
+        virtual SpatialReference* createSRSfromPROJ4(
+            const std::string& proj4_def ) =0;
 
         /**
          * Creates a new SRS from data found in a scene graph.

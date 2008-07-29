@@ -15,6 +15,7 @@ class Feature
   int getOID();
   Attribute getAttribute( const char* );
   GeoExtent getExtent();
+  double getArea();
 };
 
 class Attribute

@@ -100,6 +100,13 @@ namespace osgGIS
          * @return Geospatial bounding box encompassing the shape data
          */
 		virtual const GeoExtent& getExtent() const =0;
+
+        /**
+         * Gets the combined area of all this feature's shapes.
+         *
+         * @return Area, in square units.
+         */
+        virtual double getArea() const =0;
 	};
 	
 
@@ -125,6 +132,8 @@ namespace osgGIS
 		virtual GeoShape::ShapeType getShapeType() const;
 		
 		virtual int getShapeDim() const;
+
+        virtual double getArea() const;
     };
 
 

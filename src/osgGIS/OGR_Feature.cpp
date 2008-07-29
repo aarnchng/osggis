@@ -83,7 +83,6 @@ OGR_Feature::getExtent() const
     return extent;
 }
 
-
 void
 OGR_Feature::load( void* handle )
 {

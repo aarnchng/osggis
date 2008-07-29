@@ -38,6 +38,8 @@ namespace osgGIS
         virtual ~OGR_SpatialReferenceFactory();
 
         SpatialReference* createWGS84();
+
+        SpatialReference* createCEA();
         
         SpatialReference* createSRSfromWKT( 
             const std::string& wkt );
@@ -55,6 +57,9 @@ namespace osgGIS
 
         SpatialReference* createSRSfromWKTfile(
             const std::string& abs_path );
+
+        SpatialReference* createSRSfromPROJ4(
+            const std::string& proj4_def );
 
         SpatialReference* createSRSfromTerrain(
             osg::Node* node );
@@ -76,6 +81,7 @@ namespace osgGIS
 
     private:
         osg::ref_ptr<SpatialReference> wgs84;
+        osg::ref_ptr<SpatialReference> cea;
     };
 }
 
