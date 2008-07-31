@@ -49,12 +49,12 @@ SkinResource::SkinResource( const std::string& _name )
     init();
 }
 
-SkinResource::SkinResource( osg::Image* _image )
-{
-    image = _image;
-    init();
-    setSingleUse( true );
-}
+//SkinResource::SkinResource( osg::Image* _image )
+//{
+//    image = _image;
+//    init();
+//    setSingleUse( true );
+//}
 
 void
 SkinResource::init()
@@ -198,49 +198,62 @@ SkinResource::getColor() const
 }
 
 osg::StateSet*
-SkinResource::createStateSet()
+SkinResource::createStateSet( osg::Image* image )
 {
-    osg::Texture* tex = new osg::Texture2D( getImage() );
-    tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-    tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-
-    osg::TexEnv* texenv = new osg::TexEnv();
-    texenv = new osg::TexEnv();
-    texenv->setMode( getTextureMode() );
-
-    osg::StateSet* state_set = new osg::StateSet();
-    state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
-    state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );
-
-    if ( ImageUtils::hasAlpha( getImage() ) )
+    osg::StateSet* state_set = NULL;
+    if ( image )
     {
-        osg::BlendFunc* blend_func = new osg::BlendFunc();
-        blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        state_set->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
-        state_set->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+        osg::Texture* tex = new osg::Texture2D( image );
+        tex->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+        tex->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+        osg::TexEnv* texenv = new osg::TexEnv();
+        texenv = new osg::TexEnv();
+        texenv->setMode( getTextureMode() );
+
+        state_set = new osg::StateSet();
+        state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
+        state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );
+
+        if ( ImageUtils::hasAlpha( image ) )
+        {
+            osg::BlendFunc* blend_func = new osg::BlendFunc();
+            blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            state_set->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
+            state_set->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+        }
     }
 
     return state_set;
 }
 
-osg::Image*
-SkinResource::getImage()
+osg::StateSet*
+SkinResource::createStateSet()
 {
-    if ( !image.valid() )
-    {
-        ScopedLock<ReentrantMutex> lock( getMutex() );
-        if ( !image.valid() ) // check again in case the image was created before obtaining the lock
-        {
-            const_cast<SkinResource*>(this)->image = osgDB::readImageFile( getAbsoluteURI() );
+    return createStateSet( createImage() );
+}
 
-            if ( !image.valid() )
-            {
-                osg::notify( osg::WARN ) << "** WARNING: unable to load image file: " << getAbsoluteURI() << std::endl;
-            }
-        }
-    }
+osg::Image*
+SkinResource::createImage()
+{
+    ScopedLock<ReentrantMutex> lock( getMutex() );
+    return osgDB::readImageFile( getAbsoluteURI() );
 
-    return image.get();
+    //if ( !image.valid() )
+    //{
+    //    ScopedLock<ReentrantMutex> lock( getMutex() );
+    //    if ( !image.valid() ) // check again in case the image was created before obtaining the lock
+    //    {
+    //        const_cast<SkinResource*>(this)->image = osgDB::readImageFile( getAbsoluteURI() );
+
+    //        if ( !image.valid() )
+    //        {
+    //            osg::notify( osg::WARN ) << "** WARNING: unable to load image file: " << getAbsoluteURI() << std::endl;
+    //        }
+    //    }
+    //}
+
+    //return image.get();
 }
 
 SkinResourceQuery::SkinResourceQuery()

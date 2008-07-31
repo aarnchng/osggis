@@ -445,8 +445,10 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
                 {
                     // Add this as a skin resource so the compiler can properly localize and deploy it.
                     image->setFileName( builder.str() );
-                    SkinResource* skin = new SkinResource( image );
-                    env->getSession()->markResourceUsed( skin );
+
+                    //SkinResource* skin = new SkinResource( image );
+                    env->getResourceCache()->addSkin( result->getOrCreateStateSet() );
+                    //env->getSession()->markResourceUsed( skin );
                 }
             }
         }

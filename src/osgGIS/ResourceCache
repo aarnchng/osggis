@@ -1,0 +1,118 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGIS_RESOURCE_CACHE_H_
+#define _OSGGIS_RESOURCE_CACHE_H_ 1
+
+#include <osgGIS/Common>
+#include <osgGIS/SkinResource>
+#include <osgGIS/ModelResource>
+#include <osg/Node>
+#include <osg/StateSet>
+#include <list>
+
+namespace osgGIS
+{
+    typedef std::list< osg::ref_ptr<osg::StateSet> > StateSetList;
+
+    /**
+     * Caches statesets and other objects created from resource
+     * definitions. This object is intended for use in a single-threaded
+     * manner.
+     */
+    class ResourceCache : public osg::Referenced
+    {
+    public:
+        /**
+         * Constructs a new resource cache.
+         */
+        ResourceCache();
+    
+        /**
+         * Gets the OSG state set associated with a skin resource, creating it
+         * anew if necessary
+         *
+         * @param skin
+         *      Skin for which to create the state set
+         * @return
+         *      An OSG state set containing a texture
+         */
+        osg::StateSet* getStateSet( SkinResource* skin );
+
+        /**
+         * Gets a node containing the scene graph loaded from the specified
+         * model specification.
+         *
+         * @param model
+         *      Model spec for which to load a model
+         * @optimize
+         *      Whether to run the optimizer on the model upon load (default=false)
+         * @return
+         *      Node containing the scene graph 
+         */
+        osg::Node* getNode( ModelResource* model, bool optimize =false );
+
+        /**
+         * Gets a node referening the specified model as an external reference
+         *
+         * @param model
+         *      Model spec for which to create an external reference
+         * @return
+         *      Node containing the scene graph 
+         */
+        osg::Node* getExternalReferenceNode( ModelResource* model );
+
+        /**
+         * Adds a hand-built skin resource directly to the cache.
+         * For single-use (e.g. unique to the FilterEnv) skins, it is better (and
+         * usually necessary for memory-usage purposes) to add them directly to the
+         * local cache (versus the Resource Library) so that they don't sit around 
+         * using up memory for an entire compilation.
+         */
+        //void addSkin( osg::Image* image );
+
+        void addSkin( osg::StateSet* state_set );
+
+        //StateSetList getSkinStateSets();
+
+        SkinResources getSkins();
+
+        ModelResources getModels();
+
+        ModelResources getExternalReferenceModels();
+
+    private:
+        typedef std::pair< osg::ref_ptr<SkinResource>, osg::ref_ptr<osg::StateSet> > SkinStateSet;
+        typedef std::list< SkinStateSet > SkinStateSets;
+        typedef std::pair< osg::ref_ptr<ModelResource>, osg::ref_ptr<osg::Node> > ModelNode;
+        typedef std::list< ModelNode > ModelNodes;
+        typedef std::list< ModelNode > ModelProxyNodes;
+
+        SkinStateSets skin_state_sets;
+        ModelNodes    model_nodes;
+        ModelNodes    model_proxy_nodes;
+
+    private:
+        SkinStateSets::iterator findSkin( SkinResource* skin );
+        ModelNodes::iterator    findModel( ModelResource* model );
+        ModelNodes::iterator    findProxyModel( ModelResource* model );
+    };
+}
+
+#endif // _OSGGIS_RESOURCE_CACHE_H_

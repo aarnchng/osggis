@@ -54,7 +54,7 @@ namespace osgGIS
          * @param image
          *      Image to embed in the resource.
          */
-        SkinResource( osg::Image* image );
+        //SkinResource( osg::Image* image );
 
     public: // properties
 
@@ -160,7 +160,7 @@ namespace osgGIS
 
         osg::StateSet* createStateSet();
         
-        osg::Image* getImage();
+        osg::StateSet* createStateSet( osg::Image* image );
 
     public: 
 
@@ -179,12 +179,14 @@ namespace osgGIS
         bool repeats_vertically;
         osg::TexEnv::Mode texture_mode;
         osg::Vec4 color;
-        osg::ref_ptr<osg::Image> image;
+        //osg::ref_ptr<osg::Image> image;
+        
+        osg::Image* createImage();
 
         void init();
     };
 
-    typedef std::vector< osg::ref_ptr<SkinResource> > SkinResourceVec;
+    typedef std::vector< osg::ref_ptr<SkinResource> > SkinResources;
 
     typedef std::list< std::string > TagList;
 

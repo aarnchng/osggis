@@ -23,6 +23,7 @@
 #include <osgGISProjects/Common>
 #include <osgGISProjects/Source>
 #include <osgGIS/FilterGraph>
+#include <osgGIS/Property>
 #include <list>
 
 using namespace osgGIS;
@@ -54,17 +55,27 @@ namespace osgGISProjects
         
         void setMaxRange( float value );
 
+        void setMaxTextureSize( unsigned int value );
+
+        unsigned int getMaxTextureSize() const;
 
         BuildLayerSliceList& getSubSlices();
 
         const BuildLayerSliceList& getSubSlices() const;
+        
+        
+        Properties& getProperties();
+        
+        const Properties& getProperties() const;
 
     private:
         osg::ref_ptr<Source> source;
         osg::ref_ptr<FilterGraph> graph;
         BuildLayerSliceList sub_slices;
+        Properties props;
         float min_range;
         float max_range;
+        unsigned int max_tex_size;
     };
 
 }

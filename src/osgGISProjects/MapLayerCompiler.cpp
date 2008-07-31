@@ -97,37 +97,6 @@ public:
             if ( getResult().isOK() && getResultNode() )
             {
                 has_drawables = GeomUtils::hasDrawables( getResultNode() );
-
-                if ( has_drawables )
-                {
-                    if ( packager.valid() )
-                    {
-                        // update any texture/model refs in preparation for packaging:
-                        packager->rewriteResourceReferences( getResultNode() );
-                    }
-
-                    if ( archive.valid() )
-                    {
-                        std::string file = osgDB::getSimpleFileName( abs_output_uri );
-                        osgDB::ReaderWriter::WriteResult r = archive->writeNode( *getResultNode(), file );
-                        if ( !r.success() )
-                        {
-                            result = FilterGraphResult::error( "Cell built OK, but failed to write to archive" );
-                        }
-                    }
-                    else
-                    {
-                        bool write_ok = osgDB::makeDirectoryForFile( abs_output_uri );
-                        if ( write_ok )
-                        {
-                            write_ok = osgDB::writeNodeFile( *getResultNode(), abs_output_uri );
-                        }
-                        if ( !write_ok )
-                        {
-                            result = FilterGraphResult::error( "Cell built OK, but failed to write to disk" );
-                        }
-                    }
-                }
             }
         }
         else
@@ -143,7 +112,44 @@ public:
         {
             if ( packager.valid() )
             {
-                packager->packageResources( env->getSession(), report );
+                // TODO: I should probably combine the following two calls into one:
+
+                // update any texture/model refs in preparation for packaging:
+                packager->rewriteResourceReferences( getResultNode() );
+
+                //packager->packageResources( env->getSession(), report );
+                packager->packageResources( env->getResourceCache(), report );
+
+                // write the node file.
+                if ( !packager->packageNode( getResultNode(), abs_output_uri ) )
+                {
+                    result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk" );
+                }
+            }
+
+            else
+            {
+                if ( archive.valid() )
+                {
+                    std::string file = osgDB::getSimpleFileName( abs_output_uri );
+                    osgDB::ReaderWriter::WriteResult r = archive->writeNode( *getResultNode(), file );
+                    if ( !r.success() )
+                    {
+                        result = FilterGraphResult::error( "Cell built OK, but failed to write to archive" );
+                    }
+                }
+                else
+                {
+                    bool write_ok = osgDB::makeDirectoryForFile( abs_output_uri );
+                    if ( write_ok )
+                    {
+                        write_ok = osgDB::writeNodeFile( *getResultNode(), abs_output_uri );
+                    }
+                    if ( !write_ok )
+                    {
+                        result = FilterGraphResult::error( "Cell built OK, but failed to write to disk" );
+                    }
+                }
             }
         }
     }
@@ -288,7 +294,7 @@ MapLayerCompiler::createQuadKeyTask( const QuadKey& key )
             def->getFeatureLayer(),
             def->getFilterGraph(),
             cell_env.get(),
-            resource_packager.get(),
+            def->getResourcePackager()? def->getResourcePackager() : resource_packager.get(),
             getArchive() );
 
         osg::notify( osg::NOTICE )
@@ -354,7 +360,7 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     if ( out_srs->isGeocentric() )
     {
         // for a geocentric map, use a modified GEO quadkey:
-        // (yes, that MIN_LAT of -180 is correct)
+        // (yes, that MIN_LAT of -180 is correct...we want a square)
         qmap = QuadMap( GeoExtent( -180.0, -180.0, 180.0, 90.0, Registry::SRSFactory()->createWGS84() ) );
     }
     else
@@ -401,7 +407,7 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     osg::Timer_t start_time = osg::Timer::instance()->tick();
     int tasks_completed = 0;
 
-    while( task_man->wait( 5000L ) )
+    while( task_man->wait( 50L ) ) //5000L ) )
     {
         osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
         if ( completed_task.valid() )

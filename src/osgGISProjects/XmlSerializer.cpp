@@ -399,6 +399,16 @@ decodeSlice( XmlElement* e, Project* proj )
        
         // optional source:
         slice->setSource( proj->getSource( e->getAttr( "source" ) ) );
+        
+        // properties particular to this slice:
+        XmlNodeList props = e->getSubElements( "property" );
+        for( XmlNodeList::const_iterator i = props.begin(); i != props.end(); i++ )
+        {
+            XmlElement* k_e = (XmlElement*)i->get();
+            std::string name = k_e->getAttr( "name" );
+            std::string value = k_e->getAttr( "value" );
+            slice->getProperties().push_back( Property( name, value ) );
+        }
 
         // now decode sub-slices:
         XmlNodeList slices = e->getSubElements( "slice" );
