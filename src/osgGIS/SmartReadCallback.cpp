@@ -53,7 +53,7 @@ SmartReadCallback::readNodeFile( const std::string& filename )
     {
         // remove the oldest item when the cache overflows
         NodeRef* oldest = *(mru.begin());
-        node_map.erase( node_map.find( n->name ) );
+        node_map.erase( node_map.find( oldest->name ) );
         mru.erase( mru.begin() );
     }
 

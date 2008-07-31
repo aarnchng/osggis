@@ -302,6 +302,7 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
         }
 
         RelaxedIntersectionVisitor iv;
+		//osgUtil::IntersectionVisitor iv;
         iv.setIntersector( isector.get() );
         iv.setReadCallback( cb );
         
