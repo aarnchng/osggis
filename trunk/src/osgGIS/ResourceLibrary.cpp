@@ -46,6 +46,13 @@ ResourceLibrary::ResourceLibrary( ReentrantMutex& _mut )
     //NOP
 }
 
+//ResourceLibrary::ResourceLibrary( ResourceLibrary* _parent_lib )
+//: parent_lib( _parent_lib ),
+//  mut( ReentrantMutex() )
+//{
+//    //NOP
+//}
+
 void
 ResourceLibrary::addResource( Resource* resource )
 {
@@ -100,30 +107,34 @@ ResourceLibrary::addResource( Resource* resource )
 void
 ResourceLibrary::removeResource( Resource* resource )
 {
+    bool done = false;
+
     if ( resource )
     {
         ScopedLock<ReentrantMutex> sl( mut );
 
         if ( dynamic_cast<SkinResource*>( resource ) )
         {
-            for( SkinResourceVec::iterator i = skins.begin(); i != skins.end(); i++ )
+            for( SkinResources::iterator i = skins.begin(); i != skins.end(); i++ )
             {
                 if ( i->get() == resource )
                 {
                     skins.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed skin \"" << resource->getName() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
-            for( ModelResourceVec::iterator i = models.begin(); i != models.end(); i++ )
+            for( ModelResources::iterator i = models.begin(); i != models.end(); i++ )
             {
                 if ( i->get() == resource )
                 {
                     models.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed model \"" << resource->getName() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
@@ -136,6 +147,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 {
                     rasters.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed raster \"" << resource->getName() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
@@ -148,6 +160,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 {
                     feature_layers.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed feature layer \"" << resource->getName() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
@@ -160,6 +173,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 {
                     srs_list.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed SRS \"" << resource->getName() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
@@ -172,6 +186,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 {
                     paths.erase( i );
                     osg::notify( osg::INFO ) << "ResourceLibrary: Removed Path \"" << resource->getAbsoluteURI() << "\"" << std::endl;
+                    done = true;
                     break;
                 }
             }
@@ -189,6 +204,7 @@ ResourceLibrary::getResource( const std::string& name )
     if ( !result ) result = getModel( name );
     if ( !result ) result = getRaster( name );
     if ( !result ) result = getPathResource( name );
+    //if ( !result && parent_lib.valid() ) result = parent_lib->getResource( name );
     return result;
 }
 
@@ -197,7 +213,7 @@ ResourceLibrary::getSkin( const std::string& name )
 {
     ScopedLock<ReentrantMutex> sl( mut );
 
-    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
+    for( SkinResources::const_iterator i = skins.begin(); i != skins.end(); i++ )
     {
         if ( i->get()->getName() == name )
             return i->get();
@@ -212,7 +228,7 @@ ResourceLibrary::getSkins()
 
     ResourceList result;
 
-    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
+    for( SkinResources::const_iterator i = skins.begin(); i != skins.end(); i++ )
         result.push_back( i->get() );
 
     return result;
@@ -226,7 +242,7 @@ ResourceLibrary::getSkins( const SkinResourceQuery& q )
 
     ResourceList result;
 
-    for( SkinResourceVec::const_iterator i = skins.begin(); i != skins.end(); i++ )
+    for( SkinResources::const_iterator i = skins.begin(); i != skins.end(); i++ )
     {
         SkinResource* r = i->get();
 
@@ -251,27 +267,27 @@ ResourceLibrary::getSkins( const SkinResourceQuery& q )
     return result;
 }
 
-osg::StateSet*
-ResourceLibrary::getStateSet( SkinResource* skin )
-{
-    ScopedLock<ReentrantMutex> sl( mut );
-
-    osg::StateSet* result = NULL;
-    if ( skin )
-    {
-        SkinStateSets::iterator i = skin_state_sets.find( skin );
-        if ( i == skin_state_sets.end() )
-        {
-            result = skin->createStateSet();
-            skin_state_sets[skin] = result;
-        }
-        else
-        {
-            result = i->second.get();
-        }
-    }
-    return result;
-}
+//osg::StateSet*
+//ResourceLibrary::getStateSet( SkinResource* skin )
+//{
+//    ScopedLock<ReentrantMutex> sl( mut );
+//
+//    osg::StateSet* result = NULL;
+//    if ( skin )
+//    {
+//        SkinStateSets::iterator i = skin_state_sets.find( skin );
+//        if ( i == skin_state_sets.end() )
+//        {
+//            result = skin->createStateSet();
+//            skin_state_sets[skin] = result;
+//        }
+//        else
+//        {
+//            result = i->second.get();
+//        }
+//    }
+//    return result;
+//}
 
 
 
@@ -280,7 +296,7 @@ ResourceLibrary::getModel( const std::string& name )
 {
     ScopedLock<ReentrantMutex> sl( mut );
 
-    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+    for( ModelResources::const_iterator i = models.begin(); i != models.end(); i++ )
     {
         if ( i->get()->getName() == name )
             return i->get();
@@ -296,7 +312,7 @@ ResourceLibrary::getModels()
 
     ResourceList result;
 
-    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+    for( ModelResources::const_iterator i = models.begin(); i != models.end(); i++ )
         result.push_back( i->get() );
 
     return result;
@@ -310,7 +326,7 @@ ResourceLibrary::getModels( const ModelResourceQuery& q )
 
     ResourceList result;
 
-    for( ModelResourceVec::const_iterator i = models.begin(); i != models.end(); i++ )
+    for( ModelResources::const_iterator i = models.begin(); i != models.end(); i++ )
     {
         ModelResource* r = i->get();
 
@@ -324,64 +340,64 @@ ResourceLibrary::getModels( const ModelResourceQuery& q )
 }
 
 
-osg::Node*
-ResourceLibrary::getNode( ModelResource* model, bool optimize )
-{
-    ScopedLock<ReentrantMutex> sl( mut );
+//osg::Node*
+//ResourceLibrary::getNode( ModelResource* model, bool optimize )
+//{
+//    ScopedLock<ReentrantMutex> sl( mut );
+//
+//    osg::Node* result = NULL;
+//    if ( model )
+//    {
+//        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
+//        if ( i == model_nodes.end() )
+//        {
+//            bool simplify_extrefs = true; //TODO
+//            result = model->createNode();
+//            if ( result )
+//            {
+//                if ( optimize )
+//                {
+//                    GeomUtils::setDataVarianceRecursively( result, osg::Object::STATIC );
+//                    osgUtil::Optimizer o;
+//                    o.optimize( result );
+//                }
+//                model_nodes[model->getAbsoluteURI()] = result;
+//
+//                // prevent optimization later when the object might be shared!
+//                //result->setDataVariance( osg::Object::DYNAMIC ); //gw 7/8/08
+//            }
+//        }
+//        else
+//        {
+//            result = i->second.get();
+//        }
+//    }
+//    return result;
+//}
 
-    osg::Node* result = NULL;
-    if ( model )
-    {
-        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
-        if ( i == model_nodes.end() )
-        {
-            bool simplify_extrefs = true; //TODO
-            result = model->createNode();
-            if ( result )
-            {
-                if ( optimize )
-                {
-                    GeomUtils::setDataVarianceRecursively( result, osg::Object::STATIC );
-                    osgUtil::Optimizer o;
-                    o.optimize( result );
-                }
-                model_nodes[model->getAbsoluteURI()] = result;
 
-                // prevent optimization later when the object might be shared!
-                //result->setDataVariance( osg::Object::DYNAMIC ); //gw 7/8/08
-            }
-        }
-        else
-        {
-            result = i->second.get();
-        }
-    }
-    return result;
-}
-
-
-osg::Node*
-ResourceLibrary::getProxyNode( ModelResource* model )
-{
-    ScopedLock<ReentrantMutex> sl( mut );
-
-    osg::Node* result = NULL;
-    if ( model )
-    {
-        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
-        if ( i == model_nodes.end() )
-        {
-            bool simplify_extrefs = true; //TODO
-            result = model->createProxyNode();
-            model_nodes[model->getAbsoluteURI()] = result;
-        }
-        else
-        {
-            result = i->second.get();
-        }
-    }
-    return result;
-}
+//osg::Node*
+//ResourceLibrary::getProxyNode( ModelResource* model )
+//{
+//    ScopedLock<ReentrantMutex> sl( mut );
+//
+//    osg::Node* result = NULL;
+//    if ( model )
+//    {
+//        ModelNodes::iterator i = model_nodes.find( model->getAbsoluteURI() );
+//        if ( i == model_nodes.end() )
+//        {
+//            bool simplify_extrefs = true; //TODO
+//            result = model->createProxyNode();
+//            model_nodes[model->getAbsoluteURI()] = result;
+//        }
+//        else
+//        {
+//            result = i->second.get();
+//        }
+//    }
+//    return result;
+//}
 
 
 SkinResourceQuery 

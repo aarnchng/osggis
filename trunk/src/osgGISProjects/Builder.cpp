@@ -241,8 +241,11 @@ Builder::build( Source* source, Session* session )
 
 
 bool
-Builder::addSlicesToMapLayer(BuildLayerSliceList& slices, MapLayer* map_layer,
-                             unsigned int depth, Session* session,
+Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
+                             MapLayer* map_layer,
+                             ResourcePackager* default_packager,
+                             unsigned int depth, 
+                             Session* session,
                              Source* parent_source )
 {
     for( BuildLayerSliceList::iterator i = slices.begin(); i != slices.end(); i++ )
@@ -259,6 +262,17 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices, MapLayer* map_layer,
 
         Source* slice_source = slice->getSource()? slice->getSource() : parent_source;
 
+        osg::ref_ptr<ResourcePackager> packager = default_packager? default_packager->clone() : NULL;
+        if ( packager.valid() )
+        {
+            packager->setMaxTextureSize(
+                slice->getProperties().getIntValue( "max_texture_size", default_packager->getMaxTextureSize() ) );
+            packager->setCompressTextures(
+                slice->getProperties().getBoolValue( "compress_textures", default_packager->getCompressTextures() ) );
+            packager->setInlineTextures(
+                slice->getProperties().getBoolValue( "inline_textures", default_packager->getInlineTextures() ) );
+        }        
+
         if ( slice_source )
         {
             FeatureLayer* feature_layer = Registry::instance()->createFeatureLayer(
@@ -274,6 +288,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices, MapLayer* map_layer,
             map_layer->push(
                 feature_layer,
                 slice->getFilterGraph(),
+                packager.get(),
                 slice->getMinRange(),
                 slice->getMaxRange(),
                 true,
@@ -281,8 +296,10 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices, MapLayer* map_layer,
         }
 
         // now add any sub-slice children:
-        if ( !addSlicesToMapLayer( slice->getSubSlices(), map_layer, depth+1, session, slice_source ) )
+        if ( !addSlicesToMapLayer( slice->getSubSlices(), map_layer, packager.get(), depth+1, session, slice_source ) )
+        {
             return false;
+        }
     }  
 
     return true;
@@ -381,6 +398,7 @@ Builder::build( BuildLayer* layer )
     // whether to include textures in IVE files:
     bool inline_ive_textures = layer->getProperties().getBoolValue( "inline_textures", false );
     
+    // TODO: deprecate this as we move towards the ResourcePackager...
     osgDB::ReaderWriter::Options* options;
     if ( inline_ive_textures )
     {
@@ -416,20 +434,32 @@ Builder::build( BuildLayer* layer )
     if ( layer->getType() == BuildLayer::TYPE_QUADTREE ) // testing out the NEW process
     {
         MapLayer* map_layer = new MapLayer();
+        
+        // a resource packager if necessary will copy ext-ref files to the output location:
+        osg::ref_ptr<ResourcePackager> packager;
+        if ( layer->getProperties().getBoolValue( "localize_resources", false ) )
+        {
+            packager = new ResourcePackager();
+            packager->setArchive( archive.get() );
+            packager->setOutputLocation( osgDB::getFilePath( output_file ) );
+            packager->setMaxTextureSize( layer->getProperties().getIntValue( "max_texture_size", 0 ) );
+            packager->setCompressTextures( layer->getProperties().getBoolValue( "compress_textures", false ) );
+            packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
+        }
 
-        if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, 0, session.get(), source ) )
+        if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, packager.get(), 0, session.get(), source ) )
         {
             osg::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
             return false;
         }
         
         // calculate the grid cell size:
-        double col_size = layer->getProperties().getDoubleValue( "col-size", -1.0 );
-        double row_size = layer->getProperties().getDoubleValue( "row-size", -1.0 );
+        double col_size = layer->getProperties().getDoubleValue( "col_size", -1.0 );
+        double row_size = layer->getProperties().getDoubleValue( "row_size", -1.0 );
         if ( col_size <= 0.0 || row_size <= 0.0 )
         {
-            int num_cols = std::max( 1, layer->getProperties().getIntValue( "num-cols", 1 ) );
-            int num_rows = std::max( 1, layer->getProperties().getIntValue( "num-rows", 1 ) );
+            int num_cols = std::max( 1, layer->getProperties().getIntValue( "num_cols", 1 ) );
+            int num_rows = std::max( 1, layer->getProperties().getIntValue( "num_rows", 1 ) );
             col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
             row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
         }
@@ -443,16 +473,7 @@ Builder::build( BuildLayer* layer )
         compiler.setPaged( layer->getProperties().getBoolValue( "paged", false ) );
         compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler.setArchive( archive.get(), archive_file );
-
-        // a resource packager if necessary will copy ext-ref files to the output location:
-        if ( layer->getProperties().getBoolValue( "localize-resources", false ) )
-        {
-            ResourcePackager* packager = new ResourcePackager();
-            packager->setArchive( archive.get() );
-            packager->setOutputLocation( osgDB::getFilePath( output_file ) );
-            packager->setCompressTextures( layer->getProperties().getBoolValue( "compress-textures", false ) );
-            compiler.setResourcePackager( packager );
-        }
+        compiler.setResourcePackager( packager.get() );
                 
         // build the layer and write the root file to output:
         bool ok = compiler.compile( manager.get() );

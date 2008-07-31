@@ -358,6 +358,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
 }
 
 
+//TODO: **** UPGRADE TO USE THE RESOURCE PACKAGER ****
 void
 LayerCompiler::localizeResources( const std::string& output_folder )
 {
@@ -378,7 +379,7 @@ LayerCompiler::localizeResources( const std::string& output_folder )
             {
                 SkinResource* skin = static_cast<SkinResource*>( resource );
 
-                osg::ref_ptr<osg::Image> image = skin->getImage();
+/******/        osg::ref_ptr<osg::Image> image = NULL; //skin->getImage();
                 if ( image.valid() )
                 {
                     std::string filename = osgDB::getSimpleFileName( image->getFileName() );

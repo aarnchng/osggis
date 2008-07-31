@@ -3,25 +3,39 @@
 #include <osg/BoundingSphere>
 #include <osg/MatrixTransform>
 #include <osg/Notify>
+#include <stdlib.h>
 
 using namespace osgGIS;
 
 SmartReadCallback::SmartReadCallback( int max_lru )
 {
-    max_cache_size = max_lru > 0? max_lru : 25;
+    unsigned int size = 500;
+    const char* sstr = getenv( "OSGGIS_CACHE_SIZE" );
+    if ( sstr ) {
+        sscanf( sstr, "%ld", &size );
+        if ( size > 2000 )
+            size = 2000;
+    }
+    max_cache_size = size; //max_lru > 0? max_lru : 100;
     mru_tries = 0;
     mru_hits = 0;
 }
 
-
 osg::Node*
 SmartReadCallback::readNodeFile( const std::string& filename )
 {
+    osg::Timer_t now = osg::Timer::instance()->tick();
+
     NodeRef* n = NULL;
     NodeMap::iterator i = node_map.find( filename );
     if ( i != node_map.end() )
     {
         n = i->second.get();
+
+        // update the timestamp and re-insert
+        mru.erase( mru.find( n ) );
+        n->timestamp = now;
+        mru.insert( n );
     }
     else
     {
@@ -29,26 +43,18 @@ SmartReadCallback::readNodeFile( const std::string& filename )
         if ( node )
         {
             n = new NodeRef( filename, node );
+            n->timestamp = now;
             node_map[filename] = n;
+            mru.insert( n );
         }
     }
 
-    if ( n )
+    if ( mru.size() >= max_cache_size )
     {
-        mru_queue.push( n );
-        
-        if ( mru_queue.size() == max_cache_size )
-        {
-            while( mru_queue.size() > (int)(0.9f*(float)max_cache_size) )
-            {
-                NodeRef* n = mru_queue.front().get();
-                if ( n->referenceCount() < 2 )
-                {
-                    node_map.erase( node_map.find( n->name ) );
-                }
-                mru_queue.pop();                
-            }
-        }
+        // remove the oldest item when the cache overflows
+        NodeRef* oldest = *(mru.begin());
+        node_map.erase( node_map.find( n->name ) );
+        mru.erase( mru.begin() );
     }
 
     return n? n->node.get() : NULL;

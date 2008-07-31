@@ -28,6 +28,7 @@
 #include <osgGIS/Session>
 #include <osgGIS/Property>
 #include <osgGIS/OptimizerHints>
+#include <osgGIS/ResourceCache>
 #include <osg/Node>
 
 namespace osgGIS
@@ -225,6 +226,13 @@ namespace osgGIS
          */
         OptimizerHints& getOptimizerHints();
 
+        /**
+         * Gets the local resource instantiation cache for this filter env.
+         *
+         * @return The local resource cache.
+         */
+        ResourceCache* getResourceCache();
+
     public:
 
         virtual void setProperty( const Property& prop );
@@ -245,6 +253,7 @@ namespace osgGIS
         osg::ref_ptr<SmartReadCallback> terrain_read_cb;
         osg::ref_ptr<ScriptEngine>      script_engine;
         osg::ref_ptr<Session>           session;
+        osg::ref_ptr<ResourceCache>     resource_cache;
         Properties                      properties;
         OptimizerHints                  optimizer_hints;
     };

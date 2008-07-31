@@ -413,8 +413,13 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         {      
             if ( skin )
             {
-                walls->setStateSet( env->getSession()->getResources()->getStateSet( skin ) );
-                env->getSession()->markResourceUsed( skin );
+                osg::StateSet* wall_ss = env->getResourceCache()->getStateSet( skin );
+                if ( wall_ss )
+                {
+                    walls->setStateSet( wall_ss );
+                }
+                //env->getSession()->getResources()->getStateSet( skin ) );
+                //env->getSession()->markResourceUsed( skin );
             }
 
             // generate per-vertex normals

@@ -25,15 +25,17 @@
 using namespace osgGIS;
 using namespace osgGISProjects;
 
-MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer* _layer,
-                                             FilterGraph*  _graph,
-                                             float         _min_range,
-                                             float         _max_range,
-                                             bool          _replace_previous,
-                                             unsigned int  _depth )
+MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer*     _layer,
+                                             FilterGraph*      _graph,
+                                             ResourcePackager* _packager,
+                                             float             _min_range,
+                                             float             _max_range,
+                                             bool              _replace_previous,
+                                             unsigned int      _depth )
 {
     layer            = _layer;
     graph            = _graph;
+    packager         = _packager;
     min_range        = _min_range;
     max_range        = _max_range;
     replace_previous = _replace_previous;
@@ -48,6 +50,11 @@ MapLayerLevelOfDetail::getFeatureLayer() const {
 FilterGraph*
 MapLayerLevelOfDetail::getFilterGraph() const {
     return graph.get();
+}
+
+ResourcePackager*
+MapLayerLevelOfDetail::getResourcePackager() const {
+    return packager.get();
 }
 
 float
@@ -200,6 +207,7 @@ MapLayer::getCellHeight() const
 
 void
 MapLayer::push(FeatureLayer* layer, FilterGraph* graph, 
+               ResourcePackager* packager,
                float min_range, float max_range, 
                bool replace_previous, unsigned int depth )
 {
@@ -212,7 +220,7 @@ MapLayer::push(FeatureLayer* layer, FilterGraph* graph,
             aoi_auto.expandToInclude( layer->getExtent() );
 
         // store the LOD definition:
-        levels.push_back( new MapLayerLevelOfDetail( layer, graph, min_range, max_range, replace_previous, depth ) );
+        levels.push_back( new MapLayerLevelOfDetail( layer, graph, packager, min_range, max_range, replace_previous, depth ) );
         
         grid_valid = false;
     }  

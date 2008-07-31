@@ -76,7 +76,7 @@ namespace osgGIS
         void init();
     };
 
-    typedef std::vector< osg::ref_ptr<ModelResource> > ModelResourceVec;
+    typedef std::vector< osg::ref_ptr<ModelResource> > ModelResources;
 
     /**
      * Structure used to query the resource library for model resources.

@@ -28,15 +28,32 @@
 #include <osg/Image>
 #include <osg/StateSet>
 #include <sstream>
+#include <set>
 
 using namespace osgGIS;
 
 #define DEFAULT_COMPRESS_TEXTURES false
+#define DEFAULT_MAX_TEX_SIZE      0      // 0 => no max
+#define DEFAULT_INLINE_TEXTURES   false
 
 ResourcePackager::ResourcePackager() 
-: compress_textures( DEFAULT_COMPRESS_TEXTURES )
+: compress_textures( DEFAULT_COMPRESS_TEXTURES ),
+  max_tex_size( DEFAULT_MAX_TEX_SIZE ),
+  inline_textures( DEFAULT_INLINE_TEXTURES )
 {
     //NOP
+}
+
+ResourcePackager*
+ResourcePackager::clone() const
+{
+    ResourcePackager* copy = new ResourcePackager();
+    copy->setArchive( archive.get() );
+    copy->setOutputLocation( output_location );
+    copy->setCompressTextures( compress_textures );
+    copy->setMaxTextureSize( max_tex_size );
+    copy->setInlineTextures( inline_textures );
+    return copy;
 }
 
 void
@@ -54,13 +71,39 @@ ResourcePackager::setCompressTextures( bool value ) {
     compress_textures = value;
 }
 
+bool
+ResourcePackager::getCompressTextures() const {
+    return compress_textures;
+}
+
+void
+ResourcePackager::setInlineTextures( bool value ) {
+    inline_textures = value;
+}
+
+bool
+ResourcePackager::getInlineTextures() const {
+    return inline_textures;
+}
+
+void
+ResourcePackager::setMaxTextureSize( unsigned int value ) {
+    max_tex_size = value;
+}
+
+unsigned int
+ResourcePackager::getMaxTextureSize() const {
+    return max_tex_size;
+}
+
 void
 ResourcePackager::rewriteResourceReferences( osg::Node* node )
 {
     struct RewriteImageNamesVisitor : public osg::NodeVisitor 
     {
-        RewriteImageNamesVisitor( bool _compress_textures )
+        RewriteImageNamesVisitor( bool _compress_textures, unsigned int _max_tex_size )
             : compress_textures( _compress_textures ),
+              max_tex_size( _max_tex_size ),
               osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ) 
         {
             osg::notify( osg::INFO ) << "ResourcePackager: rewriting resources references" << std::endl;
@@ -68,12 +111,14 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
         
         //std::string archive_name;
         bool compress_textures;
+        unsigned int max_tex_size;
+        std::set<osg::Image*> images;
 
         virtual void apply( osg::Node& node )
         {
             osg::StateSet* ss = node.getStateSet();
             if ( ss ) rewrite( ss );
-            traverse( node );
+            osg::NodeVisitor::apply( node );
         }
 
         virtual void apply( osg::Geode& geode )
@@ -83,16 +128,16 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
                 osg::StateSet* ss = geode.getDrawable( i )->getStateSet();
                 if ( ss ) rewrite( ss );
             }
-            traverse( geode );
+            osg::NodeVisitor::apply( geode );
         }
 
         virtual void apply( osg::ProxyNode& proxy )
         {
             //proxy.setDatabasePath( archive_name );
-            std::string name = proxy.getFileName( 0 );
+            std::string name = osgDB::getRealPath( proxy.getFileName( 0 ) );
             std::string simple = osgDB::getSimpleFileName( name );
             proxy.setFileName( 0, simple );
-            //osg::notify( osg::INFO ) << "Rewrote " << name << " as " << simple << std::endl;
+            osg::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
             osg::NodeVisitor::apply( proxy );
         }
 
@@ -103,30 +148,48 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
                 osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
                 if ( tex && tex->getImage() )
                 {
-                    const std::string& name = tex->getImage()->getFileName();
+                    images.insert( tex->getImage() );
+                }
+            }
+        }
 
-                    // fix the in-archive reference:
-                    //if ( archive_name.length() > 0 )
-                    //{
-                    //    if ( !StringUtils::startsWith( name, archive_name ) )
-                    //    {
-                    //        std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
-                    //        tex->getImage()->setFileName( path );
-                    //        osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
-                    //    }
-                    //}
-                    //else
+        void postProcess()
+        {
+            for( std::set<osg::Image*>::iterator i = images.begin(); i != images.end(); i++ )
+            {
+                osg::Image* image = *i;
+                std::string name = osgDB::getRealPath( image->getFileName() );
+
+                // fix the in-archive reference:
+                //if ( archive_name.length() > 0 )
+                //{
+                //    if ( !StringUtils::startsWith( name, archive_name ) )
+                //    {
+                //        std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
+                //        tex->getImage()->setFileName( path );
+                //        osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
+                //    }
+                //}
+                //else
+                {
+                    std::string simple = osgDB::getSimpleFileName( name );
+                    
+                    if ( max_tex_size > 0 )
                     {
-                        std::string simple = osgDB::getSimpleFileName( name );
-                        
-                        if ( compress_textures )
-                        {
-                            simple = osgDB::getNameLessExtension( simple ) + ".dds";
-                        }
-
-                        tex->getImage()->setFileName( simple );
-                        osg::notify( osg::INFO ) << "ResourcePackager: rewrote " << name << " as " << simple << std::endl;
+                        std::stringstream buf;
+                        buf << osgDB::getNameLessExtension( simple ) 
+                            << "_" << (int)max_tex_size << "."
+                            << osgDB::getLowerCaseFileExtension( simple );
+                        simple = buf.str();
                     }
+
+                    if ( compress_textures )
+                    {
+                        simple = osgDB::getNameLessExtension( simple ) + ".dds";
+                    }
+
+                    image->setFileName( simple );
+                    osg::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
                 }
             }
         }
@@ -134,41 +197,65 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
 
     if ( node )
     {
-        RewriteImageNamesVisitor v( compress_textures );
+        RewriteImageNamesVisitor v( compress_textures, max_tex_size );
         node->accept( v );
+        v.postProcess();
     }
 }
 
 void
-ResourcePackager::packageResources( Session* session, Report* report )
+ResourcePackager::packageResources( ResourceCache* resources, Report* report )
 {
     // collect the resources marked as used.
-    ResourceList resources_to_localize = session->getResourcesUsed( true );
+    //ResourceList resources_to_localize = session->getResourcesUsed( true );
 
     osg::ref_ptr<osgDB::ReaderWriter::Options> local_options = new osgDB::ReaderWriter::Options();
 
-    for( ResourceList::const_iterator i = resources_to_localize.begin(); i != resources_to_localize.end(); i++ )
+    // The skin textures:
+    SkinResources skins = resources->getSkins();
+    for( SkinResources::iterator i = skins.begin(); i != skins.end(); i++ )
     {
-        Resource* resource = i->get();
-
-        // attempt to copy each one to the output location:
-        if ( dynamic_cast<SkinResource*>( resource ) )
+        osg::ref_ptr<osg::Image> image = ImageUtils::getFirstImage( resources->getStateSet( i->get() ) );
+        if ( image.valid() )
         {
-            SkinResource* skin = static_cast<SkinResource*>( resource );
+            std::string filename = osgDB::getSimpleFileName( image->getFileName() );
 
-            osg::ref_ptr<osg::Image> image = skin->getImage();
-            if ( image.valid() )
+            osg::ref_ptr<osg::Image> output_image = image.get();
+
+            //TODO: check: this may be unnecessary if we already rewrote the references in the
+            //      scene graph.
+            if ( max_tex_size > 0 && max_tex_size < output_image->s() && max_tex_size < output_image->t() )
             {
-                std::string filename = osgDB::getSimpleFileName( image->getFileName() );
+                int new_s = std::min( (int)max_tex_size, output_image->s() );
+                int new_t = std::min( (int)max_tex_size, output_image->t() );
+                output_image = ImageUtils::resizeImage( output_image.get(), new_s, new_t );
 
-                osg::ref_ptr<osg::Image> output_image = image.get();
-                if ( compress_textures )
+                //std::stringstream buf;
+                //buf << osgDB::getNameLessExtension( filename ) 
+                //    << "_" << (int)max_tex_size << "."
+                //    << osgDB::getLowerCaseFileExtension( filename );
+                //filename = buf.str();
+            }
+
+            if ( compress_textures )
+            {
+                osg::ref_ptr<osg::Image> compressed_image = ImageUtils::convertRGBAtoDDS( output_image.get() );
+                if ( compressed_image.valid() )
                 {
-                    output_image = ImageUtils::convertRGBAtoDDS( image.get() );
+                    output_image = compressed_image.get();
                     filename = osgDB::getNameLessExtension( filename ) + ".dds";
                     output_image->setFileName( filename );
                 }
+            }
 
+            if ( inline_textures )
+            {
+                // replace the stateset's image with the new one:
+                ImageUtils::setFirstImage( resources->getStateSet( i->get() ), output_image.get() );
+            }
+
+            else // NOT inlining textures
+            {
                 if ( archive.valid() && archive->fileExists( filename ) )
                 {
                     osgDB::ReaderWriter::WriteResult r = archive->writeImage( *(output_image.get()), filename, local_options.get() );
@@ -199,50 +286,95 @@ ResourcePackager::packageResources( Session* session, Report* report )
                 }
             }
         }
+    }
 
-        else if ( dynamic_cast<ModelResource*>( resource ) )
+    ModelResources models = resources->getExternalReferenceModels();
+    for( ModelResources::const_iterator i = models.begin(); i != models.end(); i++ )
+    {
+        const std::string& model_abs_uri = i->get()->getAbsoluteURI();
+        //ModelResource* model = i->get(); //static_cast<ModelResource*>( resource );
+
+        osg::notify(osg::INFO) << "Localizing extref " << model_abs_uri << std::endl;
+
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model_abs_uri );
+        if ( node.valid() )
         {
-            ModelResource* model = static_cast<ModelResource*>( resource );
+            //TODO: troll the extref model for textures and run those textures though the 
+            //      same process as the skins above before saving back out to the package
+            //      location.
 
-            osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model->getAbsoluteURI() );
-            if ( node.valid() )
+            std::string filename = osgDB::getSimpleFileName( model_abs_uri );
+            if ( archive.valid() )
             {
-                std::string filename = osgDB::getSimpleFileName( model->getAbsoluteURI() );
-                if ( archive.valid() )
+                osgDB::ReaderWriter::WriteResult r = archive->writeNode( *(node.get()), filename, local_options.get() );
+                if ( r.error() )
+                { 
+                    std::stringstream msg;
+                    msg << "Failed to copy model " << filename << " into the archive";
+                    report->warning( msg.str() );
+                }
+            }
+            else
+            {
+                if ( osgDB::fileExists( output_location ) )
                 {
-                    osgDB::ReaderWriter::WriteResult r = archive->writeNode( *(node.get()), filename, local_options.get() );
-                    if ( r.error() )
-                    { 
+                    if ( !osgDB::writeNodeFile( *(node.get()), osgDB::concatPaths( output_location, filename ), local_options.get() ) )
+                    {
                         std::stringstream msg;
-                        msg << "Failed to copy model " << filename << " into the archive";
+                        msg << "Failed to copy model " << filename << " into the folder " << output_location;
                         report->warning( msg.str() );
                     }
                 }
                 else
                 {
-                    if ( osgDB::fileExists( output_location ) )
-                    {
-                        if ( !osgDB::writeNodeFile( *(node.get()), osgDB::concatPaths( output_location, filename ), local_options.get() ) )
-                        {
-                            std::stringstream msg;
-                            msg << "Failed to copy model " << filename << " into the folder " << output_location;
-                            report->warning( msg.str() );
-                        }
-                    }
-                    else
-                    {
-                        std::stringstream msg;
-                        msg << "Failed to localize model.. model " << filename << " into the folder " << output_location;
-                        report->warning( msg.str() );
-                    }
+                    std::stringstream msg;
+                    msg << "Failed to localize model.. model " << filename << " into the folder " << output_location;
+                    report->warning( msg.str() );
                 }
             }
         }
+    }
+}
 
-        // now remove any single-use (i.e. non-shared) resources (whether we are localizing them or not)
-        if ( resource->isSingleUse() )
+bool
+ResourcePackager::packageNode( osg::Node* node, const std::string& abs_uri )
+{
+    //if ( archive.valid() )
+    //{
+    //    std::string file = osgDB::getSimpleFileName( abs_output_uri );
+    //    osgDB::ReaderWriter::WriteResult r = archive->writeNode( *getResultNode(), file );
+    //    if ( !r.success() )
+    //    {
+    //        result = FilterGraphResult::error( "Cell built OK, but failed to write to archive" );
+    //    }
+    //}
+    //else
+    //    {
+    bool write_ok = false;
+    if ( node )
+    {
+        osgDB::ReaderWriter::Options* global_options = osgDB::Registry::instance()->getOptions();
+
+        osg::ref_ptr<osgDB::ReaderWriter::Options> options = global_options?
+            static_cast<osgDB::ReaderWriter::Options*>( global_options->clone( osg::CopyOp::DEEP_COPY_ALL ) ) :
+            new osgDB::ReaderWriter::Options();
+
+        if ( StringUtils::endsWith( abs_uri, ".ive" ) )
         {
-            session->getResources()->removeResource( resource );
+            std::string option_string = options->getOptionString();
+            if ( inline_textures )
+                options->setOptionString( StringUtils::replaceIn( option_string, "noTexturesInIVEFile", "" ) );
+            else
+                options->setOptionString( "noTexturesInIVEFile " + option_string );
+        }
+            
+        write_ok = osgDB::makeDirectoryForFile( abs_uri );
+        if ( write_ok )
+        {
+            write_ok = osgDB::writeNodeFile( *node, abs_uri, options.get() );
         }
     }
+    //    }
+
+    return write_ok;
 }

@@ -24,7 +24,8 @@ using namespace osgGIS;
 FilterEnv::FilterEnv( Session* _session )
 {
     session = _session;
-    extent = GeoExtent::infinite();   
+    extent = GeoExtent::infinite();  
+    resource_cache = new ResourceCache();
 }
 
 
@@ -40,6 +41,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     script_engine = rhs.script_engine.get();
     properties = rhs.properties;
     optimizer_hints = rhs.optimizer_hints;
+    resource_cache = rhs.resource_cache.get();
 }
 
 
@@ -205,5 +207,11 @@ OptimizerHints&
 FilterEnv::getOptimizerHints()
 {
     return optimizer_hints;
+}
+
+ResourceCache*
+FilterEnv::getResourceCache()
+{
+    return resource_cache.get();
 }
 

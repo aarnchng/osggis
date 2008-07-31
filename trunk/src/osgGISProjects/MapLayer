@@ -25,6 +25,7 @@
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Session>
+#include <osgGIS/ResourcePackager>
 #include <osg/BoundingSphere>
 
 using namespace osgGIS;
@@ -40,6 +41,7 @@ namespace osgGISProjects
         MapLayerLevelOfDetail( 
             FeatureLayer* layer,
             FilterGraph* graph,
+            ResourcePackager* packager,
             float min_range,
             float max_range,
             bool replace_previous,
@@ -51,13 +53,15 @@ namespace osgGISProjects
         float getMaxRange() const;
         bool getReplacePrevious() const;
         unsigned int getDepth() const;
+        ResourcePackager* getResourcePackager() const;
 
     private:
-        osg::ref_ptr<FeatureLayer> layer;
-        osg::ref_ptr<FilterGraph>  graph;
-        float                      min_range, max_range;
-        bool                       replace_previous;
-        unsigned int               depth;
+        osg::ref_ptr<FeatureLayer>     layer;
+        osg::ref_ptr<FilterGraph>      graph;
+        osg::ref_ptr<ResourcePackager> packager;
+        float                          min_range, max_range;
+        bool                           replace_previous;
+        unsigned int                   depth;
     };
     typedef std::vector<osg::ref_ptr<MapLayerLevelOfDetail> > MapLayerLevelsOfDetail;
 
@@ -163,6 +167,7 @@ namespace osgGISProjects
         void push(
             FeatureLayer* layer,
             FilterGraph* graph,
+            ResourcePackager* packager,
             float min_range,
             float max_range,
             bool replace,

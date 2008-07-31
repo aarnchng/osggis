@@ -360,6 +360,7 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
     }
 
     // if we are applying the raster per-feature, do so now.
+    // TODO: deprecate? will we ever use this versus the BuildNodesFilter overlay? maybe
     if ( getRasterOverlayScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getRasterOverlayScript(), input, env );
@@ -379,8 +380,9 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
                     geom->setStateSet( raster_ss.get() );
 
                     // add this as a skin resource so the compiler can properly localize and deploy it.
-                    SkinResource* skin = new SkinResource( image );
-                    env->getSession()->markResourceUsed( skin );
+                    env->getResourceCache()->addSkin( raster_ss.get() );
+                    //SkinResource* skin = new SkinResource( image );
+                    //env->getSession()->markResourceUsed( skin );
                 }
             }
         }

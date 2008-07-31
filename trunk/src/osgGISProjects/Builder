@@ -24,6 +24,7 @@
 #include <osgGISProjects/Project>
 #include <osgGISProjects/MapLayer>
 #include <osgGIS/Session>
+#include <osgGIS/ResourcePackager>
 
 using namespace osgGIS;
 
@@ -56,8 +57,14 @@ namespace osgGISProjects
         
     private:
         std::string resolveURI( const std::string& input );
+
         bool addSlicesToMapLayer( 
-            BuildLayerSliceList& slices, MapLayer* map_layer, unsigned int lod, Session* session, Source* source );
+            BuildLayerSliceList& slices, 
+            MapLayer* map_layer,
+            ResourcePackager* default_packager, 
+            unsigned int lod, 
+            Session* session,
+            Source* source );
     };
 }
 

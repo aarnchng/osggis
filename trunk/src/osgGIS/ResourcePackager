@@ -29,7 +29,8 @@
 
 namespace osgGIS
 {
-    /*(internal)
+    /* (todo: refactor this into the osgGISProjects library, along with
+     *        all the various layer compilers)
      * Copies referenced resources from the resource library to an output
      * location.
      */
@@ -37,23 +38,37 @@ namespace osgGIS
     {
     public:
         ResourcePackager();
+        
+        ResourcePackager* clone() const;
 
         void setArchive( osgDB::Archive* archive );
 
         void setOutputLocation( const std::string& output_location );
 
+        void setMaxTextureSize( unsigned int size );
+
+        unsigned int getMaxTextureSize() const;
+
         void setCompressTextures( bool value );
+
+        bool getCompressTextures() const;
+
+        void setInlineTextures( bool value );
+
+        bool getInlineTextures() const;
 
         void rewriteResourceReferences( osg::Node* node );
 
-        void packageResources( Session* session, Report* report );
+        void packageResources( ResourceCache* resources, Report* report );
 
-        void packageResources( FilterEnv* env, Report* report );
+        bool packageNode( osg::Node* node, const std::string& abs_uri ); // todo..make relative
 
     private:
         std::string output_location;
         osg::ref_ptr<osgDB::Archive> archive;
         bool compress_textures;
+        bool inline_textures;
+        unsigned int max_tex_size;
     };
 }
 

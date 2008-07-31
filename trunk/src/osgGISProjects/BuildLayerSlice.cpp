@@ -26,6 +26,7 @@ BuildLayerSlice::BuildLayerSlice()
 {
     min_range = 0.0f;
     max_range = FLT_MAX;
+    max_tex_size = 0;
 }
 
 FilterGraph*
@@ -77,6 +78,18 @@ BuildLayerSlice::getSource() const
     return source.get();
 }
 
+void
+BuildLayerSlice::setMaxTextureSize( unsigned int value )
+{
+    max_tex_size = value;
+}
+
+unsigned int
+BuildLayerSlice::getMaxTextureSize() const
+{
+    return max_tex_size;
+}
+
 BuildLayerSliceList&
 BuildLayerSlice::getSubSlices()
 {
@@ -87,4 +100,16 @@ const BuildLayerSliceList&
 BuildLayerSlice::getSubSlices() const
 {
     return sub_slices;
+}
+
+Properties& 
+BuildLayerSlice::getProperties()
+{
+    return props;
+}
+
+const Properties&
+BuildLayerSlice::getProperties() const
+{
+    return props;
 }

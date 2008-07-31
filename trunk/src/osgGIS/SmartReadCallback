@@ -23,6 +23,7 @@
 #include <osgGIS/Common>
 #include <osgUtil/IntersectionVisitor>
 #include <osg/BoundingSphere>
+#include <osg/Timer>
 #include <queue>
 
 namespace osgGIS
@@ -36,7 +37,7 @@ namespace osgGIS
     class OSGGIS_EXPORT SmartReadCallback : public osgUtil::IntersectionVisitor::ReadCallback
     {
     public:
-        SmartReadCallback( int max_lru =25 );
+        SmartReadCallback( int max_lru =100 );
 
         osg::Node* getMruNode();
         
@@ -64,12 +65,21 @@ namespace osgGIS
             NodeRef( const std::string& _name, osg::Node* _node ) : name( _name ), node( _node ) { }
             std::string name;
             osg::ref_ptr<osg::Node> node;
+            osg::Timer_t timestamp;
+        };
+        
+        struct NodeRefComp {
+            bool operator()( NodeRef* lhs, NodeRef* rhs ) const {
+                return lhs->timestamp < rhs->timestamp;
+            }
         };
 
-        typedef std::queue<osg::ref_ptr<NodeRef> > MRUQueue;
+        typedef std::set<NodeRef*, NodeRefComp> MRUSet;
+        //typedef std::queue<osg::ref_ptr<NodeRef> > MRUQueue;
         typedef std::map<std::string,osg::ref_ptr<NodeRef> > NodeMap;
 
-        MRUQueue mru_queue;
+        MRUSet   mru;
+        //MRUQueue mru_queue;
         NodeMap  node_map;
 
         unsigned int max_cache_size;

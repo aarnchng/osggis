@@ -342,13 +342,13 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
 }
 
 
-void
-registerTextures( osg::Node* node, Session* session, bool share_textures )
+static void
+registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_textures )
 {
     class ImageFinder : public osg::NodeVisitor {
     public:
-        ImageFinder( Session* _session, bool _share_tex )
-            : session(_session), share_textures(_share_tex), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+        ImageFinder( ResourceCache* _resources, bool _share_tex )
+            : resources(_resources), share_textures(_share_tex), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
 
         void processStateSet( osg::StateSet* ss )
         {
@@ -364,9 +364,11 @@ registerTextures( osg::Node* node, Session* session, bool share_textures )
                         {
                             SkinResource* skin = new SkinResource();
                             skin->setURI( abs_path );
-                            skin->setSingleUse( !share_textures );
-                            session->getResources()->addResource( skin );
-                            session->markResourceUsed( skin );
+                            resources->addSkin( ss );
+
+                            //skin->setSingleUse( !share_textures );
+                            //session->getResources()->addResource( skin );
+                            //session->markResourceUsed( skin );
 
                             //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
                         }
@@ -391,11 +393,11 @@ registerTextures( osg::Node* node, Session* session, bool share_textures )
             osg::NodeVisitor::apply( geode );
         }
 
-        Session* session;
+        ResourceCache* resources; //* session;
         bool share_textures;
     };
 
-    ImageFinder image_finder( session, share_textures );
+    ImageFinder image_finder( resources, false ); //share_textures );
     node->accept( image_finder );
 }
 
@@ -472,31 +474,35 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
     return xform;
 }
 
-osg::Node*
-SubstituteModelFilter::getNodeFromModelCache( ModelResource* model )
-{
-    ModelCache::iterator i = non_clustered_model_cache.find( model->getAbsoluteURI() );
-    return i != non_clustered_model_cache.end()? i->second.get() : NULL;
-}
-
-
-osg::Node*
-SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* env )
-{
-    // for a non-inlined model, get the proxy node instead of the real node:
-    osg::Node* node = getInlineModel()?
-        env->getSession()->getResources()->getNode( model, getOptimizeModel() ) :
-        env->getSession()->getResources()->getProxyNode( model );
-
-    if ( node )
-    {
-        // we must clone it because the resource model node, being in the ResourceLibrary, is shared geometry!
-        node = dynamic_cast<osg::Node*>( node->clone( osg::CopyOp::DEEP_COPY_ALL ) ); // no dangling ref; original node is in the resource lib
-        if ( node )
-            non_clustered_model_cache[ model->getAbsoluteURI() ] = node;
-    }
-    return node;
-}
+//osg::Node*
+//SubstituteModelFilter::getNodeFromModelCache( ModelResource* model )
+//{
+//    ModelCache::iterator i = non_clustered_model_cache.find( model->getAbsoluteURI() );
+//    return i != non_clustered_model_cache.end()? i->second.get() : NULL;
+//}
+//
+//
+//osg::Node*
+//SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* env )
+//{
+//    // for a non-inlined model, get the proxy node instead of the real node:
+//    osg::Node* node = getInlineModel()?
+//        env->getResourceCache()->getNode( model, getOptimizeModel() ) :
+//        env->getResourceCache()->getExternalReferenceNode( model );
+//
+//    // TODO: revisit this section, since the node NOW comes from the FilterEnv's local resource cache
+//    //       instead of the shared resource library!
+//    if ( node )
+//    {
+//        // we must clone it because the resource model node, being in the ResourceLibrary, is shared geometry!
+//        node = dynamic_cast<osg::Node*>( node->clone( osg::CopyOp::DEEP_COPY_ALL ) ); // no dangling ref; original node is in the resource lib
+//        if ( node )
+//        {
+//            non_clustered_model_cache[ model->getAbsoluteURI() ] = node;
+//        }
+//    }
+//    return node;
+//}
 
 AttributedNodeList
 SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
@@ -522,7 +528,8 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
                 if ( model )
                 {
-                    osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+                    //osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+                    osg::Node* node = env->getResourceCache()->getNode( model, getOptimizeModel() );
                     output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
             }
@@ -545,7 +552,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
         // register textures for localization.
         for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
         {
-            registerTextures( (*i)->getNode(), env->getSession(), share_textures );
+            registerTextures( (*i)->getNode(), env->getResourceCache() ); //, share_textures ); //env->getSession(), share_textures );
         }
     }
     else
@@ -583,15 +590,19 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
             if ( model )
             {
-                osg::Node* node = getNodeFromModelCache( model );
-                if ( !node )
-                    node = cloneAndCacheModelNode( model, env );
+                //osg::Node* node = getNodeFromModelCache( model );
+                //if ( !node )
+                //    node = cloneAndCacheModelNode( model, env );
+
+                osg::Node* node = getInlineModel()?
+                    env->getResourceCache()->getNode( model, getOptimizeModel() ) :
+                    env->getResourceCache()->getExternalReferenceNode( model );
 
                 if ( node )
                 {
                     osg::Node* output_node = buildOutputNode( node, input, env );
                     output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
-                    env->getSession()->markResourceUsed( model );
+                    env->getSession()->markResourceUsed( model ); //dep.
                 }
             }
         }
@@ -603,17 +614,14 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getModelPathScript(), input, env );
         if ( r.isValid() )
         {
-            // create a new resource on the fly..
+            // make a new one-time model on the fly..
             ModelResource* model = new ModelResource();
             model->setURI( r.asString() );
             model->setName( r.asString() );
-            env->getSession()->getResources()->addResource( model );
 
-            model->setSingleUse( true ); // mark as "single use" for path-based models
-
-            osg::Node* node = getNodeFromModelCache( model );
-            if ( !node )
-                node = cloneAndCacheModelNode( model, env );
+            osg::Node* node = getInlineModel()?
+                env->getResourceCache()->getNode( model, getOptimizeModel() ) :
+                env->getResourceCache()->getExternalReferenceNode( model );
 
             if ( node )
             {
@@ -621,14 +629,32 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                 output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
             }
 
-            env->getSession()->markResourceUsed( model );
+            //// create a new resource on the fly..
+            //ModelResource* model = new ModelResource();
+            //model->setURI( r.asString() );
+            //model->setName( r.asString() );
+            //env->getSession()->getResources()->addResource( model );
+
+            //model->setSingleUse( true ); // mark as "single use" for path-based models
+
+            //osg::Node* node = getNodeFromModelCache( model );
+            //if ( !node )
+            //    node = cloneAndCacheModelNode( model, env );
+
+            //if ( node )
+            //{
+            //    osg::Node* output_node = buildOutputNode( node, input, env );
+            //    output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
+            //}
+
+            //env->getSession()->markResourceUsed( model );
         }
     }
                 
     // register textures for localization.
     for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
     {
-        registerTextures( (*i)->getNode(), env->getSession(), share_textures );
+        registerTextures( (*i)->getNode(), env->getResourceCache() ); //, share_textures );
     }
 
     return output;

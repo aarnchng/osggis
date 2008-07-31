@@ -21,6 +21,7 @@
 #define _OSGGIS_UTILS_H_ 1
 
 #include <osgGIS/Common>
+#include <osgGIS/ImageUtils>
 #include <osgGIS/GeoShape>
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/SpatialReference>
@@ -184,27 +185,6 @@ namespace osgGIS
             SpatialReference* terrain_srs,
             SmartReadCallback* read_cb );
     };
-    
-    /* (internal)
-     */
-    struct OSGGIS_EXPORT ImageUtils
-    {
-        static osg::Image* convertRGBAtoDDS( 
-            osg::Image* in_rgba );
-
-        static bool copyAsSubImage( osg::Image* source, osg::Image* dest, int dest_col, int dest_row );
-
-        static bool hasAlpha( osg::Image* image );
-            
-        static unsigned long roundUpToPowerOf2( 
-            unsigned long n,
-            unsigned long cap =0 );
-        
-        static unsigned long roundToNearestPowerOf2( 
-            unsigned long n );
-    };
-
-    
 
 
     // custom intersection visitor that can "fall back" on lower resolution tiles when

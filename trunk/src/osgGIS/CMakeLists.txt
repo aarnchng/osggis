@@ -61,6 +61,7 @@ SET(LIB_PUBLIC_HEADERS
     GeoShape
     GriddedLayerCompiler
     GroupFilter
+    ImageUtils
     LayerCompiler
     LineSegmentIntersector2
     LocalizeNodesFilter
@@ -87,6 +88,7 @@ SET(LIB_PUBLIC_HEADERS
     RemoveHolesFilter
     Report
     Resource
+    ResourceCache
     ResourceLibrary
     ResourcePackager
     RTree
@@ -166,6 +168,7 @@ ADD_LIBRARY(${LIB_NAME}
     GeoShape.cpp
     GriddedLayerCompiler.cpp
     GroupFilter.cpp
+    ImageUtils.cpp
     LayerCompiler.cpp
     LineSegmentIntersector2.cpp
     LocalizeNodesFilter.cpp
@@ -190,6 +193,7 @@ ADD_LIBRARY(${LIB_NAME}
     RemoveHolesFilter.cpp
     Report.cpp
     Resource.cpp
+    ResourceCache.cpp
     ResourceLibrary.cpp
     ResourcePackager.cpp
     RTreeSpatialIndex.cpp
