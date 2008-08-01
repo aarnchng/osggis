@@ -26,6 +26,7 @@ SET(LIB_PUBLIC_HEADERS
     RuntimeMap
     RuntimeMapLayer
     Serializer
+    SimpleMapLayerCompiler
     Source
     Terrain
     XmlDocument
@@ -51,6 +52,7 @@ ADD_LIBRARY(${LIB_NAME}
     RuntimeMap.cpp
     RuntimeMapLayer.cpp
     Serializer.cpp
+    SimpleMapLayerCompiler.cpp
     Source.cpp
     Terrain.cpp
     XmlDocument.cpp
