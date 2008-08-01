@@ -1,0 +1,59 @@
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+ *
+ * This library is open source and may be redistributed and/or modified under  
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * OpenSceneGraph Public License for more details.
+*/
+
+#ifndef OSGGIS_NOTIFY
+#define OSGGIS_NOTIFY 1
+
+#include <osgGIS/Common>
+#include <osg/Notify>
+#include <ostream>
+
+// this is copied directly from osgGIS::notify. -gw
+
+namespace osgGIS {
+
+
+/** set the notify level, overriding the default or the value set by
+  * the environmental variable OSGNOTIFYLEVEL.
+  */
+extern OSGGIS_EXPORT void setNotifyLevel(osg::NotifySeverity severity);
+
+/** get the notify level. */
+extern OSGGIS_EXPORT osg::NotifySeverity getNotifyLevel();
+
+/** is notification enabled, given the current setNotifyLevel() setting? */
+extern OSGGIS_EXPORT bool isNotifyEnabled(osg::NotifySeverity severity);
+
+/** initialize notify level. */
+extern OSGGIS_EXPORT bool initNotifyLevel();
+
+/** notify messaging function for providing fatal through to verbose
+  * debugging messages.  Level of messages sent to the console can
+  * be controlled by setting the NotifyLevel either within your 
+  * application or via the an environmental variable. For instance
+  * setenv OSGNOTIFYLEVEL DEBUG (for tsh), export OSGNOTIFYLEVEL=DEBUG
+  * (for bourne shell) or set OSGNOTIFYLEVEL=DEBUG (for Windows) all
+  * tell the osg to redirect all debugging and more important messages
+  * to the console (useful for debugging :-)  setting ALWAYS will force
+  * all messages to be absorbed, which might be appropriate for final
+  * applications.  Default NotifyLevel is NOTICE.  Check the enum 
+  * NotifySeverity for full range of possibilities.  To use the notify
+  * with your code simply use the notify function as a normal file
+  * stream (like cout) i.e osgGIS::notify(osg::DEBUG) << "Hello Bugs!"<<endl;
+  */
+  
+extern OSGGIS_EXPORT std::ostream& notify(const osg::NotifySeverity severity);
+
+}
+
+#endif

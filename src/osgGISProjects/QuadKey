@@ -58,8 +58,19 @@ namespace osgGISProjects
             unsigned int& out_cell_xmin, unsigned int& out_cell_ymin,
             unsigned int& out_cell_xmax, unsigned int& out_cell_ymax ) const;
 
+    public:
+        enum StringStyle {
+            STYLE_QUADKEY, // default
+            STYLE_LOD_QUADKEY
+        };
+
+        void setStringStyle( StringStyle style );
+
+        StringStyle getStringStyle() const;
+
     private:
         GeoExtent bounds;
+        StringStyle string_style;
     };
 
     /* (internal)
@@ -86,7 +97,7 @@ namespace osgGISProjects
 
         QuadKey createParentKey() const;
 
-        const std::string& toString() const;
+        std::string toString() const;
 
         const QuadMap& getMap() const;
 

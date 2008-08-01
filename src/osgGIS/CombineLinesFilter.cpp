@@ -103,7 +103,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
     }
 
     int start_count = segments.size();
-    //osg::notify(osg::WARN) << "[Combine] combining " << segments.size() << " segments..." << std::endl;
+    //osgGIS::notify(osg::WARN) << "[Combine] combining " << segments.size() << " segments..." << std::endl;
 
     // next run through the segments list and combine segments w/ matching endpoints
     for( SegmentList::iterator i = segments.begin(); i != segments.end(); i++ )
@@ -116,7 +116,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
             continue;
         }
 
-        //osg::notify(osg::WARN)<< "[Combine]   segment " << seg->id << ": ";
+        //osgGIS::notify(osg::WARN)<< "[Combine]   segment " << seg->id << ": ";
 
         // see if one of this segment's endpoints is in the ep map:
         bool found = false;
@@ -143,7 +143,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
             segments.push_back( new_seg );
             num_active_segs--;
             
-            //osg::notify(osg::WARN) << "combined with seg " << ep->second->id << " to form seg " << new_seg->id 
+            //osgGIS::notify(osg::WARN) << "combined with seg " << ep->second->id << " to form seg " << new_seg->id 
             //    << ", now there are " << num_active_segs << " active segs." << std::endl;
 
             // deactivate the old segments
@@ -181,7 +181,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
                 segments.push_back( new_seg );
                 num_active_segs--;
                 
-                //osg::notify(osg::WARN) << "combined with seg " << ep->second->id << " to form seg " << new_seg->id 
+                //osgGIS::notify(osg::WARN) << "combined with seg " << ep->second->id << " to form seg " << new_seg->id 
                 //    << ", now there are " << num_active_segs << " active segs." << std::endl;
 
                 // deactivate the old segments
@@ -202,7 +202,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
             if ( seg->points.front() != seg->points.back() )
                 ep_map[seg->points.back()] = seg;   
 
-            //osg::notify(osg::WARN) << "added" << std::endl;
+            //osgGIS::notify(osg::WARN) << "added" << std::endl;
         }
     }
 
@@ -222,7 +222,7 @@ CombineLinesFilter::process( FeatureList& input, FilterEnv* env )
 
     if ( start_count > 0 )
     {
-        //osg::notify(osg::NOTICE) << "[Combine] combined " << start_count << " segments into " << output.size()
+        //osgGIS::notify(osg::NOTICE) << "[Combine] combined " << start_count << " segments into " << output.size()
         //    << " features (" << (100-(int)(100.0f*(float)output.size()/(float)start_count)) << "% reduction)"
         //    << std::endl;
     }

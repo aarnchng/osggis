@@ -126,7 +126,7 @@ RasterResource::applyToStateSet(osg::StateSet*     state_set,
                 {
                     if ( ! ImageUtils::copyAsSubImage( part_image.get(), image.get(), s_offset, t_offset ) )
                     {
-                        osg::notify( osg::NOTICE ) 
+                        osgGIS::notify( osg::NOTICE ) 
                             << "***ERROR: ImageUtils::copyAsSubImage failed:" << std::endl
                             << "   image: s=" << image->s() << ", t=" << image->t() << std::endl
                             << "   part:  s=" << part_image->s() << ", t=" << part_image->t() << std::endl
@@ -205,12 +205,12 @@ RasterResource::applyToStateSet(osg::StateSet*     state_set,
 //        }
 //        else
 //        {
-//            osg::notify(osg::WARN) << "RasterResource::createStateSet failed to get Image from raster store" << std::endl;
+//            osgGIS::notify(osg::WARN) << "RasterResource::createStateSet failed to get Image from raster store" << std::endl;
 //        }
 //    }
 //    else
 //    {
-//        osg::notify(osg::WARN) << "RasterResource::createStateSet failed to connect to raster store at " << getAbsoluteURI() << std::endl;
+//        osgGIS::notify(osg::WARN) << "RasterResource::createStateSet failed to connect to raster store at " << getAbsoluteURI() << std::endl;
 //    }
 //
 //    return result;
@@ -219,7 +219,7 @@ RasterResource::applyToStateSet(osg::StateSet*     state_set,
 void
 RasterResource::initParts()
 {
-    osg::notify(osg::NOTICE) << "Raster resource \"" << getName() << "\":" << std::endl;
+    osgGIS::notify(osg::NOTICE) << "Raster resource \"" << getName() << "\":" << std::endl;
 
     for( RasterParts::iterator i = parts.begin(); i != parts.end(); i++ )
     {
@@ -229,11 +229,11 @@ RasterResource::initParts()
         {
             i->first = rstore->getExtent();
             pixel_format = rstore->getImagePixelFormat();
-            osg::notify( osg::NOTICE ) << "   " << part_auri << " -- " << i->first.toString() << std::endl;
+            osgGIS::notify( osg::NOTICE ) << "   " << part_auri << " -- " << i->first.toString() << std::endl;
         }      
         else
         {   
-            osg::notify( osg::WARN ) << "   WARNING: " << part_auri << " -- cannot connect to raster store" << std::endl;
+            osgGIS::notify( osg::WARN ) << "   WARNING: " << part_auri << " -- cannot connect to raster store" << std::endl;
         }
     }
 

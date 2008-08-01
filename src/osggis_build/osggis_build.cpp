@@ -39,7 +39,7 @@
 #include <osgViewer/Viewer>
 #include <iostream>
 
-#define NOUT osg::notify(osg::NOTICE)
+#define NOUT osgGIS::notify(osg::NOTICE)
 #define ENDL std::endl
 
 
@@ -53,7 +53,7 @@ int num_threads = 0; // defaults to logical proc count
 int
 die( const std::string& msg )
 {
-	osg::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
+	osgGIS::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
 	return -1;
 }
 
@@ -120,7 +120,7 @@ parseCommandLine( int argc, char** argv )
 
     if ( arguments.read( "--version" ) )
     {
-        osg::notify(osg::NOTICE) << "osgGIS version " << OSGGIS_VERSION_STRING << std::endl;
+        osgGIS::notify(osg::NOTICE) << "osgGIS version " << OSGGIS_VERSION_STRING << std::endl;
         exit(0);
     }
 

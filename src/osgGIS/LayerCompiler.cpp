@@ -281,7 +281,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
               compress_textures( _compress_textures ),
               osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN )
         { 
-            osg::notify( osg::INFO ) << "LayerCompiler: Localizing resources references" << std::endl;
+            osgGIS::notify( osg::INFO ) << "LayerCompiler: Localizing resources references" << std::endl;
         }
         
         std::string archive_name;
@@ -310,7 +310,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
             std::string name = proxy.getFileName( 0 );
             std::string simple = osgDB::getSimpleFileName( name );
             proxy.setFileName( 0, simple );
-            osg::notify( osg::INFO ) << "  Rewrote " << name << " as " << simple << std::endl;
+            osgGIS::notify( osg::INFO ) << "  Rewrote " << name << " as " << simple << std::endl;
             osg::NodeVisitor::apply( proxy );
         }
 
@@ -330,7 +330,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
                     //    {
                     //        std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
                     //        tex->getImage()->setFileName( path );
-                    //        osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
+                    //        osgGIS::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
                     //    }
                     //}
                     //else
@@ -343,7 +343,7 @@ LayerCompiler::localizeResourceReferences( osg::Node* node )
                         }
 
                         tex->getImage()->setFileName( simple );
-                        osg::notify( osg::INFO ) << "  LayerCompiler::localizeResourceRefs, Rewrote " << name << " as " << simple << std::endl;
+                        osgGIS::notify( osg::INFO ) << "  LayerCompiler::localizeResourceRefs, Rewrote " << name << " as " << simple << std::endl;
                     }
                 }
             }
@@ -397,7 +397,7 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                         osgDB::ReaderWriter::WriteResult r = getArchive()->writeImage( *(output_image.get()), filename, local_options.get() );
                         if ( r.error() )
                         {
-                            osg::notify( osg::WARN ) << "  Failure to copy image " << filename << " into the archive" << std::endl;
+                            osgGIS::notify( osg::WARN ) << "  Failure to copy image " << filename << " into the archive" << std::endl;
                         }
                     }
                     else
@@ -406,12 +406,12 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                         {
                             if ( !osgDB::writeImageFile( *(output_image.get()), PathUtils::combinePaths( output_folder, filename ), local_options.get() ) )
                             {
-                                osg::notify( osg::WARN ) << "  FAILED to copy image " << filename << " into the folder " << output_folder << std::endl;
+                                osgGIS::notify( osg::WARN ) << "  FAILED to copy image " << filename << " into the folder " << output_folder << std::endl;
                             }
                         }
                         else
                         {
-                            osg::notify( osg::WARN ) << "  FAILD to localize image " << filename << ", folder " << output_folder << " not found" << std::endl;
+                            osgGIS::notify( osg::WARN ) << "  FAILD to localize image " << filename << ", folder " << output_folder << " not found" << std::endl;
                         }
                     }
                 }
@@ -430,7 +430,7 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                         osgDB::ReaderWriter::WriteResult r = getArchive()->writeNode( *(node.get()), filename, local_options.get() );
                         if ( r.error() )
                         {
-                            osg::notify( osg::WARN ) << "  Failure to copy model " << filename << " into the archive" << std::endl;
+                            osgGIS::notify( osg::WARN ) << "  Failure to copy model " << filename << " into the archive" << std::endl;
                         }
                     }
                     else
@@ -439,12 +439,12 @@ LayerCompiler::localizeResources( const std::string& output_folder )
                         {
                             if ( !osgDB::writeNodeFile( *(node.get()), osgDB::concatPaths( output_folder, filename ), local_options.get() ) )
                             {
-                                osg::notify( osg::WARN ) << "  FAILED to copy model " << filename << " into the folder " << output_folder << std::endl;
+                                osgGIS::notify( osg::WARN ) << "  FAILED to copy model " << filename << " into the folder " << output_folder << std::endl;
                             }
                         }
                         else
                         {
-                            osg::notify( osg::WARN ) << "  FAILD to localize model " << filename << ", folder " << output_folder << " not found" << std::endl;
+                            osgGIS::notify( osg::WARN ) << "  FAILD to localize model " << filename << ", folder " << output_folder << " not found" << std::endl;
                         }
                     }
                 }

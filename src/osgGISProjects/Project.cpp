@@ -267,11 +267,11 @@ Project::testSources() const
     {
         Source* source = i->get();
 
-        osg::notify(osg::NOTICE) << "Source: \"" << source->getName() << "\":" << std::endl;
+        osgGIS::notify(osg::NOTICE) << "Source: \"" << source->getName() << "\":" << std::endl;
 
         if ( source->isIntermediate() )
         {
-            osg::notify(osg::WARN) << "Source is intermediate; skipping." << std::endl;
+            osgGIS::notify(osg::WARN) << "Source is intermediate; skipping." << std::endl;
             continue;
         }
 
@@ -288,10 +288,10 @@ Project::testSources() const
 
         if ( !store.valid() )
         {
-            osg::notify(osg::WARN) << "*** FAILED TO CONNECT TO " << source->getAbsoluteURI() << std::endl;
+            osgGIS::notify(osg::WARN) << "*** FAILED TO CONNECT TO " << source->getAbsoluteURI() << std::endl;
         }
 
-        osg::notify(osg::NOTICE) << std::endl;
+        osgGIS::notify(osg::NOTICE) << std::endl;
     }
 
     return true;

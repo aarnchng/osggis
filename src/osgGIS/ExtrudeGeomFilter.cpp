@@ -343,7 +343,7 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), f, env );
         if ( r.isValid() )
         {
-            //osg::notify(osg::NOTICE) << "==== choose skin: " << r.asString() << std::endl;
+            //osgGIS::notify(osg::NOTICE) << "==== choose skin: " << r.asString() << std::endl;
             result = env->getSession()->getResources()->getSkin( r.asString() );
         }
     }

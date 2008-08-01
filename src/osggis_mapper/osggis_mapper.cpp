@@ -86,14 +86,14 @@
 #include <osgGISProjects/Project>
 #include <osgGISProjects/XmlSerializer>
 
-#define NOUT osg::notify(osg::NOTICE)
+#define NOUT osgGIS::notify(osg::NOTICE)
 #define ENDL std::endl
 #define TEXT_SIZE 14.0f
 
 int
 die( const std::string& msg )
 {
-	osg::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
+	osgGIS::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
 	return -1;
 }
 static void usage( const char* prog, const char* msg )

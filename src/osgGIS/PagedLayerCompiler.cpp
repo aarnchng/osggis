@@ -97,7 +97,7 @@ PagedLayerCompiler::compile(FeatureLayer*      layer,
         FindCSNodeVisitor cs_finder;
         terrain->accept( cs_finder );
         if ( !cs_finder.cs_node.valid() ) {
-            osg::notify( osg::WARN ) << 
+            osgGIS::notify( osg::WARN ) << 
                 "Reference terrain does not contain a CoordinateSystemNode." << std::endl;
         }
         else {
@@ -251,7 +251,7 @@ PagedLayerCompiler::compileGeometry(
     osg::Group* out = NULL;
     if ( graph )
     {
-        osg::notify(osg::NOTICE) << indent[level+2]
+        osgGIS::notify(osg::NOTICE) << indent[level+2]
             << "graph = " << graph->getName() << std::endl;
 
         osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
@@ -315,7 +315,7 @@ PagedLayerCompiler::compileTile(
     double                  tile_max_range,
     const std::string&      tile_filename )
 {
-    osg::notify(osg::NOTICE) << indent[level]
+    osgGIS::notify(osg::NOTICE) << indent[level]
         << "L" << level << ": " << tile_filename
         << " (max = " << tile_max_range << ")"
         << std::endl;
@@ -359,7 +359,7 @@ PagedLayerCompiler::compileTile(
                 bool at_min_range = layer_min_range >= tile_min_range;
                 if ( at_min_range )
                 {
-                    //osg::notify(osg::NOTICE) << indent[level]
+                    //osgGIS::notify(osg::NOTICE) << indent[level]
                     //    << "at min range (layer min = " << layer_min_range << ", tile min = "
                     //    << tile_min_range << std::endl;
 

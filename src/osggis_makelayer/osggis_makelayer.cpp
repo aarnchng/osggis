@@ -67,7 +67,7 @@
 #include <iterator>
 
 
-#define NOUT osg::notify(osg::NOTICE)
+#define NOUT osgGIS::notify(osg::NOTICE)
 #define ENDL std::endl
 
 
@@ -106,7 +106,7 @@ osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 int
 die( const std::string& msg )
 {
-	osg::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
+	osgGIS::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
 	return -1;
 }
 
@@ -268,7 +268,7 @@ parseCommandLine( int argc, char** argv )
 
         if ( terrain_srs.valid() )
         {
-            osg::notify(osg::NOTICE) << "Read terrain SRS from file => " << 
+            osgGIS::notify(osg::NOTICE) << "Read terrain SRS from file => " << 
                 terrain_srs->getName() << std::endl;
         }
     }

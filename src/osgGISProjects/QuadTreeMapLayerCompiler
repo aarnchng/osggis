@@ -1,0 +1,93 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_QUADTREE_MAP_LAYER_COMPILER_
+#define _OSGGISPROJECTS_QUADTREE_MAP_LAYER_COMPILER_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/MapLayerCompiler>
+#include <osgGISProjects/MapLayer>
+#include <osgGISProjects/QuadKey>
+#include <osgGIS/ResourcePackager>
+#include <osgGIS/TaskManager>
+#include <osgGIS/SmartReadCallback>
+#include <osgDB/Archive>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    /**
+     * Compiles quad-tree scene graphs from MapLayer definitions.
+     */
+    class OSGGISPROJECTS_EXPORT QuadTreeMapLayerCompiler : public MapLayerCompiler
+    {
+    public:
+        /**
+         * Constructs a new compiler.
+         *
+         * @param map_layer
+         *      Layer that we are going to compile.
+         *
+         * @param session
+         *      Session under which to compiler the map layer
+         */
+        QuadTreeMapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
+
+    protected: // MapLayerCompiler interface
+
+        virtual Profile* createProfile();
+
+        virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
+
+        virtual void buildIndex( Profile* profile );
+
+    protected:
+
+        class QuadTreeProfile : public Profile {
+        public:
+            QuadTreeProfile( const QuadMap& );
+            const QuadMap& getQuadMap() const;
+        private:
+            QuadMap qmap;
+        };
+
+    protected:
+
+        /* Builds the cell graph structure with placeholders for each cell geometry. */
+        //void buildSceneGraphSkeleton();
+
+        /* Scans the cell graph and assembles a list of cells that need compiling. */
+        //void assemblePagedTasks( TaskList& out_tasks );
+        //void assembleNonPagedTasks( TaskList& out_tasks );
+
+        /* Processes a compiled cell's resources and merges it with the cell graph */
+        //void processCompletedTask( Task* task );
+
+        osg::Node* createIntermediateIndexNode( const QuadKey& key, float min_range, float max_range, SmartReadCallback* );
+        osg::Node* createLeafIndexNode( const QuadKey& key );
+        Task* createQuadKeyTask( const QuadKey& key );
+        void collectGeometryKeys( const QuadMap& qmap, QuadKeyList& geom_keys );
+        //void buildQuadMapIndex( const QuadMap& qmap );
+        //void scrubQuadKeyIndex( const QuadKeyList& build_keys );
+        //void setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key, SmartReadCallback* );
+    };
+}
+
+#endif // _OSGGISPROJECTS_QUADTREE_MAP_LAYER_COMPILER_

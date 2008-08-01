@@ -17,10 +17,12 @@ SET(LIB_PUBLIC_HEADERS
     Common
     Document
     Export
+    GriddedMapLayerCompiler
     MapLayer
     MapLayerCompiler
     Project
     QuadKey
+    QuadTreeMapLayerCompiler
     RuntimeMap
     RuntimeMapLayer
     Serializer
@@ -40,10 +42,12 @@ ADD_LIBRARY(${LIB_NAME}
     BuildLayerSlice.cpp
     BuildTarget.cpp
     Document.cpp
+    GriddedMapLayerCompiler.cpp
     MapLayer.cpp
     MapLayerCompiler.cpp
     Project.cpp
     QuadKey.cpp
+    QuadTreeMapLayerCompiler.cpp
     RuntimeMap.cpp
     RuntimeMapLayer.cpp
     Serializer.cpp

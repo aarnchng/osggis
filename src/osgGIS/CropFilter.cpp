@@ -90,7 +90,7 @@ findIsectSegmentAndPoint(const GeoPoint& p1,
             double ub = ub_num/denom;
 
             if ( ua <= 1.0 ) {
-                //osg::notify( osg::WARN ) 
+                //osgGIS::notify( osg::WARN ) 
                 //    << " [" 
                 //    << i << "] "
                 //    << "isect point was found at on source segment (ua=" << ua << ")" 
@@ -102,7 +102,7 @@ findIsectSegmentAndPoint(const GeoPoint& p1,
 
             else if ( ub < 0.0 || ub > 1.0 ) 
             {
-                //osg::notify( osg::WARN ) 
+                //osgGIS::notify( osg::WARN ) 
                 //    << " [" 
                 //    << i << "] "
                 //    << "isect point was not found on target segment (ub=" << ub << ")" 
@@ -170,7 +170,7 @@ findIsectSegmentAndPoint(const GeoPoint& p1,
 //            }
 //            else
 //            {
-//                osg::notify( osg::WARN )
+//                osgGIS::notify( osg::WARN )
 //                    << "ERROR: findIsectSegmentAndPoint failed"
 //                    << std::endl;
 //                return false;
@@ -396,7 +396,7 @@ cropPolygonPart( const GeoPointList& initial_input, const GeoExtent& window, Geo
                         }
                         else
                         {
-                            osg::notify( osg::WARN ) 
+                            osgGIS::notify( osg::WARN ) 
                                 << "getIsectPoint failed" << std::endl;
                         }
                     }

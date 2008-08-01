@@ -26,6 +26,7 @@
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
 #include <osgGIS/SmartReadCallback>
+#include <osgGIS/FeatureLayerCompiler>
 #include <osgDB/Archive>
 
 using namespace osgGIS;
@@ -35,7 +36,7 @@ namespace osgGISProjects
     /**
      * Compiles scene graphs from MapLayer definitions.
      */
-    class OSGGISPROJECTS_EXPORT MapLayerCompiler
+    class OSGGISPROJECTS_EXPORT MapLayerCompiler : public osg::Referenced
     {
     public:
         /**
@@ -48,6 +49,13 @@ namespace osgGISProjects
          *      Session under which to compiler the map layer
          */
         MapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
+
+        /**
+         * Gets the map layer that this compiler is meant to compile.
+         *
+         * @return Map layer.
+         */
+        MapLayer* getMapLayer() const;
 
         /**
          * Sets whether the map layer is to be compiled into paged geometry.
@@ -86,6 +94,11 @@ namespace osgGISProjects
          *      Packager to use with this compiler.
          */
         void setResourcePackager( ResourcePackager* packager );
+
+        /**
+         * Gets the packager that will deploy resources and nodes for this compiler.
+         */
+        ResourcePackager* getResourcePackager() const;
                 
         /** 
          * Sets the reference terrain against which to compile.
@@ -128,6 +141,9 @@ namespace osgGISProjects
          */
         osgDB::Archive* getArchive();
         const std::string& getArchiveFileName() const;
+            
+        /* Gets the session under which this compiler will operate. */
+        Session* getSession();
 
     public:
         /**
@@ -148,33 +164,45 @@ namespace osgGISProjects
          */
         virtual bool compile( TaskManager* task_man );
 
-    protected:
+    public:
 
-        /* Builds the cell graph structure with placeholders for each cell geometry. */
-        void buildSceneGraphSkeleton();
+        class CellCompiler : public FeatureLayerCompiler {
+        public:
+            CellCompiler(
+                const std::string& abs_output_uri,
+                FeatureLayer*      layer,
+                FilterGraph*       graph,
+                FilterEnv*         env,
+                ResourcePackager*  packager,
+                osgDB::Archive*    archive =NULL);
 
-        /* Scans the cell graph and assembles a list of cells that need compiling. */
-        void assemblePagedTasks( TaskList& out_tasks );
-        void assembleNonPagedTasks( TaskList& out_tasks );
+            virtual void run();
+            virtual void runSynchronousPostProcess( Report* report );
 
-        /* Processes a compiled cell's resources and merges it with the cell graph */
-        void processCompletedTask( Task* task );
+        private:
+            std::string abs_output_uri;
+            osg::ref_ptr<osgDB::Archive> archive;
+            osg::ref_ptr<ResourcePackager> packager;
+            bool need_to_compile;
+            bool has_drawables;
+        };
 
-        /* Gets the session under which this compiler will operate. */
-        Session* getSession();
+        class Profile : public osg::Referenced {
+        public:
+            Profile() { }
+        };
 
-        osg::Node* createIntermediateIndexNode( const QuadKey& key, float min_range, float max_range );
-        osg::Node* createLeafIndexNode( const QuadKey& key );
         std::string createAbsPathFromTemplate( const std::string& core );
         std::string createRelPathFromTemplate( const std::string& core );
-        //osg::Vec3d calculateCentroid( const QuadKey& key );        
-        Task* createQuadKeyTask( const QuadKey& key );
-        void collectGeometryKeys( const QuadMap& qmap, QuadKeyList& geom_keys );
-        void buildQuadMapIndex( const QuadMap& qmap );
-        void scrubQuadKeyIndex( const QuadKeyList& build_keys );
-        void setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key );
 
-    private:
+    protected:
+
+        virtual Profile* createProfile() =0;
+        virtual unsigned int queueTasks( Profile*, TaskManager* ) =0;
+        virtual void buildIndex( Profile* ) =0;
+        virtual void processCompletedTask( CellCompiler* ) { }
+
+    protected:
         osg::ref_ptr<MapLayer>          map_layer;
 
         bool                            paged;
@@ -191,8 +219,8 @@ namespace osgGISProjects
         osg::ref_ptr<Session>           session;
 
         osg::ref_ptr<osg::Group>        scene_graph;
-        osg::ref_ptr<SmartReadCallback> read_callback;
 
+        void setCenterAndRadius( osg::PagedLOD* plod, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };
 }
 

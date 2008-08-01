@@ -248,7 +248,7 @@ SkinResource::createImage()
 
     //        if ( !image.valid() )
     //        {
-    //            osg::notify( osg::WARN ) << "** WARNING: unable to load image file: " << getAbsoluteURI() << std::endl;
+    //            osgGIS::notify( osg::WARN ) << "** WARNING: unable to load image file: " << getAbsoluteURI() << std::endl;
     //        }
     //    }
     //}

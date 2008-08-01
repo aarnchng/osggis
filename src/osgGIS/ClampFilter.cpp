@@ -231,14 +231,14 @@ clampPointPartToTerrain(GeoPointList&           part,
                     out_clamped_z = offset_point.z();
             }
             
-            //osg::notify( osg::WARN ) << "Found an intersection for point " 
+            //osgGIS::notify( osg::WARN ) << "Found an intersection for point " 
             //    << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
             //    << std::endl;
         }
 
         else 
         {
-            //osg::notify( osg::WARN ) << "MISSED an intersection for point " 
+            //osgGIS::notify( osg::WARN ) << "MISSED an intersection for point " 
             //    << osg::RadiansToDegrees(lat) << ", " << osg::RadiansToDegrees(lon) << ", " << hat
             //    << std::endl;
             
@@ -423,7 +423,7 @@ clampLinePartToTerrain(GeoPointList&           in_part,
         }
         else
         {
-            osg::notify( osg::INFO )
+            osgGIS::notify( osg::INFO )
                 << "uh oh no isect.." << std::endl;
         }
         

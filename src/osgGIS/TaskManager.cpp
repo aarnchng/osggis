@@ -75,7 +75,7 @@ TaskThread::runTask( Task* _task )
     }
     else
     {
-        osg::notify(osg::FATAL) << "ILLEGAL STATE" << std::endl;
+        osgGIS::notify(osg::FATAL) << "ILLEGAL STATE" << std::endl;
     }
 }
 
@@ -97,7 +97,7 @@ TaskThread::getResult()
     }
     else
     {
-        osg::notify(osg::FATAL) << "ILLEGAL STATE" << std::endl;
+        osgGIS::notify(osg::FATAL) << "ILLEGAL STATE" << std::endl;
     }
     return result;
 }
@@ -130,7 +130,7 @@ TaskManager::init( int num_threads )
 
     if ( multi_threaded && osg::Referenced::getThreadSafeReferenceCounting() == false )
     {
-        osg::notify(osg::FATAL) 
+        osgGIS::notify(osg::FATAL) 
             << "ERROR: use of the osgGIS Task Manager REQUIRES thread-safe reference counting be enabled"
             << std::endl;
 
@@ -145,9 +145,9 @@ TaskManager::init( int num_threads )
     }
 
     if ( multi_threaded )
-        osg::notify( osg::NOTICE ) << "Task manager started; threads = " << num_threads << std::endl;
+        osgGIS::notify( osg::NOTICE ) << "Task manager started; threads = " << num_threads << std::endl;
     else        
-        osg::notify( osg::NOTICE ) << "Task manager started (single-threaded)" << std::endl;
+        osgGIS::notify( osg::NOTICE ) << "Task manager started (single-threaded)" << std::endl;
 }
 
 void
@@ -211,7 +211,7 @@ TaskManager::update()
         {
             TaskThread* thread = *i;
 
-            //osg::notify(osg::ALWAYS) <<
+            //osgGIS::notify(osg::ALWAYS) <<
             //    "UPDATE: pending=" << pending_tasks.size() << ", running=" << num_running_tasks << ", completed=" << completed_tasks.size() 
             //    << std::endl;
 
@@ -222,7 +222,7 @@ TaskManager::update()
                 osg::ref_ptr<Task> task = thread->getResult();
                 completed_tasks.push( task.get() );
                 num_running_tasks--;
-                osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+                osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
             }
 
             // dispatch any pending tasks:
@@ -232,7 +232,7 @@ TaskManager::update()
                 pending_tasks.pop();
                 num_running_tasks++;
                 thread->runTask( task.get() );
-                osg::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
+                osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
             }
         }
     }
@@ -246,7 +246,7 @@ TaskManager::update()
 
             if ( task.valid() )
             {
-                osg::notify(osg::NOTICE) << "0> " << task->getName() << ": started" << std::endl;
+                osgGIS::notify(osg::NOTICE) << "0> " << task->getName() << ": started" << std::endl;
 
                 osg::Timer_t t0 = osg::Timer::instance()->tick();
                 task->run();
@@ -255,7 +255,7 @@ TaskManager::update()
 
                 double seconds = osg::Timer::instance()->delta_s( t0, t1 );
 
-                osg::notify(osg::NOTICE) << "0> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+                osgGIS::notify(osg::NOTICE) << "0> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
             }
         }
     }

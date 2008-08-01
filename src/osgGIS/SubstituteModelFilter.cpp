@@ -370,7 +370,7 @@ registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_tex
                             //session->getResources()->addResource( skin );
                             //session->markResourceUsed( skin );
 
-                            //osg::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
+                            //osgGIS::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
                         }
                     }
                 }

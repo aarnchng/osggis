@@ -72,7 +72,7 @@ SmartReadCallback::readNodeFile( const std::string& filename )
         if ( i != cache.end() )
         {
             //setMruNode( i->second.get() );
-            //osg::notify(osg::WARN)<<"Read from cache: " << filename << ", radius=" << mru_world_bs.radius() << std::endl;
+            //osgGIS::notify(osg::WARN)<<"Read from cache: " << filename << ", radius=" << mru_world_bs.radius() << std::endl;
             return i->second.get();
         }
     }
@@ -87,7 +87,7 @@ SmartReadCallback::readNodeFile( const std::string& filename )
 
         if ( cache.size() < max_cache_size )
         {
-            //osg::notify(osg::INFO)<<"Inserting into cache "<<filename<<std::endl;
+            //osgGIS::notify(osg::INFO)<<"Inserting into cache "<<filename<<std::endl;
             cache[filename] = node;
         }
         else
@@ -97,24 +97,24 @@ SmartReadCallback::readNodeFile( const std::string& filename )
             {
                 if ( i->second->referenceCount() == 1 )
                 {
-                    //osg::notify(osg::NOTICE)<<"Erasing "<<i->first<<std::endl;
+                    //osgGIS::notify(osg::NOTICE)<<"Erasing "<<i->first<<std::endl;
                     // found a node which is only referenced in the cache so we can disgard it
                     // and know that the actual memory will be released.
                     cache.erase( i );
                     break;
                 }
             }
-            //osg::notify(osg::INFO)<<"And the replacing with "<<filename<<std::endl;
+            //osgGIS::notify(osg::INFO)<<"And the replacing with "<<filename<<std::endl;
             cache[filename] = node;
         }
 
         //setMruNode( node.get() );
-        //osg::notify(osg::WARN)<<"Read from disk:  " << filename << ", radius=" << mru_world_bs.radius() << std::endl;
+        //osgGIS::notify(osg::WARN)<<"Read from disk:  " << filename << ", radius=" << mru_world_bs.radius() << std::endl;
     }
 
     else
     {
-        //osg::notify( osg::WARN ) << "SMART READ CALLBACK: Read(" << filename << ") FAILED!" << std::endl;
+        //osgGIS::notify( osg::WARN ) << "SMART READ CALLBACK: Read(" << filename << ") FAILED!" << std::endl;
     }
 
     return node.release();
@@ -160,7 +160,7 @@ SmartReadCallback::getMruNodeIfContains( const osg::Vec3d& p, osg::Node* fallbac
     if ( mru_node.valid() )
     {
         //osg::BoundingSphere bs = mru_world_bs;
-        //osg::notify(osg::WARN)
+        //osgGIS::notify(osg::WARN)
         //    << "Bound = " << mru_world_bs.center().x() << "," 
         //    << mru_world_bs.center().y() << ","
         //    << mru_world_bs.center().z() << "; "
@@ -175,7 +175,7 @@ SmartReadCallback::getMruNodeIfContains( const osg::Vec3d& p, osg::Node* fallbac
             result = mru_node.get();
         }
     }
-    //osg::notify(osg::WARN) << "Hitrate: " << getMruHitRatio() << std::endl;
+    //osgGIS::notify(osg::WARN) << "Hitrate: " << getMruHitRatio() << std::endl;
     return result;
 }
 
@@ -189,7 +189,7 @@ SmartReadCallback::getMruNodeIfContains( const osg::Vec3d& p1, const osg::Vec3d&
         mru_hits++;
         result = mru_node.get();
     }
-    //osg::notify(osg::WARN) << "Hitrate: " << getMruHitRatio() << std::endl;
+    //osgGIS::notify(osg::WARN) << "Hitrate: " << getMruHitRatio() << std::endl;
     return result;
 }
 

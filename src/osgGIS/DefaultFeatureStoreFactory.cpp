@@ -47,11 +47,11 @@ DefaultFeatureStoreFactory::connectToFeatureStore( const std::string& uri )
 
 	if ( !result )
 	{
-		osg::notify( osg::WARN ) << "Cannot find an appropriate feature store to handle URI: " << uri << std::endl;
+		osgGIS::notify( osg::WARN ) << "Cannot find an appropriate feature store to handle URI: " << uri << std::endl;
 	}
 	else if ( !result->isReady() )
 	{
-		osg::notify( osg::WARN ) << "Unable to initialize feature store for URI: " << uri << std::endl;
+		osgGIS::notify( osg::WARN ) << "Unable to initialize feature store for URI: " << uri << std::endl;
 		result->unref();
 		result = NULL;
 	}
