@@ -151,7 +151,7 @@ static void
 report( const std::string& str )
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> sl(report_mutex);
-    osg::notify(osg::NOTICE) << str;
+    osgGIS::notify(osg::NOTICE) << str;
 }
 
 
@@ -433,7 +433,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                 else
                 {
 
-                    osg::notify(osg::NOTICE) 
+                    osgGIS::notify(osg::NOTICE) 
                         << task->getName() << " starting... " 
                         << sub_extent.toString() << "..."
                         << std::flush;
@@ -445,7 +445,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                         localizeResources( osgDB::getFilePath( output_file ) );
                     }
 
-                    osg::notify(osg::NOTICE) << "completed" << std::endl;
+                    osgGIS::notify(osg::NOTICE) << "completed" << std::endl;
                 }
             }
         }
@@ -473,7 +473,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
                     }   
 
                     int perc = (int)(100.0f * ((float)++count)/(float)total);
-                    osg::notify(osg::NOTICE) << "..." << perc << "% done" << std::endl << std::flush;
+                    osgGIS::notify(osg::NOTICE) << "..." << perc << "% done" << std::endl << std::flush;
                 } 
             }
         }
@@ -498,7 +498,7 @@ GriddedLayerCompiler::compile( FeatureLayer* layer, const std::string& output_fi
     
     osg::Timer_t end = osg::Timer::instance()->tick();
 
-    osg::notify(osg::FATAL) 
+    osgGIS::notify(osg::FATAL) 
         << "[GriddedLayerCompiler] total time = " 
         << osg::Timer::instance()->delta_s( start, end )
         << "s" << std::endl;

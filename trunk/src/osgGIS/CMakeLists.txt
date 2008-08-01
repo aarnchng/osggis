@@ -70,6 +70,7 @@ SET(LIB_PUBLIC_HEADERS
     ModelResource
     NodeFilter
     NodeFilterState
+    Notify
     OGR_Feature
     OGR_FeatureStore
     OGR_SpatialReference
@@ -177,6 +178,7 @@ ADD_LIBRARY(${LIB_NAME}
     ModelResource.cpp
     NodeFilter.cpp
     NodeFilterState.cpp
+    Notify.cpp
     OGR_Feature.cpp
     OGR_FeatureStore.cpp
     OGR_SpatialReference.cpp

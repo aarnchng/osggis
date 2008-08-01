@@ -78,11 +78,12 @@ struct CleaningVisitor : public osg::NodeVisitor
 
     void consolidateColors( osg::Geometry& geom )
     {
-        // if all the colors are the same, convert to BIND_OVERALL.
-        bool diff = false;
-        osg::Vec4 c0, c1;
+        // If all the colors are the same, convert to BIND_OVERALL.
         if ( geom.getColorArray() && geom.getColorBinding() != osg::Geometry::BIND_OVERALL )
         {
+            bool consolidate = true;
+            osg::Vec4 c0, c1(1,1,1,1);
+
             osg::Vec4Array* colors = dynamic_cast<osg::Vec4Array*>( geom.getColorArray() );
             if ( colors )
             {
@@ -91,50 +92,53 @@ struct CleaningVisitor : public osg::NodeVisitor
                     c1 = (*colors)[i];
                     if ( i > 0 && c1 != c0 )
                     {
-                        diff = true;
+                        consolidate = false;
                         break;
                     }
                     c0 = c1;
                 }
             }
-        }
-        if ( !diff )
-        {
-            osg::Vec4Array* new_colors = new osg::Vec4Array(1);
-            (*new_colors)[0] = c1;
-            geom.setColorArray( new_colors );
-            geom.setColorBinding( osg::Geometry::BIND_OVERALL );
+
+            if ( consolidate )
+            {
+                osg::Vec4Array* new_colors = new osg::Vec4Array(1);
+                (*new_colors)[0] = c1;
+                geom.setColorArray( new_colors );
+                geom.setColorBinding( osg::Geometry::BIND_OVERALL );
+            }
         }
     }
 
     void consolidateNormals( osg::Geometry& geom )
     {
-        // if all the colors are the same, convert to BIND_OVERALL.
-        bool diff = false;
-        osg::Vec3 n0, n1;
+        // If all the colors are the same, convert to BIND_OVERALL.
         if ( geom.getNormalArray() && geom.getNormalBinding() != osg::Geometry::BIND_OVERALL )
         {
-            osg::Vec3Array* normals = dynamic_cast<osg::Vec3Array*>( geom.getNormalArray() );
-            if ( normals )
+            bool consolidate = true;
+            osg::Vec3 v0, v1(0,0,1);
+
+            osg::Vec3Array* colors = dynamic_cast<osg::Vec3Array*>( geom.getNormalArray() );
+            if ( colors )
             {
-                for( unsigned int i=0; i<normals->size(); i++ )
+                for( unsigned int i=0; i<colors->size(); i++ )
                 {
-                    n1 = (*normals)[i];
-                    if ( i > 0 && n1 != n0 )
+                    v1 = (*colors)[i];
+                    if ( i > 0 && v1 != v0 )
                     {
-                        diff = true;
+                        consolidate = false;
                         break;
                     }
-                    n0 = n1;
+                    v0 = v1;
                 }
             }
-        }
-        if ( !diff )
-        {
-            osg::Vec3Array* new_normals = new osg::Vec3Array(1);
-            (*new_normals)[0] = n1;
-            geom.setNormalArray( new_normals );
-            geom.setNormalBinding( osg::Geometry::BIND_OVERALL );
+
+            if ( consolidate )
+            {
+                osg::Vec3Array* new_vector = new osg::Vec3Array(1);
+                (*new_vector)[0] = v1;
+                geom.setNormalArray( new_vector );
+                geom.setNormalBinding( osg::Geometry::BIND_OVERALL );
+            }
         }
     }
 };

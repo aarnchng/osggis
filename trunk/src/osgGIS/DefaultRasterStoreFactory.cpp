@@ -47,11 +47,11 @@ DefaultRasterStoreFactory::connectToRasterStore( const std::string& uri )
 
 	if ( !result )
 	{
-		osg::notify( osg::WARN ) << "Cannot find an appropriate raster store to handle URI: " << uri << std::endl;
+		osgGIS::notify( osg::WARN ) << "Cannot find an appropriate raster store to handle URI: " << uri << std::endl;
 	}
 	else if ( !result->isReady() )
 	{
-		osg::notify( osg::WARN ) << "Unable to initialize raster store for URI: " << uri << std::endl;
+		osgGIS::notify( osg::WARN ) << "Unable to initialize raster store for URI: " << uri << std::endl;
 		result->unref();
 		result = NULL;
 	}

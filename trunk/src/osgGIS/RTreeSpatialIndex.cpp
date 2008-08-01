@@ -82,7 +82,7 @@ RTreeSpatialIndex::buildIndex()
             loaded = rtree->readFrom( input, store->getSRS(), extent );
             input.close();
             if ( loaded )
-                osg::notify(osg::NOTICE) << "Loaded cached spatial index OK..";
+                osgGIS::notify(osg::NOTICE) << "Loaded cached spatial index OK..";
         }    
     }
     

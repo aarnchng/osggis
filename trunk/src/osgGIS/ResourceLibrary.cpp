@@ -64,13 +64,13 @@ ResourceLibrary::addResource( Resource* resource )
         {
             SkinResource* skin = static_cast<SkinResource*>( resource );
             skins.push_back( skin );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added skin " << skin->getAbsoluteURI() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added skin " << skin->getAbsoluteURI() << std::endl;
         }
         else if ( dynamic_cast<ModelResource*>( resource ) )
         {
             ModelResource* model = static_cast<ModelResource*>( resource );
             models.push_back( model );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added model " << model->getAbsoluteURI() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added model " << model->getAbsoluteURI() << std::endl;
 
             osgDB::Registry::instance()->getDataFilePathList().push_back(
                 osgDB::getFilePath( model->getAbsoluteURI() ) );
@@ -79,25 +79,25 @@ ResourceLibrary::addResource( Resource* resource )
         {
             RasterResource* raster = static_cast<RasterResource*>( resource );
             rasters.push_back( raster );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added raster " << raster->getAbsoluteURI() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added raster " << raster->getAbsoluteURI() << std::endl;
         }
         else if ( dynamic_cast<FeatureLayerResource*>( resource ) )
         {
             FeatureLayerResource* flr = static_cast<FeatureLayerResource*>( resource );
             feature_layers.push_back( flr );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added feature layer " << flr->getAbsoluteURI() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added feature layer " << flr->getAbsoluteURI() << std::endl;
         }
         else if ( dynamic_cast<SRSResource*>( resource ) )
         {
             SRSResource* srsr = static_cast<SRSResource*>( resource );
             srs_list.push_back( srsr );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added SRS " << srsr->getName() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added SRS " << srsr->getName() << std::endl;
         }
         else if ( dynamic_cast<PathResource*>( resource ) )
         {
             PathResource* pr = static_cast<PathResource*>( resource );
             paths.push_back( pr );
-            osg::notify( osg::INFO ) << "ResourceLibrary: added path " << pr->getAbsoluteURI() << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourceLibrary: added path " << pr->getAbsoluteURI() << std::endl;
         }
 
         resource->setMutex( mut );
@@ -120,7 +120,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     skins.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed skin \"" << resource->getName() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed skin \"" << resource->getName() << "\"" << std::endl;
                     done = true;
                     break;
                 }
@@ -133,7 +133,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     models.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed model \"" << resource->getName() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed model \"" << resource->getName() << "\"" << std::endl;
                     done = true;
                     break;
                 }
@@ -146,7 +146,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     rasters.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed raster \"" << resource->getName() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed raster \"" << resource->getName() << "\"" << std::endl;
                     done = true;
                     break;
                 }
@@ -159,7 +159,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     feature_layers.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed feature layer \"" << resource->getName() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed feature layer \"" << resource->getName() << "\"" << std::endl;
                     done = true;
                     break;
                 }
@@ -172,7 +172,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     srs_list.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed SRS \"" << resource->getName() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed SRS \"" << resource->getName() << "\"" << std::endl;
                     done = true;
                     break;
                 }
@@ -185,7 +185,7 @@ ResourceLibrary::removeResource( Resource* resource )
                 if ( i->get() == resource )
                 {
                     paths.erase( i );
-                    osg::notify( osg::INFO ) << "ResourceLibrary: Removed Path \"" << resource->getAbsoluteURI() << "\"" << std::endl;
+                    osgGIS::notify( osg::INFO ) << "ResourceLibrary: Removed Path \"" << resource->getAbsoluteURI() << "\"" << std::endl;
                     done = true;
                     break;
                 }

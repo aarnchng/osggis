@@ -54,7 +54,7 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
             {
                 if ( ogr_srs->getAttrValue( "PROJECTION", 0 ) == "Lambert_Conformal_Conic" )
                 {
-                    osg::notify(osg::WARN)
+                    osgGIS::notify(osg::WARN)
                         << std::endl
                         << "***WANRING*** SRS has an invalid ESRI-style LCC projection ... transformations may not work"
                         << std::endl
@@ -73,7 +73,7 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
             //    if ( new_spatial_ref )
             //    {
             //        spatial_ref = new_spatial_ref;
-            //        osg::notify( osg::NOTICE ) << "NOTE: changed SRS to " << spatial_ref->getWKT() << std::endl;
+            //        osgGIS::notify( osg::NOTICE ) << "NOTE: changed SRS to " << spatial_ref->getWKT() << std::endl;
             //    }
             //}
         }
@@ -81,7 +81,7 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
 
     if ( isReady() )
     {
-        osg::notify(osg::NOTICE)
+        osgGIS::notify(osg::NOTICE)
             << "Opened feature store at " << getName() << std::endl
             << "   Extent = " << getExtent().toString() << std::endl
             << "   SRS = " << getSRS()->getWKT() << std::endl;
@@ -177,7 +177,7 @@ OGR_FeatureStore::OGR_FeatureStore(const std::string&         abs_path,
                     //TODO: handle return error:
                     if ( OGR_L_CreateField( layer_handle, field_handle, true ) != OGRERR_NONE )
                     {
-                        osg::notify(osg::WARN) << "Error: OGR_FeatureStore: OGR_L_CreateField failed" << std::endl;
+                        osgGIS::notify(osg::WARN) << "Error: OGR_FeatureStore: OGR_L_CreateField failed" << std::endl;
                     }
 
                     OGR_Fld_Destroy( field_handle );
@@ -204,7 +204,7 @@ OGR_FeatureStore::~OGR_FeatureStore()
 		ds_handle = NULL;
 	}
 
-    //osg::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
+    //osgGIS::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
 }
 
 
@@ -263,7 +263,7 @@ OGR_FeatureStore::getFeature( const FeatureOID& oid )
     }
     else
     {
-        osg::notify( osg::WARN ) << "Feature store does not support getFeature(OID)" << std::endl;
+        osgGIS::notify( osg::WARN ) << "Feature store does not support getFeature(OID)" << std::endl;
     }
 	return result;
 }
@@ -336,7 +336,7 @@ OGR_FeatureStore::calcExtent()
 	}
 	else
 	{
-		osg::notify( osg::WARN ) << "Unable to compute extent for feature store" << std::endl;
+		osgGIS::notify( osg::WARN ) << "Unable to compute extent for feature store" << std::endl;
         extent = GeoExtent::invalid();
 	}
 
@@ -463,7 +463,7 @@ OGR_FeatureStore::insertFeature( Feature* input )
                 {
                     if ( OGR_G_AddGeometryDirectly( group_handle, shape_handle ) != OGRERR_NONE )
                     {
-                        osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_G_AddGeometryDirectly failed!" << std::endl;
+                        osgGIS::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_G_AddGeometryDirectly failed!" << std::endl;
                     }
                 }
             }
@@ -471,7 +471,7 @@ OGR_FeatureStore::insertFeature( Feature* input )
             // transfers ownership to the feature:
             if ( OGR_F_SetGeometryDirectly( feature_handle, group_handle ) != OGRERR_NONE )
             {
-                osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
+                osgGIS::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
             }
         }
         else if ( input->getShapes().size() > 0 )
@@ -483,7 +483,7 @@ OGR_FeatureStore::insertFeature( Feature* input )
                 // transfers ownership to the feature:
                 if ( OGR_F_SetGeometryDirectly( feature_handle, shape_handle ) != OGRERR_NONE )
                 {
-                    osg::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
+                    osgGIS::notify( osg::WARN ) << "WARNING: OGR_FeatureStore, OGR_F_SetGeometryDirectly failed!" << std::endl;
                 }
             }
         }
@@ -491,7 +491,7 @@ OGR_FeatureStore::insertFeature( Feature* input )
         if ( OGR_L_CreateFeature( layer_handle, feature_handle ) != OGRERR_NONE )
         {
             //TODO: handle error better
-            osg::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_L_CreateFeature failed!" << std::endl;
+            osgGIS::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_L_CreateFeature failed!" << std::endl;
             OGR_F_Destroy( feature_handle );
             return false;
         }
@@ -502,7 +502,7 @@ OGR_FeatureStore::insertFeature( Feature* input )
     else
     {
             //TODO: handle error better
-        osg::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_F_Create failed." << std::endl;
+        osgGIS::notify(osg::WARN) << "Error: OGR_FeatureStore, OGR_F_Create failed." << std::endl;
         return false;
     }
 

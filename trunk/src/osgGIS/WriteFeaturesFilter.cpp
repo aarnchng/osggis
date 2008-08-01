@@ -105,7 +105,7 @@ WriteFeaturesFilter::process( Feature* input, FilterEnv* env )
                 if ( store )
                 {
                     env->getSession()->setProperty( Property( PROP_FEATURE_STORE, store ) );
-                    osg::notify(osg::NOTICE) << "WriteFeatures: created feature store \"" << getOutputURI() << "\"" << std::endl;
+                    osgGIS::notify(osg::NOTICE) << "WriteFeatures: created feature store \"" << getOutputURI() << "\"" << std::endl;
                 }
             }
         }

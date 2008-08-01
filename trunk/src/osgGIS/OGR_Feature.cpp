@@ -123,7 +123,7 @@ OGR_Feature::load( void* handle )
 		}
 		else // unsupported type.
 		{
-			osg::notify( osg::WARN ) << "Unsupported WKB shape type:" << wkb_type << std::endl;
+			osgGIS::notify( osg::WARN ) << "Unsupported WKB shape type:" << wkb_type << std::endl;
             //TODO: set @invald@ code??
 			return;
 		}
@@ -190,7 +190,7 @@ OGR_Feature::decodeShape( void* geom_handle, int dim, GeoShape::ShapeType shape_
 
     if ( num_parts == 0 )
     {
-        //osg::notify( osg::WARN ) << "NUMPARTS = 0..." << std::endl;
+        //osgGIS::notify( osg::WARN ) << "NUMPARTS = 0..." << std::endl;
         decodePart( geom_handle, shape, dim );
     }
     else

@@ -156,7 +156,7 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
                     {
                         file = new RefFile( output_path );
                         env->getSession()->setProperty( Property( PROP_FILE, file ) );
-                        osg::notify(osg::NOTICE) << "WriteText: writing to " << output_path << std::endl;
+                        osgGIS::notify(osg::NOTICE) << "WriteText: writing to " << output_path << std::endl;
                     }
                 }
             }

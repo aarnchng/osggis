@@ -43,7 +43,7 @@
 
 #include <iostream>
 
-#define NOUT osg::notify(osg::NOTICE)
+#define NOUT osgGIS::notify(osg::NOTICE)
 #define ENDL std::endl
 
 
@@ -57,7 +57,7 @@ float buffer = 0.0;
 int
 die( const std::string& msg )
 {
-	osg::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
+	osgGIS::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
 	return -1;
 }
 

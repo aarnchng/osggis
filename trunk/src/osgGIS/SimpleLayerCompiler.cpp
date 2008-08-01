@@ -70,7 +70,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, const 
     osg::Node* result = NULL;
 
     if ( !layer ) {
-        osg::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
+        osgGIS::notify( osg::WARN ) << "Illegal null feature layer" << std::endl;
         return NULL;
     }
     

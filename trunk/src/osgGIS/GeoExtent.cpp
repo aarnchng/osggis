@@ -415,7 +415,7 @@ GeoExtent::expandToInclude( const GeoPoint& input )
 {
     if ( !isValid() || !input.isValid() )
     {
-        osg::notify( osg::WARN ) << "GeoExtent::expandToInclude: Illegal: either the extent of the input point is invalid" << std::endl;
+        osgGIS::notify( osg::WARN ) << "GeoExtent::expandToInclude: Illegal: either the extent of the input point is invalid" << std::endl;
         return;
     }
 
@@ -449,7 +449,7 @@ GeoExtent::expandToInclude( const GeoPoint& input )
             }
             else
             {
-                osg::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN ) 
                     << "GeoExtent::expandToInclude: "
                     << "Unable to reproject coordinates" << std::endl;
             }

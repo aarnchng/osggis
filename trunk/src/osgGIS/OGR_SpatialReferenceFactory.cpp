@@ -73,7 +73,7 @@ OGR_SpatialReferenceFactory::createSRSfromPROJ4( const std::string& proj4 )
 	}
 	else 
 	{
-		osg::notify(osg::WARN) << "Unable to create spatial reference from PROJ4: " << proj4 << std::endl;
+		osgGIS::notify(osg::WARN) << "Unable to create spatial reference from PROJ4: " << proj4 << std::endl;
 		OSRDestroySpatialReference( handle );
 	}
 
@@ -117,7 +117,7 @@ OGR_SpatialReferenceFactory::createSRSfromWKT(const std::string& wkt,
 	}
 	else 
 	{
-		osg::notify(osg::WARN) << "Unable to create spatial reference from WKT: " << wkt << std::endl;
+		osgGIS::notify(osg::WARN) << "Unable to create spatial reference from WKT: " << wkt << std::endl;
 		OSRDestroySpatialReference( handle );
 	}
 
@@ -137,7 +137,7 @@ OGR_SpatialReferenceFactory::createSRSfromWKTfile( const std::string& abs_path )
     }
     else
     {
-        osg::notify(osg::WARN) << "Failed to load SRS from file " << abs_path << std::endl;
+        osgGIS::notify(osg::WARN) << "Failed to load SRS from file " << abs_path << std::endl;
         return NULL;
     }
 }
@@ -169,7 +169,7 @@ OGR_SpatialReferenceFactory::createSRSfromESRI(const std::string& esri,
 	}
 	else 
 	{
-		osg::notify(osg::WARN) << "Unable to create spatial reference from ESRI: " << esri << std::endl;
+		osgGIS::notify(osg::WARN) << "Unable to create spatial reference from ESRI: " << esri << std::endl;
 		OSRDestroySpatialReference( handle );
 	}
 

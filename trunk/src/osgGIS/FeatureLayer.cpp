@@ -30,11 +30,11 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
 
     if ( store.valid() )
     {
-        osg::notify(osg::NOTICE) << "Building spatial index..." << std::flush;
+        osgGIS::notify(osg::NOTICE) << "Building spatial index..." << std::flush;
 
         index = new RTreeSpatialIndex( store.get() );
 
-        osg::notify(osg::NOTICE) << "done." << std::endl;
+        osgGIS::notify(osg::NOTICE) << "done." << std::endl;
     }
 }
 
@@ -42,7 +42,7 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
 FeatureLayer::~FeatureLayer()
 {
     //NOP
-    osg::notify(osg::NOTICE) << "dtor" << std::endl;
+    osgGIS::notify(osg::NOTICE) << "dtor" << std::endl;
 }
 
 
@@ -130,7 +130,7 @@ FeatureLayer::getCursor( const GeoExtent& extent )
     }
     else 
     {
-        osg::notify( osg::WARN )
+        osgGIS::notify( osg::WARN )
             << "osgGIS::FeatureLayer::createCursor, no spatial index available" << std::endl;
         return FeatureCursor();
     }

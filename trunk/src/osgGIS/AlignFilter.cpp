@@ -224,7 +224,7 @@ AlignFilter::process( Feature* input, FilterEnv* env )
             
             if ( !alignment_layer.valid() )
             {
-                osg::notify(osg::WARN) << "AlignFilter: Error, cannot access alignment layer " 
+                osgGIS::notify(osg::WARN) << "AlignFilter: Error, cannot access alignment layer " 
                     << getAlignmentLayerResourceName()
                     << std::endl;
             }
@@ -270,7 +270,7 @@ AlignFilter::process( Feature* input, FilterEnv* env )
 
             input->setAttribute( getOutputAttribute(), best_heading );
 
-            //osg::notify(osg::NOTICE)
+            //osgGIS::notify(osg::NOTICE)
             //    << "Feature " << input->getOID() << ", heading = " << best_heading << std::endl;
         }
     }

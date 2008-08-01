@@ -106,7 +106,7 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
               max_tex_size( _max_tex_size ),
               osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ) 
         {
-            osg::notify( osg::INFO ) << "ResourcePackager: rewriting resources references" << std::endl;
+            osgGIS::notify( osg::INFO ) << "ResourcePackager: rewriting resources references" << std::endl;
         }
         
         //std::string archive_name;
@@ -137,7 +137,7 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
             std::string name = osgDB::getRealPath( proxy.getFileName( 0 ) );
             std::string simple = osgDB::getSimpleFileName( name );
             proxy.setFileName( 0, simple );
-            osg::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
+            osgGIS::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
             osg::NodeVisitor::apply( proxy );
         }
 
@@ -160,37 +160,24 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
                 osg::Image* image = *i;
                 std::string name = osgDB::getRealPath( image->getFileName() );
 
-                // fix the in-archive reference:
-                //if ( archive_name.length() > 0 )
-                //{
-                //    if ( !StringUtils::startsWith( name, archive_name ) )
-                //    {
-                //        std::string path = osgDB::concatPaths( archive_name, tex->getImage()->getFileName() );
-                //        tex->getImage()->setFileName( path );
-                //        osg::notify(osg::INFO) << "  Rewrote " << name << " as " << path << std::endl;
-                //    }
-                //}
-                //else
+                std::string simple = osgDB::getSimpleFileName( name );
+                
+                if ( max_tex_size > 0 )
                 {
-                    std::string simple = osgDB::getSimpleFileName( name );
-                    
-                    if ( max_tex_size > 0 )
-                    {
-                        std::stringstream buf;
-                        buf << osgDB::getNameLessExtension( simple ) 
-                            << "_" << (int)max_tex_size << "."
-                            << osgDB::getLowerCaseFileExtension( simple );
-                        simple = buf.str();
-                    }
-
-                    if ( compress_textures )
-                    {
-                        simple = osgDB::getNameLessExtension( simple ) + ".dds";
-                    }
-
-                    image->setFileName( simple );
-                    osg::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
+                    std::stringstream buf;
+                    buf << osgDB::getNameLessExtension( simple ) 
+                        << "_" << (int)max_tex_size << "."
+                        << osgDB::getLowerCaseFileExtension( simple );
+                    simple = buf.str();
                 }
+
+                if ( compress_textures )
+                {
+                    simple = osgDB::getNameLessExtension( simple ) + ".dds";
+                }
+
+                image->setFileName( simple );
+                osgGIS::notify( osg::INFO ) << "  Rewrote " << name << " => " << simple << std::endl;
             }
         }
     };
@@ -292,9 +279,8 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
     for( ModelResources::const_iterator i = models.begin(); i != models.end(); i++ )
     {
         const std::string& model_abs_uri = i->get()->getAbsoluteURI();
-        //ModelResource* model = i->get(); //static_cast<ModelResource*>( resource );
 
-        osg::notify(osg::INFO) << "Localizing extref " << model_abs_uri << std::endl;
+        osgGIS::notify(osg::INFO) << "Localizing extref " << model_abs_uri << std::endl;
 
         osg::ref_ptr<osg::Node> node = osgDB::readNodeFile( model_abs_uri );
         if ( node.valid() )
@@ -339,17 +325,6 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
 bool
 ResourcePackager::packageNode( osg::Node* node, const std::string& abs_uri )
 {
-    //if ( archive.valid() )
-    //{
-    //    std::string file = osgDB::getSimpleFileName( abs_output_uri );
-    //    osgDB::ReaderWriter::WriteResult r = archive->writeNode( *getResultNode(), file );
-    //    if ( !r.success() )
-    //    {
-    //        result = FilterGraphResult::error( "Cell built OK, but failed to write to archive" );
-    //    }
-    //}
-    //else
-    //    {
     bool write_ok = false;
     if ( node )
     {
@@ -367,14 +342,20 @@ ResourcePackager::packageNode( osg::Node* node, const std::string& abs_uri )
             else
                 options->setOptionString( "noTexturesInIVEFile " + option_string );
         }
-            
-        write_ok = osgDB::makeDirectoryForFile( abs_uri );
-        if ( write_ok )
+
+        if ( archive.valid() )
         {
+            osgDB::ReaderWriter::WriteResult r = archive->writeNode( 
+                *node,
+                osgDB::getSimpleFileName( abs_uri ),
+                options.get() );
+            write_ok = r.success();
+        }
+        else
+        {            
             write_ok = osgDB::writeNodeFile( *node, abs_uri, options.get() );
         }
     }
-    //    }
 
     return write_ok;
 }

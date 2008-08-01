@@ -172,7 +172,7 @@ Registry::addFilterType( const std::string& type, FilterFactory* factory )
 {
     std::string n = normalize(type);
     filter_factories[n] = factory;
-    osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered filter type " << type << std::endl;
+    osgGIS::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered filter type " << type << std::endl;
     return true;
 }
 
@@ -190,7 +190,7 @@ Registry::addResourceType( const std::string& type, ResourceFactory* factory )
 {
     std::string n = normalize(type);
     resource_factories[n] = factory;
-    osg::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered resource type " << type << std::endl;
+    osgGIS::notify( osg::DEBUG_INFO ) << "osgGIS::Registry: Registered resource type " << type << std::endl;
     return true;
 }
 

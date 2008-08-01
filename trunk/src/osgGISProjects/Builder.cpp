@@ -19,11 +19,13 @@
 
 #include <osgGISProjects/Builder>
 #include <osgGISProjects/Build>
-#include <osgGISProjects/MapLayerCompiler>
+#include <osgGISProjects/QuadTreeMapLayerCompiler>
+#include <osgGISProjects/GriddedMapLayerCompiler>
+#include <osgGISProjects/SimpleMapLayerCompiler>
 #include <osgGIS/FeatureLayer>
-#include <osgGIS/SimpleLayerCompiler>
-#include <osgGIS/PagedLayerCompiler>
-#include <osgGIS/GriddedLayerCompiler>
+//#include <osgGIS/SimpleLayerCompiler>
+//#include <osgGIS/PagedLayerCompiler>
+//#include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/Registry>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Resource>
@@ -63,14 +65,14 @@ getTerrainData(Terrain*                        terrain,
                 out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
             }
 
-            osg::notify( osg::NOTICE )
+            osgGIS::notify( osg::NOTICE )
                 << "Loaded TERRAIN from \"" << terrain->getAbsoluteURI() << "\", SRS = "
                 << (out_terrain_srs.valid()? out_terrain_srs->getName() : "unknown")
                 << std::endl;
         }
         else
         {
-            osg::notify( osg::WARN )
+            osgGIS::notify( osg::WARN )
                 << "Unable to load data for terrain \""
                 << terrain->getName() << "\"." 
                 << std::endl;
@@ -170,33 +172,33 @@ Builder::build( BuildTarget* target )
 bool
 Builder::build( Source* source, Session* session )
 {
-    osg::notify(osg::NOTICE) << "Building source " << source->getName() << std::endl;
+    osgGIS::notify(osg::NOTICE) << "Building source " << source->getName() << std::endl;
 
     // only need to build intermediate sources.
     if ( !source->isIntermediate() )
     {
-        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (not intermediate)." << std::endl;
+        osgGIS::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (not intermediate)." << std::endl;
         return true;
     }
 
     Source* parent = source->getParentSource();
     if ( !parent )
     {
-        osg::notify(osg::WARN) << "...ERROR: No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::notify(osg::WARN) << "...ERROR: No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
     // check whether a rebuild is required:
     if ( parent->getTimeLastModified() < source->getTimeLastModified() )
     {
-        osg::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (newer than parent)." << std::endl;
+        osgGIS::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (newer than parent)." << std::endl;
         return true;
     }
 
     // build it's parent first:
     if ( !build( parent, session ) )
     {
-        osg::notify(osg::WARN) << "...ERROR: Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::notify(osg::WARN) << "...ERROR: Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -204,7 +206,7 @@ Builder::build( Source* source, Session* session )
     FilterGraph* graph = source->getFilterGraph();
     if ( !graph )
     {
-        osg::notify(osg::WARN) << "...ERROR: No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::notify(osg::WARN) << "...ERROR: No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -213,7 +215,7 @@ Builder::build( Source* source, Session* session )
         parent->getAbsoluteURI() );
     if ( !feature_layer.valid() )
     {
-        osg::notify( osg::WARN ) << "...ERROR: Cannot access source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::notify( osg::WARN ) << "...ERROR: Cannot access source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -230,11 +232,11 @@ Builder::build( Source* source, Session* session )
 
     if ( !compiler.compile( source->getAbsoluteURI(), source_env.get() ) )
     {
-        osg::notify( osg::WARN ) << "...ERROR: failure compiling source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::notify( osg::WARN ) << "...ERROR: failure compiling source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
-    osg::notify(osg::NOTICE) << "...done compiling source \"" << source->getName() << "\"" << std::endl;
+    osgGIS::notify(osg::NOTICE) << "...done compiling source \"" << source->getName() << "\"" << std::endl;
 
     return true;
 }
@@ -254,7 +256,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
 
         if ( slice->getSource() && !build( slice->getSource(), session ) )
         {
-            osg::notify( osg::WARN )
+            osgGIS::notify( osg::WARN )
                 << "Unable to build source \"" << slice->getSource()->getName() << "\" or one of its dependencies." 
                 << std::endl;
             return false;
@@ -280,7 +282,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
 
             if ( !feature_layer )
             {
-                osg::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN ) 
                     << "Cannot access source \"" << slice_source->getName() << std::endl;
                 return false;
             }
@@ -342,7 +344,7 @@ Builder::build( BuildLayer* layer )
     //if ( !source )
     //{
     //    //TODO: log error
-    //    osg::notify( osg::WARN ) 
+    //    osgGIS::notify( osg::WARN ) 
     //        << "No source specified for layer \"" << layer->getName() << "\"." << std::endl;
     //    return false;
     //}
@@ -352,7 +354,7 @@ Builder::build( BuildLayer* layer )
     // recursively build any sources that need building.
     if ( source && !build( source, session.get() ) )
     {
-        osg::notify( osg::WARN )
+        osgGIS::notify( osg::WARN )
             << "Unable to build source \"" << source->getName() << "\" or one of its dependencies." 
             << std::endl;
         return false;
@@ -367,7 +369,7 @@ Builder::build( BuildLayer* layer )
         if ( !feature_layer.valid() )
         {
             //TODO: log error
-            osg::notify( osg::WARN ) 
+            osgGIS::notify( osg::WARN ) 
                 << "Cannot access source \"" << source->getName() 
                 << "\" for layer \"" << layer->getName() << "\"." << std::endl;
             return false;
@@ -388,7 +390,7 @@ Builder::build( BuildLayer* layer )
     osgDB::makeDirectoryForFile( output_file );
     if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
     {
-        osg::notify( osg::WARN ) 
+        osgGIS::notify( osg::WARN ) 
             << "Unable to establish target location for layer \""
             << layer->getName() << "\" at \"" << output_file << "\"." 
             << std::endl;
@@ -431,173 +433,254 @@ Builder::build( BuildLayer* layer )
         num_threads < 1? new TaskManager() :
         NULL;
 
-    if ( layer->getType() == BuildLayer::TYPE_QUADTREE ) // testing out the NEW process
+
+
+
+    // prep the map layer definition:
+    osg::ref_ptr<MapLayer> map_layer = new MapLayer();
+
+    // a resource packager if necessary will copy ext-ref files to the output location:
+    osg::ref_ptr<ResourcePackager> packager = new ResourcePackager();
+    packager->setArchive( archive.get() );
+    packager->setOutputLocation( osgDB::getFilePath( output_file ) );
+
+    if ( layer->getProperties().getBoolValue( "localize_resources", false ) )
     {
-        MapLayer* map_layer = new MapLayer();
-        
-        // a resource packager if necessary will copy ext-ref files to the output location:
-        osg::ref_ptr<ResourcePackager> packager;
-        if ( layer->getProperties().getBoolValue( "localize_resources", false ) )
-        {
-            packager = new ResourcePackager();
-            packager->setArchive( archive.get() );
-            packager->setOutputLocation( osgDB::getFilePath( output_file ) );
-            packager->setMaxTextureSize( layer->getProperties().getIntValue( "max_texture_size", 0 ) );
-            packager->setCompressTextures( layer->getProperties().getBoolValue( "compress_textures", false ) );
-            packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
-        }
+        packager->setMaxTextureSize( layer->getProperties().getIntValue( "max_texture_size", 0 ) );
+        packager->setCompressTextures( layer->getProperties().getBoolValue( "compress_textures", false ) );
+        packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
+    }
 
-        if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, packager.get(), 0, session.get(), source ) )
-        {
-            osg::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
-            return false;
-        }
-        
-        // calculate the grid cell size:
-        double col_size = layer->getProperties().getDoubleValue( "col_size", -1.0 );
-        double row_size = layer->getProperties().getDoubleValue( "row_size", -1.0 );
-        if ( col_size <= 0.0 || row_size <= 0.0 )
-        {
-            int num_cols = std::max( 1, layer->getProperties().getIntValue( "num_cols", 1 ) );
-            int num_rows = std::max( 1, layer->getProperties().getIntValue( "num_rows", 1 ) );
-            col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
-            row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
-        }
-        map_layer->setCellWidth( col_size );
-        map_layer->setCellHeight( row_size );
+    if ( !addSlicesToMapLayer( layer->getSlices(), map_layer.get(), packager.get(), 0, session.get(), source ) )
+    {
+        osgGIS::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
+        return false;
+    }
 
-        // create and confiugure the compiler:
-        MapLayerCompiler compiler( map_layer, session.get() );
+    // calculate the grid cell size:
+    double col_size = layer->getProperties().getDoubleValue( "col_size", -1.0 );
+    double row_size = layer->getProperties().getDoubleValue( "row_size", -1.0 );
+    if ( col_size <= 0.0 || row_size <= 0.0 )
+    {
+        int num_cols = std::max( 1, layer->getProperties().getIntValue( "num_cols", 1 ) );
+        int num_rows = std::max( 1, layer->getProperties().getIntValue( "num_rows", 1 ) );
+        col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
+        row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
+    }
+    map_layer->setCellWidth( col_size );
+    map_layer->setCellHeight( row_size );
 
-        compiler.setAbsoluteOutputURI( output_file );
-        compiler.setPaged( layer->getProperties().getBoolValue( "paged", false ) );
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get(), archive_file );
-        compiler.setResourcePackager( packager.get() );
+
+    osg::ref_ptr<MapLayerCompiler> compiler;
+    
+    // figure out which compiler to use:
+    if ( layer->getType() == BuildLayer::TYPE_QUADTREE )
+    {
+        compiler = new QuadTreeMapLayerCompiler( map_layer.get(), session.get() );
+    }
+    else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
+    {
+        compiler = new GriddedMapLayerCompiler( map_layer.get(), session.get() );
+    }
+    else if ( layer->getType() == BuildLayer::TYPE_SIMPLE )
+    {
+        compiler = new SimpleMapLayerCompiler( map_layer.get(), session.get() );
+    }
+
+    if ( compiler.get() )
+    {
+        compiler->setAbsoluteOutputURI( output_file );
+        compiler->setPaged( layer->getProperties().getBoolValue( "paged", false ) );
+        compiler->setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+        compiler->setArchive( archive.get(), archive_file );
+        compiler->setResourcePackager( packager.get() );
                 
         // build the layer and write the root file to output:
-        bool ok = compiler.compile( manager.get() );
+        bool ok = compiler->compile( manager.get() );
 
         if ( ok )
         {
-            osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
-            if ( archive.valid() )
-            {
-                archive->writeNode( *compiler.getSceneGraph(), output_file, options );
-            }
-            else
-            {
-                osgDB::writeNodeFile( *compiler.getSceneGraph(), output_file, options );
-            }
+            packager->packageNode( compiler->getSceneGraph(), output_file );
         }
+            //if ( archive.valid() )
+            //{
+            //    archive->writeNode( *compiler->getSceneGraph(), output_file );
+            //}
+            //else
+            //{
+            //    osgDB::writeNodeFile( *compiler->getSceneGraph(), output_file );
+            //}
     }
 
-    // if we have a valid terrain, use the paged layer compiler. otherwise
-    // use a simple compiler.
-    else
-    if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
-    {
-        PagedLayerCompiler compiler;
 
-        compiler.setProperties( layer->getProperties() );
-        compiler.setSession( session.get() );
-        compiler.setTaskManager( manager.get() );
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get(), archive_file );
-        
-        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {
-            compiler.addFilterGraph(
-                i->get()->getMinRange(),
-                i->get()->getMaxRange(),
-                i->get()->getFilterGraph() );
-        }
 
-        compiler.compile(
-            feature_layer.get(),
-            output_file );
-    }
+    //if ( layer->getType() == BuildLayer::TYPE_QUADTREE ) // testing out the NEW process
+    //{
+    //    MapLayer* map_layer = new MapLayer();
+    //    
+    //    // a resource packager if necessary will copy ext-ref files to the output location:
+    //    osg::ref_ptr<ResourcePackager> packager;
+    //    if ( layer->getProperties().getBoolValue( "localize_resources", false ) )
+    //    {
+    //        packager = new ResourcePackager();
+    //        packager->setArchive( archive.get() );
+    //        packager->setOutputLocation( osgDB::getFilePath( output_file ) );
+    //        packager->setMaxTextureSize( layer->getProperties().getIntValue( "max_texture_size", 0 ) );
+    //        packager->setCompressTextures( layer->getProperties().getBoolValue( "compress_textures", false ) );
+    //        packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
+    //    }
 
-    else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
-    {
-        GriddedLayerCompiler compiler;
+    //    if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, packager.get(), 0, session.get(), source ) )
+    //    {
+    //        osgGIS::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
+    //        return false;
+    //    }
+    //    
+    //    // calculate the grid cell size:
+    //    double col_size = layer->getProperties().getDoubleValue( "col_size", -1.0 );
+    //    double row_size = layer->getProperties().getDoubleValue( "row_size", -1.0 );
+    //    if ( col_size <= 0.0 || row_size <= 0.0 )
+    //    {
+    //        int num_cols = std::max( 1, layer->getProperties().getIntValue( "num_cols", 1 ) );
+    //        int num_rows = std::max( 1, layer->getProperties().getIntValue( "num_rows", 1 ) );
+    //        col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
+    //        row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
+    //    }
+    //    map_layer->setCellWidth( col_size );
+    //    map_layer->setCellHeight( row_size );
 
-        compiler.setProperties( layer->getProperties() );
-        compiler.setSession( session.get() );
-        compiler.setTaskManager( manager.get() );
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get(), archive_file );
-        
-        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {
-            compiler.addFilterGraph(
-                i->get()->getMinRange(),
-                i->get()->getMaxRange(),
-                i->get()->getFilterGraph() );
-        }
+    //    // create and confiugure the compiler:
+    //    QuadTreeMapLayerCompiler compiler( map_layer, session.get() );
 
-        osg::ref_ptr<osg::Node> node = compiler.compile(
-            feature_layer.get(),
-            output_file );
+    //    compiler.setAbsoluteOutputURI( output_file );
+    //    compiler.setPaged( layer->getProperties().getBoolValue( "paged", false ) );
+    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+    //    compiler.setArchive( archive.get(), archive_file );
+    //    compiler.setResourcePackager( packager.get() );
+    //            
+    //    // build the layer and write the root file to output:
+    //    bool ok = compiler.compile( manager.get() );
 
-        if ( node.valid() )
-        {
-            if ( archive.valid() )
-            {
-                archive->writeNode( 
-                    *(node.get()), 
-                    output_file,
-                    osgDB::Registry::instance()->getOptions() );
-            }
-            else
-            {
-                osgDB::writeNodeFile( 
-                    *(node.get()),
-                    output_file,
-                    osgDB::Registry::instance()->getOptions() );
-            }
-        }        
-    }
-    else
-    {
-        SimpleLayerCompiler compiler;
+    //    if ( ok )
+    //    {
+    //        osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
+    //        if ( archive.valid() )
+    //        {
+    //            archive->writeNode( *compiler.getSceneGraph(), output_file, options );
+    //        }
+    //        else
+    //        {
+    //            osgDB::writeNodeFile( *compiler.getSceneGraph(), output_file, options );
+    //        }
+    //    }
+    //}
 
-        compiler.setProperties( layer->getProperties() );
-        compiler.setSession( session.get() );
-        compiler.setTaskManager( manager.get() );
-        compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-        compiler.setArchive( archive.get(), archive_file );
-        
-        for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-        {
-            compiler.addFilterGraph(
-                i->get()->getMinRange(),
-                i->get()->getMaxRange(),
-                i->get()->getFilterGraph() );
-        }
+    //// if we have a valid terrain, use the paged layer compiler. otherwise
+    //// use a simple compiler.
+    //else
+    //if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
+    //{
+    //    PagedLayerCompiler compiler;
 
-        osg::ref_ptr<osg::Node> node = compiler.compile(
-            feature_layer.get(),
-            output_file );
+    //    compiler.setProperties( layer->getProperties() );
+    //    compiler.setSession( session.get() );
+    //    compiler.setTaskManager( manager.get() );
+    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+    //    compiler.setArchive( archive.get(), archive_file );
+    //    
+    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+    //    {
+    //        compiler.addFilterGraph(
+    //            i->get()->getMinRange(),
+    //            i->get()->getMaxRange(),
+    //            i->get()->getFilterGraph() );
+    //    }
 
-        if ( node.valid() )
-        {
-            if ( archive.valid() )
-            {
-                archive->writeNode( 
-                    *(node.get()), 
-                    output_file,
-                    osgDB::Registry::instance()->getOptions() );
-            }
-            else
-            {
-                osgDB::writeNodeFile( 
-                    *(node.get()),
-                    output_file,
-                    osgDB::Registry::instance()->getOptions() );
-            }
-        }        
-    }
+    //    compiler.compile(
+    //        feature_layer.get(),
+    //        output_file );
+    //}
+
+    //else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
+    //{
+    //    GriddedLayerCompiler compiler;
+
+    //    compiler.setProperties( layer->getProperties() );
+    //    compiler.setSession( session.get() );
+    //    compiler.setTaskManager( manager.get() );
+    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+    //    compiler.setArchive( archive.get(), archive_file );
+    //    
+    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+    //    {
+    //        compiler.addFilterGraph(
+    //            i->get()->getMinRange(),
+    //            i->get()->getMaxRange(),
+    //            i->get()->getFilterGraph() );
+    //    }
+
+    //    osg::ref_ptr<osg::Node> node = compiler.compile(
+    //        feature_layer.get(),
+    //        output_file );
+
+    //    if ( node.valid() )
+    //    {
+    //        if ( archive.valid() )
+    //        {
+    //            archive->writeNode( 
+    //                *(node.get()), 
+    //                output_file,
+    //                osgDB::Registry::instance()->getOptions() );
+    //        }
+    //        else
+    //        {
+    //            osgDB::writeNodeFile( 
+    //                *(node.get()),
+    //                output_file,
+    //                osgDB::Registry::instance()->getOptions() );
+    //        }
+    //    }        
+    //}
+    //else
+    //{
+    //    SimpleLayerCompiler compiler;
+
+    //    compiler.setProperties( layer->getProperties() );
+    //    compiler.setSession( session.get() );
+    //    compiler.setTaskManager( manager.get() );
+    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
+    //    compiler.setArchive( archive.get(), archive_file );
+    //    
+    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
+    //    {
+    //        compiler.addFilterGraph(
+    //            i->get()->getMinRange(),
+    //            i->get()->getMaxRange(),
+    //            i->get()->getFilterGraph() );
+    //    }
+
+    //    osg::ref_ptr<osg::Node> node = compiler.compile(
+    //        feature_layer.get(),
+    //        output_file );
+
+    //    if ( node.valid() )
+    //    {
+    //        if ( archive.valid() )
+    //        {
+    //            archive->writeNode( 
+    //                *(node.get()), 
+    //                output_file,
+    //                osgDB::Registry::instance()->getOptions() );
+    //        }
+    //        else
+    //        {
+    //            osgDB::writeNodeFile( 
+    //                *(node.get()),
+    //                output_file,
+    //                osgDB::Registry::instance()->getOptions() );
+    //        }
+    //    }        
+    //}
 
     if ( archive.valid() )
     {

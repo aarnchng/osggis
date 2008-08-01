@@ -1,0 +1,75 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_GRIDDED_MAP_LAYER_COMPILER_
+#define _OSGGISPROJECTS_GRIDDED_MAP_LAYER_COMPILER_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGISProjects/MapLayerCompiler>
+#include <osgGISProjects/MapLayer>
+#include <osgGISProjects/QuadKey>
+#include <osgGIS/ResourcePackager>
+#include <osgGIS/TaskManager>
+#include <osgGIS/SmartReadCallback>
+#include <osgDB/Archive>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    /**
+     * Compiles quad-tree scene graphs from MapLayer definitions.
+     */
+    class OSGGISPROJECTS_EXPORT GriddedMapLayerCompiler : public MapLayerCompiler
+    {
+    public:
+        /**
+         * Constructs a new compiler.
+         *
+         * @param map_layer
+         *      Layer that we are going to compile.
+         *
+         * @param session
+         *      Session under which to compiler the map layer
+         */
+        GriddedMapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
+
+    protected: // MapLayerCompiler interface
+
+        virtual Profile* createProfile();
+
+        virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
+
+        virtual void buildIndex( Profile* profile );
+
+    protected:
+
+        //class GridProfile : public Profile {
+        //public:
+        //    GridProfile( const GeoExtent& );
+        //    const GeoExtent& getBounds();
+        //private:
+        //    GeoExtent extent;
+        //};
+
+    protected:
+    };
+}
+
+#endif // _OSGGISPROJECTS_GRIDDED_MAP_LAYER_COMPILER_

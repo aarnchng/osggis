@@ -25,21 +25,25 @@
 using namespace osgGISProjects;
 using namespace osgGIS;
 
+#define DEFAULT_STRING_STYLE STYLE_QUADKEY
 
 QuadMap::QuadMap()
-: bounds( GeoExtent::invalid() )
+: bounds( GeoExtent::invalid() ),
+  string_style( DEFAULT_STRING_STYLE )
 {
     //NOP
 }
 
 QuadMap::QuadMap( const GeoExtent& _bounds )
-: bounds( _bounds )
+: bounds( _bounds ),
+  string_style( DEFAULT_STRING_STYLE )
 {
     //NOP
 }
 
 QuadMap::QuadMap( const QuadMap& rhs )
-: bounds( rhs.bounds )
+: bounds( rhs.bounds ),
+  string_style( rhs.string_style )
 {
     //NOP
 }
@@ -108,6 +112,17 @@ QuadMap::getCells(const GeoExtent& aoi, unsigned int lod,
     return false;
 }
 
+QuadMap::StringStyle
+QuadMap::getStringStyle() const {
+    return string_style;
+}
+
+void
+QuadMap::setStringStyle( QuadMap::StringStyle value ) {
+    string_style = value;
+}
+
+
 /*****************************************************************************/
 
 
@@ -154,9 +169,17 @@ QuadKey::getLOD() const
     return qstr.length();
 }
 
-const std::string&
+std::string
 QuadKey::toString() const
 {
+    switch( map.getStringStyle() )
+    {
+    case QuadMap::STYLE_LOD_QUADKEY:
+        std::stringstream s;
+        s << "L" << getLOD() << "_" << qstr;
+        return s.str();
+    }
+        
     return qstr;
 }
 

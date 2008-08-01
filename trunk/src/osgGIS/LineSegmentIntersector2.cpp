@@ -13,9 +13,7 @@
 
 
 #include <osgGIS/LineSegmentIntersector2>
-
 #include <osg/Geometry>
-#include <osg/Notify>
 #include <osg/io_utils>
 #include <osg/TriangleFunctor>
 
@@ -168,9 +166,9 @@ namespace LineSegmentIntersectorUtils
             osg::Vec3d in = v1*r1+v2*r2+v3*r3;
             if (!in.valid())
             {
-                osg::notify(osg::WARN)<<"Warning:: Picked up error in TriangleIntersect"<<std::endl;
-                osg::notify(osg::WARN)<<"   ("<<v1<<",\t"<<v2<<",\t"<<v3<<")"<<std::endl;
-                osg::notify(osg::WARN)<<"   ("<<r1<<",\t"<<r2<<",\t"<<r3<<")"<<std::endl;
+                osgGIS::notify(osg::WARN)<<"Warning:: Picked up error in TriangleIntersect"<<std::endl;
+                osgGIS::notify(osg::WARN)<<"   ("<<v1<<",\t"<<v2<<",\t"<<v3<<")"<<std::endl;
+                osgGIS::notify(osg::WARN)<<"   ("<<r1<<",\t"<<r2<<",\t"<<r3<<")"<<std::endl;
                 return;
             }
 
@@ -527,7 +525,7 @@ bool LineSegmentIntersector2::intersectAndClip(osg::Vec3d& s, osg::Vec3d& e,cons
         }
     }
     
-    // osg::notify(osg::NOTICE)<<"clampped segment "<<s<<" "<<e<<std::endl;
+    // osgGIS::notify(osg::NOTICE)<<"clampped segment "<<s<<" "<<e<<std::endl;
     
     // if (s==e) return false;
 

@@ -18,7 +18,7 @@
  */
 
 #include <osgGISProjects/XmlDocument>
-#include <osg/Notify>
+#include <osgGIS/Notify>
 #include <expat.h>
 #include <algorithm>
 
@@ -109,7 +109,7 @@ XmlDocument::load( std::istream& in )
         {
             if ( XML_Parse( parser, buf, bytes_read, in.eof() ) == XML_STATUS_ERROR )
             {
-                osg::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN ) 
                     << XML_ErrorString( XML_GetErrorCode( parser ) )
                     << ", "
                     << XML_GetCurrentLineNumber( parser ) 

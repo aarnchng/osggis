@@ -38,7 +38,7 @@ GDAL_RasterStore::GDAL_RasterStore( const std::string& abs_path )
     uri = abs_path;
 
     if ( StringUtils::endsWith( uri, ".ecw" ) )
-        osg::notify(osg::WARN) << "WARNING: ECW files cannot report SRS...consider creating a VRT" << std::endl;
+        osgGIS::notify(osg::WARN) << "WARNING: ECW files cannot report SRS...consider creating a VRT" << std::endl;
     
     dataset = (GDALDataset*) GDALOpen( uri.c_str(), GA_ReadOnly );
     if ( dataset )
@@ -49,7 +49,7 @@ GDAL_RasterStore::GDAL_RasterStore( const std::string& abs_path )
         size_x = dataset->GetRasterXSize();
         size_y = dataset->GetRasterYSize();
 
-        //osg::notify(osg::NOTICE)
+        //osgGIS::notify(osg::NOTICE)
         //    << "Opened GDAL Raster at " << uri << std::endl 
         //    << "   Driver = " << dataset->GetDriver()->GetDescription() << std::endl
         //    << "   Size = " << size_x << " x " << size_y << std::endl
@@ -58,7 +58,7 @@ GDAL_RasterStore::GDAL_RasterStore( const std::string& abs_path )
 
         if ( has_geo_transform )
         {
-            //osg::notify(osg::NOTICE)
+            //osgGIS::notify(osg::NOTICE)
             //    << "   Origin = " << geo_transform[0] << ", " << geo_transform[3] << std::endl
             //    << "   Pixel size = " << geo_transform[1] << ", " << geo_transform[5] << std::endl
             //    << "   Extent = " << getExtent().toString() << std::endl;
@@ -72,7 +72,7 @@ GDAL_RasterStore::GDAL_RasterStore( const std::string& abs_path )
     }
     else
     {
-        osg::notify(osg::WARN) << "Failed to open GDAL raster store at " << uri << std::endl;
+        osgGIS::notify(osg::WARN) << "Failed to open GDAL raster store at " << uri << std::endl;
     }
 }
 
@@ -87,7 +87,7 @@ GDAL_RasterStore::~GDAL_RasterStore()
 		dataset = NULL;
 	}
 
-    //osg::notify(osg::NOTICE) << "Closed GDAL raster store at " << getName() << std::endl;
+    //osgGIS::notify(osg::NOTICE) << "Closed GDAL raster store at " << getName() << std::endl;
 }
 
 
@@ -212,7 +212,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
 {
     if ( !getSRS() )
     {
-        osg::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, getImage() failed" << std::endl;
+        osgGIS::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, getImage() failed" << std::endl;
         return NULL;
     }
 
@@ -222,7 +222,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
     // make sure the requested extent is within the image extent:
     if ( !getExtent().contains( output_aoi ) )
     {
-        osg::notify(osg::WARN) 
+        osgGIS::notify(osg::WARN) 
             << "GDAL_RasterStore: requested AOI is out of bounds" << std::endl
             << "    asked for " << output_aoi.toString() << ", but raster is " << getExtent().toString()
             << std::endl;
@@ -232,7 +232,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
 
     if ( !output_aoi.isValid() )
     {
-        osg::notify(osg::WARN) << "GDAL_RasterSource::getImage failed, cannot reproject requested AOI" << std::endl;
+        osgGIS::notify(osg::WARN) << "GDAL_RasterSource::getImage failed, cannot reproject requested AOI" << std::endl;
         return NULL;
     }
 
@@ -605,7 +605,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
 {
     if ( !getSRS() )
     {
-        osg::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, getImage() failed" << std::endl;
+        osgGIS::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, getImage() failed" << std::endl;
         return NULL;
     }
 
@@ -617,7 +617,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
     // make sure the requested extent is within the image extent:
     if ( !getExtent().contains( output_aoi ) )
     {
-        osg::notify(osg::WARN) 
+        osgGIS::notify(osg::WARN) 
             << "GDAL_RasterStore: requested AOI is out of bounds" << std::endl
             << "    asked for " << output_aoi.toString() << ", but raster is " << getExtent().toString()
             << std::endl;
@@ -660,7 +660,7 @@ GDAL_RasterStore::createImage(const GeoExtent& requested_aoi,
 
     if ( !output_aoi.isValid() )
     {
-        osg::notify(osg::WARN) << "GDAL_RasterSource::getImage failed, cannot reproject requested AOI" << std::endl;
+        osgGIS::notify(osg::WARN) << "GDAL_RasterSource::getImage failed, cannot reproject requested AOI" << std::endl;
         return NULL;
     }
 
@@ -1068,7 +1068,7 @@ GDAL_RasterStore::createHeightField(const GeoExtent& requested_aoi) const
 {
     if ( !getSRS() )
     {
-        osg::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, createHeightField() failed" << std::endl;
+        osgGIS::notify(osg::FATAL) << "GDAL_RasterStore: no SRS, createHeightField() failed" << std::endl;
         return NULL;
     }
 
@@ -1080,7 +1080,7 @@ GDAL_RasterStore::createHeightField(const GeoExtent& requested_aoi) const
     // make sure the requested extent is within the image extent:
     if ( !getExtent().contains( output_aoi ) )
     {
-        osg::notify(osg::WARN) << "GDAL_RasterStore::createHeightField, requested AOI is out of bounds" << std::endl;
+        osgGIS::notify(osg::WARN) << "GDAL_RasterStore::createHeightField, requested AOI is out of bounds" << std::endl;
         return NULL;
     }
 

@@ -899,7 +899,7 @@ ImageUtils::convertRGBAtoDDS( osg::Image* input )
 	DDS_header header;
 	int DDS_size = 0;
 
-    //osg::notify(osg::WARN)<<"DDS HEADER SIZE = " << sizeof(DDS_header) << std::endl;
+    //osgGIS::notify(osg::WARN)<<"DDS HEADER SIZE = " << sizeof(DDS_header) << std::endl;
 
 	memset( &header, 0, sizeof( DDS_header ) );
 	header.dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
@@ -919,14 +919,14 @@ ImageUtils::convertRGBAtoDDS( osg::Image* input )
 		DDS_data = convert_image_to_DXT1( input->data(), input->s(), input->t(), 3, &DDS_size );
 		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
         output_format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-        //osg::notify( osg::WARN ) << "RGB->DXT1" << std::endl;
+        //osgGIS::notify( osg::WARN ) << "RGB->DXT1" << std::endl;
     }
     else if ( input->getPixelFormat() == GL_RGBA )
     {
         DDS_data = convert_image_to_DXT5( input->data(), input->s(), input->t(), 4, &DDS_size );
 		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
         output_format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-        //osg::notify( osg::WARN ) << "RGBA->DXT5" << std::endl;
+        //osgGIS::notify( osg::WARN ) << "RGBA->DXT5" << std::endl;
     }
     else 
     {

@@ -311,7 +311,7 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
         {
             output = GeoPoint( isector->getFirstIntersection().getWorldIntersectPoint(), terrain_srs );
 
-            //osg::notify( osg::NOTICE )
+            //osgGIS::notify( osg::NOTICE )
             //    << "Clamped " << input.toString() << " to " << output.toString() << std::endl;
         }
     }

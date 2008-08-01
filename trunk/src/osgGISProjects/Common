@@ -25,7 +25,7 @@
 #include <osg/Referenced>
 #include <string>
 
-#define VERBOSE_OUT osg::notify(osg::FATAL)
+#define VERBOSE_OUT osgGIS::notify(osg::FATAL)
 
 #endif // _OSGGISPROJECTS_COMMON_H_
 

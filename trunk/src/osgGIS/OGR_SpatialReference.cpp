@@ -103,13 +103,13 @@ bool
 OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
 {
     if ( !handle || !input.isValid() ) {
-        osg::notify( osg::WARN ) << "Spatial reference or input point is invalid" << std::endl;
+        osgGIS::notify( osg::WARN ) << "Spatial reference or input point is invalid" << std::endl;
         return false;
     }
 
 	OGR_SpatialReference* input_sr = (OGR_SpatialReference*)input.getSRS();
     if ( !input_sr ) {
-        osg::notify( osg::WARN ) << "SpatialReference: input point has no SRS" << std::endl;
+        osgGIS::notify( osg::WARN ) << "SpatialReference: input point has no SRS" << std::endl;
         return false;
     }
 
@@ -141,7 +141,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
 
         void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
-            osg::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
+            osgGIS::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
                 << "    From => " << input_sr->getWKT() << std::endl
                 << "    To   => " << this->getWKT() << std::endl;
             return false;
@@ -154,7 +154,7 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
         }
         else
         {
-            osg::notify( osg::WARN ) << "Spatial Reference: Failed to xform a point from "
+            osgGIS::notify( osg::WARN ) << "Spatial Reference: Failed to xform a point from "
                 << input_sr->getName() << " to " << this->getName()
                 << std::endl;
         }
@@ -201,7 +201,7 @@ bool
 OGR_SpatialReference::transformInPlace( GeoShape& input ) const
 {	
     if ( !handle ) {
-        osg::notify( osg::WARN ) << "OGR_SpatialReference: SRS is invalid" << std::endl;
+        osgGIS::notify( osg::WARN ) << "OGR_SpatialReference: SRS is invalid" << std::endl;
         return false;
     }
 
@@ -225,7 +225,7 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
         xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
 
         if ( !xform_handle ) {
-            osg::notify( osg::WARN ) << "OGR_SpatialReference: SRS xform not possible" << std::endl;
+            osgGIS::notify( osg::WARN ) << "OGR_SpatialReference: SRS xform not possible" << std::endl;
             return false;
         }
     }
@@ -271,7 +271,7 @@ OGR_SpatialReference::transformInPlace( GeoShape& input ) const
     }
     else
     {
-        osg::notify( osg::WARN ) << "Failed to xform a point from "
+        osgGIS::notify( osg::WARN ) << "Failed to xform a point from "
             << input_sr->getName() << " to " << this->getName()
             << std::endl;
     }

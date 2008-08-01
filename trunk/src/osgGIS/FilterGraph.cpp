@@ -171,7 +171,7 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
 
         if ( !dynamic_cast<FeatureFilter*>( filter ) )
         {
-            osg::notify(osg::WARN) << "Error: illegal filter of type \"" << filter->getFilterType() << "\" in graph. Only feature features are allowed." << std::endl;
+            osgGIS::notify(osg::WARN) << "Error: illegal filter of type \"" << filter->getFilterType() << "\" in graph. Only feature features are allowed." << std::endl;
             return FilterGraphResult::error( "Illegal first filter type in filter graph" );
         }
 
@@ -188,7 +188,7 @@ FilterGraph::computeFeatureStore(FeatureCursor&     cursor,
 
     if ( !first.valid() )
     {
-        osg::notify(osg::WARN) << "Error: filter graph \"" << getName() << "\" is empty." << std::endl;
+        osgGIS::notify(osg::WARN) << "Error: filter graph \"" << getName() << "\" is empty." << std::endl;
         return FilterGraphResult::error( "Illegal: empty filter graph" );
     }
 
@@ -340,7 +340,7 @@ FilterGraph::computeNodes( FeatureCursor& cursor, FilterEnv* env, osg::Group*& o
         osg::Timer_t end = osg::Timer::instance()->tick();
 
         double dur = osg::Timer::instance()->delta_s( start, end );
-        //osg::notify( osg::ALWAYS ) << std::endl << "Time = " << dur << " s; Per Feature Avg = " << (dur/(double)count) << " s" << std::endl;
+        //osgGIS::notify( osg::ALWAYS ) << std::endl << "Time = " << dur << " s; Per Feature Avg = " << (dur/(double)count) << " s" << std::endl;
     }
     else
     {

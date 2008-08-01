@@ -373,7 +373,7 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
             result = cull_group;
 
 
-            //osg::notify(osg::NOTICE) << "CCC: radius = " << radius << ", deviation = " << deviation << std::endl;
+            //osgGIS::notify(osg::NOTICE) << "CCC: radius = " << radius << ", deviation = " << deviation << std::endl;
 
 
             //if ( getDrawClusterCullingNormals() == true )

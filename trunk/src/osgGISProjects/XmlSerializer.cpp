@@ -106,7 +106,7 @@ void
 XmlSerializer::store( Document* doc, std::ostream& out )
 {
     //TODO
-    osg::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
+    osgGIS::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
 }
 
 static RuntimeMapLayer*
@@ -163,7 +163,7 @@ decodeFilterGraph( XmlElement* e, Project* proj )
             FilterGraph* parent_graph = proj->getFilterGraph( parent_name );
             if ( !parent_graph )
             {
-                osg::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN ) 
                     << "Parent graph \"" << parent_name << "\" not found for graph \""
                     << name << "\"" << std::endl;
             }
@@ -328,7 +328,7 @@ decodeResource( XmlElement* e, Project* proj )
         }
         else
         {
-            osg::notify( osg::WARN ) << "Unknown resource type: " << type << std::endl;
+            osgGIS::notify( osg::WARN ) << "Unknown resource type: " << type << std::endl;
         }
     }
     return resource;

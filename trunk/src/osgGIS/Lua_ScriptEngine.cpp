@@ -100,7 +100,7 @@ Lua_ScriptEngine::run( Script* script )
 
     if ( !ok )
     {
-        osg::notify(osg::WARN) << result.str() << std::endl;
+        osgGIS::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
@@ -157,7 +157,7 @@ Lua_ScriptEngine::run( Script* script, FilterEnv* env )
 
     if ( !ok )
     {
-        osg::notify(osg::WARN) << result.str() << std::endl;
+        osgGIS::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
@@ -222,7 +222,7 @@ Lua_ScriptEngine::run( Script* script, Feature* feature, FilterEnv* env )
 
     if ( !ok )
     {
-        osg::notify(osg::WARN) << result.str() << std::endl;
+        osgGIS::notify(osg::WARN) << result.str() << std::endl;
     }
 
     return ok? ScriptResult( result.str() ) : ScriptResult::Error( result.str() );
