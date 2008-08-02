@@ -351,7 +351,7 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
             
             if ( plod )
             {
-                GridCellKey key( row, col, 0, profile );
+                GridCellKey key( col, row, 0, profile );
                 setCenterAndRadius( plod, key.getExtent(), reader.get() );
                 scene_graph->addChild( plod );
             }
