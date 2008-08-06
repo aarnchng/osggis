@@ -217,6 +217,8 @@ createTask( const GridCellKey& key, MapLayerCompiler* compiler )
             abs_path,
             def->getFeatureLayer(),
             def->getFilterGraph(),
+            def->getMinRange(),
+            def->getMaxRange(),
             cell_env.get(),
             def->getResourcePackager()? def->getResourcePackager() : compiler->getResourcePackager(),
             compiler->getArchive() );

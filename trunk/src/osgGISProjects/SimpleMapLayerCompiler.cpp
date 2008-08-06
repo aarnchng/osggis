@@ -51,63 +51,6 @@ getLodForKey( unsigned int key, MapLayer* map_layer )
     }
     return NULL;
 }
-
-//static void
-//collectGeometryKeys( GridProfile* profile, MapLayer* map_layer, GridCellKeyList& out_keys )
-//{
-//    for( unsigned int col = 0; col < profile->getNumColumns(); col++ )
-//    {
-//        for( unsigned int row = 0; row < profile->getNumRows(); row++ )
-//        {
-//            for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
-//            {
-//                MapLayerLevelOfDetail* level_def = i->get();
-//                GridCellKey key( col, row, level_def->getDepth(), profile );
-//                out_keys.push_back( key );
-//            }
-//        }
-//    }
-//}
-//
-//static Task*
-//createTask( const GridCellKey& key, MapLayerCompiler* compiler )
-//{
-//    Task* task = NULL;
-//
-//    MapLayerLevelOfDetail* def = getLodForKey( key, compiler->getMapLayer() );
-//    if ( def )
-//    {
-//        // construct a filter environment template to use for all tasks:
-//        osg::ref_ptr<FilterEnv> cell_env = compiler->getSession()->createFilterEnv();
-//
-//        cell_env->setTerrainNode( compiler->getTerrainNode() );
-//        cell_env->setTerrainSRS( compiler->getTerrainSRS() );
-//
-//        std::string abs_path = compiler->createAbsPathFromTemplate( "g" + key.toString() );
-//
-//        GeoExtent extent = compiler->getMapLayer()->getAreaOfInterest().getSRS()->transform( key.getExtent() );
-//
-//        cell_env->setInputSRS( def->getFeatureLayer()->getSRS() );
-//        cell_env->setExtent( extent );
-//        cell_env->setProperty( Property( "compiler.cell_id", key.toString() ) );
-//
-//        task = new MapLayerCompiler::CellCompiler(
-//            abs_path,
-//            def->getFeatureLayer(),
-//            def->getFilterGraph(),
-//            cell_env.get(),
-//            def->getResourcePackager()? def->getResourcePackager() : compiler->getResourcePackager(),
-//            compiler->getArchive() );
-//
-//        osgGIS::notify( osg::INFO )
-//            << "Task: Key = " << key.toString() << ", LOD = " << key.getLevel() << ", Extent = " << extent.toString() 
-//            << " (w=" << extent.getWidth() << ", h=" << extent.getHeight() << ")"
-//            << std::endl;
-//    }
-//
-//    return task;
-//}
-
 /*****************************************************************************/
 
 SimpleMapLayerCompiler::SimpleMapLayerCompiler( MapLayer* _layer, Session* _session )
@@ -142,6 +85,8 @@ SimpleMapLayerCompiler::queueTasks( MapLayerCompiler::Profile* _profile, TaskMan
             s.str(),
             level_def->getFeatureLayer(),
             level_def->getFilterGraph(),
+            level_def->getMinRange(),
+            level_def->getMaxRange(),
             cell_env.get(),
             NULL );
 

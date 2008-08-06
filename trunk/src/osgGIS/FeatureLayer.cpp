@@ -42,7 +42,7 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
 FeatureLayer::~FeatureLayer()
 {
     //NOP
-    osgGIS::notify(osg::NOTICE) << "dtor" << std::endl;
+    //osgGIS::notify(osg::NOTICE) << "dtor" << std::endl;
 }
 
 

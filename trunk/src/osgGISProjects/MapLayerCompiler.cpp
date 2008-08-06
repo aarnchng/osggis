@@ -46,6 +46,8 @@ using namespace OpenThreads;
 MapLayerCompiler::CellCompiler::CellCompiler(const std::string& _abs_output_uri,
                                              FeatureLayer*      layer,
                                              FilterGraph*       graph,
+                                             float              min_range,
+                                             float              max_range,
                                              FilterEnv*         env,
                                              ResourcePackager*  _packager,
                                              osgDB::Archive*    _archive )
@@ -55,7 +57,9 @@ MapLayerCompiler::CellCompiler::CellCompiler(const std::string& _abs_output_uri,
    archive( _archive )
 {
     //TODO: maybe the FilterEnv should just have one of these by default.
-    env->setTerrainReadCallback( new SmartReadCallback() );
+    SmartReadCallback* smart = new SmartReadCallback();
+    smart->setMinRange( min_range );
+    env->setTerrainReadCallback( smart );
 }
 
 void
@@ -86,25 +90,38 @@ MapLayerCompiler::CellCompiler::run() // overrides FeatureLayerCompiler::run()
 void
 MapLayerCompiler::CellCompiler::runSynchronousPostProcess( Report* report )
 {
-    if ( getResult().isOK() && getResultNode() && has_drawables && need_to_compile )
+    if ( need_to_compile )
     {
+        if ( !getResult().isOK() )
+        {
+            osgGIS::notice() << getName() << " failed to compile: " << getResult().getMessage() << std::endl;
+            return;
+        }
+        
+        if ( !getResultNode() || !has_drawables )
+        {
+            osgGIS::info() << getName() << " resulted in no geometry" << std::endl;
+            return;
+        }
+
         if ( packager.valid() )
         {
             // TODO: we should probably combine the following two calls into one:
 
-            // update any texture/model refs in preparation for packaging:
-            packager->rewriteResourceReferences( getResultNode() );
+			// update any texture/model refs in preparation for packaging:
+			packager->rewriteResourceReferences( getResultNode() );
 
-            // copy resources to their final destination
-            packager->packageResources( env->getResourceCache(), report );
+			// copy resources to their final destination
+			packager->packageResources( env->getResourceCache(), report );
 
-            // write the node data itself
-            if ( !packager->packageNode( getResultNode(), abs_output_uri ) )
-            {
-                result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk/archive" );
-            }
-        }
-    }
+			// write the node data itself
+			if ( !packager->packageNode( getResultNode(), abs_output_uri ) )
+			{
+                osgGIS::warn() << getName() << " failed to package node to output location" << std::endl;
+				result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk/archive" );
+			}
+		}
+	}
 }
 
 /*****************************************************************************/

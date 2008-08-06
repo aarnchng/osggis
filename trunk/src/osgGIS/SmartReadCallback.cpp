@@ -19,6 +19,17 @@ SmartReadCallback::SmartReadCallback( int max_lru )
     max_cache_size = size; //max_lru > 0? max_lru : 100;
     mru_tries = 0;
     mru_hits = 0;
+    min_isect_range = 0.0f;
+}
+
+void
+SmartReadCallback::setMinRange( float value ) {
+    min_isect_range = value;
+}
+
+float
+SmartReadCallback::getMinRange() const {
+    return min_isect_range;
 }
 
 osg::Node*

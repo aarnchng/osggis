@@ -34,12 +34,15 @@
 #include <osg/ProxyNode>
 #include <osg/NodeVisitor>
 #include <sstream>
+#include <algorithm>
 
 using namespace osgGIS;
 using namespace osgGISProjects;
 using namespace OpenThreads;
 
 #define MY_PRIORITY_SCALE 1.0f //0.5f
+
+//#define USE_PAGEDLODS_IN_INDEX 1
 
 
 /*****************************************************************************/
@@ -60,6 +63,27 @@ QuadTreeMapLayerCompiler::QuadTreeMapLayerCompiler( MapLayer* _layer, Session* _
     //NOP
 }
 
+static unsigned int
+getTopLod( const QuadMap& qmap, MapLayer* map_layer )
+{
+    int bottom_lod = qmap.getBestLodForCellsOfSize( map_layer->getCellWidth(), map_layer->getCellHeight() );
+    int max_depth = map_layer->getMaxDepth();
+    int top_lod = std::max( 0, bottom_lod - max_depth );
+    return (unsigned int)top_lod;
+}
+
+static MapLayerLevelOfDetail*
+getDefinition( const QuadKey& key, MapLayer* map_layer )
+{
+    unsigned top_lod = getTopLod( key.getMap(), map_layer );
+    unsigned depth_to_find = key.getLOD() - top_lod;
+    for( MapLayerLevelsOfDetail::const_iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
+    {
+        if ( i->get()->getDepth() == depth_to_find )
+            return i->get();
+    }
+    return NULL;
+}
 
 Task*
 QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
@@ -74,7 +98,7 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
 
     Task* task = NULL;
 
-    MapLayerLevelOfDetail* def = map_layer->getDefinition( key.createParentKey() );
+    MapLayerLevelOfDetail* def = getDefinition( key.createParentKey(), map_layer.get() );
     if ( def )
     {
         cell_env->setInputSRS( def->getFeatureLayer()->getSRS() );
@@ -85,11 +109,13 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
             abs_path,
             def->getFeatureLayer(),
             def->getFilterGraph(),
+            def->getMinRange(),
+            def->getMaxRange(),
             cell_env.get(),
             def->getResourcePackager()? def->getResourcePackager() : resource_packager.get(),
             getArchive() );
 
-        osgGIS::notify( osg::INFO )
+        osgGIS::info()
             << "Task: Key = " << key.toString() << ", LOD = " << key.getLOD() << ", Extent = " << key.getExtent().toString() 
             << " (w=" << key.getExtent().getWidth() << ", h=" << key.getExtent().getHeight() << ")"
             << std::endl;
@@ -98,26 +124,6 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
     return task;
 }
 
-//void
-//QuadTreeMapLayerCompiler::setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key, SmartReadCallback* reader )
-//{
-//    SpatialReference* srs = map_layer->getOutputSRS( getSession(), terrain_srs.get() );
-//    // first get the output srs centroid:
-//    const GeoExtent& cell_extent = key.getExtent();    
-//    GeoPoint centroid = srs->transform( cell_extent.getCentroid() );
-//    GeoPoint sw = srs->transform( cell_extent.getSouthwest() );
-//
-//    double radius = (centroid-sw).length();
-//    
-//    if ( terrain_node.valid() && terrain_srs.valid() )
-//    {
-//        centroid = GeomUtils::clampToTerrain( centroid, terrain_node.get(), terrain_srs.get(), reader );
-//    }
-//
-//    plod->setCenter( centroid );
-//    plod->setRadius( radius );
-//}
-
 MapLayerCompiler::Profile*
 QuadTreeMapLayerCompiler::createProfile()
 {
@@ -125,7 +131,7 @@ QuadTreeMapLayerCompiler::createProfile()
     osg::ref_ptr<SpatialReference> out_srs = map_layer->getOutputSRS( getSession(), terrain_srs.get() );
     if ( !out_srs.valid() )
     {
-        osgGIS::notify( osg::WARN ) << "Unable to figure out the output SRS; aborting." << std::endl;
+        osgGIS::warn() << "Unable to figure out the output SRS; aborting." << std::endl;
         return false;
     }
 
@@ -133,7 +139,7 @@ QuadTreeMapLayerCompiler::createProfile()
     const GeoExtent& aoi = map_layer->getAreaOfInterest();
     if ( !aoi.isValid() )
     {
-        osgGIS::notify( osg::WARN ) << "Invalid area of interest in the map layer - no data?" << std::endl;
+        osgGIS::warn() << "Invalid area of interest in the map layer - no data?" << std::endl;
         return false;
     }
 
@@ -156,9 +162,10 @@ QuadTreeMapLayerCompiler::createProfile()
     qmap.setStringStyle( QuadMap::STYLE_LOD_QUADKEY );
 #endif
 
-    osgGIS::notify( osg::NOTICE )
+    osgGIS::notice()
         << "QMAP: " << std::endl
-        << "   Base LOD = " << qmap.getStartingLodForCellsOfSize( map_layer->getCellWidth(), map_layer->getCellHeight() ) << std::endl
+        << "   Top LOD = " << getTopLod( qmap, map_layer.get() ) << std::endl
+        << "   Depth   = " << map_layer->getMaxDepth() << std::endl
         << "   Extent = " << qmap.getBounds().toString() << ", w=" << qmap.getBounds().getWidth() << ", h=" << qmap.getBounds().getHeight() << std::endl
         << std::endl;
 
@@ -210,25 +217,29 @@ QuadTreeMapLayerCompiler::createIntermediateIndexNode(const QuadKey& key,
                 group = new osg::Group();
                 group->setName( key.toString() );
             }
-
-            // enter the geometry as a proxy node (so we can rebuild it without modifying
-            // the index)
-            //osg::PagedLOD* proxy = new osg::PagedLOD();
-            osg::ProxyNode* proxy = new osg::ProxyNode();
-            proxy->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
-            proxy->setFileName( 0, createRelPathFromTemplate( "g" + subkey.toString() ) );
-            //proxy->setRange( 0, 0, 1e10 );
-            //proxy->setCenter( calculateCentroid( key ) );
-        
+            
             // enter the subtile set as a paged index node reference:
             osg::PagedLOD* plod = new osg::PagedLOD();
-            plod->addChild( proxy, max_range, 1e10 );
+            setCenterAndRadius( plod, key.getExtent(), reader );
+
+#ifdef USE_PAGEDLODS_IN_INDEX
+            osg::PagedLOD* pointer = new osg::PagedLOD();
+            pointer->setFileName( 0, createRelPathFromTemplate( "g" + subkey.toString() ) );
+            pointer->setRange( 0, 0, 1e10 );
+            pointer->setPriorityScale( 0, 1000.0f ); // top priority, hopefully
+            pointer->setPriorityOffset( 0, 1000.0f );
+            pointer->setCenter( plod->getCenter() );
+            pointer->setRadius( plod->getRadius() );
+#else
+            osg::ProxyNode* pointer = new osg::ProxyNode();
+            pointer->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
+            pointer->setFileName( 0, createRelPathFromTemplate( "g" + subkey.toString() ) );
+#endif
+        
+            plod->addChild( pointer, max_range, 1e10 );
             plod->setFileName( 1, createRelPathFromTemplate( "i" + subkey.toString() ) );
-            //plod->setRange( 1, min_range, max_range ); // last one should always be min=0
             plod->setRange( 1, 0, max_range ); // last one should always be min=0
             plod->setPriorityScale( 1, MY_PRIORITY_SCALE );
-            //plod->setCenter( calculateCentroid( key ) );
-            setCenterAndRadius( plod, key.getExtent(), reader );
 
             group->addChild( plod );
         }
@@ -240,7 +251,7 @@ QuadTreeMapLayerCompiler::createIntermediateIndexNode(const QuadKey& key,
 // creates an index node (pointer to quadkey geometry nodes) that has no
 // children.
 osg::Node*
-QuadTreeMapLayerCompiler::createLeafIndexNode( const QuadKey& key )
+QuadTreeMapLayerCompiler::createLeafIndexNode( const QuadKey& key, SmartReadCallback* reader )
 {
     osg::Group* group = NULL;
 
@@ -255,15 +266,21 @@ QuadTreeMapLayerCompiler::createLeafIndexNode( const QuadKey& key )
                 group = new osg::Group();
                 group->setName( key.toString() );
             }
+            
+#ifdef USE_PAGEDLODS_IN_INDEX
+            osg::PagedLOD* pointer = new osg::PagedLOD();
+            pointer->setFileName( 0, createRelPathFromTemplate( "g" + quadrant_key.toString() ) );
+            pointer->setRange( 0, 0, 1e10 );
+            pointer->setPriorityScale( 0, 1000.0f ); // top priority!
+            pointer->setPriorityOffset( 0, 1000.0f );
+            setCenterAndRadius( pointer, quadrant_key.getExtent(), reader );
+#else
+            osg::ProxyNode* pointer = new osg::ProxyNode();
+            pointer->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
+            pointer->setFileName( 0, createRelPathFromTemplate( "g" + quadrant_key.toString() ) );
+#endif
 
-            //osg::PagedLOD* proxy = new osg::PagedLOD();
-            osg::ProxyNode* proxy = new osg::ProxyNode();
-            proxy->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
-            proxy->setFileName( 0, createRelPathFromTemplate( "g" + quadrant_key.toString() ) );
-            //proxy->setCenter( calculateCentroid( quadrant_key ) );
-            //proxy->setRange( 0, 0, 1e10 );
-
-            group->addChild( proxy );
+            group->addChild( pointer );
         }
     }
 
@@ -276,12 +293,12 @@ void
 QuadTreeMapLayerCompiler::collectGeometryKeys( const QuadMap& qmap, QuadKeyList& geom_keys )
 {
     // the starting LOD is the best fit the the cell size:
-    unsigned int starting_lod = qmap.getStartingLodForCellsOfSize( map_layer->getCellWidth(), map_layer->getCellHeight() );
+    unsigned int top_lod = getTopLod( qmap, map_layer.get() );
 
     for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
     {
         MapLayerLevelOfDetail* level_def = i->get();
-        unsigned int lod = starting_lod + level_def->getDepth();
+        unsigned int lod = top_lod + level_def->getDepth();
         
         // get the extent of tiles that we will build based on the AOI:
         unsigned int cell_xmin, cell_ymin, cell_xmax, cell_ymax;
@@ -318,16 +335,14 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
     scene_graph = new osg::Group();
 
     // the starting LOD is the best fit the the cell size:
-    unsigned int starting_lod = profile->getQuadMap().getStartingLodForCellsOfSize( 
-        map_layer->getCellWidth(), 
-        map_layer->getCellHeight() );
+    unsigned int top_lod = getTopLod( profile->getQuadMap(), map_layer.get() );
 
     osg::ref_ptr<SmartReadCallback> reader = new SmartReadCallback();
 
     for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
     {
         MapLayerLevelOfDetail* level_def = i->get();
-        unsigned int lod = starting_lod + level_def->getDepth();
+        unsigned int lod = top_lod + level_def->getDepth();
 
         MapLayerLevelOfDetail* sub_level_def = i+1 != map_layer->getLevels().end()? (i+1)->get() : NULL;
         float min_range, max_range;
@@ -360,7 +375,7 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
 
                 node = sub_level_def ?
                     createIntermediateIndexNode( key, min_range, max_range, reader.get() ) :
-                    createLeafIndexNode( key );
+                    createLeafIndexNode( key, reader.get() );
                 
                 if ( node.valid() )
                 {
@@ -368,7 +383,7 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
 
                     if ( !osgDB::writeNodeFile( *(node.get()), out_file ) )
                     {
-                        osgGIS::notify(osg::WARN) << "FAILED to write index file " << out_file << std::endl;
+                        osgGIS::warn() << "FAILED to write index file " << out_file << std::endl;
                     }
                     
                     // at the top level, assemble the root node

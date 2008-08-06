@@ -48,7 +48,7 @@ namespace osgGISProjects
 
         void getCellSize( unsigned int lod, double& out_width, double& out_height ) const;
 
-        unsigned int getStartingLodForCellsOfSize( double cell_width, double cell_height ) const;
+        unsigned int getBestLodForCellsOfSize( double cell_width, double cell_height ) const;
 
         /**
          * Gets the cell range that incorporates the AOI at the specified LOD.

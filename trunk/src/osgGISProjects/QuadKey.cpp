@@ -74,7 +74,7 @@ QuadMap::getCellSize( unsigned int lod, double& out_width, double& out_height ) 
 }
 
 unsigned int
-QuadMap::getStartingLodForCellsOfSize( double width, double height ) const
+QuadMap::getBestLodForCellsOfSize( double width, double height ) const
 {
     unsigned int lod = 1;
     for( ; ; lod++ )

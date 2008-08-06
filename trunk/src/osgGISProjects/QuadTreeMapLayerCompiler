@@ -81,12 +81,9 @@ namespace osgGISProjects
         //void processCompletedTask( Task* task );
 
         osg::Node* createIntermediateIndexNode( const QuadKey& key, float min_range, float max_range, SmartReadCallback* );
-        osg::Node* createLeafIndexNode( const QuadKey& key );
+        osg::Node* createLeafIndexNode( const QuadKey& key, SmartReadCallback* );
         Task* createQuadKeyTask( const QuadKey& key );
         void collectGeometryKeys( const QuadMap& qmap, QuadKeyList& geom_keys );
-        //void buildQuadMapIndex( const QuadMap& qmap );
-        //void scrubQuadKeyIndex( const QuadKeyList& build_keys );
-        //void setCenterAndRadius( osg::PagedLOD* plod, const QuadKey& key, SmartReadCallback* );
     };
 }
 

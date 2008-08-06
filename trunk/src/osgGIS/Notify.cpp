@@ -108,16 +108,38 @@ std::ostream& osgGIS::notify(const osg::NotifySeverity severity)
 
     if (severity<=g2_NotifyLevel)
     {
-        if (severity<=osg::WARN)
-        {
-            std::cerr << "[osgGIS] ";
-            return std::cerr;
+        std::cout << "[osgGIS] ";
+        switch(severity)
+        {            
+        case osg::FATAL:
+            std::cout << "*** ERROR *** ";
+            break;
+        case osg::WARN:
+            std::cout << "WARN: ";
+            break;
+        case osg::NOTICE:
+            break;
+        case osg::INFO:
+            std::cout << "INFO: ";
+            break;
+        default:
+            std::cout << "DEBUG: ";
         }
-        else 
-        {
-            std::cout << "[osgGIS] ";
-            return std::cout;
-        }
+
+        return std::cout;
     }
     return s2_NotifyNulStream;
 }
+
+
+std::ostream& 
+osgGIS::debug() { return osgGIS::notify(osg::DEBUG_INFO); }
+
+std::ostream& 
+osgGIS::info() { return osgGIS::notify(osg::INFO); }
+
+std::ostream&
+osgGIS::notice() { return osgGIS::notify(osg::NOTICE); }
+
+std::ostream& 
+osgGIS::warn() { return osgGIS::notify(osg::WARN); }
