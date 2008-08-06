@@ -38,7 +38,10 @@ namespace osgGIS
     {
     public:
         SmartReadCallback( int max_lru =100 );
-
+        
+        void setMinRange( float min_range );
+        float getMinRange() const;
+        
         osg::Node* getMruNode();
         
         void setMruNode( osg::Node* );
@@ -88,6 +91,8 @@ namespace osgGIS
         osg::ref_ptr<osg::Node> mru_node;
         osg::BoundingSphere mru_world_bs;
         int mru_tries, mru_hits;
+        
+        float min_isect_range;
     };
 }
 

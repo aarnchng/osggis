@@ -195,8 +195,8 @@ namespace osgGIS
     class RelaxedIntersectionVisitor : public osgUtil::IntersectionVisitor
     {
     public:
-        RelaxedIntersectionVisitor() { }
-
+        RelaxedIntersectionVisitor() : checked_for_min_range(false), min_isect_range(0.0f) { }
+        
         virtual void apply( osg::PagedLOD& plod ) // override
         {
             if (!enter(plod)) return;
@@ -204,10 +204,23 @@ namespace osgGIS
             if (plod.getNumFileNames()>0)
             {
                 osg::ref_ptr<osg::Node> highestResChild;
+                
+                if ( !checked_for_min_range )
+                {
+                    checked_for_min_range = true;
+                    SmartReadCallback* smart = dynamic_cast<SmartReadCallback*>(_readCallback.get());
+                    if ( smart )
+                        min_isect_range = smart->getMinRange();
+                }
 
                 if (plod.getNumFileNames() != plod.getNumChildren() && _readCallback.valid())
                 {
-                    highestResChild = _readCallback->readNodeFile( plod.getDatabasePath() + plod.getFileName(plod.getNumFileNames()-1) );
+                    unsigned int last_filename_index = plod.getNumFileNames()-1;
+                    float child_max_range = plod.getMaxRange( last_filename_index );
+                    if ( child_max_range >= min_isect_range )
+                    {
+                        highestResChild = _readCallback->readNodeFile( plod.getDatabasePath() + plod.getFileName(last_filename_index) );
+                    }
                 }
 
                 if ( !highestResChild.valid() && plod.getNumChildren() > 0 )
@@ -223,6 +236,10 @@ namespace osgGIS
 
             leave();
         }
+        
+    private:
+        bool checked_for_min_range;
+        float min_isect_range;
     };
 }
 

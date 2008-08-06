@@ -261,7 +261,7 @@ GeomUtils::findNamedNode( const std::string& name, osg::Node* root )
 }
 
 GeoPoint
-GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialReference* terrain_srs, SmartReadCallback* cb )
+GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialReference* terrain_srs, SmartReadCallback* reader )
 {
     GeoPoint output = input;
 
@@ -302,9 +302,8 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
         }
 
         RelaxedIntersectionVisitor iv;
-		//osgUtil::IntersectionVisitor iv;
         iv.setIntersector( isector.get() );
-        iv.setReadCallback( cb );
+        iv.setReadCallback( reader );
         
         terrain->accept( iv );
         if ( isector->containsIntersections() )

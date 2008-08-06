@@ -172,6 +172,8 @@ namespace osgGISProjects
                 const std::string& abs_output_uri,
                 FeatureLayer*      layer,
                 FilterGraph*       graph,
+                float              min_range,
+                float              max_range,
                 FilterEnv*         env,
                 ResourcePackager*  packager,
                 osgDB::Archive*    archive =NULL);

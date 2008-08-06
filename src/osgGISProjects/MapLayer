@@ -21,7 +21,6 @@
 #define _OSGGISPROJECTS_MAP_LAYER_H_ 1
 
 #include <osgGISProjects/Common>
-#include <osgGISProjects/QuadKey>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Session>
@@ -172,6 +171,13 @@ namespace osgGISProjects
             float max_range,
             bool replace,
             unsigned int depth );
+            
+        /**
+         * Gets the maximum depth (LOD nesting level) in the map layer.
+         *
+         * @return Integer depth number (0=shallowest)
+         */
+        unsigned int getMaxDepth() const;
 
         /**
          * Gets the spatial reference system of the output when this layer is compiled.
@@ -219,8 +225,6 @@ namespace osgGISProjects
         MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
 
         MapLayerLevelsOfDetail& getLevels() { return levels; }
-
-        MapLayerLevelOfDetail* getDefinition( const QuadKey& key ) const;
 
     private:
         MapLayerLevelsOfDetail levels;

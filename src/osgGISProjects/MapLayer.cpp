@@ -226,6 +226,18 @@ MapLayer::push(FeatureLayer* layer, FilterGraph* graph,
     }  
 }
 
+unsigned int
+MapLayer::getMaxDepth() const
+{
+    unsigned int max_depth = 0;
+    for( MapLayerLevelsOfDetail::const_iterator i = levels.begin(); i != levels.end(); i++ )
+    {
+        if ( i->get()->getDepth() > max_depth )
+            max_depth = i->get()->getDepth();
+    }
+    return max_depth;
+}
+
 SpatialReference*
 MapLayer::getOutputSRS( Session* session, SpatialReference* terrain_srs ) const
 {
@@ -368,17 +380,4 @@ MapLayer::recalculateGrid()
 
         grid_valid = true;
     }
-}
-
-MapLayerLevelOfDetail*
-MapLayer::getDefinition( const QuadKey& key ) const
-{
-    unsigned first_lod = key.getMap().getStartingLodForCellsOfSize( getCellWidth(), getCellHeight() );
-    unsigned depth_to_find = key.getLOD() - first_lod;
-    for( MapLayerLevelsOfDetail::const_iterator i = levels.begin(); i != levels.end(); i++ )
-    {
-        if ( i->get()->getDepth() == depth_to_find )
-            return i->get();
-    }
-    return NULL;
 }

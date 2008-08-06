@@ -124,17 +124,16 @@ clampPointPartToTerrain(GeoPointList&           part,
                         osg::Node*              terrain,
                         const SpatialReference* srs,
                         bool                    ignore_z,
-                        SmartReadCallback*      read_cache,
+                        SmartReadCallback*      reader,
                         double&                 out_clamped_z )
 {
     int clamps = 0;
     out_clamped_z = DBL_MAX;
 
     RelaxedIntersectionVisitor iv;
-    //osgUtil::IntersectionVisitor iv;
 
-    if ( read_cache )
-        iv.setReadCallback( read_cache );
+    if ( reader )
+        iv.setReadCallback( reader );
 
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
     {
@@ -188,9 +187,9 @@ clampPointPartToTerrain(GeoPointList&           part,
 
         // try the read cache's MRU node if it intersects out point:
         osg::Node* target = terrain;
-        if ( read_cache )
+        if ( reader )
         {
-            target = read_cache->getMruNodeIfContains( p_world, terrain );
+            target = reader->getMruNodeIfContains( p_world, terrain );
 
             // First try the MRU target; then fall back on the whole terrain.
             target->accept( iv );
@@ -211,8 +210,10 @@ clampPointPartToTerrain(GeoPointList&           part,
             osg::Vec3d offset_point = new_point + clamp_vec * hat;
             p.set( offset_point * srs->getReferenceFrame() );
             clamps++;
-            if ( read_cache )
-                read_cache->setMruNode( isect.nodePath.back().get() );
+
+            //TODO: can we replace the manual setMru with the SmartCB's MRU list?
+            if ( reader )
+                reader->setMruNode( isect.nodePath.back().get() );
 
             // record the HAT value:
             if ( srs->isGeocentric() )

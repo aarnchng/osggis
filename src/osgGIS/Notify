@@ -54,6 +54,10 @@ extern OSGGIS_EXPORT bool initNotifyLevel();
   
 extern OSGGIS_EXPORT std::ostream& notify(const osg::NotifySeverity severity);
 
+extern OSGGIS_EXPORT std::ostream& debug();
+extern OSGGIS_EXPORT std::ostream& info();
+extern OSGGIS_EXPORT std::ostream& notice();
+extern OSGGIS_EXPORT std::ostream& warn();
 }
 
 #endif

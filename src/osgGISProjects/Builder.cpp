@@ -23,9 +23,6 @@
 #include <osgGISProjects/GriddedMapLayerCompiler>
 #include <osgGISProjects/SimpleMapLayerCompiler>
 #include <osgGIS/FeatureLayer>
-//#include <osgGIS/SimpleLayerCompiler>
-//#include <osgGIS/PagedLayerCompiler>
-//#include <osgGIS/GriddedLayerCompiler>
 #include <osgGIS/Registry>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Resource>
@@ -65,14 +62,14 @@ getTerrainData(Terrain*                        terrain,
                 out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
             }
 
-            osgGIS::notify( osg::NOTICE )
+            osgGIS::notice()
                 << "Loaded TERRAIN from \"" << terrain->getAbsoluteURI() << "\", SRS = "
                 << (out_terrain_srs.valid()? out_terrain_srs->getName() : "unknown")
                 << std::endl;
         }
         else
         {
-            osgGIS::notify( osg::WARN )
+            osgGIS::warn()
                 << "Unable to load data for terrain \""
                 << terrain->getName() << "\"." 
                 << std::endl;
@@ -109,8 +106,7 @@ Builder::build()
     if ( !project.valid() )
         return false;
 
-    VERBOSE_OUT <<
-        "No targets specified; building all layers." << std::endl;
+    osgGIS::notice() << "No targets specified; building all layers." << std::endl;
 
     bool ok = true;
 
@@ -133,7 +129,7 @@ Builder::build( const std::string& target_name )
     {
         BuildTarget* target = project->getTarget( target_name );
         if ( !target )
-            VERBOSE_OUT << "No target " << target_name << " found in the project." << std::endl;
+            osgGIS::warn() << "No target " << target_name << " found in the project." << std::endl;
         return target? build( target ) : false;
     }
     else
@@ -149,8 +145,7 @@ Builder::build( BuildTarget* target )
     if ( !project.valid() || !target )
         return false;
 
-    VERBOSE_OUT <<
-        "Building target \"" << target->getName() << "\"." << std::endl;
+    osgGIS::notice() << "Building target \"" << target->getName() << "\"." << std::endl;
 
     bool ok = true;
 
@@ -161,8 +156,7 @@ Builder::build( BuildTarget* target )
     
     if ( ok )
     {
-        VERBOSE_OUT <<
-            "Done building target \"" << target->getName() << "\"." << std::endl;
+        osgGIS::notice() << "Done building target \"" << target->getName() << "\"." << std::endl;
     }
     return ok;
 }
@@ -172,33 +166,33 @@ Builder::build( BuildTarget* target )
 bool
 Builder::build( Source* source, Session* session )
 {
-    osgGIS::notify(osg::NOTICE) << "Building source " << source->getName() << std::endl;
+    osgGIS::notice() << "Building source " << source->getName() << std::endl;
 
     // only need to build intermediate sources.
     if ( !source->isIntermediate() )
     {
-        osgGIS::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (not intermediate)." << std::endl;
+        osgGIS::info() << "...source " << source->getName() << " does not need building (not intermediate)." << std::endl;
         return true;
     }
 
     Source* parent = source->getParentSource();
     if ( !parent )
     {
-        osgGIS::notify(osg::WARN) << "...ERROR: No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::warn()  << "...ERROR: No parent source found for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
     // check whether a rebuild is required:
     if ( parent->getTimeLastModified() < source->getTimeLastModified() )
     {
-        osgGIS::notify(osg::NOTICE) << "...source " << source->getName() << " does not need building (newer than parent)." << std::endl;
+        osgGIS::info() << "...source " << source->getName() << " does not need building (newer than parent)." << std::endl;
         return true;
     }
 
     // build it's parent first:
     if ( !build( parent, session ) )
     {
-        osgGIS::notify(osg::WARN) << "...ERROR: Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::warn() << "...ERROR: Failed to build source \"" << parent->getName() << "\", parent of source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -206,7 +200,7 @@ Builder::build( Source* source, Session* session )
     FilterGraph* graph = source->getFilterGraph();
     if ( !graph )
     {
-        osgGIS::notify(osg::WARN) << "...ERROR: No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::warn() << "...ERROR: No filter graph set for intermediate source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -215,7 +209,7 @@ Builder::build( Source* source, Session* session )
         parent->getAbsoluteURI() );
     if ( !feature_layer.valid() )
     {
-        osgGIS::notify( osg::WARN ) << "...ERROR: Cannot access source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::warn() << "...ERROR: Cannot access source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
@@ -232,11 +226,11 @@ Builder::build( Source* source, Session* session )
 
     if ( !compiler.compile( source->getAbsoluteURI(), source_env.get() ) )
     {
-        osgGIS::notify( osg::WARN ) << "...ERROR: failure compiling source \"" << source->getName() << "\"" << std::endl;
+        osgGIS::warn() << "...ERROR: failure compiling source \"" << source->getName() << "\"" << std::endl;
         return false;
     }
 
-    osgGIS::notify(osg::NOTICE) << "...done compiling source \"" << source->getName() << "\"" << std::endl;
+    osgGIS::notice() << "...done compiling source \"" << source->getName() << "\"" << std::endl;
 
     return true;
 }
@@ -256,7 +250,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
 
         if ( slice->getSource() && !build( slice->getSource(), session ) )
         {
-            osgGIS::notify( osg::WARN )
+            osgGIS::warn()
                 << "Unable to build source \"" << slice->getSource()->getName() << "\" or one of its dependencies." 
                 << std::endl;
             return false;
@@ -282,8 +276,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
 
             if ( !feature_layer )
             {
-                osgGIS::notify( osg::WARN ) 
-                    << "Cannot access source \"" << slice_source->getName() << std::endl;
+                osgGIS::warn() << "Cannot access source \"" << slice_source->getName() << std::endl;
                 return false;
             }
 
@@ -324,8 +317,7 @@ Builder::build( BuildLayer* layer )
         Registry::instance()->setWorkDirectory( work_dir );
     }
 
-    VERBOSE_OUT <<
-        "Building layer \"" << layer->getName() << "\"." << std::endl;
+    osgGIS::notice() << "Building layer \"" << layer->getName() << "\"." << std::endl;
 
     // first create and initialize a Session that will share data across the build.
     osg::ref_ptr<Session> session = new Session();
@@ -354,7 +346,7 @@ Builder::build( BuildLayer* layer )
     // recursively build any sources that need building.
     if ( source && !build( source, session.get() ) )
     {
-        osgGIS::notify( osg::WARN )
+        osgGIS::warn()
             << "Unable to build source \"" << source->getName() << "\" or one of its dependencies." 
             << std::endl;
         return false;
@@ -369,7 +361,7 @@ Builder::build( BuildLayer* layer )
         if ( !feature_layer.valid() )
         {
             //TODO: log error
-            osgGIS::notify( osg::WARN ) 
+            osgGIS::warn()
                 << "Cannot access source \"" << source->getName() 
                 << "\" for layer \"" << layer->getName() << "\"." << std::endl;
             return false;
@@ -390,7 +382,7 @@ Builder::build( BuildLayer* layer )
     osgDB::makeDirectoryForFile( output_file );
     if ( !osgDB::fileExists( osgDB::getFilePath( output_file ) ) )
     {
-        osgGIS::notify( osg::WARN ) 
+        osgGIS::warn()
             << "Unable to establish target location for layer \""
             << layer->getName() << "\" at \"" << output_file << "\"." 
             << std::endl;
@@ -453,7 +445,7 @@ Builder::build( BuildLayer* layer )
 
     if ( !addSlicesToMapLayer( layer->getSlices(), map_layer.get(), packager.get(), 0, session.get(), source ) )
     {
-        osgGIS::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
+        osgGIS::warn() << "Failed to add all slices to layer " << layer->getName() << std::endl;
         return false;
     }
 
@@ -502,193 +494,14 @@ Builder::build( BuildLayer* layer )
         {
             packager->packageNode( compiler->getSceneGraph(), output_file );
         }
-            //if ( archive.valid() )
-            //{
-            //    archive->writeNode( *compiler->getSceneGraph(), output_file );
-            //}
-            //else
-            //{
-            //    osgDB::writeNodeFile( *compiler->getSceneGraph(), output_file );
-            //}
     }
-
-
-
-    //if ( layer->getType() == BuildLayer::TYPE_QUADTREE ) // testing out the NEW process
-    //{
-    //    MapLayer* map_layer = new MapLayer();
-    //    
-    //    // a resource packager if necessary will copy ext-ref files to the output location:
-    //    osg::ref_ptr<ResourcePackager> packager;
-    //    if ( layer->getProperties().getBoolValue( "localize_resources", false ) )
-    //    {
-    //        packager = new ResourcePackager();
-    //        packager->setArchive( archive.get() );
-    //        packager->setOutputLocation( osgDB::getFilePath( output_file ) );
-    //        packager->setMaxTextureSize( layer->getProperties().getIntValue( "max_texture_size", 0 ) );
-    //        packager->setCompressTextures( layer->getProperties().getBoolValue( "compress_textures", false ) );
-    //        packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
-    //    }
-
-    //    if ( !addSlicesToMapLayer( layer->getSlices(), map_layer, packager.get(), 0, session.get(), source ) )
-    //    {
-    //        osgGIS::notify(osg::WARN) << "Failed to add all slices to layer " << layer->getName() << std::endl;
-    //        return false;
-    //    }
-    //    
-    //    // calculate the grid cell size:
-    //    double col_size = layer->getProperties().getDoubleValue( "col_size", -1.0 );
-    //    double row_size = layer->getProperties().getDoubleValue( "row_size", -1.0 );
-    //    if ( col_size <= 0.0 || row_size <= 0.0 )
-    //    {
-    //        int num_cols = std::max( 1, layer->getProperties().getIntValue( "num_cols", 1 ) );
-    //        int num_rows = std::max( 1, layer->getProperties().getIntValue( "num_rows", 1 ) );
-    //        col_size = map_layer->getAreaOfInterest().getWidth() / (double)num_cols;
-    //        row_size = map_layer->getAreaOfInterest().getHeight() / (double)num_rows;
-    //    }
-    //    map_layer->setCellWidth( col_size );
-    //    map_layer->setCellHeight( row_size );
-
-    //    // create and confiugure the compiler:
-    //    QuadTreeMapLayerCompiler compiler( map_layer, session.get() );
-
-    //    compiler.setAbsoluteOutputURI( output_file );
-    //    compiler.setPaged( layer->getProperties().getBoolValue( "paged", false ) );
-    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-    //    compiler.setArchive( archive.get(), archive_file );
-    //    compiler.setResourcePackager( packager.get() );
-    //            
-    //    // build the layer and write the root file to output:
-    //    bool ok = compiler.compile( manager.get() );
-
-    //    if ( ok )
-    //    {
-    //        osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
-    //        if ( archive.valid() )
-    //        {
-    //            archive->writeNode( *compiler.getSceneGraph(), output_file, options );
-    //        }
-    //        else
-    //        {
-    //            osgDB::writeNodeFile( *compiler.getSceneGraph(), output_file, options );
-    //        }
-    //    }
-    //}
-
-    //// if we have a valid terrain, use the paged layer compiler. otherwise
-    //// use a simple compiler.
-    //else
-    //if ( terrain && layer->getType() == BuildLayer::TYPE_CORRELATED )
-    //{
-    //    PagedLayerCompiler compiler;
-
-    //    compiler.setProperties( layer->getProperties() );
-    //    compiler.setSession( session.get() );
-    //    compiler.setTaskManager( manager.get() );
-    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-    //    compiler.setArchive( archive.get(), archive_file );
-    //    
-    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-    //    {
-    //        compiler.addFilterGraph(
-    //            i->get()->getMinRange(),
-    //            i->get()->getMaxRange(),
-    //            i->get()->getFilterGraph() );
-    //    }
-
-    //    compiler.compile(
-    //        feature_layer.get(),
-    //        output_file );
-    //}
-
-    //else if ( layer->getType() == BuildLayer::TYPE_GRIDDED )
-    //{
-    //    GriddedLayerCompiler compiler;
-
-    //    compiler.setProperties( layer->getProperties() );
-    //    compiler.setSession( session.get() );
-    //    compiler.setTaskManager( manager.get() );
-    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-    //    compiler.setArchive( archive.get(), archive_file );
-    //    
-    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-    //    {
-    //        compiler.addFilterGraph(
-    //            i->get()->getMinRange(),
-    //            i->get()->getMaxRange(),
-    //            i->get()->getFilterGraph() );
-    //    }
-
-    //    osg::ref_ptr<osg::Node> node = compiler.compile(
-    //        feature_layer.get(),
-    //        output_file );
-
-    //    if ( node.valid() )
-    //    {
-    //        if ( archive.valid() )
-    //        {
-    //            archive->writeNode( 
-    //                *(node.get()), 
-    //                output_file,
-    //                osgDB::Registry::instance()->getOptions() );
-    //        }
-    //        else
-    //        {
-    //            osgDB::writeNodeFile( 
-    //                *(node.get()),
-    //                output_file,
-    //                osgDB::Registry::instance()->getOptions() );
-    //        }
-    //    }        
-    //}
-    //else
-    //{
-    //    SimpleLayerCompiler compiler;
-
-    //    compiler.setProperties( layer->getProperties() );
-    //    compiler.setSession( session.get() );
-    //    compiler.setTaskManager( manager.get() );
-    //    compiler.setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
-    //    compiler.setArchive( archive.get(), archive_file );
-    //    
-    //    for( BuildLayerSliceList::iterator i = layer->getSlices().begin(); i != layer->getSlices().end(); i++ )
-    //    {
-    //        compiler.addFilterGraph(
-    //            i->get()->getMinRange(),
-    //            i->get()->getMaxRange(),
-    //            i->get()->getFilterGraph() );
-    //    }
-
-    //    osg::ref_ptr<osg::Node> node = compiler.compile(
-    //        feature_layer.get(),
-    //        output_file );
-
-    //    if ( node.valid() )
-    //    {
-    //        if ( archive.valid() )
-    //        {
-    //            archive->writeNode( 
-    //                *(node.get()), 
-    //                output_file,
-    //                osgDB::Registry::instance()->getOptions() );
-    //        }
-    //        else
-    //        {
-    //            osgDB::writeNodeFile( 
-    //                *(node.get()),
-    //                output_file,
-    //                osgDB::Registry::instance()->getOptions() );
-    //        }
-    //    }        
-    //}
 
     if ( archive.valid() )
     {
         archive->close();
     }
 
-    VERBOSE_OUT <<
-        "Done building layer \"" << layer->getName() << "\"." << std::endl;
+    osgGIS::notice() << "Done building layer \"" << layer->getName() << "\"." << std::endl;
 
     return true;
 }

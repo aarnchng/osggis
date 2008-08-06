@@ -39,7 +39,7 @@
 #include <osgViewer/Viewer>
 #include <iostream>
 
-#define NOUT osgGIS::notify(osg::NOTICE)
+#define NOUT osgGIS::notice()
 #define ENDL std::endl
 
 
@@ -53,7 +53,7 @@ int num_threads = 0; // defaults to logical proc count
 int
 die( const std::string& msg )
 {
-	osgGIS::notify( osg::FATAL ) << "ERROR: " << msg << ENDL;
+    osgGIS::warn() << "ERROR: " << msg << ENDL;
 	return -1;
 }
 
@@ -120,7 +120,7 @@ parseCommandLine( int argc, char** argv )
 
     if ( arguments.read( "--version" ) )
     {
-        osgGIS::notify(osg::NOTICE) << "osgGIS version " << OSGGIS_VERSION_STRING << std::endl;
+        osgGIS::notice() << "osgGIS version " << OSGGIS_VERSION_STRING << std::endl;
         exit(0);
     }
 
@@ -146,13 +146,13 @@ main(int argc, char* argv[])
     if ( !project.valid() )
         return die( "Cannot load project file " + project_file );
 
-    VERBOSE_OUT << "Project \"" << project->getName() << "\" loaded." << std::endl;
+    osgGIS::notice() << "Project \"" << project->getName() << "\" loaded." << std::endl;
 
     if ( list_targets ) // just show available targets
     {
         for( osgGISProjects::BuildTargetList::iterator i = project->getTargets().begin(); i != project->getTargets().end(); i++ )
         {
-            std::cout << "Target: " << i->get()->getName() << std::endl;
+            osgGIS::notice() << "Target: " << i->get()->getName() << std::endl;
         }
     }
 
@@ -174,7 +174,7 @@ main(int argc, char* argv[])
         builder.build( target_name );
 
         osg::Timer_t end = osg::Timer::instance()->tick();
-        VERBOSE_OUT << "Done, total build time = " << osg::Timer::instance()->delta_s( start, end ) 
+        osgGIS::notice() << "Done, total build time = " << osg::Timer::instance()->delta_s( start, end ) 
             << "s" << std::flush << std::endl;
     }
 

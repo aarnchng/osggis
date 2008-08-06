@@ -436,6 +436,8 @@ main(int argc, char* argv[])
 
     osgDB::Registry::instance()->getOrCreateSharedStateManager();
 
+    osgDB::DatabasePager* pager = viewer.getScene()->getDatabasePager();
+
     // We must wait until after the first frame to apply the manipulator node, otherwise it will
     // use the root node instead of our terrain node:
     viewer.realize();
@@ -444,7 +446,15 @@ main(int argc, char* argv[])
         manip->setNode( terrain_node );
     
     // Run until the user quits.
-    viewer.run();
+    while( !viewer.done() )
+    {
+        viewer.frame();
+        if ( !pager->isRunning() )
+        {
+            osgGIS::warn() << "*** PAGER is NOT Running" << std::endl;
+        }
+    }
+    //viewer.run();
 	return 0;
 }
 
