@@ -189,9 +189,6 @@ namespace osgGIS
 
     // custom intersection visitor that can "fall back" on lower resolution tiles when
     // a pages lod subtile cannot be found.
-    //
-    // NOTE: I submitted this change to the OSG core -- it will become the default behavior in
-    // the 2.6 stable release.
     class RelaxedIntersectionVisitor : public osgUtil::IntersectionVisitor
     {
     public:
@@ -220,6 +217,10 @@ namespace osgGIS
                     if ( child_max_range >= min_isect_range )
                     {
                         highestResChild = _readCallback->readNodeFile( plod.getDatabasePath() + plod.getFileName(last_filename_index) );
+                    }
+                    else
+                    {
+                        //osgGIS::warn() << "---------Selected midrange LOD---------------" << std::endl;
                     }
                 }
 

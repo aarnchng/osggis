@@ -163,6 +163,8 @@ namespace osgGISProjects
          *      True if the compilation succeeded, false if it failed.
          */
         virtual bool compile( TaskManager* task_man );
+        
+        virtual bool compileIndexOnly();
 
     public:
 
@@ -222,7 +224,7 @@ namespace osgGISProjects
 
         osg::ref_ptr<osg::Group>        scene_graph;
 
-        void setCenterAndRadius( osg::PagedLOD* plod, const GeoExtent& cell_extent, SmartReadCallback* reader );
+        void setCenterAndRadius( osg::Node* plod_or_proxy, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };
 }
 

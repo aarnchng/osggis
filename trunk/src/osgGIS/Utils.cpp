@@ -2,8 +2,10 @@
 #include <osgGIS/LineSegmentIntersector2>
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
+#include <osgDB/ReadFile>
 #include <osg/NodeVisitor>
 #include <osgUtil/IntersectionVisitor>
+#include <osgUtil/LineSegmentIntersector>
 #include <iostream>
 #include <algorithm>
 #include <float.h>
@@ -260,43 +262,38 @@ GeomUtils::findNamedNode( const std::string& name, osg::Node* root )
     return v.result.get();
 }
 
+struct SimpleReader : public osgUtil::IntersectionVisitor::ReadCallback {
+    osg::Node* readNodeFile( const std::string& filename ) {
+        return osgDB::readNodeFile( filename );
+    }
+};
+
 GeoPoint
 GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialReference* terrain_srs, SmartReadCallback* reader )
 {
-    GeoPoint output = input;
+    GeoPoint output = GeoPoint::invalid();
 
     if ( terrain && terrain_srs )
     {
         GeoPoint p_world = terrain_srs->transform( input );
 
         osg::Vec3d clamp_vec;
-
-        double lat = 0.0, lon = 0.0;
-        double hat = 0.0;
-        //double z = (p.getDim() > 2 && !ignore_z)? p.z() : DEFAULT_OFFSET_EXTENSION;
-
-        osg::ref_ptr<LineSegmentIntersector2> isector;
+        osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
 
         if ( terrain_srs->isGeocentric() )
         {
             clamp_vec = p_world;
             clamp_vec.normalize();
-            
-            terrain_srs->getEllipsoid().xyzToLatLonHeight( p_world.x(), p_world.y(), p_world.z(), lat, lon, hat );
 
-            // to get rid of the HAT:
-            osg::Vec3d xyz = terrain_srs->getEllipsoid().latLongToGeocentric(
-                osg::Vec3d( osg::RadiansToDegrees(lon), osg::RadiansToDegrees(lat), 0.0 ) );
-            
-            isector = new LineSegmentIntersector2(
+            isector = new osgUtil::LineSegmentIntersector(
                 clamp_vec * terrain_srs->getEllipsoid().getSemiMajorAxis() * 1.2,
-                osg::Vec3d( 0, 0, 0 ) );
+                osg::Vec3d(0, 0, 0) );
         }
         else
         {
-            clamp_vec = osg::Vec3d( 0, 0, 1 );
+            clamp_vec.set(0, 0, 1);
             osg::Vec3d ext_vec = clamp_vec * 1e6;
-            isector = new LineSegmentIntersector2(
+            isector = new LineSegmentIntersector(
                 p_world + ext_vec,
                 p_world - ext_vec );
         }
@@ -304,14 +301,15 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
         RelaxedIntersectionVisitor iv;
         iv.setIntersector( isector.get() );
         iv.setReadCallback( reader );
-        
+
+        //IntersectionVisitor iv;
+        //iv.setIntersector( isector.get() );
+        //iv.setReadCallback( new SimpleReader() );
+
         terrain->accept( iv );
         if ( isector->containsIntersections() )
         {
             output = GeoPoint( isector->getFirstIntersection().getWorldIntersectPoint(), terrain_srs );
-
-            //osgGIS::notify( osg::NOTICE )
-            //    << "Clamped " << input.toString() << " to " << output.toString() << std::endl;
         }
     }
 

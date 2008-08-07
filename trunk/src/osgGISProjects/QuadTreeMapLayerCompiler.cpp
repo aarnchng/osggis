@@ -33,6 +33,10 @@
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/NodeVisitor>
+#include <osg/ShapeDrawable>
+#include <osg/Shape>
+#include <osg/Geode>
+#include <osg/Geometry>
 #include <sstream>
 #include <algorithm>
 
@@ -217,10 +221,13 @@ QuadTreeMapLayerCompiler::createIntermediateIndexNode(const QuadKey& key,
                 group = new osg::Group();
                 group->setName( key.toString() );
             }
-            
+
+            //osgGIS::notice() << "QK=" << subkey.toString() << ", Extent=" << subkey.getExtent().toString() << std::endl;
+
             // enter the subtile set as a paged index node reference:
             osg::PagedLOD* plod = new osg::PagedLOD();
-            setCenterAndRadius( plod, key.getExtent(), reader );
+            setCenterAndRadius( plod, subkey.getExtent(), reader );
+
 
 #ifdef USE_PAGEDLODS_IN_INDEX
             osg::PagedLOD* pointer = new osg::PagedLOD();
@@ -234,6 +241,7 @@ QuadTreeMapLayerCompiler::createIntermediateIndexNode(const QuadKey& key,
             osg::ProxyNode* pointer = new osg::ProxyNode();
             pointer->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
             pointer->setFileName( 0, createRelPathFromTemplate( "g" + subkey.toString() ) );
+            //setCenterAndRadius( pointer, subkey.getExtent(), reader );
 #endif
         
             plod->addChild( pointer, max_range, 1e10 );
@@ -242,6 +250,45 @@ QuadTreeMapLayerCompiler::createIntermediateIndexNode(const QuadKey& key,
             plod->setPriorityScale( 1, MY_PRIORITY_SCALE );
 
             group->addChild( plod );
+
+
+
+            //osg::Geode* geode = new osg::Geode();
+
+            //osg::Sphere* g1 = new osg::Sphere( osg::Vec3(0,0,0), plod->getRadius() );
+            //osg::ShapeDrawable* sd1 = new osg::ShapeDrawable( g1 );
+            //sd1->setColor( osg::Vec4f(1,0,0,.2) );
+            //geode->addDrawable( sd1 );
+
+            ////osg::Vec3d p = terrain_srs->transform( subkey.getExtent().getCentroid() );
+            ////osg::Vec3d n = p; n.normalize();
+
+            ////osg::Geometry* g3 = new osg::Geometry();
+            ////osg::Vec3Array* v3 = new osg::Vec3Array(2);
+            ////(*v3)[0] = osg::Vec3d(0,0,0);
+            ////(*v3)[1] = n * 3000.0;
+            ////g3->setVertexArray( v3 );
+            ////osg::Vec4Array* c3 = new osg::Vec4Array(1);
+            ////(*c3)[0].set(1,1,0,1);
+            ////g3->setColorArray( c3 );
+            ////g3->setColorBinding(osg::Geometry::BIND_OVERALL);
+            ////g3->addPrimitiveSet( new osg::DrawArrays(GL_LINES, 0, 2) );
+            ////g3->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+            ////geode->addDrawable( g3 );
+
+            ////osg::Sphere* g2 = new osg::Sphere( osg::Vec3(0,0,0), 25 );
+            ////osg::ShapeDrawable* sd2 = new osg::ShapeDrawable( g2 );
+            ////sd2->setColor( osg::Vec4f(1,1,0,1) );
+            ////geode->addDrawable( sd2 );
+
+            ////osg::Matrixd mx = osg::Matrixd::translate( p );
+            //osg::Matrixd mx = osg::Matrixd::translate( plod->getCenter() );
+            //osg::MatrixTransform* mt = new osg::MatrixTransform( mx );
+
+            //mt->addChild( geode );
+            //mt->getOrCreateStateSet()->setMode( GL_BLEND, osg::StateAttribute::ON );
+            //mt->getOrCreateStateSet()->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+            //group->addChild( mt );
         }
     }
 
@@ -278,6 +325,7 @@ QuadTreeMapLayerCompiler::createLeafIndexNode( const QuadKey& key, SmartReadCall
             osg::ProxyNode* pointer = new osg::ProxyNode();
             pointer->setLoadingExternalReferenceMode( osg::ProxyNode::LOAD_IMMEDIATELY );
             pointer->setFileName( 0, createRelPathFromTemplate( "g" + quadrant_key.toString() ) );
+            //setCenterAndRadius( pointer, quadrant_key.getExtent(), reader );
 #endif
 
             group->addChild( pointer );
@@ -326,6 +374,8 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
 {
     QuadTreeProfile* profile = dynamic_cast<QuadTreeProfile*>( _profile );
     if ( !profile ) return;
+
+    osgGIS::notice() << "Rebuilding index..." << std::endl;
 
     // first, determine the SRS of the output scene graph so that we can
     // make pagedlod/lod centroids.
@@ -397,6 +447,9 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
                         plod->setRange( 0, top_min_range, level_def->getMaxRange() );
                         plod->setPriorityScale( 0, MY_PRIORITY_SCALE );
                         setCenterAndRadius( plod, key.getExtent(), reader.get() );
+
+                        //osgGIS::notice() << "QK=" << key.toString() << ", Ex=" << key.getExtent().toString() << ", Cen=" << key.getExtent().getCentroid().toString() << std::endl;
+
 
                         scene_graph->addChild( plod );
                     }

@@ -151,7 +151,7 @@ public:
 
                 std::stringstream buf;
 
-                buf << "Location: " << world.toString() << std::endl
+                buf << "Location: " << result.toString() << std::endl
                     << "SRS: " << terrain_srs->getName() << std::endl;
                 int line_count = 2;
 
