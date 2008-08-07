@@ -151,7 +151,8 @@ public:
 
                 std::stringstream buf;
 
-                buf << "Location: " << result.toString() << std::endl
+                buf << "World: " << world.toString() << std::endl
+                    << "Geo: " << result.toString() << std::endl
                     << "SRS: " << terrain_srs->getName() << std::endl;
                 int line_count = 2;
 
@@ -173,7 +174,7 @@ public:
 
                 if ( buf.str().length() == 0 )
                 {
-                    buf << "Control-Left-Click to query a feature";
+                    buf << "Control-Left-Click to query";
                     line_count++;
                 }
                 hud_text->setText( buf.str() );
@@ -253,7 +254,7 @@ createHUD( osgText::Text* text )
     text->setFont( osgText::readFontFile( "arialbd.ttf" ) );
     text->setCharacterSize( TEXT_SIZE );
     text->setDataVariance( osg::Object::DYNAMIC );
-    text->setText( "Control-Left-Click to query a feature" );
+    text->setText( "Control-Left-Click to query" );
     geode->addDrawable( text );
     geode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
     geode->setDataVariance( osg::Object::DYNAMIC );
@@ -328,11 +329,10 @@ main(int argc, char* argv[])
         map = project->getMap( map_name );
     if ( !map.valid() )
         map = project->getMap( "default" );
-    if ( !map.valid() && project->getMaps().size() > 0 )
-        map = project->getMaps().front();
     if ( !map.valid() )
-        return die( "Unable to find a suitable target within the project file; exiting." );
+        return die( "Unable to load map .. no default map found in the project file .. exiting." );
 
+    osgGIS::notice() << "Loading map " << map->getName() << std::endl;
 
     // Load up all the content by scanning the project contents:
 

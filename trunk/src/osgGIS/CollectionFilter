@@ -85,6 +85,23 @@ namespace osgGIS
          * @return Batch size for metered output
          */
         int getMetering() const { return metering; }
+        
+        /**
+         * Sets the name of the FilterEnv property to which to store the name of the
+         * current metering group.
+         *
+         * @param value
+         *      FilterEnv property name
+         */
+        void setAssignmentNameProperty( const std::string& value );
+        
+        /**
+         * Gets the name of the FilterEnv property to which to store the name of the
+         * current metering group assignment.
+         *
+         * @return FilterEnv property name
+         */
+        const std::string getAssignmentNameProperty() const;
     
 
     public: // Filter overrides
@@ -112,7 +129,7 @@ namespace osgGIS
     private:
 
         int metering;
-        
+        std::string group_property_name;        
         friend class CollectionFilterState;
     };
 

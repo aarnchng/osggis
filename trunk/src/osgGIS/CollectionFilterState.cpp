@@ -118,12 +118,17 @@ meterData( A source, B state, unsigned int metering, FilterEnv* env )
 
 template<typename A, typename B>
 static FilterStateResult
-meterGroups( CollectionFilter* filter, A source, B state, unsigned int metering, FilterEnv* env )
+meterGroups( CollectionFilter* filter, A groups, B state, unsigned int metering, FilterEnv* env )
 {
     FilterStateResult result;
 
-    for( typename A::iterator i = source.begin(); i != source.end() && result.isOK(); i++ )
+    std::string prop = filter->getAssignmentNameProperty();
+
+    for( typename A::iterator i = groups.begin(); i != groups.end() && result.isOK(); i++ )
     {
+        if ( !prop.empty() )
+            env->setProperty( Property( prop, i->first ) );
+
         filter->preMeter( i->second, env );
         result = meterData( i->second, state, metering, env );
     }
@@ -147,7 +152,7 @@ CollectionFilterState::signalCheckpoint()
             {
                 FeatureGroups feature_groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    feature_groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
 
                 FeatureFilterState* state = static_cast<FeatureFilterState*>( next );
                 result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
@@ -164,14 +169,14 @@ CollectionFilterState::signalCheckpoint()
             {
                 FeatureGroups groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else
@@ -186,21 +191,21 @@ CollectionFilterState::signalCheckpoint()
             {
                 FeatureGroups feature_groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    feature_groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
                 for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else
@@ -215,21 +220,21 @@ CollectionFilterState::signalCheckpoint()
             {
                 FeatureGroups feature_groups;
                 for( FeatureList::const_iterator i = features.begin(); i != features.end(); i++ )
-                    feature_groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    feature_groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), feature_groups, state, metering, current_env.get() );
             }
             else if ( !fragments.empty() )
             {
                 FragmentGroups groups;
                 for( FragmentList::const_iterator i = fragments.begin(); i != fragments.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else if ( !nodes.empty() )
             {
                 NodeGroups groups;
                 for( AttributedNodeList::const_iterator i = nodes.begin(); i != nodes.end(); i++ )
-                    groups[ filter->assign( i->get(), saved_env.get() ) ].push_back( i->get() );
+                    groups[ filter->assign( i->get(), current_env.get() ) ].push_back( i->get() );
                 result = meterGroups( filter.get(), groups, state, metering, current_env.get() );
             }
             else

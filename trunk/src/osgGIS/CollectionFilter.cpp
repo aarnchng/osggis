@@ -36,7 +36,8 @@ CollectionFilter::CollectionFilter()
 
 CollectionFilter::CollectionFilter( const CollectionFilter& rhs )
 : Filter( rhs ),
-  metering( rhs.metering )
+  metering( rhs.metering ),
+  group_property_name( rhs.group_property_name )
 {
     //NOP
 }
@@ -44,6 +45,18 @@ CollectionFilter::CollectionFilter( const CollectionFilter& rhs )
 CollectionFilter::~CollectionFilter()
 {
     //NOP
+}
+
+void
+CollectionFilter::setAssignmentNameProperty( const std::string& value )
+{
+    group_property_name = value;
+}
+
+const std::string 
+CollectionFilter::getAssignmentNameProperty() const
+{
+    return group_property_name;
 }
 
 FilterState*
@@ -57,6 +70,8 @@ CollectionFilter::setProperty( const Property& prop )
 {
     if ( prop.getName() == "metering" )
         setMetering( prop.getIntValue( DEFAULT_METERING ) );
+    else if ( prop.getName() == "group_property" )
+        setAssignmentNameProperty( prop.getValue() );
     Filter::setProperty( prop );
 }
 
@@ -66,6 +81,8 @@ CollectionFilter::getProperties() const
     Properties p = Filter::getProperties();
     if ( getMetering() != DEFAULT_METERING )
         p.push_back( Property( "metering", getMetering() ) );
+    if ( !getAssignmentNameProperty().empty() )
+        p.push_back( Property( "group_property", getAssignmentNameProperty() ) );
     return p;
 }
 

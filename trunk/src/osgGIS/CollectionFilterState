@@ -50,7 +50,7 @@ namespace osgGIS
 
     protected:
         osg::ref_ptr<CollectionFilter> filter;
-        osg::ref_ptr<FilterEnv> saved_env;
+        //osg::ref_ptr<FilterEnv> saved_env;
         
         FeatureList features;
         FragmentList fragments;

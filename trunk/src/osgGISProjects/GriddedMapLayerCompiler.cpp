@@ -314,6 +314,8 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
     GridProfile* profile = dynamic_cast<GridProfile*>( _profile );
     if ( !profile ) return;
 
+    osgGIS::notice() << "Rebuilding index..." << std::endl;
+
     // first, determine the SRS of the output scene graph so that we can
     // make pagedlod/lod centroids.
     SpatialReference* output_srs = map_layer->getOutputSRS( getSession(), getTerrainSRS() );
