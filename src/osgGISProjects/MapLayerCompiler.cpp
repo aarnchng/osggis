@@ -254,7 +254,7 @@ MapLayerCompiler::createRelPathFromTemplate( const std::string& core )
 }
 
 void
-MapLayerCompiler::setCenterAndRadius( osg::PagedLOD* plod, const GeoExtent& cell_extent, SmartReadCallback* reader )
+MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_extent, SmartReadCallback* reader )
 {
     SpatialReference* srs = map_layer->getOutputSRS( getSession(), getTerrainSRS() );
     // first get the output srs centroid: 
@@ -265,11 +265,49 @@ MapLayerCompiler::setCenterAndRadius( osg::PagedLOD* plod, const GeoExtent& cell
     
     if ( terrain_node.valid() && terrain_srs.valid() )
     {
-        centroid = GeomUtils::clampToTerrain( centroid, terrain_node.get(), terrain_srs.get(), reader );
+        GeoPoint clamped;
+        for( int t=0; t<2; t++ )
+        {
+            clamped = GeomUtils::clampToTerrain( centroid, terrain_node.get(), terrain_srs.get(), reader );
+            if ( !clamped.isValid() && t == 0)
+            {
+                // if the clamp failed, it's due to the geocentric intersection bug in which the isect
+                // fails when coplanar with a tile boundary/skirt. Fudge the centroid and try again.
+                double fudge = 0.1*((double)(1+(::rand()%10)));
+                centroid.x() += fudge;
+                centroid.y() -= fudge;
+                centroid.z() += fudge*fudge;
+            }
+        }
+
+        if ( !clamped.isValid() )
+        {
+            const SpatialReference* geo = srs->getGeographicSRS();
+            GeoPoint latlon = geo->transform( centroid );
+            osgGIS::warn() << "*** UNABLE TO CLAMP CENTROID: ***" << latlon.toString() << std::endl;
+        }
+        else
+        {
+            centroid = clamped;
+        }
+    }
+    else
+    {
+        osgGIS::warn() << "*** Failed to clamp Center/Radius for cell" << std::endl;
     }
 
-    plod->setCenter( centroid );
-    plod->setRadius( radius );
+    if ( dynamic_cast<osg::PagedLOD*>( node ) )
+    {
+        osg::PagedLOD* plod = static_cast<osg::PagedLOD*>(node);
+        plod->setCenter( centroid );
+        plod->setRadius( radius );
+    }
+    else if ( dynamic_cast<osg::ProxyNode*>( node ) )
+    {
+        osg::ProxyNode* proxy = static_cast<osg::ProxyNode*>(node);
+        proxy->setCenter( centroid );
+        proxy->setRadius( radius );
+    }
 }
 
 bool
@@ -373,6 +411,27 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     osgGIS::notify( osg::NOTICE )
         << "Compilation finished, total time = " << duration_s << " seconds"
         << std::endl;
+
+    return true;
+}
+
+
+bool
+MapLayerCompiler::compileIndexOnly()
+{
+    // make a profile describing this compilation setup:
+    osg::ref_ptr<Profile> profile = createProfile();
+
+    buildIndex( profile.get() );
+
+    if ( getSceneGraph() )
+    {
+        osgUtil::Optimizer opt;
+        opt.optimize( getSceneGraph(), 
+            osgUtil::Optimizer::SPATIALIZE_GROUPS |
+            osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
+            osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
+    }
 
     return true;
 }

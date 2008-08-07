@@ -161,6 +161,7 @@ clampPointPartToTerrain(GeoPointList&           part,
             
             isector = new LineSegmentIntersector2(
                 clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
+                //terrain->getBound().center() );
                 osg::Vec3d( 0, 0, 0 ) );
             
             // calculate the HAT for later:
