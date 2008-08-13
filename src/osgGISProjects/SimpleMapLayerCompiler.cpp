@@ -77,7 +77,7 @@ SimpleMapLayerCompiler::queueTasks( MapLayerCompiler::Profile* _profile, TaskMan
         s << level;
 
         osg::ref_ptr<FilterEnv> cell_env = getSession()->createFilterEnv();
-        cell_env->setExtent( GeoExtent::infinite() );
+        cell_env->setExtent( map_layer->getAreaOfInterest() ); //GeoExtent::infinite() );
         cell_env->setTerrainNode( getTerrainNode() );
         cell_env->setTerrainSRS( getTerrainSRS() );
 
