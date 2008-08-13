@@ -152,6 +152,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << "    --fade-lods                - Enable fade-in of LOD nodes (lines and points only)" << ENDL;
     NOUT << ENDL;
     NOUT << "  Feature options:" << ENDL;
+    NOUT << "    --extrude-attr             - Extrude geometry to the height in this attribute" << ENDL;
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
@@ -278,6 +279,13 @@ parseCommandLine( int argc, char** argv )
 
     while( arguments.read( "--random-colors" ) )
         color_script = new osgGIS::Script( "vec4(math.random(),math.random(),math.random(),1)" );
+
+    while( arguments.read( "--extrude-attr", temp ) ) {
+        extrude = true;
+        std::stringstream ss;
+        ss << "feature:getAttribute('" << temp << "'):asDouble()";
+        extrude_height_script = new osgGIS::Script( ss.str() );
+    }
 
     while( arguments.read( "--extrude-height", temp ) ) {
         extrude = true;
