@@ -73,6 +73,13 @@ Registry::SRSFactory()
 }
 
 
+OpenThreads::ReentrantMutex&
+Registry::getGlobalMutex()
+{
+    return global_mutex;
+}
+
+
 FeatureLayer*
 Registry::createFeatureLayer( const std::string& uri )
 {

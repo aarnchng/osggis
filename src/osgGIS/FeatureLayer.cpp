@@ -20,9 +20,13 @@
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/SimpleSpatialIndex>
 #include <osgGIS/RTreeSpatialIndex>
+#include <osgGIS/Registry>
 #include <osg/Notify>
+#include <OpenThreads/ScopedLock>
+#include <OpenThreads/ReentrantMutex>
 
 using namespace osgGIS;
+using namespace OpenThreads;
 
 FeatureLayer::FeatureLayer( FeatureStore* _store )
 {
@@ -40,11 +44,13 @@ FeatureLayer::assertSpatialIndex()
 {
     if ( store.valid() && !index.valid() )
     {
-        osgGIS::notify(osg::NOTICE) << "Building spatial index..." << std::flush;
+        ScopedLock<ReentrantMutex> lock( osgGIS::Registry::instance()->getGlobalMutex() );
+
+        osgGIS::notice() << "Initializing spatial index..." << std::flush;
 
         index = new RTreeSpatialIndex( store.get() );
 
-        osgGIS::notify(osg::NOTICE) << "done." << std::endl;
+        osgGIS::notice() << "done." << std::endl;
     }
 }
 
