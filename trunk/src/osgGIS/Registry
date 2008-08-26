@@ -28,6 +28,7 @@
 #include <osgGIS/Filter>
 #include <osgGIS/Resource>
 #include <osgGIS/ScriptEngine>
+#include <OpenThreads/ReentrantMutex>
 
 namespace osgGIS
 {
@@ -205,6 +206,13 @@ namespace osgGIS
          * @return True is a work directory is set; false if not.
          */
         bool hasWorkDirectory() const;
+
+        /**
+         * Gets a reference to the registry-global mutex. Use sparingly.
+         *
+         * @return a re-entrant mutex;
+         */
+        OpenThreads::ReentrantMutex& getGlobalMutex();
         
 	private:
 		Registry();
@@ -215,6 +223,7 @@ namespace osgGIS
         FilterFactoryMap                      filter_factories;
         ResourceFactoryMap                    resource_factories;
         std::string                           work_dir;
+        OpenThreads::ReentrantMutex           global_mutex;
 
 		static Registry* singleton;
 		
