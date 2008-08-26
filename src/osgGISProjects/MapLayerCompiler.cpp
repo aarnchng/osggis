@@ -266,10 +266,10 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
     if ( terrain_node.valid() && terrain_srs.valid() )
     {
         GeoPoint clamped;
-        for( int t=0; t<2; t++ )
+        for( int t=0; t<5; t++ )
         {
             clamped = GeomUtils::clampToTerrain( centroid, terrain_node.get(), terrain_srs.get(), reader );
-            if ( !clamped.isValid() && t == 0)
+            if ( !clamped.isValid() )
             {
                 // if the clamp failed, it's due to the geocentric intersection bug in which the isect
                 // fails when coplanar with a tile boundary/skirt. Fudge the centroid and try again.
@@ -277,6 +277,10 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
                 centroid.x() += fudge;
                 centroid.y() -= fudge;
                 centroid.z() += fudge*fudge;
+            }
+            else
+            {
+                break;
             }
         }
 
