@@ -50,7 +50,7 @@ namespace osgGISProjects
 
         void setName( const std::string& name );
 
-        const std::string& getWorkingDirectory() const;
+        const std::string getWorkingDirectory() const;
 
         const std::string getAbsoluteWorkingDirectory() const;
 

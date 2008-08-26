@@ -162,7 +162,7 @@ namespace osgGISProjects
          * @return
          *      True if the compilation succeeded, false if it failed.
          */
-        virtual bool compile( TaskManager* task_man );
+        virtual bool compile( TaskManager* task_man =NULL);
         
         virtual bool compileIndexOnly();
 

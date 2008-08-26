@@ -214,6 +214,7 @@ clampPointPartToTerrain(GeoPointList&           part,
 
             //TODO: can we replace the manual setMru with the SmartCB's MRU list?
             if ( reader )
+                //reader->setMruNode( NULL );
                 reader->setMruNode( isect.nodePath.back().get() );
 
             // record the HAT value:
@@ -413,7 +414,8 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                 
                 //TODO: i guess we really need a MRU queue instead..?
                 if ( read_cache )
-                    read_cache->setMruNode( isect.nodePath.back() );
+                    read_cache->setMruNode( NULL );
+                //    read_cache->setMruNode( isect.nodePath.back() );
 
                 // add the new polyline part to the result set:
                 if ( new_part.size() >= 2 )

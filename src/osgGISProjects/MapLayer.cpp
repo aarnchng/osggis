@@ -276,6 +276,11 @@ MapLayer::getOutputSRS( Session* session, SpatialReference* terrain_srs ) const
                     }
                 }
             }
+
+            if ( !output_srs.valid() ) // no reproject..assume input srs
+            {
+                const_cast<MapLayer*>(this)->output_srs = levels[0]->getFeatureLayer()->getSRS();
+            }
         }
     }
 

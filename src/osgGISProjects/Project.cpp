@@ -68,10 +68,10 @@ Project::getName() const
     return name;
 }
 
-const std::string&
+const std::string
 Project::getWorkingDirectory() const
 {
-    return work_dir;
+    return work_dir.length() > 0? work_dir : ("work_" + getName());
 }
 
 const std::string

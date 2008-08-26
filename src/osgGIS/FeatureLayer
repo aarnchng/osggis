@@ -162,6 +162,8 @@ namespace osgGIS
 		osg::ref_ptr<FeatureStore> store;
 		osg::ref_ptr<SpatialIndex> index;
         osg::ref_ptr<SpatialReference> assigned_srs;
+
+        void assertSpatialIndex();
 	};
 }
 
