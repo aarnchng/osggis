@@ -143,6 +143,13 @@ SmartReadCallback::getMruNode()
 void
 SmartReadCallback::setMruNode( osg::Node* node )
 {
+    // if the use passes in NULL, use the back of the MRU queue.
+    if ( !node && mru.size() > 0 )
+    {
+        NodeRef* newest = *(mru.rbegin());
+        node = newest->node.get();
+    }
+
     if ( node )
     {
         osg::MatrixList mats = node->getWorldMatrices();
@@ -161,6 +168,7 @@ SmartReadCallback::setMruNode( osg::Node* node )
         mru_node = node;
     }
 }
+
 
 
 osg::Node*

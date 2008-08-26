@@ -27,8 +27,18 @@ using namespace osgGIS;
 FeatureLayer::FeatureLayer( FeatureStore* _store )
 {
     store = _store;
+}
 
-    if ( store.valid() )
+
+FeatureLayer::~FeatureLayer()
+{
+    //NOP
+}
+
+void
+FeatureLayer::assertSpatialIndex()
+{
+    if ( store.valid() && !index.valid() )
     {
         osgGIS::notify(osg::NOTICE) << "Building spatial index..." << std::flush;
 
@@ -37,14 +47,6 @@ FeatureLayer::FeatureLayer( FeatureStore* _store )
         osgGIS::notify(osg::NOTICE) << "done." << std::endl;
     }
 }
-
-
-FeatureLayer::~FeatureLayer()
-{
-    //NOP
-    //osgGIS::notify(osg::NOTICE) << "dtor" << std::endl;
-}
-
 
 const std::string&
 FeatureLayer::getName() const
@@ -56,7 +58,12 @@ FeatureLayer::getName() const
 const GeoExtent
 FeatureLayer::getExtent() const
 {
-    return index.valid()? index->getExtent() : store.valid()? store->getExtent() : GeoExtent::invalid();
+    GeoExtent e = store->getExtent();
+    if ( e.isValid() )
+        return e;
+    const_cast<FeatureLayer*>(this)->assertSpatialIndex();
+    return index.valid()? index->getExtent() : GeoExtent::invalid();
+    //return index.valid()? index->getExtent() : store.valid()? store->getExtent() : GeoExtent::invalid();
 }
 
 
@@ -71,6 +78,7 @@ FeatureLayer::getFeature( const FeatureOID& oid )
 SpatialIndex*
 FeatureLayer::getSpatialIndex()
 {
+    assertSpatialIndex();
     return index.get();
 }
 
@@ -124,16 +132,18 @@ FeatureLayer::getCursor( const GeoExtent& extent )
     {
         return getCursor();
     }
-    else if ( index.valid() )
+    else
     {
-        return index->getCursor( extent );
+        assertSpatialIndex();
+        if ( index.valid() )
+        {
+            return index->getCursor( extent );
+        }
     }
-    else 
-    {
-        osgGIS::notify( osg::WARN )
-            << "osgGIS::FeatureLayer::createCursor, no spatial index available" << std::endl;
-        return FeatureCursor();
-    }
+
+    osgGIS::notify( osg::WARN )
+        << "osgGIS::FeatureLayer::createCursor, no spatial index available" << std::endl;
+    return FeatureCursor();
 }
 
 
@@ -141,7 +151,8 @@ FeatureCursor
 FeatureLayer::getCursor( const GeoPoint& point )
 {
     if ( point.isValid() )
-    {
+    {        
+        assertSpatialIndex();
         return index->getCursor( GeoExtent( point, point ), true );
     }
     else
