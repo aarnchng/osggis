@@ -304,13 +304,13 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
     {
         osg::PagedLOD* plod = static_cast<osg::PagedLOD*>(node);
         plod->setCenter( centroid );
-        plod->setRadius( radius );
+        plod->setRadius( -1 ); //radius );
     }
     else if ( dynamic_cast<osg::ProxyNode*>( node ) )
     {
         osg::ProxyNode* proxy = static_cast<osg::ProxyNode*>(node);
         proxy->setCenter( centroid );
-        proxy->setRadius( radius );
+        proxy->setRadius( -1 ); //radius );
     }
 }
 
