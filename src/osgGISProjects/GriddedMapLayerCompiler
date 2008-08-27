@@ -33,6 +33,25 @@ using namespace osgGIS;
 
 namespace osgGISProjects
 {
+    class OSGGISPROJECTS_EXPORT GridProfile : public Profile
+    {
+    public:
+        GridProfile( const GeoExtent& bounds );
+        void initByCellSize( double col_size, double row_size );
+        void initByCellCount( unsigned int _num_cols, unsigned int _num_rows );
+        const GeoExtent& getBounds() const;
+        unsigned int getNumColumns() const;
+        unsigned int getNumRows() const;
+        double getColumnSize( unsigned int col ) const;
+        double getRowSize( unsigned int row ) const;
+        GeoExtent getExtent( unsigned int col, unsigned int row ) const;
+
+    private:
+        GeoExtent bounds;
+        double dx, last_dx, dy, last_dy;
+        unsigned int num_rows, num_cols;
+    };
+
     /**
      * Compiles quad-tree scene graphs from MapLayer definitions.
      */
@@ -50,25 +69,16 @@ namespace osgGISProjects
          */
         GriddedMapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
 
-    protected: // MapLayerCompiler interface
+    public: // MapLayerCompiler interface
 
         virtual Profile* createProfile();
+        
+    protected:
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
 
         virtual void buildIndex( Profile* profile );
 
-    protected:
-
-        //class GridProfile : public Profile {
-        //public:
-        //    GridProfile( const GeoExtent& );
-        //    const GeoExtent& getBounds();
-        //private:
-        //    GeoExtent extent;
-        //};
-
-    protected:
     };
 }
 

@@ -128,7 +128,7 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
     return task;
 }
 
-MapLayerCompiler::Profile*
+Profile*
 QuadTreeMapLayerCompiler::createProfile()
 {
     // determine the output SRS:
@@ -177,7 +177,7 @@ QuadTreeMapLayerCompiler::createProfile()
 }
 
 unsigned int
-QuadTreeMapLayerCompiler::queueTasks( MapLayerCompiler::Profile* _profile, TaskManager* task_man )
+QuadTreeMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 {
     QuadTreeProfile* profile = dynamic_cast<QuadTreeProfile*>( _profile );
     if ( profile )

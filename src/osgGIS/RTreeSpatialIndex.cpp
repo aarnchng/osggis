@@ -32,6 +32,7 @@ using namespace osgGIS;
 RTreeSpatialIndex::RTreeSpatialIndex( FeatureStore* _store )
 {
     store = _store;
+    extent = GeoExtent::invalid();
     buildIndex();
 }
 
@@ -97,7 +98,10 @@ RTreeSpatialIndex::buildIndex()
             if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
             {
                 rtree->insert( f_extent, f->getOID() );
-                extent.expandToInclude( f_extent );
+                if ( extent.isValid() )
+                    extent.expandToInclude( f_extent );
+                else
+                    extent = f_extent;
             }
         }
 

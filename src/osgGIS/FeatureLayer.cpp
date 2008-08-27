@@ -67,9 +67,11 @@ FeatureLayer::getExtent() const
     GeoExtent e = store->getExtent();
     if ( e.isValid() )
         return e;
+
+    osgGIS::warn() << "Store " << store->getName() << " did not report an extent; calculating..." << std::endl;
+
     const_cast<FeatureLayer*>(this)->assertSpatialIndex();
-    return index.valid()? index->getExtent() : GeoExtent::invalid();
-    //return index.valid()? index->getExtent() : store.valid()? store->getExtent() : GeoExtent::invalid();
+    return index.valid()? index->getExtent() : store.valid()? store->getExtent() : GeoExtent::invalid();
 }
 
 
