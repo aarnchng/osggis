@@ -1,21 +1,21 @@
 /**
 /* osgGIS - GIS Library for OpenSceneGraph
- * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
- * http://osggis.org
- *
- * osgGIS is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
+* Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+* http://osggis.org
+*
+* osgGIS is free software; you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>
+*/
 
 #include <osgGISProjects/GriddedMapLayerCompiler>
 #include <osgGIS/FeatureLayerCompiler>
@@ -45,80 +45,156 @@ using namespace OpenThreads;
 
 /*****************************************************************************/
 
-class GridProfile : public MapLayerCompiler::Profile
+GridProfile::GridProfile(const GeoExtent& _bounds)
+: Profile(), bounds(_bounds)
 {
-public:
-    GridProfile(const GeoExtent& _bounds) : Profile(), bounds(_bounds) { }
-    
-    void initByCellSize( double col_size, double row_size )
-    {
-        if ( row_size <= 0.0 )
-            row_size = bounds.getHeight();
+    //NOP
+}
 
-        if ( col_size <= 0.0 )
-            col_size = bounds.getWidth();
+void 
+GridProfile::initByCellSize( double col_size, double row_size )
+{
+    if ( row_size <= 0.0 )
+        row_size = bounds.getHeight();
 
-        num_rows = (int) ::ceil( bounds.getHeight()/row_size );
-        dy = row_size;
-        last_dy = ::fmod( bounds.getHeight(), row_size );
-        if ( last_dy == 0.0 )
-            last_dy = dy;
+    if ( col_size <= 0.0 )
+        col_size = bounds.getWidth();
 
-        num_cols = (int) ::ceil( bounds.getWidth()/col_size );
-        dx = col_size;
-        last_dx = ::fmod( bounds.getWidth(), col_size );
-        if ( last_dx == 0.0 )
-            last_dx = dx;
-    }
-
-    void initByCellCount( unsigned int _num_cols, unsigned int _num_rows )
-    {
-        num_rows = std::max( _num_rows, (unsigned int)1 );
-        dy = bounds.getHeight() / (double)num_rows;
+    num_rows = (int) ::ceil( bounds.getHeight()/row_size );
+    dy = row_size;
+    last_dy = ::fmod( bounds.getHeight(), row_size );
+    if ( last_dy == 0.0 )
         last_dy = dy;
-        
-        num_cols = std::max( _num_cols, (unsigned int)1 );
-        dx = bounds.getWidth() / (double)num_cols;
+
+    num_cols = (int) ::ceil( bounds.getWidth()/col_size );
+    dx = col_size;
+    last_dx = ::fmod( bounds.getWidth(), col_size );
+    if ( last_dx == 0.0 )
         last_dx = dx;
-    }
+}
 
-    const GeoExtent& getBounds() const { 
-        return bounds;
-    }
+void 
+GridProfile::initByCellCount( unsigned int _num_cols, unsigned int _num_rows )
+{
+    num_rows = std::max( _num_rows, (unsigned int)1 );
+    dy = bounds.getHeight() / (double)num_rows;
+    last_dy = dy;
 
-    unsigned int getNumColumns() const { 
-        return num_cols;
-    }
+    num_cols = std::max( _num_cols, (unsigned int)1 );
+    dx = bounds.getWidth() / (double)num_cols;
+    last_dx = dx;
+}
 
-    unsigned int getNumRows() const { 
-        return num_rows;
-    }
+const GeoExtent& 
+GridProfile::getBounds() const { 
+    return bounds;
+}
 
-    double getColumnSize( unsigned int col ) const { 
-        return col < num_cols-1 ? dx : last_dx;
-    }
+unsigned int 
+GridProfile::getNumColumns() const { 
+    return num_cols;
+}
 
-    double getRowSize( unsigned int row ) const {
-        return row < num_rows-1 ? dy : last_dy;
-    }
+unsigned int 
+GridProfile::getNumRows() const { 
+    return num_rows;
+}
 
-    GeoExtent getExtent( unsigned int col, unsigned int row ) const {
-        const GeoPoint& sw = bounds.getSouthwest();
-        const GeoPoint& ne = bounds.getNortheast();
-        return GeoExtent(
-            sw.x() + dx*(double)col, 
-            sw.y() + dy*(double)row,
-            sw.x() + dx*(double)col + getColumnSize( col ),
-            sw.y() + dy*(double)row + getRowSize( row ),
-            bounds.getSRS() );
-    }
+double 
+GridProfile::getColumnSize( unsigned int col ) const { 
+    return col < num_cols-1 ? dx : last_dx;
+}
 
-private:
-    GeoExtent bounds;
-    double dx, last_dx, dy, last_dy;
-    unsigned int num_rows, num_cols;
-};
+double 
+GridProfile::getRowSize( unsigned int row ) const {
+    return row < num_rows-1 ? dy : last_dy;
+}
 
+GeoExtent 
+GridProfile::getExtent( unsigned int col, unsigned int row ) const {
+    const GeoPoint& sw = bounds.getSouthwest();
+    const GeoPoint& ne = bounds.getNortheast();
+    return GeoExtent(
+        sw.x() + dx*(double)col, 
+        sw.y() + dy*(double)row,
+        sw.x() + dx*(double)col + getColumnSize( col ),
+        sw.y() + dy*(double)row + getRowSize( row ),
+        bounds.getSRS() );
+}
+
+//class GridProfile : public MapLayerCompiler::Profile
+//{
+//public:
+//    GridProfile(const GeoExtent& _bounds) : Profile(), bounds(_bounds) { }
+//    
+//    void initByCellSize( double col_size, double row_size )
+//    {
+//        if ( row_size <= 0.0 )
+//            row_size = bounds.getHeight();
+//
+//        if ( col_size <= 0.0 )
+//            col_size = bounds.getWidth();
+//
+//        num_rows = (int) ::ceil( bounds.getHeight()/row_size );
+//        dy = row_size;
+//        last_dy = ::fmod( bounds.getHeight(), row_size );
+//        if ( last_dy == 0.0 )
+//            last_dy = dy;
+//
+//        num_cols = (int) ::ceil( bounds.getWidth()/col_size );
+//        dx = col_size;
+//        last_dx = ::fmod( bounds.getWidth(), col_size );
+//        if ( last_dx == 0.0 )
+//            last_dx = dx;
+//    }
+//
+//    void initByCellCount( unsigned int _num_cols, unsigned int _num_rows )
+//    {
+//        num_rows = std::max( _num_rows, (unsigned int)1 );
+//        dy = bounds.getHeight() / (double)num_rows;
+//        last_dy = dy;
+//        
+//        num_cols = std::max( _num_cols, (unsigned int)1 );
+//        dx = bounds.getWidth() / (double)num_cols;
+//        last_dx = dx;
+//    }
+//
+//    const GeoExtent& getBounds() const { 
+//        return bounds;
+//    }
+//
+//    unsigned int getNumColumns() const { 
+//        return num_cols;
+//    }
+//
+//    unsigned int getNumRows() const { 
+//        return num_rows;
+//    }
+//
+//    double getColumnSize( unsigned int col ) const { 
+//        return col < num_cols-1 ? dx : last_dx;
+//    }
+//
+//    double getRowSize( unsigned int row ) const {
+//        return row < num_rows-1 ? dy : last_dy;
+//    }
+//
+//    GeoExtent getExtent( unsigned int col, unsigned int row ) const {
+//        const GeoPoint& sw = bounds.getSouthwest();
+//        const GeoPoint& ne = bounds.getNortheast();
+//        return GeoExtent(
+//            sw.x() + dx*(double)col, 
+//            sw.y() + dy*(double)row,
+//            sw.x() + dx*(double)col + getColumnSize( col ),
+//            sw.y() + dy*(double)row + getRowSize( row ),
+//            bounds.getSRS() );
+//    }
+//
+//private:
+//    GeoExtent bounds;
+//    double dx, last_dx, dy, last_dy;
+//    unsigned int num_rows, num_cols;
+//};
 
 /*****************************************************************************/
 
@@ -240,29 +316,23 @@ GriddedMapLayerCompiler::GriddedMapLayerCompiler( MapLayer* _layer, Session* _se
     //NOP
 }
 
-MapLayerCompiler::Profile*
+Profile*
 GriddedMapLayerCompiler::createProfile()
 {
-    // determine the output SRS:
-    osg::ref_ptr<SpatialReference> out_srs = map_layer->getOutputSRS( getSession(), terrain_srs.get() );
-    if ( !out_srs.valid() )
-    {
-        osgGIS::notify( osg::WARN ) << "Unable to figure out the output SRS; aborting." << std::endl;
-        return NULL;
-    }
 
     // figure out the bounds of the compilation area and create a Q map. We want a sqaure AOI..maybe
     GeoExtent aoi = map_layer->getAreaOfInterest();
-    
+
     // determine the working extent:
     //GeoExtent aoi = getAreaOfInterest( layer );
     if ( aoi.isInfinite() || !aoi.isValid() )
     {
-        const SpatialReference* geo_srs = aoi.getSRS()->getGeographicSRS();
+        osg::ref_ptr<SpatialReference> geo_srs = osgGIS::Registry::SRSFactory()->createWGS84();
+        //const SpatialReference* geo_srs = aoi.getSRS()->getGeographicSRS();
 
         aoi = GeoExtent(
-            GeoPoint( -180.0, -90.0, geo_srs ),
-            GeoPoint(  180.0,  90.0, geo_srs ) );
+            GeoPoint( -180.0, -90.0, geo_srs.get() ),
+            GeoPoint(  180.0,  90.0, geo_srs.get() ) );
     }
 
     if ( !aoi.isValid() )
@@ -271,19 +341,19 @@ GriddedMapLayerCompiler::createProfile()
         return NULL;
     }
 
-    osgGIS::notify( osg::NOTICE )
+    osgGIS::notice()
         << "GRID: " << std::endl
         << "   Extent = " << aoi.toString() << ", w=" << aoi.getWidth() << ", h=" << aoi.getHeight() << std::endl
         << std::endl;
 
     GridProfile* profile = new GridProfile( aoi );
-    profile->initByCellSize( map_layer->getCellWidth(), map_layer->getCellHeight() );
+    profile->initByCellSize( map_layer->getCellWidth(), map_layer->getCellHeight() );    
 
     return profile;
 }
 
 unsigned int
-GriddedMapLayerCompiler::queueTasks( MapLayerCompiler::Profile* _profile, TaskManager* task_man )
+GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 {
     GridProfile* profile = dynamic_cast<GridProfile*>( _profile );
     if ( profile )

@@ -50,9 +50,11 @@ namespace osgGISProjects
          */
         QuadTreeMapLayerCompiler( MapLayer* map_layer, Session* session =NULL );
 
-    protected: // MapLayerCompiler interface
+    public: // MapLayerCompiler interface
 
         virtual Profile* createProfile();
+
+    protected:
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
 

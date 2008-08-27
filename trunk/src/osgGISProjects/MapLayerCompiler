@@ -33,6 +33,12 @@ using namespace osgGIS;
 
 namespace osgGISProjects
 {
+    class OSGGISPROJECTS_EXPORT Profile : public osg::Referenced
+    {
+    public:
+        Profile() { }
+    };
+
     /**
      * Compiles scene graphs from MapLayer definitions.
      */
@@ -168,6 +174,10 @@ namespace osgGISProjects
 
     public:
 
+        virtual Profile* createProfile() =0;
+
+    public:
+
         class CellCompiler : public FeatureLayerCompiler {
         public:
             CellCompiler(
@@ -191,17 +201,11 @@ namespace osgGISProjects
             bool has_drawables;
         };
 
-        class Profile : public osg::Referenced {
-        public:
-            Profile() { }
-        };
-
         std::string createAbsPathFromTemplate( const std::string& core );
         std::string createRelPathFromTemplate( const std::string& core );
 
     protected:
 
-        virtual Profile* createProfile() =0;
         virtual unsigned int queueTasks( Profile*, TaskManager* ) =0;
         virtual void buildIndex( Profile* ) =0;
         virtual void processCompletedTask( CellCompiler* ) { }

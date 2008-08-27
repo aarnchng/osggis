@@ -164,6 +164,7 @@ MapLayer::MapLayer()
 {
     grid_valid = false;
     aoi_manual = GeoExtent::invalid();
+    aoi_auto = GeoExtent::invalid();
 }
 
 void
@@ -211,7 +212,7 @@ MapLayer::push(FeatureLayer* layer, FilterGraph* graph,
                float min_range, float max_range, 
                bool replace_previous, unsigned int depth )
 {
-    if ( layer && graph )
+    if ( layer )
     {
         // update the automatic AOI:
         if ( !aoi_auto.isValid() )

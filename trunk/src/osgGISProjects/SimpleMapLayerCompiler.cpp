@@ -59,14 +59,14 @@ SimpleMapLayerCompiler::SimpleMapLayerCompiler( MapLayer* _layer, Session* _sess
     //NOP
 }
 
-MapLayerCompiler::Profile*
+Profile*
 SimpleMapLayerCompiler::createProfile()
 {
     return new Profile();
 }
 
 unsigned int
-SimpleMapLayerCompiler::queueTasks( MapLayerCompiler::Profile* _profile, TaskManager* task_man )
+SimpleMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 {
     unsigned int level = 0;
     for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++, level++ )
