@@ -35,11 +35,13 @@ using namespace osgGIS;
 #define DEFAULT_COMPRESS_TEXTURES false
 #define DEFAULT_MAX_TEX_SIZE      0      // 0 => no max
 #define DEFAULT_INLINE_TEXTURES   false
+#define DEFAULT_FIX_MIPMAPS       true
 
 ResourcePackager::ResourcePackager() 
 : compress_textures( DEFAULT_COMPRESS_TEXTURES ),
   max_tex_size( DEFAULT_MAX_TEX_SIZE ),
-  inline_textures( DEFAULT_INLINE_TEXTURES )
+  inline_textures( DEFAULT_INLINE_TEXTURES ),
+  fix_mipmaps( DEFAULT_FIX_MIPMAPS )
 {
     //NOP
 }
@@ -53,6 +55,7 @@ ResourcePackager::clone() const
     copy->setCompressTextures( compress_textures );
     copy->setMaxTextureSize( max_tex_size );
     copy->setInlineTextures( inline_textures );
+    copy->setFixMipmaps( fix_mipmaps );
     return copy;
 }
 
@@ -84,6 +87,16 @@ ResourcePackager::setInlineTextures( bool value ) {
 bool
 ResourcePackager::getInlineTextures() const {
     return inline_textures;
+}
+
+void
+ResourcePackager::setFixMipmaps( bool value ) {
+    fix_mipmaps = value;
+}
+
+bool
+ResourcePackager::getFixMipmaps() const {
+    return fix_mipmaps;
 }
 
 void
@@ -190,6 +203,20 @@ ResourcePackager::rewriteResourceReferences( osg::Node* node )
     }
 }
 
+static void
+fixMipmapSettings( osg::StateSet* ss )
+{
+    for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
+    {
+        osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
+        if ( tex )
+        {
+            tex->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+            tex->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
+        }
+    }
+}
+
 void
 ResourcePackager::packageResources( ResourceCache* resources, Report* report )
 {
@@ -202,7 +229,8 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
     SkinResources skins = resources->getSkins();
     for( SkinResources::iterator i = skins.begin(); i != skins.end(); i++ )
     {
-        osg::ref_ptr<osg::Image> image = ImageUtils::getFirstImage( resources->getStateSet( i->get() ) );
+        osg::StateSet* state_set = resources->getStateSet( i->get() );
+        osg::ref_ptr<osg::Image> image = ImageUtils::getFirstImage( state_set );
         if ( image.valid() )
         {
             std::string filename = osgDB::getSimpleFileName( image->getFileName() );
@@ -233,6 +261,11 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
                     filename = osgDB::getNameLessExtension( filename ) + ".dds";
                     output_image->setFileName( filename );
                 }
+            }
+
+            if ( fix_mipmaps )
+            {
+                fixMipmapSettings( state_set );
             }
 
             if ( inline_textures )

@@ -365,12 +365,6 @@ registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_tex
                             SkinResource* skin = new SkinResource();
                             skin->setURI( abs_path );
                             resources->addSkin( ss );
-
-                            //skin->setSingleUse( !share_textures );
-                            //session->getResources()->addResource( skin );
-                            //session->markResourceUsed( skin );
-
-                            //osgGIS::notify( osg::DEBUG_INFO ) << "..registered substmodel texture " << abs_path << std::endl;
                         }
                     }
                 }
@@ -393,11 +387,11 @@ registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_tex
             osg::NodeVisitor::apply( geode );
         }
 
-        ResourceCache* resources; //* session;
+        ResourceCache* resources;
         bool share_textures;
     };
 
-    ImageFinder image_finder( resources, false ); //share_textures );
+    ImageFinder image_finder( resources, false );
     node->accept( image_finder );
 }
 
@@ -628,26 +622,6 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                 osg::Node* output_node = buildOutputNode( node, input, env );
                 output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
             }
-
-            //// create a new resource on the fly..
-            //ModelResource* model = new ModelResource();
-            //model->setURI( r.asString() );
-            //model->setName( r.asString() );
-            //env->getSession()->getResources()->addResource( model );
-
-            //model->setSingleUse( true ); // mark as "single use" for path-based models
-
-            //osg::Node* node = getNodeFromModelCache( model );
-            //if ( !node )
-            //    node = cloneAndCacheModelNode( model, env );
-
-            //if ( node )
-            //{
-            //    osg::Node* output_node = buildOutputNode( node, input, env );
-            //    output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
-            //}
-
-            //env->getSession()->markResourceUsed( model );
         }
     }
                 
