@@ -137,6 +137,23 @@ namespace osgGIS
         Script* getModelHeadingScript() const;
 
         /**
+         * Sets a script that evalutes to the maximum size of textures in the model when
+         * packaged.
+         *
+         * @param script
+         *      Script that generates an integer
+         */
+        void setModelMaxTextureSizeScript( Script* script );
+
+        /**
+         * Gets a script that evalutes to the maximum size of textures in the model when
+         * packaged.
+         *
+         * @return Script that generates an integer
+         */
+        Script* getModelMaxTextureSizeScript() const;
+
+        /**
          * Sets a script that evaluates to a string that will be set as the model instance's
          * node name. (Note: Setting a feature name will disable clustering, since each feature
          * will need to be in its own group.)
@@ -214,6 +231,7 @@ namespace osgGIS
         osg::ref_ptr<Script> model_path_script;
         osg::ref_ptr<Script> model_scale_script;
         osg::ref_ptr<Script> model_heading_script;
+        osg::ref_ptr<Script> model_max_texture_size_script;
         osg::ref_ptr<Script> feature_name_script;
         bool cluster;
         bool optimize_model;

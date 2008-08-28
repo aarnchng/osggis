@@ -36,6 +36,7 @@ OSGGIS_DEFINE_RESOURCE(SkinResource);
 static std::string EMPTY_STRING = "";
 
 #define DEFAULT_TEXTURE_MODE osg::TexEnv::MODULATE
+#define DEFAULT_MAX_TEXTURE_SIZE 0
 
 
 SkinResource::SkinResource()
@@ -49,13 +50,6 @@ SkinResource::SkinResource( const std::string& _name )
     init();
 }
 
-//SkinResource::SkinResource( osg::Image* _image )
-//{
-//    image = _image;
-//    init();
-//    setSingleUse( true );
-//}
-
 void
 SkinResource::init()
 {
@@ -66,6 +60,7 @@ SkinResource::init()
     setColor( osg::Vec4( 1, 1, 1, 1 ) );
     setRepeatsVertically( true );
     setTextureMode( DEFAULT_TEXTURE_MODE );
+    setMaxTextureSize( DEFAULT_MAX_TEXTURE_SIZE );
     setSingleUse( false );
 }
 
@@ -93,6 +88,8 @@ SkinResource::setProperty( const Property& prop )
         setTextureMode( prop.getValue()=="decal"? osg::TexEnv::DECAL: prop.getValue()=="replace"? osg::TexEnv::REPLACE: prop.getValue()=="blend"? osg::TexEnv::BLEND : osg::TexEnv::MODULATE );
     else if ( prop.getName() == "texture_path" )
         setURI( prop.getValue() ); // for backwards compat... use <uri> instead
+    else if ( prop.getName() == "max_texture_size" )
+        setMaxTextureSize( prop.getIntValue( getMaxTextureSize() ) );
     else
         Resource::setProperty( prop );
 }
@@ -109,6 +106,8 @@ SkinResource::getProperties() const
     props.push_back( Property( "repeats_vertically", getRepeatsVertically() ) );
     if ( getTextureMode() != DEFAULT_TEXTURE_MODE )
         props.push_back( Property( "texture_mode", getTextureMode()==osg::TexEnv::DECAL? "decal" : getTextureMode()==osg::TexEnv::REPLACE? "replace" : getTextureMode()==osg::TexEnv::BLEND? "blend" : "modulate" ) );
+    if ( getMaxTextureSize() != DEFAULT_MAX_TEXTURE_SIZE )
+        props.push_back( Property( "max_texture_size", (int)getMaxTextureSize() ) );
     return props;
 }
 
@@ -160,6 +159,17 @@ SkinResource::getMaxTextureHeightMeters() const
     return max_tex_height_m;
 }
 
+void
+SkinResource::setMaxTextureSize( unsigned int value ) 
+{
+    max_texture_size = value;
+}
+
+unsigned int
+SkinResource::getMaxTextureSize() const
+{
+    return max_texture_size;
+}
 
 void 
 SkinResource::setRepeatsVertically( bool value )

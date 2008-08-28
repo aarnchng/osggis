@@ -87,7 +87,7 @@ namespace osgGIS
          */
         //void addSkin( osg::Image* image );
 
-        void addSkin( osg::StateSet* state_set );
+        SkinResource* addSkin( osg::StateSet* state_set );
 
         //StateSetList getSkinStateSets();
 

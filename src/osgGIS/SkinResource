@@ -152,6 +152,24 @@ namespace osgGIS
          * @return OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
          */
         const osg::TexEnv::Mode& getTextureMode() const;
+        
+        /**
+         * Sets the maximum texture size (in either dimension) hint for this
+         * skin texture.
+         *
+         * @param value
+         *      Maximum allowable size (0 = unrestricted)
+         */
+        void setMaxTextureSize( unsigned int value );
+        
+        /**
+         * Gets the maximum texture size (in either dimension) hint for this
+         * skin texture.
+         *
+         * @return Max allowable size (0 = unrestricted)
+         */
+        unsigned int getMaxTextureSize() const;
+
 
         void setColor( const osg::Vec4& value );
         const osg::Vec4& getColor() const;
@@ -178,6 +196,7 @@ namespace osgGIS
         double max_tex_height_m;
         bool repeats_vertically;
         osg::TexEnv::Mode texture_mode;
+        unsigned int max_texture_size;
         osg::Vec4 color;
         //osg::ref_ptr<osg::Image> image;
         
