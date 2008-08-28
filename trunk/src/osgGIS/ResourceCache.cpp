@@ -116,10 +116,12 @@ ResourceCache::getExternalReferenceNode( ModelResource* model )
 //    skin_state_sets.push_back( SkinStateSet( skin, skin->createStateSet( image ) ) );
 //}
 
-void
+SkinResource*
 ResourceCache::addSkin( osg::StateSet* state_set )
 {
-    skin_state_sets.push_back( SkinStateSet( new SkinResource(), state_set ) );
+    SkinResource* skin = new SkinResource();
+    skin_state_sets.push_back( SkinStateSet( skin, state_set ) );
+    return skin;
 }
 
 ResourceCache::SkinStateSets::iterator

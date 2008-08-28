@@ -57,6 +57,7 @@ SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
   model_path_script( rhs.model_path_script.get() ),
   model_scale_script( rhs.model_scale_script.get() ),
   model_heading_script( rhs.model_heading_script.get() ),
+  model_max_texture_size_script( rhs.model_max_texture_size_script.get() ),
   feature_name_script( rhs.feature_name_script.get() )
 {
     //NOP
@@ -89,6 +90,16 @@ Script*
 SubstituteModelFilter::getModelPathScript() const
 {
     return model_path_script.get();
+}
+
+void
+SubstituteModelFilter::setModelMaxTextureSizeScript( Script* value ) {
+    model_max_texture_size_script = value;
+}
+
+Script*
+SubstituteModelFilter::getModelMaxTextureSizeScript() const {
+    return model_max_texture_size_script.get();
 }
 
 void
@@ -176,6 +187,8 @@ SubstituteModelFilter::setProperty( const Property& p )
         setModelScaleScript( new Script( p.getValue() ) );
     else if ( p.getName() == "model_heading" )
         setModelHeadingScript( new Script( p.getValue() ) );
+    else if ( p.getName() == "model_max_texture_size" )
+        setModelMaxTextureSizeScript( new Script( p.getValue() ) );
     else if ( p.getName() == "feature_name" )
         setFeatureNameScript( new Script( p.getValue() ) );
     else if ( p.getName() == "optimize_model" )
@@ -202,6 +215,8 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "model_scale", getModelScaleScript()->getCode() ) );
     if ( getModelHeadingScript() )
         p.push_back( Property( "model_heading", getModelHeadingScript()->getCode() ) );
+    if ( getModelMaxTextureSizeScript() )
+        p.push_back( Property( "model_max_texture_size", getModelMaxTextureSizeScript()->getCode() ) );
     if ( getFeatureNameScript() )
         p.push_back( Property( "feature_name", getFeatureNameScript()->getCode() ) );
     if ( getOptimizeModel() != DEFAULT_OPTIMIZE_MODEL )
@@ -343,12 +358,14 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
 
 
 static void
-registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_textures )
+registerTextures( osg::Node* node, ResourceCache* resources, unsigned int max_texture_size )
 {
     class ImageFinder : public osg::NodeVisitor {
     public:
-        ImageFinder( ResourceCache* _resources, bool _share_tex )
-            : resources(_resources), share_textures(_share_tex), osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+        ImageFinder( ResourceCache* _resources, unsigned int _max_texture_size )
+            : resources(_resources),
+              max_texture_size(_max_texture_size),
+              osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
 
         void processStateSet( osg::StateSet* ss )
         {
@@ -362,9 +379,9 @@ registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_tex
                         std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
                         if ( abs_path.length() > 0 )
                         {
-                            SkinResource* skin = new SkinResource();
+                            SkinResource* skin = resources->addSkin( ss );
                             skin->setURI( abs_path );
-                            resources->addSkin( ss );
+                            skin->setMaxTextureSize( max_texture_size );
                         }
                     }
                 }
@@ -388,10 +405,10 @@ registerTextures( osg::Node* node, ResourceCache* resources ) //, bool share_tex
         }
 
         ResourceCache* resources;
-        bool share_textures;
+        unsigned int max_texture_size;
     };
 
-    ImageFinder image_finder( resources, false );
+    ImageFinder image_finder( resources, max_texture_size );
     node->accept( image_finder );
 }
 
@@ -468,36 +485,6 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
     return xform;
 }
 
-//osg::Node*
-//SubstituteModelFilter::getNodeFromModelCache( ModelResource* model )
-//{
-//    ModelCache::iterator i = non_clustered_model_cache.find( model->getAbsoluteURI() );
-//    return i != non_clustered_model_cache.end()? i->second.get() : NULL;
-//}
-//
-//
-//osg::Node*
-//SubstituteModelFilter::cloneAndCacheModelNode( ModelResource* model, FilterEnv* env )
-//{
-//    // for a non-inlined model, get the proxy node instead of the real node:
-//    osg::Node* node = getInlineModel()?
-//        env->getResourceCache()->getNode( model, getOptimizeModel() ) :
-//        env->getResourceCache()->getExternalReferenceNode( model );
-//
-//    // TODO: revisit this section, since the node NOW comes from the FilterEnv's local resource cache
-//    //       instead of the shared resource library!
-//    if ( node )
-//    {
-//        // we must clone it because the resource model node, being in the ResourceLibrary, is shared geometry!
-//        node = dynamic_cast<osg::Node*>( node->clone( osg::CopyOp::DEEP_COPY_ALL ) ); // no dangling ref; original node is in the resource lib
-//        if ( node )
-//        {
-//            non_clustered_model_cache[ model->getAbsoluteURI() ] = node;
-//        }
-//    }
-//    return node;
-//}
-
 AttributedNodeList
 SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
@@ -542,11 +529,19 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 }
             }
         }
+
+        unsigned int max_texture_size = 0;
+        if ( getModelMaxTextureSizeScript() )
+        {
+            ScriptResult r = env->getScriptEngine()->run( getModelMaxTextureSizeScript(), env );
+            if ( r.isValid() )
+                max_texture_size = r.asInt( 0 );
+        }
             
         // register textures for localization.
         for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
         {
-            registerTextures( (*i)->getNode(), env->getResourceCache() ); //, share_textures ); //env->getSession(), share_textures );
+            registerTextures( (*i)->getNode(), env->getResourceCache(), max_texture_size );
         }
     }
     else
@@ -624,11 +619,21 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             }
         }
     }
+    
+    unsigned int max_texture_size = 0;
+    if ( getModelMaxTextureSizeScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getModelMaxTextureSizeScript(), input, env );
+        if ( r.isValid() )
+            max_texture_size = r.asInt( 0 );
+    }
+    
+    //osgGIS::debug() << "Setting a max texture size hint = " << max_texture_size << std::endl;
                 
     // register textures for localization.
     for( AttributedNodeList::iterator i = output.begin(); i != output.end(); i++ )
     {
-        registerTextures( (*i)->getNode(), env->getResourceCache() ); //, share_textures );
+        registerTextures( (*i)->getNode(), env->getResourceCache(), max_texture_size );
     }
 
     return output;

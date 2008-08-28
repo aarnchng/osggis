@@ -229,7 +229,8 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
     SkinResources skins = resources->getSkins();
     for( SkinResources::iterator i = skins.begin(); i != skins.end(); i++ )
     {
-        osg::StateSet* state_set = resources->getStateSet( i->get() );
+        SkinResource* skin = i->get();
+        osg::StateSet* state_set = resources->getStateSet( skin );
         osg::ref_ptr<osg::Image> image = ImageUtils::getFirstImage( state_set );
         if ( image.valid() )
         {
@@ -237,21 +238,30 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
 
             osg::ref_ptr<osg::Image> output_image = image.get();
 
-            //TODO: check: this may be unnecessary if we already rewrote the references in the
-            //      scene graph.
-            if ( max_tex_size > 0 && max_tex_size < output_image->s() && max_tex_size < output_image->t() )
-            {
-                int new_s = std::min( (int)max_tex_size, output_image->s() );
-                int new_t = std::min( (int)max_tex_size, output_image->t() );
-                output_image = ImageUtils::resizeImage( output_image.get(), new_s, new_t );
+            // determine the maximum texture size by consulting the skin's limit and the
+            // overall limit:
+            unsigned int new_size = 0;
+            if ( skin->getMaxTextureSize() > 0 )
+                new_size = skin->getMaxTextureSize();
+            if ( max_tex_size > 0 )
+                new_size = new_size == 0? max_tex_size : std::min( new_size, max_tex_size );
 
-                //std::stringstream buf;
-                //buf << osgDB::getNameLessExtension( filename ) 
-                //    << "_" << (int)max_tex_size << "."
-                //    << osgDB::getLowerCaseFileExtension( filename );
-                //filename = buf.str();
+            //osgGIS::debug() 
+            //    << "TEX: skin max = " << skin->getMaxTextureSize() << ", global max = "
+            //    << max_tex_size << ", using = " << new_size
+            //    << std::endl;
+                
+            // restrict the image size to the max texture size:
+            if ( new_size > 0 && new_size < output_image->s() && new_size < output_image->t() )
+            {
+                int new_s = std::min( (int)new_size, output_image->s() );
+                int new_t = std::min( (int)new_size, output_image->t() );
+                output_image = ImageUtils::resizeImage( output_image.get(), new_s, new_t );
             }
 
+            // compress all textures to DDS if necessary. Note, the compressor will automatically
+            // resize images to power-of-2 dimensions before compressing, as this is a requirement
+            // for DDS.
             if ( compress_textures )
             {
                 osg::ref_ptr<osg::Image> compressed_image = ImageUtils::convertRGBAtoDDS( output_image.get() );
@@ -263,6 +273,7 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
                 }
             }
 
+            // ensure that texture mipmap settings are good
             if ( fix_mipmaps )
             {
                 fixMipmapSettings( state_set );
