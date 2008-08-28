@@ -19,6 +19,7 @@
 #include <osgGIS/ImageUtils>
 #include <osg/Texture>
 #include <osg/Texture2D>
+#include <osgGIS/Notify>
 
 using namespace osgGIS;
 
@@ -893,8 +894,19 @@ int
 
 
 osg::Image* 
-ImageUtils::convertRGBAtoDDS( osg::Image* input )
+ImageUtils::convertRGBAtoDDS( osg::Image* my_input )
 {
+    osg::ref_ptr<osg::Image> input = my_input;
+
+    // first adjust it to power-of-2 dimensions if necessary.
+    unsigned int new_s = ImageUtils::roundToNearestPowerOf2( input->s() );
+    unsigned int new_t = ImageUtils::roundToNearestPowerOf2( input->t() );
+    if ( new_s != input->s() || new_t != input->t() )
+    {
+        osgGIS::info() << "Resizing " << input->getName() << " from " << input->s() << "," << input->t() << " to " << new_s << "," << new_t << ")" << std::endl;
+        input = ImageUtils::resizeImage( my_input, new_s, new_t );
+    }
+
 	unsigned char *DDS_data;
 	DDS_header header;
 	int DDS_size = 0;

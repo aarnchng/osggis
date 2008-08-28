@@ -40,7 +40,17 @@ template<typename DATA>
 void
 RTree<DATA>::insert( const GeoExtent& extent, const DATA& data )
 {
-    insert( root_id, extent, data );
+    // adjust zero-area extents
+    if ( extent.getArea() == 0.0 )
+    {
+        GeoExtent extent2 = extent;
+        extent2.expand(0.0001, 0.0001);
+        insert( root_id, extent2, data );
+    }
+    else
+    {
+        insert( root_id, extent, data );
+    }
 }
 
 

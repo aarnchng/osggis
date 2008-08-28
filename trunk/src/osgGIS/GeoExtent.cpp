@@ -409,6 +409,14 @@ GeoExtent::contains( const GeoPointList& input ) const
     return true;
 }
 
+void
+GeoExtent::expand( double x, double y )
+{
+    sw.x() -= .5*x;
+    ne.x() += .5*x;
+    sw.y() -= .5*y;
+    ne.y() += .5*y;
+}
 
 void
 GeoExtent::expandToInclude( const GeoPoint& input )
