@@ -232,6 +232,11 @@ namespace osgGIS
          */
 		std::string toString() const;
 		
+		/**
+		 * Expands the extent by x and y.
+		 */
+		void expand( double x, double y );
+		
         /**
          * Modified this extent to include a point.
          * @param point

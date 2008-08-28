@@ -306,7 +306,7 @@ Builder::build( BuildLayer* layer )
 {
     std::string work_dir_name = project->getAbsoluteWorkingDirectory();
     if ( work_dir_name.length() == 0 )
-        work_dir_name = ".osggis-" + project->getName();
+        work_dir_name = "work_" + project->getName();
 
     std::string work_dir = PathUtils::combinePaths( 
         project->getBaseURI(),

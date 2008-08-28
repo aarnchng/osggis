@@ -317,7 +317,7 @@ main(int argc, char* argv[])
     
     std::string workdir = project->getAbsoluteWorkingDirectory();
     if ( workdir.length() == 0 )
-        workdir = PathUtils::combinePaths( project->getBaseURI(), ".osggis-" + project->getName() );
+        workdir = PathUtils::combinePaths( project->getBaseURI(), "work_" + project->getName() );
     if ( osgDB::makeDirectory( workdir ) )
         registry->setWorkDirectory( workdir );
 

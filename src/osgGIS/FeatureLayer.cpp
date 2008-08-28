@@ -31,6 +31,7 @@ using namespace OpenThreads;
 FeatureLayer::FeatureLayer( FeatureStore* _store )
 {
     store = _store;
+    assertSpatialIndex();
 }
 
 
