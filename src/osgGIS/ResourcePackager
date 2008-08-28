@@ -56,6 +56,10 @@ namespace osgGIS
         void setInlineTextures( bool value );
 
         bool getInlineTextures() const;
+        
+        void setFixMipmaps( bool value );
+        
+        bool getFixMipmaps() const;
 
         void rewriteResourceReferences( osg::Node* node );
 
@@ -68,6 +72,7 @@ namespace osgGIS
         osg::ref_ptr<osgDB::Archive> archive;
         bool compress_textures;
         bool inline_textures;
+        bool fix_mipmaps;
         unsigned int max_tex_size;
     };
 }
