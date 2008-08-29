@@ -327,6 +327,7 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
         for( unsigned int row = 0; row < profile->getNumRows(); row++ )
         {
             osg::PagedLOD* plod = NULL;
+            osg::ProxyNode* proxy = NULL;
 
             // nesting vs. serial is unimportant in terms of LOD for gridded.
             unsigned int level = 0;
@@ -339,14 +340,28 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
                 std::string path = createAbsPathFromTemplate( "g" + key.toString() );
                 if ( osgDB::fileExists( path ) )
                 {
-                    if ( !plod )
+                    if ( getPaged() )
                     {
-                        plod = new osg::PagedLOD();
-                        plod->setName( key.toString() );
+                        if ( !plod )
+                        {
+                            plod = new osg::PagedLOD();
+                            plod->setName( key.toString() );
+                        }
+                        unsigned int next_child = plod->getNumFileNames();
+                        plod->setFileName( next_child, createRelPathFromTemplate( "g" + key.toString() ) );
+                        plod->setRange( next_child, def->getMinRange(), def->getMaxRange() );
                     }
-                    unsigned int next_child = plod->getNumFileNames();
-                    plod->setFileName( next_child, createRelPathFromTemplate( "g" + key.toString() ) );
-                    plod->setRange( next_child, def->getMinRange(), def->getMaxRange() );
+                    else
+                    {
+                        if ( !proxy )
+                        {
+                            proxy = new osg::ProxyNode();
+                            proxy->setName( key.toString() );
+                        }
+                        unsigned int next_child = proxy->getNumFileNames();
+                        proxy->setFileName( next_child, createRelPathFromTemplate( "g" + key.toString() ) );
+                        //->setRange( next_child, def->getMinRange(), def->getMaxRange() );
+                    }
                 }
             }
             
@@ -355,6 +370,13 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
                 GridCellKey key( col, row, 0, profile );
                 setCenterAndRadius( plod, key.getExtent(), reader.get() );
                 scene_graph->addChild( plod );
+            }
+            else if ( proxy )
+            {
+                GridCellKey key( col, row, 0, profile );
+                setCenterAndRadius( proxy, key.getExtent(), reader.get() );
+                scene_graph->addChild( proxy );
+            }
                 
                 //osg::Geode* geode = new osg::Geode();
                 //osg::Vec3d p = plod->getCenter();
@@ -382,7 +404,7 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
                 //geode->addDrawable( t );
 
                 //scene_graph->addChild( geode );
-            }
+            //}
         }
     }
 }
