@@ -415,7 +415,7 @@ clampLinePartToTerrain(GeoPointList&           in_part,
                 //TODO: i guess we really need a MRU queue instead..?
                 if ( read_cache )
                     read_cache->setMruNode( NULL );
-                //    read_cache->setMruNode( isect.nodePath.back() );
+                    //read_cache->setMruNode( isect.nodePath.back() );
 
                 // add the new polyline part to the result set:
                 if ( new_part.size() >= 2 )

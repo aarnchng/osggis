@@ -46,15 +46,17 @@ using namespace OpenThreads;
 MapLayerCompiler::CellCompiler::CellCompiler(const std::string& _abs_output_uri,
                                              FeatureLayer*      layer,
                                              FilterGraph*       graph,
-                                             float              min_range,
-                                             float              max_range,
+                                             float              _min_range,
+                                             float              _max_range,
                                              FilterEnv*         env,
                                              ResourcePackager*  _packager,
                                              osgDB::Archive*    _archive )
  : FeatureLayerCompiler( _abs_output_uri, layer, graph, env ),
    packager( _packager ),
    abs_output_uri( _abs_output_uri ),
-   archive( _archive )
+   archive( _archive ),
+   min_range( _min_range ),
+   max_range( _max_range )
 {
     //TODO: maybe the FilterEnv should just have one of these by default.
     SmartReadCallback* smart = new SmartReadCallback();
@@ -115,7 +117,7 @@ MapLayerCompiler::CellCompiler::runSynchronousPostProcess( Report* report )
 			packager->packageResources( env->getResourceCache(), report );
 
 			// write the node data itself
-			if ( !packager->packageNode( getResultNode(), abs_output_uri ) )
+			if ( !packager->packageNode( getResultNode(), abs_output_uri, min_range, max_range ) )
 			{
                 osgGIS::warn() << getName() << " failed to package node to output location" << std::endl;
 				result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk/archive" );
