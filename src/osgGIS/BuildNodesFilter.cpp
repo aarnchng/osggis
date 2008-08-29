@@ -355,11 +355,16 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
         {    
             osg::Vec3d normal = centroid_abs;
             normal.normalize();
-            osg::BoundingSphere bs = result->computeBound(); // force it
             
+            //osg::BoundingSphere bs = result->computeBound(); // force it            
             // radius = distance from centroid inside which to disable CC altogether:
-            float radius = bs.radius();
-            osg::Vec3d control_point = bs.center();
+            //float radius = bs.radius();
+            //osg::Vec3d control_point = bs.center();
+
+            osg::Vec3d control_point = centroid_abs;
+            GeoPoint env_cen = input_srs->transform( env->getExtent().getCentroid() );
+            GeoPoint env_sw  = input_srs->transform( env->getExtent().getSouthwest() );
+            float radius = (env_cen-env_sw).length();
 
             // dot product: 0 = orthogonal to normal, -1 = equal to normal
             float deviation = -radius/input_srs->getEllipsoid().getSemiMinorAxis();

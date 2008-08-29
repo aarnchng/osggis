@@ -199,6 +199,7 @@ namespace osgGISProjects
             osg::ref_ptr<ResourcePackager> packager;
             bool need_to_compile;
             bool has_drawables;
+            float min_range, max_range;
         };
 
         std::string createAbsPathFromTemplate( const std::string& core );

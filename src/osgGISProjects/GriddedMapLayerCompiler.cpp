@@ -33,6 +33,7 @@
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/NodeVisitor>
+#include <osgText/Text>
 #include <sstream>
 #include <list>
 
@@ -121,80 +122,6 @@ GridProfile::getExtent( unsigned int col, unsigned int row ) const {
         sw.y() + dy*(double)row + getRowSize( row ),
         bounds.getSRS() );
 }
-
-//class GridProfile : public MapLayerCompiler::Profile
-//{
-//public:
-//    GridProfile(const GeoExtent& _bounds) : Profile(), bounds(_bounds) { }
-//    
-//    void initByCellSize( double col_size, double row_size )
-//    {
-//        if ( row_size <= 0.0 )
-//            row_size = bounds.getHeight();
-//
-//        if ( col_size <= 0.0 )
-//            col_size = bounds.getWidth();
-//
-//        num_rows = (int) ::ceil( bounds.getHeight()/row_size );
-//        dy = row_size;
-//        last_dy = ::fmod( bounds.getHeight(), row_size );
-//        if ( last_dy == 0.0 )
-//            last_dy = dy;
-//
-//        num_cols = (int) ::ceil( bounds.getWidth()/col_size );
-//        dx = col_size;
-//        last_dx = ::fmod( bounds.getWidth(), col_size );
-//        if ( last_dx == 0.0 )
-//            last_dx = dx;
-//    }
-//
-//    void initByCellCount( unsigned int _num_cols, unsigned int _num_rows )
-//    {
-//        num_rows = std::max( _num_rows, (unsigned int)1 );
-//        dy = bounds.getHeight() / (double)num_rows;
-//        last_dy = dy;
-//        
-//        num_cols = std::max( _num_cols, (unsigned int)1 );
-//        dx = bounds.getWidth() / (double)num_cols;
-//        last_dx = dx;
-//    }
-//
-//    const GeoExtent& getBounds() const { 
-//        return bounds;
-//    }
-//
-//    unsigned int getNumColumns() const { 
-//        return num_cols;
-//    }
-//
-//    unsigned int getNumRows() const { 
-//        return num_rows;
-//    }
-//
-//    double getColumnSize( unsigned int col ) const { 
-//        return col < num_cols-1 ? dx : last_dx;
-//    }
-//
-//    double getRowSize( unsigned int row ) const {
-//        return row < num_rows-1 ? dy : last_dy;
-//    }
-//
-//    GeoExtent getExtent( unsigned int col, unsigned int row ) const {
-//        const GeoPoint& sw = bounds.getSouthwest();
-//        const GeoPoint& ne = bounds.getNortheast();
-//        return GeoExtent(
-//            sw.x() + dx*(double)col, 
-//            sw.y() + dy*(double)row,
-//            sw.x() + dx*(double)col + getColumnSize( col ),
-//            sw.y() + dy*(double)row + getRowSize( row ),
-//            bounds.getSRS() );
-//    }
-//
-//private:
-//    GeoExtent bounds;
-//    double dx, last_dx, dy, last_dy;
-//    unsigned int num_rows, num_cols;
-//};
 
 /*****************************************************************************/
 
@@ -428,6 +355,33 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
                 GridCellKey key( col, row, 0, profile );
                 setCenterAndRadius( plod, key.getExtent(), reader.get() );
                 scene_graph->addChild( plod );
+                
+                //osg::Geode* geode = new osg::Geode();
+                //osg::Vec3d p = plod->getCenter();
+                //osg::Vec3d n = p; n.normalize();
+                //osg::Geometry* g3 = new osg::Geometry();
+                //osg::Vec3Array* v3 = new osg::Vec3Array(2);
+                //(*v3)[0] = p; //osg::Vec3d(0,0,0);
+                //(*v3)[1] = p + n * 100000.0;
+                //g3->setVertexArray( v3 );
+                //osg::Vec4Array* c3 = new osg::Vec4Array(1);
+                //(*c3)[0].set(1,1,0,1);
+                //g3->setColorArray( c3 );
+                //g3->setColorBinding(osg::Geometry::BIND_OVERALL);
+                //g3->addPrimitiveSet( new osg::DrawArrays(GL_LINES, 0, 2) );
+                //g3->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+                //geode->addDrawable( g3 );
+
+                //osgText::Text* t = new osgText::Text();
+                //t->setText( key.toString() );
+                //t->setPosition( (*v3)[1] );
+                //t->setCharacterSizeMode( osgText::TextBase::SCREEN_COORDS );
+                //t->setCharacterSize( 72.0f );
+                //t->setAutoRotateToScreen( true );
+                //t->setColor( osg::Vec4f(1,0,0,1) );
+                //geode->addDrawable( t );
+
+                //scene_graph->addChild( geode );
             }
         }
     }
