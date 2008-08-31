@@ -381,8 +381,6 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
 
                     // add this as a skin resource so the compiler can properly localize and deploy it.
                     env->getResourceCache()->addSkin( raster_ss.get() );
-                    //SkinResource* skin = new SkinResource( image );
-                    //env->getSession()->markResourceUsed( skin );
                 }
             }
         }

@@ -367,19 +367,18 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
 }
 
 bool
-ResourcePackager::packageNode(osg::Node* node, const std::string& abs_uri,
-                              float min_range, float max_range )
+ResourcePackager::packageNode(osg::Node* node, const std::string& abs_uri)
 {
     bool write_ok = false;
     if ( node )
     {
-        if ( min_range != 0.0f || max_range != FLT_MAX )
-        {
-            osg::LOD* lod = new osg::LOD();
-            lod->addChild( node, min_range, max_range );
-            lod->setName( node->getName() );
-            node = lod;
-        }
+        //if ( min_range != 0.0f || max_range != FLT_MAX )
+        //{
+        //    osg::LOD* lod = new osg::LOD();
+        //    lod->addChild( node, min_range, max_range );
+        //    lod->setName( node->getName() );
+        //    node = lod;
+        //}
 
         osgDB::ReaderWriter::Options* global_options = osgDB::Registry::instance()->getOptions();
 

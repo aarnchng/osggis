@@ -163,6 +163,7 @@ MapLayerCell::getBoundingSphere( SpatialReference* srs )
 MapLayer::MapLayer()
 {
     grid_valid = false;
+    encode_cell_radius = true;
     aoi_manual = GeoExtent::invalid();
     aoi_auto = GeoExtent::invalid();
 }
@@ -204,6 +205,18 @@ double
 MapLayer::getCellHeight() const
 {
     return cell_height;
+}
+
+void 
+MapLayer::setEncodeCellRadius( bool value )
+{
+    encode_cell_radius = value;
+}
+
+bool 
+MapLayer::getEncodeCellRadius() const
+{
+    return encode_cell_radius;
 }
 
 void

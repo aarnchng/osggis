@@ -101,6 +101,13 @@ namespace osgGIS
         const GeoExtent& getExtent() const;
         
         /**
+         * Gets the *first* spatial bounds that were set for this environment.
+         *
+         * @return the original working extent
+         */
+        const GeoExtent& getCellExtent() const;
+        
+        /**
          * Sets the spatial reference system in which the filter's input geodata
          * is expressed.
          *
@@ -245,7 +252,8 @@ namespace osgGIS
         virtual ~FilterEnv();
         
     private:
-        GeoExtent extent;
+        GeoExtent                       cell_extent;
+        GeoExtent                       feature_extent;
         osg::ref_ptr<SpatialReference>  in_srs;
         osg::ref_ptr<SpatialReference>  out_srs;
         osg::ref_ptr<SpatialReference>  terrain_srs;

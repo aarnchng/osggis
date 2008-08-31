@@ -362,8 +362,8 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
             //osg::Vec3d control_point = bs.center();
 
             osg::Vec3d control_point = centroid_abs;
-            GeoPoint env_cen = input_srs->transform( env->getExtent().getCentroid() );
-            GeoPoint env_sw  = input_srs->transform( env->getExtent().getSouthwest() );
+            GeoPoint env_cen = input_srs->transform( env->getCellExtent().getCentroid() );
+            GeoPoint env_sw  = input_srs->transform( env->getCellExtent().getSouthwest() );
             float radius = (env_cen-env_sw).length();
 
             // dot product: 0 = orthogonal to normal, -1 = equal to normal
@@ -451,9 +451,7 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
                     // Add this as a skin resource so the compiler can properly localize and deploy it.
                     image->setFileName( builder.str() );
 
-                    //SkinResource* skin = new SkinResource( image );
                     env->getResourceCache()->addSkin( result->getOrCreateStateSet() );
-                    //env->getSession()->markResourceUsed( skin );
                 }
             }
         }

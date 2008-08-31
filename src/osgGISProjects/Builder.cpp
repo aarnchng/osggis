@@ -461,6 +461,7 @@ Builder::build( BuildLayer* layer )
     }
     map_layer->setCellWidth( col_size );
     map_layer->setCellHeight( row_size );
+    map_layer->setEncodeCellRadius( layer->getProperties().getBoolValue( "encode_cell_radius", true ) );
 
 
     osg::ref_ptr<MapLayerCompiler> compiler;
@@ -482,7 +483,7 @@ Builder::build( BuildLayer* layer )
     if ( compiler.get() )
     {
         compiler->setAbsoluteOutputURI( output_file );
-        compiler->setPaged( layer->getProperties().getBoolValue( "paged", false ) );
+        compiler->setPaged( layer->getProperties().getBoolValue( "paged", true ) );
         compiler->setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler->setArchive( archive.get(), archive_file );
         compiler->setResourcePackager( packager.get() );
