@@ -225,10 +225,21 @@ namespace osgGISProjects
         MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
 
         MapLayerLevelsOfDetail& getLevels() { return levels; }
+        
+        /**
+         * Sets whether to explicity calculate and encode the radius of each cell in the
+         * map structure. This is desirable for large-area datasets as it will improve
+         * spatial organization, but undesirable for point-model substitution datasets
+         * since it will cause odd switching thresholds.
+         */
+        void setEncodeCellRadius( bool value );
+        
+        bool getEncodeCellRadius() const;
 
     private:
         MapLayerLevelsOfDetail levels;
         double cell_width, cell_height;
+        bool encode_cell_radius;
         GeoExtent aoi_auto, aoi_manual;
 
         // cached calculated grid setup:

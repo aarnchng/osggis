@@ -230,15 +230,15 @@ TransformFilter::process( FeatureList& input, FilterEnv* env )
         // LOCALIZE points around a local origin (the working extent's centroid)
         if ( working_srs.valid() && getLocalize() ) //&& env->getExtent().getArea() > 0.0 )
         {
-            if ( env->getExtent().getSRS()->isGeographic() && env->getExtent().getWidth() > 179.0 )
+            if ( env->getCellExtent().getSRS()->isGeographic() && env->getCellExtent().getWidth() > 179.0 )
             {
                 //NOP - no localization for big geog extent ... needs more thought perhaps
             }
             else
             {
                 GeoPoint centroid = new_out_srs.valid()?
-                    new_out_srs->transform( env->getExtent().getCentroid() ) :
-                    env->getExtent().getCentroid();
+                    new_out_srs->transform( env->getCellExtent().getCentroid() ) :
+                    env->getCellExtent().getCentroid();
 
                 // we do want the localizer point on the surface if possible:
                 centroid = clampToTerrain( centroid, env );

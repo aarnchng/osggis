@@ -67,9 +67,7 @@ namespace osgGIS
 
         bool packageNode( 
             osg::Node* node,
-            const std::string& abs_uri,
-            float min_range = 0.0f,
-            float max_range = FLT_MAX ); // todo..make relative
+            const std::string& abs_uri);
 
     private:
         std::string output_location;

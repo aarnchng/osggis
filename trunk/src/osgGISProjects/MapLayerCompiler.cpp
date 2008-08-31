@@ -90,7 +90,7 @@ MapLayerCompiler::CellCompiler::run() // overrides FeatureLayerCompiler::run()
 }
 
 void
-MapLayerCompiler::CellCompiler::runSynchronousPostProcess( Report* report )
+MapLayerCompiler::CellCompiler::runSynchronousPostProcess( MapLayerCompiler* compiler, Report* report )
 {
     if ( need_to_compile )
     {
@@ -117,7 +117,17 @@ MapLayerCompiler::CellCompiler::runSynchronousPostProcess( Report* report )
 			packager->packageResources( env->getResourceCache(), report );
 
 			// write the node data itself
-			if ( !packager->packageNode( getResultNode(), abs_output_uri, min_range, max_range ) )
+            osg::ref_ptr<osg::Node> node_to_package = getResultNode();
+
+            //if ( min_range != 0.0 || max_range != FLT_MAX )
+            //{
+            //    osg::LOD* lod = new osg::LOD();
+            //    lod->addChild( getResultNode(), min_range, max_range );
+            //    compiler->setCenterAndRadius( lod, env->getCellExtent(), env->getTerrainReadCallback() );
+            //    node_to_package = lod;
+            //}
+
+			if ( !packager->packageNode( node_to_package.get(), abs_output_uri ) ) //, env->getCellExtent(), min_range, max_range ) )
 			{
                 osgGIS::warn() << getName() << " failed to package node to output location" << std::endl;
 				result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk/archive" );
@@ -263,7 +273,9 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
     GeoPoint centroid = srs->transform( cell_extent.getCentroid() );
     GeoPoint sw = srs->transform( cell_extent.getSouthwest() );
 
-    double radius = (centroid-sw).length();
+    double radius = map_layer->getEncodeCellRadius()?
+        (centroid-sw).length() :
+        -1.0;
     
     if ( terrain_node.valid() && terrain_srs.valid() )
     {
@@ -275,7 +287,7 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
             {
                 // if the clamp failed, it's due to the geocentric intersection bug in which the isect
                 // fails when coplanar with a tile boundary/skirt. Fudge the centroid and try again.
-                double fudge = 0.1*((double)(1+(::rand()%10)));
+                double fudge = 0.001*((double)(1+(::rand()%10)));
                 centroid.x() += fudge;
                 centroid.y() -= fudge;
                 centroid.z() += fudge*fudge;
@@ -306,13 +318,13 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
     {
         osg::PagedLOD* plod = static_cast<osg::PagedLOD*>(node);
         plod->setCenter( centroid );
-        plod->setRadius( -1 ); //radius );
+        plod->setRadius( radius );
     }
     else if ( dynamic_cast<osg::ProxyNode*>( node ) )
     {
         osg::ProxyNode* proxy = static_cast<osg::ProxyNode*>(node);
         proxy->setCenter( centroid );
-        proxy->setRadius( -1 ); //radius );
+        proxy->setRadius( radius );
     }
 }
 
@@ -359,7 +371,7 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
             CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
             if ( compiler->getResult().isOK() )
             {
-                compiler->runSynchronousPostProcess( default_report.get() );
+                compiler->runSynchronousPostProcess( this, default_report.get() );
 
                 // give the layer compiler an opportunity to do something:
                 processCompletedTask( compiler );

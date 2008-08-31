@@ -191,7 +191,7 @@ namespace osgGISProjects
                 osgDB::Archive*    archive =NULL);
 
             virtual void run();
-            virtual void runSynchronousPostProcess( Report* report );
+            virtual void runSynchronousPostProcess( MapLayerCompiler*, Report* report );
 
         private:
             std::string abs_output_uri;

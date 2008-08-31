@@ -24,7 +24,8 @@ using namespace osgGIS;
 FilterEnv::FilterEnv( Session* _session )
 {
     session = _session;
-    extent = GeoExtent::infinite();  
+    feature_extent = GeoExtent::infinite();  
+    cell_extent = GeoExtent::infinite();
     resource_cache = new ResourceCache();
 }
 
@@ -32,7 +33,8 @@ FilterEnv::FilterEnv( Session* _session )
 FilterEnv::FilterEnv( const FilterEnv& rhs )
 {
     session = rhs.session.get();
-    extent = rhs.extent;
+    feature_extent = rhs.feature_extent;
+    cell_extent = rhs.cell_extent;
     in_srs = rhs.in_srs.get();
     out_srs = rhs.out_srs.get();
     terrain_node = rhs.terrain_node.get();
@@ -70,18 +72,25 @@ FilterEnv::~FilterEnv()
 
 
 void
-FilterEnv::setExtent( const GeoExtent& _extent )
+FilterEnv::setExtent( const GeoExtent& _feature_extent )
 {
-    extent = _extent;
+    feature_extent = _feature_extent;
+    if ( cell_extent.isInfinite() )
+        cell_extent = _feature_extent;
 }
 
 
 const GeoExtent&
 FilterEnv::getExtent() const
 {
-    return extent;
+    return feature_extent;
 }
 
+const GeoExtent&
+FilterEnv::getCellExtent() const
+{
+    return cell_extent;
+}
 
 void
 FilterEnv::setInputSRS( const SpatialReference* _srs )
