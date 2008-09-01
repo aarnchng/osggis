@@ -26,6 +26,7 @@
 #include <osgGIS/SmartReadCallback>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/GeoPoint>
+#include <osgGIS/LineSegmentIntersector2>
 #include <osgDB/Archive>
 #include <osgUtil/IntersectionVisitor>
 #include <osg/Timer>
@@ -184,6 +185,10 @@ namespace osgGIS
             osg::Node* terrain,
             SpatialReference* terrain_srs,
             SmartReadCallback* read_cb );
+            
+            
+        static LineSegmentIntersector2* createClampingIntersector(
+            const GeoPoint& p, double& out_hat );
     };
 
 

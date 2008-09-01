@@ -183,10 +183,16 @@ TaskManager::wait( unsigned long timeout_ms )
 bool
 TaskManager::hasMoreTasks()
 {
-    return
-        pending_tasks.size()   > 0 ||
-        num_running_tasks      > 0 ||
-        completed_tasks.size() > 0;
+    return getNumTasks() > 0;
+        //pending_tasks.size()   > 0 ||
+        //num_running_tasks      > 0 ||
+        //completed_tasks.size() > 0;
+}
+
+unsigned int
+TaskManager::getNumTasks() const
+{
+    return pending_tasks.size() + num_running_tasks + completed_tasks.size();
 }
 
 osg::ref_ptr<Task>

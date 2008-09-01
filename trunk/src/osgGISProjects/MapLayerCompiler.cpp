@@ -246,7 +246,7 @@ MapLayerCompiler::setPaged( bool value )
     if ( paged != value )
     {
         paged = value;
-        scene_graph = NULL; // invalidate it
+        //scene_graph = NULL; // invalidate it
     }
 }
 
@@ -325,11 +325,11 @@ MapLayerCompiler::getResourcePackager() const {
     return resource_packager.get();
 }
 
-osg::Node*
-MapLayerCompiler::getSceneGraph()
-{
-    return scene_graph.get();
-}
+//osg::Node*
+//MapLayerCompiler::getSceneGraph()
+//{
+//    return scene_graph.get();
+//}
 
 Session*
 MapLayerCompiler::getSession()
@@ -470,7 +470,7 @@ MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
                 cs->getTaskQueue().push( compiler );
 
                 unsigned int total_tasks = cs->getTotalTasks();
-                unsigned int tasks_completed = total_tasks - cs->getTaskQueue().size();
+                unsigned int tasks_completed = total_tasks - cs->getTaskManager()->getNumTasks();
 
                 // progress
                 // TODO: get rid of this.. replace with a callback or with the user calling
@@ -533,7 +533,7 @@ MapLayerCompiler::finishCompiling( CompileSession* cs_interface )
     return true;
 }
 
-bool
+osg::Group*
 MapLayerCompiler::compile( TaskManager* my_task_man )
 {
     osg::ref_ptr<CompileSession> cs = static_cast<CompileSessionImpl*>( startCompiling( my_task_man ) );
@@ -614,7 +614,16 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
     //    }
     //}
 
-    return finishCompiling( cs.get() );
+    if ( finishCompiling( cs.get() ) )
+    {
+        osg::Group* result = cs->getOrCreateSceneGraph();
+        result->ref(); // since the CS will be destroyed
+        return result;
+    }
+    else
+    {
+        return NULL;
+    }
 
     //// build the index that will point to the keys:
     //buildIndex( profile.get() );
@@ -641,7 +650,7 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
 }
 
 
-bool
+osg::Group*
 MapLayerCompiler::compileIndexOnly( CompileSession* cs_interface )
 {
     CompileSessionImpl* cs = static_cast<CompileSessionImpl*>( cs_interface );
@@ -660,5 +669,5 @@ MapLayerCompiler::compileIndexOnly( CompileSession* cs_interface )
             osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
     }
 
-    return true;
+    return cs->getOrCreateSceneGraph();
 }

@@ -1,5 +1,6 @@
 #include <osgGIS/Utils>
 #include <osgGIS/LineSegmentIntersector2>
+#include <osgGIS/Registry>
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
@@ -268,35 +269,87 @@ struct SimpleReader : public osgUtil::IntersectionVisitor::ReadCallback {
     }
 };
 
+
+static void
+calculateEndpoints( const GeoPoint& p_geo, osg::Vec3d& out_ep0, osg::Vec3d& out_ep1 )
+{
+    osg::ref_ptr<SpatialReference> ecef_srs = Registry::SRSFactory()->createGeocentricSRS( p_geo.getSRS() );
+    GeoPoint p2 = p_geo;
+    double ext = 0.1 * ecef_srs->getEllipsoid().getSemiMajorAxis();
+    p2.z() = p2.getDim() < 3? ext : p2.z() + ext; p2.setDim(3);
+    out_ep0 = ecef_srs->transform( p2 );
+    GeoPoint p3 = p2;
+    p3.z() -= 2.0 * ext;
+    out_ep1 = ecef_srs->transform( p3 );
+}
+
+LineSegmentIntersector2*
+GeomUtils::createClampingIntersector( const GeoPoint& p, double& out_hat )
+{
+    const SpatialReference* srs = p.getSRS();
+    LineSegmentIntersector2* isector = NULL;
+
+    if ( p.getSRS()->isGeographic() )
+    {
+        out_hat = p.getDim() > 2? p.z() : 0.0;
+        osg::Vec3d ep0, ep1;
+        calculateEndpoints( p, ep0, ep1 );
+        isector = new LineSegmentIntersector2( ep0, ep1 );
+    }
+
+    else if ( p.getSRS()->isGeocentric() )
+    {            
+        GeoPoint p_geo = p.getSRS()->getGeographicSRS()->transform( p ); //p_world );
+        out_hat = p_geo.getDim() > 2? p_geo.z() : 0.0;
+
+        osg::Vec3d ep0, ep1;
+        calculateEndpoints( p_geo, ep0, ep1 );
+        isector = new LineSegmentIntersector2( ep0, ep1 );
+    }
+    else // srs->isProjected()
+    {
+        osg::Vec3d ext_vec(0,0,250000);
+        isector = new LineSegmentIntersector2( p + ext_vec, p - ext_vec );
+        out_hat = p.getDim() > 2? p.z() : 0.0;
+    }
+
+    return isector;
+}
+
+
 GeoPoint
 GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialReference* terrain_srs, SmartReadCallback* reader )
 {
     GeoPoint output = GeoPoint::invalid();
 
     if ( terrain && terrain_srs )
-    {
-        GeoPoint p_world = terrain_srs->transform( input );
+    {        
+        double out_hat = 0;
+        osg::ref_ptr<LineSegmentIntersector2> isector =
+            createClampingIntersector( input, out_hat );
 
-        osg::Vec3d clamp_vec;
-        osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
+        //GeoPoint p_world = terrain_srs->transform( input );
 
-        if ( terrain_srs->isGeocentric() )
-        {
-            clamp_vec = p_world;
-            clamp_vec.normalize();
+        //osg::Vec3d clamp_vec;
+        //osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
 
-            isector = new osgUtil::LineSegmentIntersector(
-                clamp_vec * terrain_srs->getEllipsoid().getSemiMajorAxis() * 1.2,
-                osg::Vec3d(0, 0, 0) );
-        }
-        else
-        {
-            clamp_vec.set(0, 0, 1);
-            osg::Vec3d ext_vec = clamp_vec * 1e6;
-            isector = new LineSegmentIntersector(
-                p_world + ext_vec,
-                p_world - ext_vec );
-        }
+        //if ( terrain_srs->isGeocentric() )
+        //{
+        //    clamp_vec = p_world;
+        //    clamp_vec.normalize();
+
+        //    isector = new osgUtil::LineSegmentIntersector(
+        //        clamp_vec * terrain_srs->getEllipsoid().getSemiMajorAxis() * 1.2,
+        //        osg::Vec3d(0, 0, 0) );
+        //}
+        //else
+        //{
+        //    clamp_vec.set(0, 0, 1);
+        //    osg::Vec3d ext_vec = clamp_vec * 1e6;
+        //    isector = new LineSegmentIntersector(
+        //        p_world + ext_vec,
+        //        p_world - ext_vec );
+        //}
 
         RelaxedIntersectionVisitor iv;
         iv.setIntersector( isector.get() );

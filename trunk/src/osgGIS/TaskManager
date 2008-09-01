@@ -152,6 +152,13 @@ namespace osgGIS
          * @return True if there are still tasks that have not completed.
          */
         bool hasMoreTasks();
+        
+        /**
+         * Gets the number of tasks still under the task manager's control.
+         *
+         * @return Number of tasks remaining
+         */
+        unsigned int getNumTasks() const;
 
         /**
          * Gets the next completed task and returns it to the user

@@ -166,38 +166,46 @@ clampToTerrain( const GeoPoint& input, FilterEnv* env )
 {
     if ( env->getTerrainNode() )
     {
-        osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
-
-        if ( input.getSRS()->isGeocentric() )
-        {
-            osg::Vec3d vec = input;
-            vec.normalize();    
-            isector = new osgUtil::LineSegmentIntersector(
-                vec * input.getSRS()->getEllipsoid().getSemiMajorAxis() * 1.2,
-                osg::Vec3d(0,0,0) );
-        }
-        else
-        {
-            osg::Vec3d p = input;
-            osg::Vec3d vec(0,0,1);
-            isector = new osgUtil::LineSegmentIntersector(
-                p + vec * 1e7,
-                p - vec * 1e7 );
-        }
-
-        RelaxedIntersectionVisitor iv;
-        iv.setIntersector( isector.get() );
-        iv.setReadCallback( env->getTerrainReadCallback() );
-        
-        env->getTerrainNode()->accept( iv );
-        if ( isector->containsIntersections() )
-        {
-            return GeoPoint(
-                isector->getFirstIntersection().getWorldIntersectPoint(),
-                input.getSRS() );
-        }
+        return GeomUtils::clampToTerrain( input, env->getTerrainNode(), env->getTerrainSRS(), env->getTerrainReadCallback() );
     }
-    return input;
+    else
+    {
+        return input;
+    }
+    //if ( env->getTerrainNode() )
+    //{
+    //    osg::ref_ptr<osgUtil::LineSegmentIntersector> isector;
+
+    //    if ( input.getSRS()->isGeocentric() )
+    //    {
+    //        osg::Vec3d vec = input;
+    //        vec.normalize();    
+    //        isector = new osgUtil::LineSegmentIntersector(
+    //            vec * input.getSRS()->getEllipsoid().getSemiMajorAxis() * 1.2,
+    //            osg::Vec3d(0,0,0) );
+    //    }
+    //    else
+    //    {
+    //        osg::Vec3d p = input;
+    //        osg::Vec3d vec(0,0,1);
+    //        isector = new osgUtil::LineSegmentIntersector(
+    //            p + vec * 1e7,
+    //            p - vec * 1e7 );
+    //    }
+
+    //    RelaxedIntersectionVisitor iv;
+    //    iv.setIntersector( isector.get() );
+    //    iv.setReadCallback( env->getTerrainReadCallback() );
+    //    
+    //    env->getTerrainNode()->accept( iv );
+    //    if ( isector->containsIntersections() )
+    //    {
+    //        return GeoPoint(
+    //            isector->getFirstIntersection().getWorldIntersectPoint(),
+    //            input.getSRS() );
+    //    }
+    //}
+    //return input;
 }
 
 
