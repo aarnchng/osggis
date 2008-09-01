@@ -116,9 +116,9 @@ SimpleMapLayerCompiler::processCompletedTask( CellCompiler* task )
 
 // builds and writes all the index nodes.
 void
-SimpleMapLayerCompiler::buildIndex( Profile* _profile )
+SimpleMapLayerCompiler::buildIndex( Profile* _profile, osg::Group* scene_graph )
 {
-    scene_graph = new osg::Group();
+    //scene_graph = new osg::Group();
     if ( lod.valid() )
     {
         scene_graph->addChild( lod.get() );

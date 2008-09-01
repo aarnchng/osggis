@@ -77,7 +77,7 @@ namespace osgGISProjects
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
 
-        virtual void buildIndex( Profile* profile );
+        virtual void buildIndex( Profile* profile, osg::Group* scene_graph );
 
     };
 }

@@ -53,13 +53,20 @@ getTerrainData(Terrain*                        terrain,
     {
         out_terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() );
 
+        // first check for an explicity defined SRS:
         out_terrain_srs = terrain->getExplicitSRS();
+        if ( out_terrain_srs.valid() && out_terrain_srs->isGeographic() )
+        {
+            // and make it geocentric if necessary..
+            out_terrain_srs = Registry::SRSFactory()->createGeocentricSRS( out_terrain_srs.get() );
+        }
 
         if ( out_terrain_node.valid() )
         {
+            // if the SRS wasn't explicit, try to read it from the scene graph:
             if ( !out_terrain_srs.valid() )
             {
-                out_terrain_srs = Registry::instance()->getSRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
+                out_terrain_srs = Registry::SRSFactory()->createSRSfromTerrain( out_terrain_node.get() );
             }
 
             osgGIS::notice()
