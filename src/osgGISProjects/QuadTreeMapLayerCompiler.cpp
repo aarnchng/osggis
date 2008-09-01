@@ -370,7 +370,7 @@ QuadTreeMapLayerCompiler::collectGeometryKeys( const QuadMap& qmap, QuadKeyList&
 
 // builds and writes all the index nodes.
 void
-QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
+QuadTreeMapLayerCompiler::buildIndex( Profile* _profile, osg::Group* scene_graph )
 {
     QuadTreeProfile* profile = dynamic_cast<QuadTreeProfile*>( _profile );
     if ( !profile ) return;
@@ -382,7 +382,7 @@ QuadTreeMapLayerCompiler::buildIndex( Profile* _profile )
     SpatialReference* output_srs = map_layer->getOutputSRS( getSession(), getTerrainSRS() );
 
     // first build the very top level.
-    scene_graph = new osg::Group();
+    //scene_graph = new osg::Group();
 
     // the starting LOD is the best fit the the cell size:
     unsigned int top_lod = getTopLod( profile->getQuadMap(), map_layer.get() );

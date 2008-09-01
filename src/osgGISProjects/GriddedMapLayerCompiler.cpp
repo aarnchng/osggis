@@ -306,7 +306,7 @@ GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 
 // builds and writes all the index nodes.
 void
-GriddedMapLayerCompiler::buildIndex( Profile* _profile )
+GriddedMapLayerCompiler::buildIndex( Profile* _profile, osg::Group* scene_graph )
 {
     GridProfile* profile = dynamic_cast<GridProfile*>( _profile );
     if ( !profile ) return;
@@ -318,7 +318,7 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile )
     SpatialReference* output_srs = map_layer->getOutputSRS( getSession(), getTerrainSRS() );
 
     // first build the very top level.
-    scene_graph = new osg::Group();
+    //scene_graph = new osg::Group();
 
     osg::ref_ptr<SmartReadCallback> reader = new SmartReadCallback();
 

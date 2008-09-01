@@ -33,6 +33,7 @@
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/NodeVisitor>
+#include <osg/Timer>
 #include <sstream>
 
 using namespace osgGIS;
@@ -40,6 +41,95 @@ using namespace osgGISProjects;
 using namespace OpenThreads;
 
 #define MY_PRIORITY_SCALE 1.0f //0.5f
+
+
+/*****************************************************************************/
+
+class CompileSessionImpl : public CompileSession
+{
+public:
+    osg::ref_ptr<Task> getNextCompletedTask()
+    {
+        osg::ref_ptr<Task> next;
+        if ( recently_completed_tasks.size() > 0 )
+        {
+            next = recently_completed_tasks.front();
+            recently_completed_tasks.pop();
+        }
+        return next;
+    }
+
+    double getElapsedTimeSeconds() const {
+        osg::Timer_t now = osg::Timer::instance()->tick();
+        return osg::Timer::instance()->delta_s( start_time, now );
+    }
+    
+    double getPredicitedRemainingTimeSeconds() const {
+        return 0.0;
+    }
+
+    osg::Group* getOrCreateSceneGraph()
+    {
+        if ( !scene_graph.valid() )
+        {
+            scene_graph = new osg::Group();
+        }
+        return scene_graph.get();
+    }
+
+public:
+    CompileSessionImpl( TaskManager* _task_man, 
+                        Profile*     _profile,
+                        unsigned int _total_tasks,
+                        osg::Timer_t _start_time )
+        : task_man( _task_man ), profile( _profile ),
+          total_tasks( _total_tasks ), start_time( _start_time ) {
+        //NOP
+    }
+
+    void clearTaskQueue()
+    {
+        while( recently_completed_tasks.size() > 0 )
+            recently_completed_tasks.pop();
+    }
+
+    TaskQueue& getTaskQueue()
+    {
+        return recently_completed_tasks;
+    }
+
+    TaskManager* getTaskManager()
+    {
+        return task_man.get();
+    }
+
+    unsigned int getTotalTasks() const
+    {
+        return total_tasks;
+    }
+
+    Report* getReport()
+    {
+        if ( !report.valid() )
+            report = new Report();
+        return report.get();
+    }
+
+    Profile* getProfile()
+    {
+        return profile.get();
+    }
+
+private:
+    osg::ref_ptr<TaskManager> task_man;
+    osg::Timer_t start_time;
+    unsigned int total_tasks;
+    osg::Timer_t current_time;
+    TaskQueue recently_completed_tasks;
+    osg::ref_ptr<osg::Group> scene_graph;
+    osg::ref_ptr<Report> report;
+    osg::ref_ptr<Profile> profile;
+};
 
 /*****************************************************************************/
 
@@ -328,8 +418,8 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
     }
 }
 
-bool
-MapLayerCompiler::compile( TaskManager* my_task_man )
+CompileSession*
+MapLayerCompiler::startCompiling( TaskManager* my_task_man )
 {
     // make a task manager to run the compilation:
     osg::ref_ptr<TaskManager> task_man = my_task_man;
@@ -351,37 +441,44 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
 
     osg::ref_ptr<Report> default_report = new Report();
 
-    // run until we're done.
-    //
-    // TODO: in the future, we can change the semantics so that you call compileSome() over and over
-    //       until everything is complete...and compileSome() will return a list of everything that
-    //       was started and everything that completed during that pass. This will allow for
-    //       intermediate processing for UI's etc.
+    return new CompileSessionImpl( task_man.get(), profile.get(), total_tasks, osg::Timer::instance()->tick() );
+}
 
-    osg::Timer_t start_time = osg::Timer::instance()->tick();
-    int tasks_completed = 0;
+bool
+MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
+{
+    CompileSessionImpl* cs = static_cast<CompileSessionImpl*>( cs_interface );
 
-    while( task_man->wait( 1000L ) )
+    cs->clearTaskQueue();
+    
+    if( cs->getTaskManager()->wait( 1000L ) )
     {
-        osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
+        osg::ref_ptr<Task> completed_task = cs->getTaskManager()->getNextCompletedTask();
         if ( completed_task.valid() )
         {
-            tasks_completed++;
+            //tasks_completed++;
 
             CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
             if ( compiler->getResult().isOK() )
             {
-                compiler->runSynchronousPostProcess( this, default_report.get() );
+                compiler->runSynchronousPostProcess( this, cs->getReport() );
 
                 // give the layer compiler an opportunity to do something:
                 processCompletedTask( compiler );
 
+                // record the completed task to the caller can see it
+                cs->getTaskQueue().push( compiler );
+
+                unsigned int total_tasks = cs->getTotalTasks();
+                unsigned int tasks_completed = total_tasks - cs->getTaskQueue().size();
+
                 // progress
                 // TODO: get rid of this.. replace with a callback or with the user calling
                 // compileMore() multiple times.
-                osg::Timer_t now = osg::Timer::instance()->tick();
+                //osg::Timer_t now = osg::Timer::instance()->tick();
                 float p = 100.0f * (float)tasks_completed/(float)total_tasks;
-                float elapsed = osg::Timer::instance()->delta_s( start_time, now );
+                float elapsed = (float)cs->getElapsedTimeSeconds();
+                //float elapsed = osg::Timer::instance()->delta_s( start_time, now );
                 float avg_task_time = elapsed/(float)tasks_completed;
                 float time_remaining = ((float)total_tasks-(float)tasks_completed)*avg_task_time;
 
@@ -405,47 +502,159 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
         }
     }
 
-    // build the index that will point to the keys:
-    buildIndex( profile.get() );
+    return cs->getTaskManager()->hasMoreTasks();
+}
 
-    if ( getSceneGraph() )
+bool 
+MapLayerCompiler::finishCompiling( CompileSession* cs_interface )
+{
+    CompileSessionImpl* cs = static_cast<CompileSessionImpl*>( cs_interface );
+
+    cs->clearTaskQueue();
+    
+    buildIndex( cs->getProfile(), cs->getOrCreateSceneGraph() );
+
+    if ( cs->getOrCreateSceneGraph() )
     {
-        // finally, resolve any references at the root level and optimize the root graph. (deprecated)
-        //if ( resource_packager.valid() )
-        //{
-        //    resource_packager->rewriteResourceReferences( getSceneGraph() );
-        //}
-
         osgUtil::Optimizer opt;
-        opt.optimize( getSceneGraph(), 
+        opt.optimize( cs->getOrCreateSceneGraph(), 
             osgUtil::Optimizer::SPATIALIZE_GROUPS |
             osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
             osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
     }
     
-    osg::Timer_t end_time = osg::Timer::instance()->tick();
-    double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
+    //osg::Timer_t end_time = osg::Timer::instance()->tick();
+    //double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
 
     osgGIS::notify( osg::NOTICE )
-        << "Compilation finished, total time = " << duration_s << " seconds"
+        << "Compilation finished, total time = " << cs->getElapsedTimeSeconds() << " seconds"
         << std::endl;
 
     return true;
 }
 
+bool
+MapLayerCompiler::compile( TaskManager* my_task_man )
+{
+    osg::ref_ptr<CompileSession> cs = static_cast<CompileSessionImpl*>( startCompiling( my_task_man ) );
+
+    //// make a task manager to run the compilation:
+    //osg::ref_ptr<TaskManager> task_man = my_task_man;
+    //if ( !task_man.valid() )
+    //    task_man = new TaskManager( 0 );
+
+    //// make a profile describing this compilation setup:
+    //osg::ref_ptr<Profile> profile = createProfile();
+
+    //// create and queue up all the tasks to run:
+    //unsigned int total_tasks = queueTasks( profile.get(), task_man.get() );
+
+    //// configure the packager so that skins and model end up in the right place:
+    //if ( resource_packager.valid() )
+    //{
+    //    resource_packager->setArchive( getArchive() );
+    //    resource_packager->setOutputLocation( osgDB::getFilePath( output_uri ) );
+    //}
+
+    //osg::ref_ptr<Report> default_report = new Report();
+
+    // run until we're done.
+    //
+    // TODO: in the future, we can change the semantics so that you call compileSome() over and over
+    //       until everything is complete...and compileSome() will return a list of everything that
+    //       was started and everything that completed during that pass. This will allow for
+    //       intermediate processing for UI's etc.
+
+    //osg::Timer_t start_time = osg::Timer::instance()->tick();
+    //int tasks_completed = 0;
+
+    while( continueCompiling( cs.get() ) );
+
+    //while( task_man->wait( 1000L ) )
+    //{
+    //    osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
+    //    if ( completed_task.valid() )
+    //    {
+    //        tasks_completed++;
+
+    //        CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
+    //        if ( compiler->getResult().isOK() )
+    //        {
+    //            compiler->runSynchronousPostProcess( default_report.get() );
+
+    //            // give the layer compiler an opportunity to do something:
+    //            processCompletedTask( compiler );
+
+    //            // progress
+    //            // TODO: get rid of this.. replace with a callback or with the user calling
+    //            // compileMore() multiple times.
+    //            osg::Timer_t now = osg::Timer::instance()->tick();
+    //            float p = 100.0f * (float)tasks_completed/(float)total_tasks;
+    //            float elapsed = osg::Timer::instance()->delta_s( start_time, now );
+    //            float avg_task_time = elapsed/(float)tasks_completed;
+    //            float time_remaining = ((float)total_tasks-(float)tasks_completed)*avg_task_time;
+
+    //            unsigned int hrs,mins,secs;
+    //            TimeUtils::getHMSDuration( time_remaining, hrs, mins, secs );
+
+    //            char buf[10];
+    //            sprintf( buf, "%02d:%02d:%02d", hrs, mins, secs );
+    //            osgGIS::notify(osg::NOTICE) << tasks_completed << "/" << total_tasks 
+    //                << " tasks (" << (int)p << "%) complete, " 
+    //                << buf << " remaining" << std::endl;
+    //        }
+    //        else
+    //        {
+    //            //TODO: replace this with Report facility
+    //            osgGIS::notify( osg::WARN ) << "ERROR: compilation of cell "
+    //                << compiler->getName() << " failed : "
+    //                << compiler->getResult().getMessage()
+    //                << std::endl;
+    //        }
+    //    }
+    //}
+
+    return finishCompiling( cs.get() );
+
+    //// build the index that will point to the keys:
+    //buildIndex( profile.get() );
+
+    //if ( getSceneGraph() )
+    //{
+    //    osgUtil::Optimizer opt;
+    //    opt.optimize( getSceneGraph(), 
+    //        osgUtil::Optimizer::SPATIALIZE_GROUPS |
+    //        osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
+    //        osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
+    //}
+    //
+    //osg::Timer_t end_time = osg::Timer::instance()->tick();
+    //double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
+
+    //osgGIS::notify( osg::NOTICE )
+    //    << "Compilation finished, total time = " << duration_s << " seconds"
+    //    << std::endl;
+
+    //return true;
+
+
+}
+
 
 bool
-MapLayerCompiler::compileIndexOnly()
+MapLayerCompiler::compileIndexOnly( CompileSession* cs_interface )
 {
+    CompileSessionImpl* cs = static_cast<CompileSessionImpl*>( cs_interface );
+
     // make a profile describing this compilation setup:
     osg::ref_ptr<Profile> profile = createProfile();
 
-    buildIndex( profile.get() );
+    buildIndex( profile.get(), cs->getOrCreateSceneGraph() );
 
-    if ( getSceneGraph() )
+    if ( cs->getOrCreateSceneGraph() )
     {
         osgUtil::Optimizer opt;
-        opt.optimize( getSceneGraph(), 
+        opt.optimize( cs->getOrCreateSceneGraph(), 
             osgUtil::Optimizer::SPATIALIZE_GROUPS |
             osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
             osgUtil::Optimizer::SHARE_DUPLICATE_STATE );

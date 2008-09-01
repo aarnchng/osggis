@@ -38,6 +38,20 @@ namespace osgGISProjects
     public:
         Profile() { }
     };
+   
+
+    class OSGGISPROJECTS_EXPORT CompileSession : public osg::Referenced
+    {
+    public:
+        virtual osg::ref_ptr<Task> getNextCompletedTask() =0;
+
+        virtual double getElapsedTimeSeconds() const =0;
+        
+        virtual double getPredicitedRemainingTimeSeconds() const =0;
+
+        virtual osg::Group* getOrCreateSceneGraph() =0;
+    };
+
 
     /**
      * Compiles scene graphs from MapLayer definitions.
@@ -169,8 +183,16 @@ namespace osgGISProjects
          *      True if the compilation succeeded, false if it failed.
          */
         virtual bool compile( TaskManager* task_man =NULL);
+        virtual bool compileIndexOnly( CompileSession* session );
+
+
+        virtual CompileSession* startCompiling( TaskManager* task_man =NULL );
+
+        virtual bool continueCompiling( CompileSession* session );
+
+        virtual bool finishCompiling( CompileSession* session );
+
         
-        virtual bool compileIndexOnly();
 
     public:
 
@@ -208,7 +230,7 @@ namespace osgGISProjects
     protected:
 
         virtual unsigned int queueTasks( Profile*, TaskManager* ) =0;
-        virtual void buildIndex( Profile* ) =0;
+        virtual void buildIndex( Profile*, osg::Group* ) =0;
         virtual void processCompletedTask( CellCompiler* ) { }
 
     protected:
