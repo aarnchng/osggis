@@ -119,6 +119,20 @@ ClampFilter::getProperties() const
 #define DEFAULT_OFFSET_EXTENSION 0
 
 
+//static void
+//calculateEndpoints( const GeoPoint& p_geo, osg::Vec3d& out_ep0, osg::Vec3d& out_ep1 )
+//{
+//    osg::ref_ptr<SpatialReference> ecef_srs = Registry::SRSFactory()->createGeocentricSRS( p_geo.getSRS() );
+//    GeoPoint p2 = p_geo;
+//    double ext = 0.1 * ecef_srs->getEllipsoid().getSemiMajorAxis();
+//    p2.z() = p2.getDim() < 3? ext : p2.z() + ext; p2.setDim(3);
+//    out_ep0 = ecef_srs->transform( p2 );
+//    GeoPoint p3 = p2;
+//    p3.z() -= 2.0 * ext;
+//    out_ep1 = ecef_srs->transform( p3 );
+//}
+
+
 static int
 clampPointPartToTerrain(GeoPointList&           part,
                         osg::Node*              terrain,
@@ -138,51 +152,52 @@ clampPointPartToTerrain(GeoPointList&           part,
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
     {
         GeoPoint& p = *i;
+        GeoPoint  p_world = p.getAbsolute();
 
-        osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
+        //osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
         osg::Vec3d clamp_vec;
 
-        double lat = 0.0, lon = 0.0;
+//        double lat = 0.0, lon = 0.0;
         double hat = 0.0;
-        //double z = (p.getDim() > 2 && !ignore_z)? p.z() : DEFAULT_OFFSET_EXTENSION;
 
         osg::ref_ptr<LineSegmentIntersector2> isector;
 
-        if ( srs->isGeocentric() )
-        {
-            clamp_vec = p_world;
-            clamp_vec.normalize();
-            
-            srs->getEllipsoid().xyzToLatLonHeight( p_world.x(), p_world.y(), p_world.z(), lat, lon, hat );
+        isector = GeomUtils::createClampingIntersector( p_world, hat );
 
-            // to get rid of the HAT:
-            osg::Vec3d xyz = srs->getEllipsoid().latLongToGeocentric(
-                osg::Vec3d( osg::RadiansToDegrees(lon), osg::RadiansToDegrees(lat), 0.0 ) );
-            
-            isector = new LineSegmentIntersector2(
-                clamp_vec * srs->getEllipsoid().getSemiMajorAxis() * 1.2,
-                //terrain->getBound().center() );
-                osg::Vec3d( 0, 0, 0 ) );
-            
-            // calculate the HAT for later:
-            if ( !ignore_z )
-            {
-                srs->getEllipsoid().xyzToLatLonHeight( p_world.x(), p_world.y(), p_world.z(), lat, lon, hat );
-            }
-        }
-        else
-        {
-            clamp_vec = osg::Vec3d( 0, 0, 1 );
-            osg::Vec3d ext_vec = clamp_vec * ALTITUDE_EXTENSION;
-            isector = new LineSegmentIntersector2(
-                p_world + ext_vec,
-                p_world - ext_vec );
+        //if ( srs->isGeographic() )
+        //{
+        //    lat = p.y(); lon = p.x(); hat = p.getDim() > 2? p.z() : 0.0;
+        //    osg::Vec3d ep0, ep1;
+        //    calculateEndpoints( p, ep0, ep1 );
+        //    clamp_vec = ep0 - ep1;
+        //    clamp_vec.normalize();
+        //    isector = new LineSegmentIntersector2( ep0, ep1 );
+        //}
 
-            if ( p.getDim() > 2 && !ignore_z )
-            {
-                hat = p.z();
-            }
-        }
+        //else if ( srs->isGeocentric() )
+        //{            
+        //    GeoPoint p_geo = srs->getGeographicSRS()->transform( p ); //p_world );
+        //    lat = p_geo.y(); lon = p_geo.x(); hat = p_geo.getDim() > 2? p_geo.z() : 0.0;
+
+        //    osg::Vec3d ep0, ep1;
+        //    calculateEndpoints( p_geo, ep0, ep1 );
+        //    clamp_vec = ep0 - ep1;
+        //    clamp_vec.normalize();
+        //    isector = new LineSegmentIntersector2( ep0, ep1 );
+        //}
+        //else // srs->isProjected()
+        //{
+        //    clamp_vec = osg::Vec3d( 0, 0, 1 );
+        //    osg::Vec3d ext_vec = clamp_vec * ALTITUDE_EXTENSION;
+        //    isector = new LineSegmentIntersector2(
+        //        p_world + ext_vec,
+        //        p_world - ext_vec );
+
+        //    if ( p.getDim() > 2 && !ignore_z )
+        //    {
+        //        hat = p.z();
+        //    }
+        //}
 
         iv.setIntersector( isector.get() );
 
@@ -208,8 +223,20 @@ clampPointPartToTerrain(GeoPointList&           part,
         {
             LineSegmentIntersector2::Intersection isect = isector->getFirstIntersection();
             osg::Vec3d new_point = isect.getWorldIntersectPoint();
-            osg::Vec3d offset_point = new_point + clamp_vec * hat;
-            p.set( offset_point * srs->getReferenceFrame() );
+            osg::Vec3d offset_point = ignore_z? new_point : new_point + clamp_vec * hat;
+
+            if ( !srs->isGeographic() )
+            {
+                p.set( offset_point * srs->getReferenceFrame() );
+            }
+            else
+            {
+                osg::ref_ptr<SpatialReference> ecef_srs = Registry::SRSFactory()->createGeocentricSRS( p.getSRS() );
+                GeoPoint pp( offset_point, ecef_srs.get() );
+                p = srs->transform( pp );
+                p.set( p * srs->getReferenceFrame() ); // unlikely, but correct
+            }
+
             clamps++;
 
             //TODO: can we replace the manual setMru with the SmartCB's MRU list?
@@ -314,11 +341,16 @@ clampLinePartToTerrain(GeoPointList&           in_part,
             //midpoint -= midpoint_normal*seg_length;
             //planes[2].set( midpoint_normal, midpoint );
 
+            //TODO: technically, the (0,0,0) is wrong. We don't usually notice since the
+            //      points were pre-clamped, but it should really be an extension of
+            //      the "clamp vector" based on two geographic heights. See clampPoint
+            //      for the technique.
+
             planes[2] = osg::Plane( midpoint_normal, osg::Vec3d(0,0,0) );
 
             osg::Polytope polytope( planes );
 
-            //osg::Plane plane( p0_world, p1_world, midpoint );
+            //TODO: again, the (0,0,0) is not quite right...see above
             osg::Plane plane( p0_world, p1_world, osg::Vec3d(0,0,0) );
 
             isector = new osgUtil::PlaneIntersector( plane, polytope );

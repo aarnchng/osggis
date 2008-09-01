@@ -42,6 +42,13 @@ Ellipsoid::Ellipsoid( double _semi_major_axis, double _semi_minor_axis )
     ecc2 = 2*flattening - flattening*flattening;
 }
 
+bool
+Ellipsoid::isEquivalentTo( const Ellipsoid& rhs ) const
+{
+    return
+        getSemiMajorAxis() == rhs.getSemiMajorAxis() &&
+        getSemiMinorAxis() == rhs.getSemiMinorAxis();
+}
 
 osg::Vec3d
 Ellipsoid::latLongToGeocentric(const osg::Vec3d& input_deg ) const 

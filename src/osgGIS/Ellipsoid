@@ -109,6 +109,14 @@ namespace osgGIS
          *      Length of the semi-minor axis, in meters
          */
         double getSemiMinorAxis() const;
+        
+        /**
+         * Tests the equivalence of two ellipsoids.
+         *
+         * @return
+         *    True if the are mathematically equivalent; false if not.
+         */
+        bool isEquivalentTo( const Ellipsoid& rhs ) const;
 
     private:
         double semi_major_axis;

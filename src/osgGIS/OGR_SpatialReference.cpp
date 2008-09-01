@@ -139,6 +139,8 @@ OGR_SpatialReference::transformInPlace( GeoPoint& input ) const
     {
         OGR_SCOPE_LOCK();
 
+        //TODO: some kind of per-thread cache
+
         void* xform_handle = OCTNewCoordinateTransformation( input_sr->handle, this->handle );
         if ( !xform_handle ) {
             osgGIS::notify( osg::WARN ) << "Spatial Reference: SRS xform not possible" << std::endl
@@ -394,9 +396,15 @@ OGR_SpatialReference::testEquivalence(const OGR_SpatialReference* rhs,
     //    ( this && rhs && this->isGeographic() && rhs->isGeographic() );
 
     // weak... need to do a real comparison
-    out_crs_equiv = 
-        this == rhs ||
-        (this->getName().length() > 0 && this->getName() == rhs->getName() );
+    if ( this->isGeographic() && rhs->isGeographic() )
+    {
+        out_crs_equiv = this->getEllipsoid().isEquivalentTo( rhs->getEllipsoid() );
+    }
+    else
+    {
+        //TODO: more work!!
+        out_crs_equiv =  this == rhs;
+    }
 
     out_mat_equiv = this->getRefFrame() == rhs->getRefFrame();
 }

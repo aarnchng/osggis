@@ -171,7 +171,7 @@ namespace osgGISProjects
          *
          * @return A node graph
          */
-        osg::Node* getSceneGraph();
+        //osg::Node* getSceneGraph();
 
         /**
          * Compiles the entire cell graph.
@@ -182,8 +182,8 @@ namespace osgGISProjects
          * @return
          *      True if the compilation succeeded, false if it failed.
          */
-        virtual bool compile( TaskManager* task_man =NULL);
-        virtual bool compileIndexOnly( CompileSession* session );
+        virtual osg::Group* compile( TaskManager* task_man =NULL);
+        virtual osg::Group* compileIndexOnly( CompileSession* session );
 
 
         virtual CompileSession* startCompiling( TaskManager* task_man =NULL );
@@ -249,7 +249,7 @@ namespace osgGISProjects
 
         osg::ref_ptr<Session>           session;
 
-        osg::ref_ptr<osg::Group>        scene_graph;
+        //osg::ref_ptr<osg::Group>        scene_graph;
 
         void setCenterAndRadius( osg::Node* plod_or_proxy, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };

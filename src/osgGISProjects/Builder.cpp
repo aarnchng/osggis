@@ -496,11 +496,11 @@ Builder::build( BuildLayer* layer )
         compiler->setResourcePackager( packager.get() );
                 
         // build the layer and write the root file to output:
-        bool ok = compiler->compile( manager.get() );
+        osg::ref_ptr<osg::Group> result = compiler->compile( manager.get() );
 
-        if ( ok )
+        if ( result.valid() )
         {
-            packager->packageNode( compiler->getSceneGraph(), output_file );
+            packager->packageNode( result.get(), output_file );
         }
     }
 
