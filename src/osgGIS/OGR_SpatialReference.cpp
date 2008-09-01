@@ -389,11 +389,14 @@ OGR_SpatialReference::testEquivalence(const OGR_SpatialReference* rhs,
                                       bool& out_crs_equiv,
                                       bool& out_mat_equiv ) const
 {
-    // for now, we consider all GEOGRAPHIC SRS's to be equivalent. We can
-    // fix this later
+    //out_crs_equiv = 
+    //    this == rhs ||
+    //    ( this && rhs && this->isGeographic() && rhs->isGeographic() );
+
+    // weak... need to do a real comparison
     out_crs_equiv = 
         this == rhs ||
-        ( this && rhs && this->isGeographic() && rhs->isGeographic() );
+        (this->getName().length() > 0 && this->getName() == rhs->getName() );
 
     out_mat_equiv = this->getRefFrame() == rhs->getRefFrame();
 }
