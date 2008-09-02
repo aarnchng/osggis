@@ -244,12 +244,14 @@ TransformFilter::process( FeatureList& input, FilterEnv* env )
             }
             else
             {
-                GeoPoint centroid = new_out_srs.valid()?
+                GeoPoint centroid0 = new_out_srs.valid()?
                     new_out_srs->transform( env->getCellExtent().getCentroid() ) :
                     env->getCellExtent().getCentroid();
 
                 // we do want the localizer point on the surface if possible:
-                centroid = clampToTerrain( centroid, env );
+                GeoPoint centroid = clampToTerrain( centroid0, env );
+                if ( !centroid.isValid() )
+                    centroid = centroid0;
 
                 osg::Matrixd localizer;
 

@@ -347,10 +347,11 @@ main(int argc, char* argv[])
     if ( !terrain_node )
         return die( "Unable to load terrain file; exiting." );
 
-    osg::ref_ptr<osgGIS::SpatialReference> terrain_srs =
-        terrain->getExplicitSRS()?
-        terrain->getExplicitSRS() :
-        registry->getSRSFactory()->createSRSfromTerrain( terrain_node );
+    osg::ref_ptr<osgGIS::SpatialReference> terrain_srs = terrain->getExplicitSRS();
+    if ( terrain_srs.valid() && terrain_srs->isGeographic() )
+        terrain_srs = osgGIS::Registry::SRSFactory()->createGeocentricSRS( terrain_srs.get() );
+    else if ( !terrain_srs.valid() )
+        terrain_srs = registry->getSRSFactory()->createSRSfromTerrain( terrain_node );
 
     // activate a polygon offset so that draped vector layers don't z-fight:
     terrain_node->getOrCreateStateSet()->setAttributeAndModes(

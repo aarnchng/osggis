@@ -144,7 +144,7 @@ GeocentricSpatialReference::transformInPlace( GeoPoint& input ) const
 
     // next transform it to geocentric:
     // (TODO: use the proper ellipsoid devired from the SRS, not this default one)
-    osg::Vec3d pt_geoc = ellipsoid.latLongToGeocentric( input_geog );
+    osg::Vec3d pt_geoc = getEllipsoid().latLongToGeocentric( input_geog );
 
     // finally, make the point relative to the target reference frame if necessary:
     if ( !this->getReferenceFrame().isIdentity() )
@@ -179,7 +179,7 @@ GeocentricSpatialReference::transformInPlace( GeoShape& input ) const
         }
     };
 
-    XformVisitor visitor( this, ellipsoid );
+    XformVisitor visitor( this, getEllipsoid() );
     if ( input.accept( visitor ) )
     {
         applyTo( input );
