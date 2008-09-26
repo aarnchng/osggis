@@ -14,11 +14,14 @@ SET(LIB_PUBLIC_HEADERS
     BuildLayer
     BuildLayerSlice
     BuildTarget
+    Cell
+    CellCompiler
     Common
     Document
     Export
     GriddedMapLayerCompiler
     MapLayer
+    MapLayerLevelOfDetail
     MapLayerCompiler
     Project
     QuadKey
@@ -42,9 +45,12 @@ ADD_LIBRARY(${LIB_NAME}
     BuildLayer.cpp
     BuildLayerSlice.cpp
     BuildTarget.cpp
+    Cell.cpp
+    CellCompiler.cpp
     Document.cpp
     GriddedMapLayerCompiler.cpp
     MapLayer.cpp
+    MapLayerLevelOfDetail.cpp
     MapLayerCompiler.cpp
     Project.cpp
     QuadKey.cpp

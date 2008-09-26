@@ -1,4 +1,3 @@
-/**
 /* osgGIS - GIS Library for OpenSceneGraph
  * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
  * http://osggis.org
@@ -19,144 +18,74 @@
 
 #include <osgGISProjects/MapLayer>
 #include <osgGIS/TransformFilter>
-#include <osgDB/FileNameUtils>
-#include <sstream>
 
-using namespace osgGIS;
 using namespace osgGISProjects;
-
-MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer*     _layer,
-                                             FilterGraph*      _graph,
-                                             ResourcePackager* _packager,
-                                             float             _min_range,
-                                             float             _max_range,
-                                             bool              _replace_previous,
-                                             unsigned int      _depth )
-{
-    layer            = _layer;
-    graph            = _graph;
-    packager         = _packager;
-    min_range        = _min_range;
-    max_range        = _max_range;
-    replace_previous = _replace_previous;
-    depth            = _depth;
-}
-
-FeatureLayer*
-MapLayerLevelOfDetail::getFeatureLayer() const {
-    return layer.get();
-}
-
-FilterGraph*
-MapLayerLevelOfDetail::getFilterGraph() const {
-    return graph.get();
-}
-
-ResourcePackager*
-MapLayerLevelOfDetail::getResourcePackager() const {
-    return packager.get();
-}
-
-float
-MapLayerLevelOfDetail::getMinRange() const {
-    return min_range;
-}
-
-float
-MapLayerLevelOfDetail::getMaxRange() const {
-    return max_range;
-}
-
-bool
-MapLayerLevelOfDetail::getReplacePrevious() const {
-    return replace_previous;
-}
-
-unsigned int
-MapLayerLevelOfDetail::getDepth() const {
-    return depth;
-}
+using namespace osgGIS;
 
 // ============================================================================
 
-MapLayerCell::MapLayerCell(unsigned int _col, unsigned int _row, unsigned int _level, 
-                           const GeoExtent&       _extent,
-                           MapLayerLevelOfDetail* _def )
-{
-    col    = _col;
-    row    = _row;
-    level  = _level;
-    extent = _extent;
-    def    = _def;
-}
-
-unsigned int
-MapLayerCell::getCellRow() const {
-    return row;
-}
-
-unsigned int
-MapLayerCell::getCellColumn() const {
-    return col;
-}
-
-unsigned int
-MapLayerCell::getLevel() const {
-    return level;
-}
-
-const GeoExtent&
-MapLayerCell::getExtent() const {
-    return extent;
-}
-
-MapLayerLevelOfDetail*
-MapLayerCell::getDefinition() const {
-    return def.get();
-}
-
-std::string
-MapLayerCell::toString() const 
-{
-    std::stringstream s;
-    s << "X" << col << "Y" << row << "L" << level;
-    return s.str();
-}
-
-std::string
-MapLayerCell::makeURIFromTemplate( const std::string& uri_template )
-{
-    std::stringstream buf;
-
-    std::string file_path = osgDB::getFilePath( uri_template );
-    if ( file_path.length() > 0 )
-        buf << file_path << "/";
-
-    buf << osgDB::getStrippedName( uri_template )
-        << "_X" << col << "_Y" << row << "_L" << level 
-        << "." << osgDB::getLowerCaseFileExtension( uri_template );
-
-    return buf.str();
-}
-
-osg::BoundingSphere
-MapLayerCell::getBoundingSphere( SpatialReference* srs )
-{
-    if ( srs )
-    {
-        GeoPoint centroid = srs->transform( extent.getCentroid() );
-        GeoPoint sw = srs->transform( extent.getSouthwest() );
-        GeoPoint ne = srs->transform( extent.getNortheast() );
-        return osg::BoundingSphere( centroid, (centroid-sw).length() );
-    }
-    else
-    {
-        GeoPoint centroid = extent.getCentroid();
-        return osg::BoundingSphere(
-            centroid,
-            (centroid-extent.getSouthwest()).length() );
-    }
-}
+//MapLayerCell::MapLayerCell(unsigned int _col, unsigned int _row, unsigned int _level, 
+//                           const GeoExtent&       _extent,
+//                           MapLayerLevelOfDetail* _def )
+//{
+//    col    = _col;
+//    row    = _row;
+//    level  = _level;
+//    extent = _extent;
+//    def    = _def;
+//}
+//
+//unsigned int
+//MapLayerCell::getCellRow() const {
+//    return row;
+//}
+//
+//unsigned int
+//MapLayerCell::getCellColumn() const {
+//    return col;
+//}
+//
+//unsigned int
+//MapLayerCell::getLevel() const {
+//    return level;
+//}
+//
+//const GeoExtent&
+//MapLayerCell::getExtent() const {
+//    return extent;
+//}
+//
+//MapLayerLevelOfDetail*
+//MapLayerCell::getDefinition() const {
+//    return def.get();
+//}
+//
+//std::string
+//MapLayerCell::toString() const 
+//{
+//    std::stringstream s;
+//    s << "X" << col << "Y" << row << "L" << level;
+//    return s.str();
+//}
+//
+//osg::BoundingSphere
+//MapLayerCell::getBoundingSphere( SpatialReference* srs )
+//{
+//    if ( srs )
+//    {
+//        GeoPoint centroid = srs->transform( extent.getCentroid() );
+//        GeoPoint sw = srs->transform( extent.getSouthwest() );
+//        GeoPoint ne = srs->transform( extent.getNortheast() );
+//        return osg::BoundingSphere( centroid, (centroid-sw).length() );
+//    }
+//    else
+//    {
+//        GeoPoint centroid = extent.getCentroid();
+//        return osg::BoundingSphere(
+//            centroid,
+//            (centroid-extent.getSouthwest()).length() );
+//    }
+//}
 
 // ============================================================================
 
@@ -223,7 +152,8 @@ void
 MapLayer::push(FeatureLayer* layer, FilterGraph* graph, 
                ResourcePackager* packager,
                float min_range, float max_range, 
-               bool replace_previous, unsigned int depth )
+               bool replace_previous, unsigned int depth,
+               osg::Referenced* user_data )
 {
     if ( layer )
     {
@@ -234,7 +164,7 @@ MapLayer::push(FeatureLayer* layer, FilterGraph* graph,
             aoi_auto.expandToInclude( layer->getExtent() );
 
         // store the LOD definition:
-        levels.push_back( new MapLayerLevelOfDetail( layer, graph, packager, min_range, max_range, replace_previous, depth ) );
+        levels.push_back( new MapLayerLevelOfDetail( layer, graph, packager, min_range, max_range, replace_previous, depth, user_data ) );
         
         grid_valid = false;
     }  
@@ -323,34 +253,34 @@ MapLayer::getNumCellLevels() const
     return levels.size();
 }
 
-MapLayerCell*
-MapLayer::createCell( unsigned int col, unsigned int row, unsigned int level ) const
-{
-    if ( !grid_valid )
-        const_cast<MapLayer*>(this)->recalculateGrid();
-
-    MapLayerCell* result = NULL;
-
-    const GeoExtent& aoi = getAreaOfInterest();
-
-    if ( col < getNumCellColumns() && row < getNumCellRows() && level < getNumCellLevels() && aoi.isValid() )
-    {
-        double col_width  = col+1 < getNumCellColumns()? dx : last_dx;
-        double row_height = row+1 < getNumCellRows()? dy : last_dy;
-
-        const GeoPoint& sw = aoi.getSouthwest();
-        const GeoPoint& ne = aoi.getNortheast();
-
-        GeoExtent cell_extent(
-            sw.x() + (double)col*dx, sw.y() + (double)row*dy,
-            sw.x() + (double)col*dx + col_width, sw.y() + (double)row*dy + row_height,
-            aoi.getSRS() );
-
-        result = new MapLayerCell( col, row, level, cell_extent, levels[level].get() );
-    }
-
-    return result;
-}
+//MapLayerCell*
+//MapLayer::createCell( unsigned int col, unsigned int row, unsigned int level ) const
+//{
+//    if ( !grid_valid )
+//        const_cast<MapLayer*>(this)->recalculateGrid();
+//
+//    MapLayerCell* result = NULL;
+//
+//    const GeoExtent& aoi = getAreaOfInterest();
+//
+//    if ( col < getNumCellColumns() && row < getNumCellRows() && level < getNumCellLevels() && aoi.isValid() )
+//    {
+//        double col_width  = col+1 < getNumCellColumns()? dx : last_dx;
+//        double row_height = row+1 < getNumCellRows()? dy : last_dy;
+//
+//        const GeoPoint& sw = aoi.getSouthwest();
+//        const GeoPoint& ne = aoi.getNortheast();
+//
+//        GeoExtent cell_extent(
+//            sw.x() + (double)col*dx, sw.y() + (double)row*dy,
+//            sw.x() + (double)col*dx + col_width, sw.y() + (double)row*dy + row_height,
+//            aoi.getSRS() );
+//
+//        result = new MapLayerCell( col, row, level, cell_extent, levels[level].get() );
+//    }
+//
+//    return result;
+//}
 
 void
 MapLayer::recalculateGrid()

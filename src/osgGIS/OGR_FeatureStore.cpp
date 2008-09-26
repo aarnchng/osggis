@@ -62,20 +62,6 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
                         << std::endl;
                 }
             }
-
-            // if this is an ESRI shapefile, rebuild the SRS from the WKT rep. Internally OGR
-            // will load the SRS as an "ESRI-style" prj instead of WKT, and VPB cannot handle
-            // that yet.
-            //if ( osgDB::getLowerCaseFileExtension( uri ) == "shp" )
-            //{
-            //    std::string prj_path = osgDB::getNameLessExtension( abs_path ) + ".prj";
-            //    SpatialReference* new_spatial_ref = Registry::SRSFactory()->createSRSfromWKTfile( prj_path );
-            //    if ( new_spatial_ref )
-            //    {
-            //        spatial_ref = new_spatial_ref;
-            //        osgGIS::notify( osg::NOTICE ) << "NOTE: changed SRS to " << spatial_ref->getWKT() << std::endl;
-            //    }
-            //}
         }
 	}
 
@@ -507,4 +493,61 @@ OGR_FeatureStore::insertFeature( Feature* input )
     }
 
     return true;
+}
+
+const AttributeSchemaTable&
+OGR_FeatureStore::getAttributeSchemas()
+{
+    if ( schema.empty() )
+    {
+        // first collect the in-store attrs:
+        OGR_SCOPE_LOCK();
+        schema.clear(); // just in case there's a race condition ;)
+
+        OGRFeatureDefnH handle = ::OGR_L_GetLayerDefn( layer_handle );
+
+        int count = ::OGR_FD_GetFieldCount( handle );
+        for( int i=0; i<count; i++ )
+        {
+            OGRFieldDefnH field_def_handle = ::OGR_FD_GetFieldDefn( handle, i );
+
+            OGRFieldType field_type  = OGR_Fld_GetType( field_def_handle );
+            const char*  field_name  = OGR_Fld_GetNameRef( field_def_handle );
+            int          field_width = OGR_Fld_GetWidth( field_def_handle );
+            int          field_just  = OGR_Fld_GetJustify( field_def_handle );
+            int          field_prec  = OGR_Fld_GetPrecision( field_def_handle );
+
+            Attribute::Type type;
+            Properties props;
+
+            switch( field_type )
+            {
+            case OFTInteger:
+                type = Attribute::TYPE_INT;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "precision", field_prec ) );
+                break;
+
+            case OFTReal:
+                type = Attribute::TYPE_DOUBLE;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "precision", field_prec ) );
+                break;
+
+            case OFTString:
+                type = Attribute::TYPE_STRING;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "justification", field_just ) );
+                break;
+
+            default:
+                type = Attribute::TYPE_UNSPECIFIED;
+            }
+
+            std::string name(field_name);
+            schema[ name ] = AttributeSchema( name, type, props );
+        }
+    }
+
+    return schema;
 }

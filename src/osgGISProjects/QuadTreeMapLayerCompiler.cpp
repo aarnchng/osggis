@@ -110,6 +110,7 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
         cell_env->setProperty( Property( "compiler.cell_id", key.toString() ) );
 
         task = new CellCompiler(
+            key.toString(),
             abs_path,
             def->getFeatureLayer(),
             def->getFilterGraph(),
@@ -117,7 +118,8 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
             def->getMaxRange(),
             cell_env.get(),
             def->getResourcePackager()? def->getResourcePackager() : resource_packager.get(),
-            getArchive() );
+            getArchive(),
+            def->getUserData() );
 
         osgGIS::info()
             << "Task: Key = " << key.toString() << ", LOD = " << key.getLOD() << ", Extent = " << key.getExtent().toString() 
@@ -126,6 +128,14 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
     }
 
     return task;
+}
+
+CellCursor*
+QuadTreeMapLayerCompiler::createCellCursor( Profile* _profile )
+{
+    QuadTreeProfile* profile = dynamic_cast<QuadTreeProfile*>( _profile );
+    //TODO
+    return NULL;
 }
 
 Profile*

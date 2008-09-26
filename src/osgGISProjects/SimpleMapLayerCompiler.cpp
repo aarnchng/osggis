@@ -18,6 +18,7 @@
  */
 
 #include <osgGISProjects/SimpleMapLayerCompiler>
+#include <osgGISProjects/CellCompiler>
 #include <osgGIS/Report>
 #include <osgGIS/Session>
 #include <osgGIS/Utils>
@@ -65,6 +66,13 @@ SimpleMapLayerCompiler::createProfile()
     return new Profile();
 }
 
+CellCursor*
+SimpleMapLayerCompiler::createCellCursor( Profile* profile )
+{
+    //TODO
+    return NULL;
+}
+
 unsigned int
 SimpleMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 {
@@ -81,7 +89,8 @@ SimpleMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
         cell_env->setTerrainNode( getTerrainNode() );
         cell_env->setTerrainSRS( getTerrainSRS() );
 
-        Task* task = new MapLayerCompiler::CellCompiler(
+        Task* task = new CellCompiler(
+            s.str(),
             s.str(),
             level_def->getFeatureLayer(),
             level_def->getFilterGraph(),

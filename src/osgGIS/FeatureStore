@@ -114,6 +114,16 @@ namespace osgGIS
          * feature data (i.e. whether you can call getFeature(oid)).
          */
         virtual bool supportsRandomRead() const =0;
+        
+        /**
+         * Gets the schema of each attribute in the feature store. User-defined
+         * attributes added to individual features are not included.
+         *
+         * @return
+         *      Attribute schema table
+         */
+         
+        virtual const AttributeSchemaTable& getAttributeSchemas() =0;
 	};
 }
 

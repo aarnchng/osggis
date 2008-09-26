@@ -228,29 +228,6 @@ OGR_Feature::getAttribute( const std::string& key ) const
         }
     }
     return invalid_attr;
-
-    //    OGR_SCOPE_LOCK();
-    //    int index = OGR_F_GetFieldIndex( handle, key.c_str() );
-    //    if ( index > 0 )
-    //    {
-    //        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, index );
-    //        OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
-    //        switch( ft )
-    //        {
-    //            case OFTInteger:
-    //                return Attribute( key, OGR_F_GetFieldAsInteger( handle, index ) );
-    //                break;
-    //            case OFTReal:
-    //                return Attribute( key, OGR_F_GetFieldAsDouble( handle, index ) );
-    //                break;
-    //            case OFTString:
-    //                return Attribute( key, OGR_F_GetFieldAsString( handle, index ) );
-    //                break;
-    //        }
-    //    }
-    //}  
-
-    //return invalid_attr;
 }
 
 
