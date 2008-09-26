@@ -117,6 +117,15 @@ namespace osgGIS
          *      Spatial index to use
          */
 		void setSpatialIndex( SpatialIndex* index );
+
+        /**
+         * Tells the feature layer to build or load its spatial index immediately.
+         * Usually the feature layer will do so when needed; this way you can 
+         * directly exactly when the potentially long operation will occur.
+         *
+         * @return True if the index load/build succeeded, false if it failed.
+         */
+        bool assertSpatialIndex();
 		
         /**
          * Gets the feature store that is backing this feature layer.
@@ -162,8 +171,6 @@ namespace osgGIS
 		osg::ref_ptr<FeatureStore> store;
 		osg::ref_ptr<SpatialIndex> index;
         osg::ref_ptr<SpatialReference> assigned_srs;
-
-        void assertSpatialIndex();
 	};
 }
 

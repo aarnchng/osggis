@@ -294,7 +294,8 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
                 slice->getMinRange(),
                 slice->getMaxRange(),
                 true,
-                depth );
+                depth,
+                NULL );
         }
 
         // now add any sub-slice children:
@@ -494,7 +495,7 @@ Builder::build( BuildLayer* layer )
         compiler->setTerrain( terrain_node.get(), terrain_srs.get(), terrain_extent );
         compiler->setArchive( archive.get(), archive_file );
         compiler->setResourcePackager( packager.get() );
-                
+
         // build the layer and write the root file to output:
         osg::ref_ptr<osg::Group> result = compiler->compile( manager.get() );
 

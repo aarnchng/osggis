@@ -51,6 +51,8 @@ namespace osgGISProjects
 
         virtual Profile* createProfile();
 
+        virtual CellCursor* createCellCursor( Profile* );
+
     protected:
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );

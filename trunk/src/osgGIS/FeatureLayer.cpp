@@ -31,7 +31,6 @@ using namespace OpenThreads;
 FeatureLayer::FeatureLayer( FeatureStore* _store )
 {
     store = _store;
-    assertSpatialIndex();
 }
 
 
@@ -40,19 +39,20 @@ FeatureLayer::~FeatureLayer()
     //NOP
 }
 
-void
+bool
 FeatureLayer::assertSpatialIndex()
 {
     if ( store.valid() && !index.valid() )
     {
         ScopedLock<ReentrantMutex> lock( osgGIS::Registry::instance()->getGlobalMutex() );
-
         osgGIS::notice() << "Initializing spatial index..." << std::flush;
-
         index = new RTreeSpatialIndex( store.get() );
-
-        osgGIS::notice() << "done." << std::endl;
+        if ( index.valid() )
+            osgGIS::notice() << "OK." << std::endl;
+        else
+            osgGIS::warn() << "ERROR, failed to load/build index!" << std::endl;
     }
+    return index.valid();
 }
 
 const std::string&

@@ -213,6 +213,13 @@ namespace osgGIS
          * @return a re-entrant mutex;
          */
         OpenThreads::ReentrantMutex& getGlobalMutex();
+
+        /**
+         * Gets or creates a spatial index for a given feature store.
+         *
+         * @return A spatial index.
+         */
+        //SpatialIndex* getOrCreateSpatialIndex( FeatureStore* store );
         
 	private:
 		Registry();
@@ -225,8 +232,11 @@ namespace osgGIS
         std::string                           work_dir;
         OpenThreads::ReentrantMutex           global_mutex;
 
+        //typedef std::map< std::string, osg::ref_ptr<SpatialIndex> > SpatialIndexCache;
+        //SpatialIndexCache spatial_index_cache;
+
 		static Registry* singleton;
-		
+	
 	public:
 		virtual ~Registry();
 	};

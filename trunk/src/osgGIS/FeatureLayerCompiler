@@ -33,13 +33,24 @@ namespace osgGIS
     class OSGGIS_EXPORT FeatureLayerCompiler : public Task
     {
     public:
-        FeatureLayerCompiler( const std::string& name, FeatureLayer* layer, FilterGraph* graph, FilterEnv* env );
+        FeatureLayerCompiler( 
+            const std::string& name,
+            FeatureLayer*      layer,
+            FilterGraph*       graph, 
+            FilterEnv*         env );
 
-        FeatureLayerCompiler( FeatureLayer* layer, FilterGraph* graph, FilterEnv* env );
+        FeatureLayerCompiler( 
+            FeatureLayer*    layer,
+            FilterGraph*     graph,
+            FilterEnv*       env );
 
         FilterGraphResult& getResult();
 
         osg::Node* getResultNode();
+
+        FilterEnv* getFilterEnv() const;
+
+        FeatureLayer* getFeatureLayer() const;
 
     public: // Task interface
 

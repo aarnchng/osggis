@@ -24,6 +24,7 @@
 #include <osgGISProjects/MapLayerCompiler>
 #include <osgGISProjects/MapLayer>
 #include <osgGISProjects/QuadKey>
+#include <osgGISProjects/Cell>
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
 #include <osgGIS/SmartReadCallback>
@@ -45,6 +46,7 @@ namespace osgGISProjects
         double getColumnSize( unsigned int col ) const;
         double getRowSize( unsigned int row ) const;
         GeoExtent getExtent( unsigned int col, unsigned int row ) const;
+        std::string getCellId( unsigned int col, unsigned int row, unsigned int depth ) const;
 
     private:
         GeoExtent bounds;
@@ -52,8 +54,36 @@ namespace osgGISProjects
         unsigned int num_rows, num_cols;
     };
 
+    class OSGGISPROJECTS_EXPORT GridCell : public Cell
+    {
+    public:
+        GridCell( unsigned int col, unsigned int row, unsigned int depth, const GeoExtent& extent, const CellStatus& status );
+
+        unsigned int getColumn() const;
+        unsigned int getRow() const;
+        unsigned int getDepth() const;
+
+    private:
+        unsigned int col, row, depth;
+    };
+
+    class GridCellCursor : public CellCursor
+    {
+    public:
+        GridCellCursor( GridProfile* profile, MapLayerCompiler* compiler );
+
+    public: // CellCursor
+        bool hasNext() const;
+        osg::ref_ptr<Cell> next();
+
+    private:
+        osg::ref_ptr<GridProfile> profile;
+        osg::ref_ptr<MapLayerCompiler> compiler;
+        unsigned int lod_i, col_i, row_i;
+    };
+
     /**
-     * Compiles quad-tree scene graphs from MapLayer definitions.
+     * .
      */
     class OSGGISPROJECTS_EXPORT GriddedMapLayerCompiler : public MapLayerCompiler
     {
@@ -71,9 +101,13 @@ namespace osgGISProjects
 
     public: // MapLayerCompiler interface
 
-        virtual Profile* createProfile();
+        Profile* createProfile();
+
+        CellCursor* createCellCursor( Profile* profile );
         
     protected:
+
+        //virtual void collectCellKeys( Profile* profile );
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
 

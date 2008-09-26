@@ -1,0 +1,89 @@
+/* -*-c++-*- */
+/* osgGIS - GIS Library for OpenSceneGraph
+ * Copyright 2007-2008 Glenn Waldron and Pelican Ventures, Inc.
+ * http://osggis.org
+ *
+ * osgGIS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef _OSGGISPROJECTS_CELL_H_
+#define _OSGGISPROJECTS_CELL_H_ 1
+
+#include <osgGISProjects/Common>
+#include <osgGIS/GeoExtent>
+#include <time.h>
+
+using namespace osgGIS;
+
+namespace osgGISProjects
+{
+    /**
+     * Reflects the compilation status of a cell. Immutable.
+     */
+    class OSGGISPROJECTS_EXPORT CellStatus
+    {
+    public:
+        CellStatus( bool is_compiled, time_t compiled_time =0 );
+        CellStatus( const CellStatus& rhs );
+
+        bool isCompiled() const;
+        time_t getCompiledTime() const;
+
+    private:
+        bool is_compiled;
+        time_t compiled_time;
+    };
+
+
+    /**
+     * Base class for compilation cells. A "cell" is a discrete sub-region
+     * of the entire compilation extent that can be compiled independently
+     * of other cells.
+     */
+    class OSGGISPROJECTS_EXPORT Cell : public osg::Referenced
+    {
+    public:
+        Cell( const GeoExtent& extent, const CellStatus& status );
+
+        /**
+         * Gets the geospatial extent of the cell
+         * @return
+         *      A georeferenced extent
+         */         
+        const GeoExtent& getExtent() const;
+
+        /**
+         * Gets the compilation status of the cell.
+         * @return
+         *      Compilation status
+         */
+        const CellStatus& getStatus() const;
+
+    private:
+        GeoExtent  extent;
+        CellStatus status;
+    };
+
+    /**
+     * Iterates over a collection of cells.
+     */
+    class OSGGISPROJECTS_EXPORT CellCursor : public osg::Referenced
+    {
+    public:
+        virtual bool hasNext() const =0;
+        virtual osg::ref_ptr<Cell> next() =0;
+    };
+}
+
+#endif // _OSGGISPROJECTS_CELL_H_

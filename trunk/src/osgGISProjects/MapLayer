@@ -21,6 +21,7 @@
 #define _OSGGISPROJECTS_MAP_LAYER_H_ 1
 
 #include <osgGISProjects/Common>
+#include <osgGISProjects/MapLayerLevelOfDetail>
 #include <osgGIS/FeatureLayer>
 #include <osgGIS/FilterGraph>
 #include <osgGIS/Session>
@@ -31,64 +32,31 @@ using namespace osgGIS;
 
 namespace osgGISProjects
 {
-    /* (internal)
-     * A single level of detail for a MapLayer.
-     */
-    class MapLayerLevelOfDetail : public osg::Referenced
-    {
-    public:
-        MapLayerLevelOfDetail( 
-            FeatureLayer* layer,
-            FilterGraph* graph,
-            ResourcePackager* packager,
-            float min_range,
-            float max_range,
-            bool replace_previous,
-            unsigned int depth );
+    ///* (internal)
+    // * A single cell within a MapLayer.
+    // */
+    //class OSGGISPROJECTS_EXPORT MapLayerCell : public osg::Referenced
+    //{
+    //public:
+    //    MapLayerCell(
+    //        unsigned int col, unsigned int row, unsigned int level, 
+    //        const GeoExtent& extent, MapLayerLevelOfDetail* def );
 
-        FeatureLayer* getFeatureLayer() const;
-        FilterGraph* getFilterGraph() const;
-        float getMinRange() const;
-        float getMaxRange() const;
-        bool getReplacePrevious() const;
-        unsigned int getDepth() const;
-        ResourcePackager* getResourcePackager() const;
+    //    unsigned int getCellRow() const;
+    //    unsigned int getCellColumn() const;
+    //    unsigned int getLevel() const;
+    //    const GeoExtent& getExtent() const;
+    //    MapLayerLevelOfDetail* getDefinition() const;
 
-    private:
-        osg::ref_ptr<FeatureLayer>     layer;
-        osg::ref_ptr<FilterGraph>      graph;
-        osg::ref_ptr<ResourcePackager> packager;
-        float                          min_range, max_range;
-        bool                           replace_previous;
-        unsigned int                   depth;
-    };
-    typedef std::vector<osg::ref_ptr<MapLayerLevelOfDetail> > MapLayerLevelsOfDetail;
+    //    std::string toString() const;
+    //    //std::string makeURIFromTemplate( const std::string& uri_tempate );
+    //    osg::BoundingSphere getBoundingSphere( SpatialReference* srs =NULL);
 
-    /* (internal)
-     * A single cell within a MapLayer.
-     */
-    class OSGGISPROJECTS_EXPORT MapLayerCell : public osg::Referenced
-    {
-    public:
-        MapLayerCell(
-            unsigned int col, unsigned int row, unsigned int level, 
-            const GeoExtent& extent, MapLayerLevelOfDetail* def );
-
-        unsigned int getCellRow() const;
-        unsigned int getCellColumn() const;
-        unsigned int getLevel() const;
-        const GeoExtent& getExtent() const;
-        MapLayerLevelOfDetail* getDefinition() const;
-
-        std::string toString() const;
-        std::string makeURIFromTemplate( const std::string& uri_tempate );
-        osg::BoundingSphere getBoundingSphere( SpatialReference* srs =NULL);
-
-    private:
-        unsigned int row, col, level;
-        GeoExtent extent;
-        osg::ref_ptr<MapLayerLevelOfDetail> def;
-    };
+    //private:
+    //    unsigned int row, col, level;
+    //    GeoExtent extent;
+    //    osg::ref_ptr<MapLayerLevelOfDetail> def;
+    //};
 
     /**
      * A complete definition of a single runtime map layer, which is a set of one or
@@ -162,15 +130,18 @@ namespace osgGISProjects
          *      will join the scene graph without removing the previous levels.
          * @param depth
          *      Level of detail depth (0 = top level)
+         * @param user_data
+         *      User-defined data to pass to the cell compiler
          */
         void push(
-            FeatureLayer* layer,
-            FilterGraph* graph,
+            FeatureLayer*     layer,
+            FilterGraph*      graph,
             ResourcePackager* packager,
-            float min_range,
-            float max_range,
-            bool replace,
-            unsigned int depth );
+            float             min_range,
+            float             max_range,
+            bool              replace,
+            unsigned int      depth,
+            osg::Referenced*  user_data =NULL);
             
         /**
          * Gets the maximum depth (LOD nesting level) in the map layer.
@@ -222,7 +193,7 @@ namespace osgGISProjects
          * @return
          *      Cell definition
          */
-        MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
+//        MapLayerCell* createCell( unsigned int col, unsigned int row, unsigned int level ) const;
 
         MapLayerLevelsOfDetail& getLevels() { return levels; }
         

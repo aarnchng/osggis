@@ -23,3 +23,16 @@ Task::getName() const
 {
     return name;
 }
+
+osg::Referenced*
+Task::getUserData() const 
+{
+    return user_data.get();
+}
+
+void
+Task::setUserData( osg::Referenced* _user_data )
+{
+    user_data = _user_data;
+}
+

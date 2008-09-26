@@ -56,7 +56,7 @@ public:
             next = recently_completed_tasks.front();
             recently_completed_tasks.pop();
         }
-        return next;
+        return osg::ref_ptr<Task>( next.get() );
     }
 
     double getElapsedTimeSeconds() const {
@@ -133,101 +133,6 @@ private:
 
 /*****************************************************************************/
 
-MapLayerCompiler::CellCompiler::CellCompiler(const std::string& _abs_output_uri,
-                                             FeatureLayer*      layer,
-                                             FilterGraph*       graph,
-                                             float              _min_range,
-                                             float              _max_range,
-                                             FilterEnv*         env,
-                                             ResourcePackager*  _packager,
-                                             osgDB::Archive*    _archive )
- : FeatureLayerCompiler( _abs_output_uri, layer, graph, env ),
-   packager( _packager ),
-   abs_output_uri( _abs_output_uri ),
-   archive( _archive ),
-   min_range( _min_range ),
-   max_range( _max_range )
-{
-    //TODO: maybe the FilterEnv should just have one of these by default.
-    SmartReadCallback* smart = new SmartReadCallback();
-    smart->setMinRange( min_range );
-    env->setTerrainReadCallback( smart );
-}
-
-void
-MapLayerCompiler::CellCompiler::run() // overrides FeatureLayerCompiler::run()
-{
-    // first check to see whether this cell needs compiling:
-    need_to_compile = archive.valid() || !osgDB::fileExists( abs_output_uri );
-
-    if ( need_to_compile )
-    {
-        // Compile the cell:
-        FeatureLayerCompiler::run();
-
-        // Write the resulting node graph to disk, first ensuring that the output folder exists:
-        // TODO: consider whether this belongs in the runSynchronousPostProcess() method
-        if ( getResult().isOK() && getResultNode() )
-        {
-            has_drawables = GeomUtils::hasDrawables( getResultNode() );
-        }
-    }
-    else
-    {
-        result = FilterGraphResult::ok();
-        has_drawables = true;
-    }
-}
-
-void
-MapLayerCompiler::CellCompiler::runSynchronousPostProcess( MapLayerCompiler* compiler, Report* report )
-{
-    if ( need_to_compile )
-    {
-        if ( !getResult().isOK() )
-        {
-            osgGIS::notice() << getName() << " failed to compile: " << getResult().getMessage() << std::endl;
-            return;
-        }
-        
-        if ( !getResultNode() || !has_drawables )
-        {
-            osgGIS::info() << getName() << " resulted in no geometry" << std::endl;
-            return;
-        }
-
-        if ( packager.valid() )
-        {
-            // TODO: we should probably combine the following two calls into one:
-
-			// update any texture/model refs in preparation for packaging:
-			packager->rewriteResourceReferences( getResultNode() );
-
-			// copy resources to their final destination
-			packager->packageResources( env->getResourceCache(), report );
-
-			// write the node data itself
-            osg::ref_ptr<osg::Node> node_to_package = getResultNode();
-
-            //if ( min_range != 0.0 || max_range != FLT_MAX )
-            //{
-            //    osg::LOD* lod = new osg::LOD();
-            //    lod->addChild( getResultNode(), min_range, max_range );
-            //    compiler->setCenterAndRadius( lod, env->getCellExtent(), env->getTerrainReadCallback() );
-            //    node_to_package = lod;
-            //}
-
-			if ( !packager->packageNode( node_to_package.get(), abs_output_uri ) ) //, env->getCellExtent(), min_range, max_range ) )
-			{
-                osgGIS::warn() << getName() << " failed to package node to output location" << std::endl;
-				result = FilterGraphResult::error( "Cell built OK, but failed to deploy to disk/archive" );
-			}
-		}
-	}
-}
-
-/*****************************************************************************/
-
 MapLayerCompiler::MapLayerCompiler( MapLayer* _layer, Session* _session )
 {
     map_layer = _layer;
@@ -240,13 +145,17 @@ MapLayerCompiler::getMapLayer() const {
     return map_layer.get();
 }
 
+//const CellKeys&
+//MapLayerCompiler::getCellKeys() const {
+//    return cell_keys;
+//}
+
 void
 MapLayerCompiler::setPaged( bool value )
 {
     if ( paged != value )
     {
         paged = value;
-        //scene_graph = NULL; // invalidate it
     }
 }
 
@@ -268,15 +177,21 @@ MapLayerCompiler::setTerrain(osg::Node*              _terrain,
     terrain_node   = _terrain;
     terrain_srs    = (SpatialReference*)_terrain_srs;
     terrain_extent = _terrain_extent;
+
+    if ( !terrain_srs.valid() )
+        terrain_srs = osgGIS::Registry::SRSFactory()->createSRSfromTerrain( terrain_node.get() );
+
+    if ( !terrain_srs.valid() )
+        osgGIS::warn() << "[MapLayerCompiler] WARNING: cannot determine SRS of terrain!" << std::endl;
 }
 
 
-void
-MapLayerCompiler::setTerrain(osg::Node*              _terrain,
-                             const SpatialReference* _terrain_srs )
-{
-    setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
-}
+//void
+//MapLayerCompiler::setTerrain(osg::Node*              _terrain,
+//                             const SpatialReference* _terrain_srs )
+//{
+//    setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
+//}
 
 osg::Node*
 MapLayerCompiler::getTerrainNode()
@@ -325,12 +240,6 @@ MapLayerCompiler::getResourcePackager() const {
     return resource_packager.get();
 }
 
-//osg::Node*
-//MapLayerCompiler::getSceneGraph()
-//{
-//    return scene_graph.get();
-//}
-
 Session*
 MapLayerCompiler::getSession()
 {
@@ -339,6 +248,12 @@ MapLayerCompiler::getSession()
         session = new Session();
     }
     return session.get();
+}
+
+osgGIS::SpatialReference*
+MapLayerCompiler::getOutputSRS()
+{
+    return map_layer->getOutputSRS( getSession(), getTerrainSRS() );
 }
 
 std::string
@@ -439,8 +354,17 @@ MapLayerCompiler::startCompiling( TaskManager* my_task_man )
         resource_packager->setOutputLocation( osgDB::getFilePath( output_uri ) );
     }
 
+    // pre-gen the spatial indexes (optional, but saves a little time)
+    for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
+    {
+        i->get()->getFeatureLayer()->assertSpatialIndex();
+    }
+    
+    // make a reporting channel:
     osg::ref_ptr<Report> default_report = new Report();
 
+    // create and return a compile session that should be sent to continueCompiling()
+    // and finishCompiling().
     return new CompileSessionImpl( task_man.get(), profile.get(), total_tasks, osg::Timer::instance()->tick() );
 }
 
@@ -456,29 +380,22 @@ MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
         osg::ref_ptr<Task> completed_task = cs->getTaskManager()->getNextCompletedTask();
         if ( completed_task.valid() )
         {
-            //tasks_completed++;
-
-            CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
-            if ( compiler->getResult().isOK() )
+            CellCompiler* cell_compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
+            if ( cell_compiler->getResult().isOK() )
             {
-                compiler->runSynchronousPostProcess( this, cs->getReport() );
+                cell_compiler->runSynchronousPostProcess( cs->getReport() );
 
                 // give the layer compiler an opportunity to do something:
-                processCompletedTask( compiler );
+                processCompletedTask( cell_compiler );
 
                 // record the completed task to the caller can see it
-                cs->getTaskQueue().push( compiler );
+                cs->getTaskQueue().push( cell_compiler );
 
                 unsigned int total_tasks = cs->getTotalTasks();
                 unsigned int tasks_completed = total_tasks - cs->getTaskManager()->getNumTasks();
 
-                // progress
-                // TODO: get rid of this.. replace with a callback or with the user calling
-                // compileMore() multiple times.
-                //osg::Timer_t now = osg::Timer::instance()->tick();
                 float p = 100.0f * (float)tasks_completed/(float)total_tasks;
                 float elapsed = (float)cs->getElapsedTimeSeconds();
-                //float elapsed = osg::Timer::instance()->delta_s( start_time, now );
                 float avg_task_time = elapsed/(float)tasks_completed;
                 float time_remaining = ((float)total_tasks-(float)tasks_completed)*avg_task_time;
 
@@ -495,8 +412,8 @@ MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
             {
                 //TODO: replace this with Report facility
                 osgGIS::notify( osg::WARN ) << "ERROR: compilation of cell "
-                    << compiler->getName() << " failed : "
-                    << compiler->getResult().getMessage()
+                    << cell_compiler->getName() << " failed : "
+                    << cell_compiler->getResult().getMessage()
                     << std::endl;
             }
         }
@@ -522,9 +439,6 @@ MapLayerCompiler::finishCompiling( CompileSession* cs_interface )
             osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
             osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
     }
-    
-    //osg::Timer_t end_time = osg::Timer::instance()->tick();
-    //double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
 
     osgGIS::notify( osg::NOTICE )
         << "Compilation finished, total time = " << cs->getElapsedTimeSeconds() << " seconds"
@@ -538,115 +452,18 @@ MapLayerCompiler::compile( TaskManager* my_task_man )
 {
     osg::ref_ptr<CompileSession> cs = static_cast<CompileSessionImpl*>( startCompiling( my_task_man ) );
 
-    //// make a task manager to run the compilation:
-    //osg::ref_ptr<TaskManager> task_man = my_task_man;
-    //if ( !task_man.valid() )
-    //    task_man = new TaskManager( 0 );
-
-    //// make a profile describing this compilation setup:
-    //osg::ref_ptr<Profile> profile = createProfile();
-
-    //// create and queue up all the tasks to run:
-    //unsigned int total_tasks = queueTasks( profile.get(), task_man.get() );
-
-    //// configure the packager so that skins and model end up in the right place:
-    //if ( resource_packager.valid() )
-    //{
-    //    resource_packager->setArchive( getArchive() );
-    //    resource_packager->setOutputLocation( osgDB::getFilePath( output_uri ) );
-    //}
-
-    //osg::ref_ptr<Report> default_report = new Report();
-
-    // run until we're done.
-    //
-    // TODO: in the future, we can change the semantics so that you call compileSome() over and over
-    //       until everything is complete...and compileSome() will return a list of everything that
-    //       was started and everything that completed during that pass. This will allow for
-    //       intermediate processing for UI's etc.
-
-    //osg::Timer_t start_time = osg::Timer::instance()->tick();
-    //int tasks_completed = 0;
-
     while( continueCompiling( cs.get() ) );
-
-    //while( task_man->wait( 1000L ) )
-    //{
-    //    osg::ref_ptr<Task> completed_task = task_man->getNextCompletedTask();
-    //    if ( completed_task.valid() )
-    //    {
-    //        tasks_completed++;
-
-    //        CellCompiler* compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
-    //        if ( compiler->getResult().isOK() )
-    //        {
-    //            compiler->runSynchronousPostProcess( default_report.get() );
-
-    //            // give the layer compiler an opportunity to do something:
-    //            processCompletedTask( compiler );
-
-    //            // progress
-    //            // TODO: get rid of this.. replace with a callback or with the user calling
-    //            // compileMore() multiple times.
-    //            osg::Timer_t now = osg::Timer::instance()->tick();
-    //            float p = 100.0f * (float)tasks_completed/(float)total_tasks;
-    //            float elapsed = osg::Timer::instance()->delta_s( start_time, now );
-    //            float avg_task_time = elapsed/(float)tasks_completed;
-    //            float time_remaining = ((float)total_tasks-(float)tasks_completed)*avg_task_time;
-
-    //            unsigned int hrs,mins,secs;
-    //            TimeUtils::getHMSDuration( time_remaining, hrs, mins, secs );
-
-    //            char buf[10];
-    //            sprintf( buf, "%02d:%02d:%02d", hrs, mins, secs );
-    //            osgGIS::notify(osg::NOTICE) << tasks_completed << "/" << total_tasks 
-    //                << " tasks (" << (int)p << "%) complete, " 
-    //                << buf << " remaining" << std::endl;
-    //        }
-    //        else
-    //        {
-    //            //TODO: replace this with Report facility
-    //            osgGIS::notify( osg::WARN ) << "ERROR: compilation of cell "
-    //                << compiler->getName() << " failed : "
-    //                << compiler->getResult().getMessage()
-    //                << std::endl;
-    //        }
-    //    }
-    //}
 
     if ( finishCompiling( cs.get() ) )
     {
         osg::Group* result = cs->getOrCreateSceneGraph();
-        result->ref(); // since the CS will be destroyed
+        result->ref(); // since the CS will be destroyed, unref'ing the result
         return result;
     }
     else
     {
         return NULL;
     }
-
-    //// build the index that will point to the keys:
-    //buildIndex( profile.get() );
-
-    //if ( getSceneGraph() )
-    //{
-    //    osgUtil::Optimizer opt;
-    //    opt.optimize( getSceneGraph(), 
-    //        osgUtil::Optimizer::SPATIALIZE_GROUPS |
-    //        osgUtil::Optimizer::STATIC_OBJECT_DETECTION |
-    //        osgUtil::Optimizer::SHARE_DUPLICATE_STATE );
-    //}
-    //
-    //osg::Timer_t end_time = osg::Timer::instance()->tick();
-    //double duration_s = osg::Timer::instance()->delta_s( start_time, end_time );
-
-    //osgGIS::notify( osg::NOTICE )
-    //    << "Compilation finished, total time = " << duration_s << " seconds"
-    //    << std::endl;
-
-    //return true;
-
-
 }
 
 

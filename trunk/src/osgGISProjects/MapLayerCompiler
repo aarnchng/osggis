@@ -23,6 +23,8 @@
 #include <osgGISProjects/Common>
 #include <osgGISProjects/MapLayer>
 #include <osgGISProjects/QuadKey>
+#include <osgGISProjects/CellCompiler>
+#include <osgGISProjects/Cell>
 #include <osgGIS/ResourcePackager>
 #include <osgGIS/TaskManager>
 #include <osgGIS/SmartReadCallback>
@@ -125,15 +127,15 @@ namespace osgGISProjects
          */
         void setTerrain(
             osg::Node*              terrain, 
-            const SpatialReference* terrain_srs,
-            const GeoExtent&        terrain_extent );
+            const SpatialReference* terrain_srs =NULL,
+            const GeoExtent&        terrain_extent =GeoExtent::infinite() );
            
         /** 
          * Sets the reference terrain against which to compile.
          */ 
-        void setTerrain(
-            osg::Node*              terrain, 
-            const SpatialReference* terrain_srs );
+        //void setTerrain(
+        //    osg::Node*              terrain, 
+        //    const SpatialReference* terrain_srs =NULL );
             
         /**
          * Gets the scene graph holding the reference terrain, if set.
@@ -165,14 +167,9 @@ namespace osgGISProjects
         /* Gets the session under which this compiler will operate. */
         Session* getSession();
 
-    public:
-        /**
-         * Gets the node graph containing the structure for data cells.
-         *
-         * @return A node graph
-         */
-        //osg::Node* getSceneGraph();
+        osgGIS::SpatialReference* getOutputSRS();
 
+    public:
         /**
          * Compiles the entire cell graph.
          *
@@ -183,7 +180,9 @@ namespace osgGISProjects
          *      True if the compilation succeeded, false if it failed.
          */
         virtual osg::Group* compile( TaskManager* task_man =NULL);
+
         virtual osg::Group* compileIndexOnly( CompileSession* session );
+
 
 
         virtual CompileSession* startCompiling( TaskManager* task_man =NULL );
@@ -198,37 +197,23 @@ namespace osgGISProjects
 
         virtual Profile* createProfile() =0;
 
+        /**
+         * Creates a cursor that you can use to iterate over all the cells comprising
+         * the map layer under the specified profile.
+         *
+         * @return
+         *      A cell cursor. Caller is responsible for deleting the return object.
+         */
+        virtual CellCursor* createCellCursor( Profile* profile ) =0;
+
     public:
-
-        class CellCompiler : public FeatureLayerCompiler {
-        public:
-            CellCompiler(
-                const std::string& abs_output_uri,
-                FeatureLayer*      layer,
-                FilterGraph*       graph,
-                float              min_range,
-                float              max_range,
-                FilterEnv*         env,
-                ResourcePackager*  packager,
-                osgDB::Archive*    archive =NULL);
-
-            virtual void run();
-            virtual void runSynchronousPostProcess( MapLayerCompiler*, Report* report );
-
-        private:
-            std::string abs_output_uri;
-            osg::ref_ptr<osgDB::Archive> archive;
-            osg::ref_ptr<ResourcePackager> packager;
-            bool need_to_compile;
-            bool has_drawables;
-            float min_range, max_range;
-        };
 
         std::string createAbsPathFromTemplate( const std::string& core );
         std::string createRelPathFromTemplate( const std::string& core );
 
     protected:
 
+        //virtual void collectCells( Profile* ) =0;
         virtual unsigned int queueTasks( Profile*, TaskManager* ) =0;
         virtual void buildIndex( Profile*, osg::Group* ) =0;
         virtual void processCompletedTask( CellCompiler* ) { }
@@ -248,8 +233,6 @@ namespace osgGISProjects
         GeoExtent                       terrain_extent;
 
         osg::ref_ptr<Session>           session;
-
-        //osg::ref_ptr<osg::Group>        scene_graph;
 
         void setCenterAndRadius( osg::Node* plod_or_proxy, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };

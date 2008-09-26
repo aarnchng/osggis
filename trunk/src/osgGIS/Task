@@ -35,6 +35,9 @@ namespace osgGIS
     public:
         /**
          * Constructs a new task.
+         *
+         * @param user_data
+         *      Optional user data.
          */
         Task();
 
@@ -43,8 +46,10 @@ namespace osgGIS
          *
          * @param name
          *      Readable name of the task.
+         * @param user_data
+         *      Optional user data.
          */
-        Task( const std::string& name );
+        Task(const std::string& name);
 
         /**
          * Gets the task name.
@@ -52,6 +57,21 @@ namespace osgGIS
          * @return Readable name of the task
          */
         const std::string& getName() const;
+
+        /**
+         * Gets the user data structure attached to this task.
+         *
+         * @return user data.
+         */
+        osg::Referenced* getUserData() const;
+
+        /**
+         * Sets the user data structure
+         *
+         * @param value
+         *      User data.
+         */
+        void setUserData( osg::Referenced* user_data );
         
     public:
         /** 
@@ -64,6 +84,7 @@ namespace osgGIS
         
     private:
         std::string name;
+        osg::ref_ptr<osg::Referenced> user_data;
     };
 
     typedef std::queue< osg::ref_ptr<Task> > TaskQueue;

@@ -54,7 +54,11 @@ namespace osgGISProjects
 
         virtual Profile* createProfile();
 
+        virtual CellCursor* createCellCursor( Profile* );
+
     protected:
+
+        //virtual void collectCellKeys( Profile* profile );
 
         virtual unsigned int queueTasks( Profile* profile, TaskManager* task_man );
 
@@ -71,16 +75,6 @@ namespace osgGISProjects
         };
 
     protected:
-
-        /* Builds the cell graph structure with placeholders for each cell geometry. */
-        //void buildSceneGraphSkeleton();
-
-        /* Scans the cell graph and assembles a list of cells that need compiling. */
-        //void assemblePagedTasks( TaskList& out_tasks );
-        //void assembleNonPagedTasks( TaskList& out_tasks );
-
-        /* Processes a compiled cell's resources and merges it with the cell graph */
-        //void processCompletedTask( Task* task );
 
         osg::Node* createIntermediateIndexNode( const QuadKey& key, float min_range, float max_range, SmartReadCallback* );
         osg::Node* createLeafIndexNode( const QuadKey& key, SmartReadCallback* );

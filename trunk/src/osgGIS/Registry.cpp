@@ -22,6 +22,7 @@
 #include <osgGIS/OGR_SpatialReferenceFactory>
 #include <osgGIS/DefaultRasterStoreFactory>
 #include <osgGIS/Lua_ScriptEngine>
+#include <osgGIS/RTreeSpatialIndex>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
@@ -29,6 +30,7 @@
 #include <algorithm>
 
 using namespace osgGIS;
+using namespace OpenThreads;
 
 osgGIS::Registry* osgGIS::Registry::singleton = NULL;
 
@@ -225,4 +227,27 @@ Registry::hasWorkDirectory() const
     return work_dir.length() > 0;
 }
 
-
+//SpatialIndex*
+//Registry::getOrCreateSpatialIndex( FeatureStore* store )
+//{
+//    ScopedLock<ReentrantMutex> lock( getGlobalMutex() );
+//    
+//    SpatialIndexCache::iterator i = spatial_index_cache.find( store->getName() );
+//    if ( i != spatial_index_cache.end() )
+//    {
+//        return i->second.get();
+//    }
+//
+//    osgGIS::notice() << "Initializing spatial index..." << std::flush;
+//
+//    SpatialIndex* index = new RTreeSpatialIndex( store );
+//    if ( index )
+//    {
+//        spatial_index_cache[ store->getName() ] = index;
+//        osgGIS::notice() << "done." << std::endl;
+//    }
+//    else
+//    {
+//        osgGIS::warn() << "ERROR, unable to create/load a spatial index!" << std::endl;
+//    }
+//}

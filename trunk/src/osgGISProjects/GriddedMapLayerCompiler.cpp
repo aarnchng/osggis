@@ -123,6 +123,46 @@ GridProfile::getExtent( unsigned int col, unsigned int row ) const {
         bounds.getSRS() );
 }
 
+std::string
+GridProfile::getCellId( unsigned int col, unsigned int row, unsigned int depth ) const
+{
+    std::stringstream buf;
+    buf << "L" << depth << "_X" << col << "_Y" << row;
+    return buf.str();
+}
+
+/*****************************************************************************/
+
+
+GridCell::GridCell(unsigned int _col,
+                   unsigned int _row,
+                   unsigned int _depth,
+                   const GeoExtent& _extent,
+                   const CellStatus& _status ) :
+Cell(_extent,_status),
+col(_col),
+row(_row),
+depth(_depth)
+{
+    //NOP
+}
+
+unsigned int 
+GridCell::getColumn() const {
+    return col;
+}
+
+unsigned int 
+GridCell::getRow() const {
+    return row;
+}
+
+unsigned int 
+GridCell::getDepth() const {
+    return depth;
+}
+
+
 /*****************************************************************************/
 
 class GridCellKey
@@ -139,9 +179,10 @@ public:
     }
 
     std::string toString() const {
-        std::stringstream s;
-        s << "L" << level << "_X" << col << "_Y" << row;
-        return s.str();
+        return profile->getCellId( col, row, level );
+        //std::stringstream s;
+        //s << "L" << level << "_X" << col << "_Y" << row;
+        //return s.str();
     }
 
     unsigned int getColumn() const {
@@ -162,6 +203,48 @@ private:
 };
 
 typedef std::list<GridCellKey> GridCellKeyList;
+
+/*****************************************************************************/
+
+GridCellCursor::GridCellCursor( GridProfile* _profile, MapLayerCompiler* _compiler ) :
+profile( _profile ),
+compiler( _compiler )
+{
+    lod_i = col_i = row_i = 0;
+}
+
+bool
+GridCellCursor::hasNext() const
+{
+    return
+        lod_i < compiler->getMapLayer()->getLevels().size() &&
+        col_i < profile->getNumColumns() &&
+        row_i < profile->getNumRows();
+}
+
+osg::ref_ptr<Cell>
+GridCellCursor::next()
+{
+    unsigned int old_col = col_i, old_row = row_i, old_lod = lod_i;
+
+    GeoExtent extent = profile->getExtent( col_i, row_i );
+    GridCellKey key( col_i, row_i, lod_i, profile.get() );
+    std::string path = compiler->createAbsPathFromTemplate( "g" + key.toString() );
+    CellStatus status( osgDB::fileExists( path ) );
+
+    // advance the iterator
+    if ( ++col_i > profile->getNumColumns() )
+    {
+        col_i = 0;
+        if ( ++row_i > profile->getNumRows() )
+        {
+            row_i = 0;
+            lod_i++;
+        }                
+    }
+
+    return new GridCell( old_col, old_row, old_lod, extent, status );
+}
 
 /*****************************************************************************/
 
@@ -216,7 +299,8 @@ createTask( const GridCellKey& key, MapLayerCompiler* compiler )
         cell_env->setExtent( extent );
         cell_env->setProperty( Property( "compiler.cell_id", key.toString() ) );
 
-        task = new MapLayerCompiler::CellCompiler(
+        task = new CellCompiler(
+            key.toString(),
             abs_path,
             def->getFeatureLayer(),
             def->getFilterGraph(),
@@ -224,7 +308,8 @@ createTask( const GridCellKey& key, MapLayerCompiler* compiler )
             def->getMaxRange(),
             cell_env.get(),
             def->getResourcePackager()? def->getResourcePackager() : compiler->getResourcePackager(),
-            compiler->getArchive() );
+            compiler->getArchive(),
+            def->getUserData() );
 
         osgGIS::notify( osg::INFO )
             << "Task: Key = " << key.toString() << ", LOD = " << key.getLevel() << ", Extent = " << extent.toString() 
@@ -279,6 +364,12 @@ GriddedMapLayerCompiler::createProfile()
     return profile;
 }
 
+CellCursor*
+GriddedMapLayerCompiler::createCellCursor( Profile* _profile )
+{
+    return new GridCellCursor( dynamic_cast<GridProfile*>( _profile ), this );
+}
+
 unsigned int
 GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
 {
@@ -325,7 +416,6 @@ GriddedMapLayerCompiler::buildIndex( Profile* _profile, osg::Group* scene_graph 
         {
             osg::PagedLOD* plod = NULL;
             osg::LOD*      proxy_lod = NULL;
-            //osg::ProxyNode* proxy = NULL;
 
             // nesting vs. serial is unimportant in terms of LOD for gridded.
             unsigned int level = 0;
