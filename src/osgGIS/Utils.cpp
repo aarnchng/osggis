@@ -368,3 +368,4 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
 
     return output;
 }
+

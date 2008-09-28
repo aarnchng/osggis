@@ -70,3 +70,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_MAP_LAYER_LOD_H_
+
