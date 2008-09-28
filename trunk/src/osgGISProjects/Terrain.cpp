@@ -93,3 +93,4 @@ Terrain::getExplicitSRS() const
 {
     return explicit_srs.get();
 }
+

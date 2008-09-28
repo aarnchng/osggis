@@ -65,3 +65,4 @@ namespace osgGISProjects
     };}
 
 #endif // _OSGGISPROJECTS_CELL_COMPILER_H_
+

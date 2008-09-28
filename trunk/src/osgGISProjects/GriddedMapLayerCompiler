@@ -117,3 +117,4 @@ namespace osgGISProjects
 }
 
 #endif // _OSGGISPROJECTS_GRIDDED_MAP_LAYER_COMPILER_
+

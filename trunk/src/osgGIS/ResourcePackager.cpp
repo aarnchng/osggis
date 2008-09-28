@@ -411,3 +411,4 @@ ResourcePackager::packageNode(osg::Node* node, const std::string& abs_uri)
 
     return write_ok;
 }
+

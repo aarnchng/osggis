@@ -551,3 +551,4 @@ OGR_FeatureStore::getAttributeSchemas()
 
     return schema;
 }
+

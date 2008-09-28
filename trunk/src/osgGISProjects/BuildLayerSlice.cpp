@@ -113,3 +113,4 @@ BuildLayerSlice::getProperties() const
 {
     return props;
 }
+

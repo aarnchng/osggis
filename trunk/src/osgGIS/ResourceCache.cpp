@@ -196,3 +196,4 @@ ResourceCache::getExternalReferenceModels()
     }
     return results;
 }
+

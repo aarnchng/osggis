@@ -143,3 +143,4 @@ osgGIS::notice() { return osgGIS::notify(osg::NOTICE); }
 
 std::ostream& 
 osgGIS::warn() { return osgGIS::notify(osg::WARN); }
+
