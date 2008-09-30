@@ -199,6 +199,8 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
         {
             if ( v.result->getFormat() == "WKT" )
                 result = createSRSfromWKT( v.result->getCoordinateSystem() );
+            else if ( v.result->getFormat() == "PROJ4" )
+                result = createSRSfromPROJ4( v.result->getCoordinateSystem() );
             else if ( v.result->getFormat() == "ESRI" )
                 result = createSRSfromESRI( v.result->getCoordinateSystem() );
 
