@@ -72,7 +72,7 @@ endElement( void* user_data, const XML_Char* c_tag )
     XmlElementNoRefStack& stack = *(XmlElementNoRefStack*)user_data;
     XmlElement* top = stack.top();
     stack.pop();
-} 
+}
 
 static void XMLCALL
 handleCharData( void* user_data, const XML_Char* c_data, int len )
@@ -109,10 +109,10 @@ XmlDocument::load( std::istream& in )
         {
             if ( XML_Parse( parser, buf, bytes_read, in.eof() ) == XML_STATUS_ERROR )
             {
-                osgGIS::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN )
                     << XML_ErrorString( XML_GetErrorCode( parser ) )
                     << ", "
-                    << XML_GetCurrentLineNumber( parser ) 
+                    << XML_GetCurrentLineNumber( parser )
                     << std::endl;
 
                 XML_ParserFree( parser );
@@ -140,16 +140,27 @@ storeNode( XmlNode* node, int depth, std::ostream& out )
         {
             out << " " << a->first << "=" << "\"" << a->second << "\"";
         }
-        out << ">" << std::endl;
-        for( XmlNodeList::iterator i = e->getChildren().begin(); i != e->getChildren().end(); i++ )
+        if ( e->getChildren().empty())
         {
-            storeNode( i->get(), depth+1, out );
+        	out << "/>" << std::endl;
         }
+        else
+        {
+        	out << ">" << std::endl;
+			for( XmlNodeList::iterator i = e->getChildren().begin(); i != e->getChildren().end(); i++ )
+			{
+				storeNode( i->get(), depth+1, out );
+			}
+		    for( int k=0; k<depth*INDENT; k++ )
+		        out << " ";
+			out << "</" << e->getName() << ">" << std::endl;
+        }
+
     }
     else if ( node->isText() )
     {
         XmlText* t = (XmlText*)node;
-        //out << t->getValue() << std::endl;
+        out << t->getValue() << std::endl;
     }
 }
 

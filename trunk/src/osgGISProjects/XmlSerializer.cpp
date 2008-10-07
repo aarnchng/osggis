@@ -23,6 +23,7 @@
 #include <osgGIS/Registry>
 #include <osgGIS/Utils>
 #include <osgGIS/SRSResource>
+#include <osgGIS/FeatureLayerResource>
 #include <osgGIS/Tags>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
@@ -66,7 +67,7 @@ Project*
 XmlSerializer::loadProject( const std::string& uri )
 {
     XmlSerializer ser;
-    osg::ref_ptr<Document> doc = ser.load( uri );    
+    osg::ref_ptr<Document> doc = ser.load( uri );
     if ( !doc.valid() )
         return NULL; // todo: report error
 
@@ -102,11 +103,17 @@ XmlSerializer::load( const std::string& uri )
 }
 
 
-void
+
+bool
 XmlSerializer::store( Document* doc, std::ostream& out )
 {
-    //TODO
-    osgGIS::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
+
+  //  osgGIS::notify( osg::FATAL ) << "XmlSerializer::store() is NYI" << std::endl;
+
+    XmlDocument *xmldoc = static_cast<XmlDocument *>(doc);
+    xmldoc->store(out);
+
+    return true;
 }
 
 static RuntimeMapLayer*
@@ -126,6 +133,21 @@ decodeRuntimeMapLayer( XmlElement* e, Project* proj )
     return layer;
 }
 
+static XmlElement *
+encodeRuntimeMapLayer (RuntimeMapLayer *rmaplayer)
+{
+	XmlElement *e = NULL;
+    if ( rmaplayer )
+    {
+    	e = new XmlElement("maplayer");
+    	e->getAttrs()["layer"] = rmaplayer->getBuildLayer()->getName();
+    	e->getAttrs()["searchlayer"] = rmaplayer->getSearchLayer()->getName();
+    	e->getAttrs()["visible"] = (rmaplayer->getVisible() ? "true" : "false");
+    	e->getAttrs()["searchable"] = (rmaplayer->getSearchable() ? "true" : "false");
+    }
+    return e;
+}
+
 static RuntimeMap*
 decodeRuntimeMap( XmlElement* e, Project* proj )
 {
@@ -135,7 +157,7 @@ decodeRuntimeMap( XmlElement* e, Project* proj )
         map = new RuntimeMap();
         map->setName( e->getAttr( "name" ) );
         map->setTerrain( proj->getTerrain( e->getAttr( "terrain" ) ) );
-        
+
         XmlNodeList map_layers = e->getSubElements( "maplayer" );
         for( XmlNodeList::const_iterator i = map_layers.begin(); i != map_layers.end(); i++ )
         {
@@ -146,6 +168,24 @@ decodeRuntimeMap( XmlElement* e, Project* proj )
         }
     }
     return map;
+}
+
+static XmlElement *
+encodeRuntimeMap(RuntimeMap *rmap)
+{
+	XmlElement *e = NULL;
+    if ( rmap )
+    {
+    	e = new XmlElement("map");
+    	e->getAttrs()["name"] = rmap->getName();
+    	if (rmap->getTerrain() ) e->getAttrs()["terrain"] = rmap->getTerrain()->getName();
+
+    	for( RuntimeMapLayerList::iterator it = rmap->getMapLayers().begin(); it != rmap->getMapLayers().end(); it++ )
+        {
+            e->getChildren().push_back( encodeRuntimeMapLayer( (*it).get() ) );
+        }
+    }
+    return e;
 }
 
 static FilterGraph*
@@ -163,7 +203,7 @@ decodeFilterGraph( XmlElement* e, Project* proj )
             FilterGraph* parent_graph = proj->getFilterGraph( parent_name );
             if ( !parent_graph )
             {
-                osgGIS::notify( osg::WARN ) 
+                osgGIS::notify( osg::WARN )
                     << "Parent graph \"" << parent_name << "\" not found for graph \""
                     << name << "\"" << std::endl;
             }
@@ -208,10 +248,22 @@ decodeFilterGraph( XmlElement* e, Project* proj )
     return graph;
 }
 
-XmlElement*
-XmlSerializer::encodeFilterGraph( FilterGraph* graph )
+
+static XmlElement *
+encodeProperty(const Property &property)
+{
+	XmlElement *e = new XmlElement("property");
+    e->getAttrs()["name"] = property.getName();
+    e->getAttrs()["value"] = property.getValue();
+    return e;
+}
+
+static XmlElement*
+encodeFilterGraph( FilterGraph* graph )
 {
     XmlElement* graph_e = new XmlElement( "graph" );
+
+    graph_e->getAttrs()["name"] = graph->getName();
 
     for( FilterList::const_iterator i = graph->getFilters().begin(); i != graph->getFilters().end(); i++ )
     {
@@ -220,11 +272,11 @@ XmlSerializer::encodeFilterGraph( FilterGraph* graph )
         XmlAttributes attrs;
         attrs[ "type" ] = f->getFilterType();
         XmlElement* filter_e = new XmlElement( "filter", attrs );
-        
+
         Properties props = f->getProperties();
         for( Properties::const_iterator i = props.begin(); i != props.end(); i++ )
         {
-            const Property& prop = *i;
+        	filter_e->getChildren().push_back(encodeProperty(*i));
         }
 
         graph_e->getChildren().push_back( filter_e );
@@ -242,6 +294,21 @@ decodeScript( XmlElement* e, Project* proj )
     }
     return script;
 }
+
+static XmlElement*
+encodeScript( Script* script )
+{
+	XmlElement *e = NULL;
+    if ( script )
+    {
+    	e = new XmlElement("script");
+    	e->getAttrs()["name"] = script->getName();
+    	e->getAttrs()["language"] = script->getLanguage();
+    	e->getChildren().push_back(new XmlText(script->getCode()));
+    }
+    return e;
+}
+
 
 static void
 parseSRSResource( XmlElement* e, SRSResource* resource )
@@ -285,7 +352,7 @@ decodeResource( XmlElement* e, Project* proj )
     {
         std::string type = e->getAttr( "type" );
         resource = osgGIS::Registry::instance()->createResourceByType( type );
-        
+
         // try again with "Resource" suffix
         if ( !resource && !StringUtils::endsWith( type, "Resource", false ) )
             resource = osgGIS::Registry::instance()->createResourceByType( type + "Resource" );
@@ -334,6 +401,47 @@ decodeResource( XmlElement* e, Project* proj )
     return resource;
 }
 
+static XmlElement*
+encodeURI(const std::string& uri)
+{
+	XmlElement *e = new XmlElement("uri");
+	e->getChildren().push_back(new XmlText(uri));
+	return e;
+}
+
+static XmlElement*
+encodeResource(Resource *resource)
+{
+	XmlElement *e = NULL;
+    if ( resource && resource->getResourceType() != FeatureLayerResource::getStaticResourceType())
+    {
+    	e = new XmlElement("resource");
+    	e->getAttrs()["type"] = resource->getResourceType();
+    	e->getAttrs()["name"] = resource->getName();
+    	std::string tags;
+    	for (TagSet::const_iterator it = resource->getTags().begin(); it != resource->getTags().end() ; ++it)
+    	{
+			tags += (*it) + " ";
+    	}
+    	if (!tags.empty())
+    		e->getAttrs()["tags"] = tags;
+
+    	e->getChildren().push_back(encodeURI(resource->getURI()));
+
+    	for( Properties::iterator it = resource->getProperties().begin(); it != resource->getProperties().end(); it++ )
+        {
+            e->getChildren().push_back( encodeProperty( *it ) );
+        }
+
+    	if (resource->getResourceType() == SRSResource::getStaticResourceType())
+    	{
+    		SRSResource * srs = static_cast<SRSResource *>(resource);
+    		e->getChildren().push_back(new XmlText(srs->getSRS()->getWKT()));
+    	}
+    }
+    return e;
+}
+
 static Source*
 decodeSource( XmlElement* e, Project* proj, int pass )
 {
@@ -360,6 +468,24 @@ decodeSource( XmlElement* e, Project* proj, int pass )
     return source;
 }
 
+static XmlElement*
+encodeSource(Source *source)
+{
+	XmlElement *e = NULL;
+    if ( source)
+    {
+		e = new XmlElement("source");
+		e->getAttrs()["name"] = source->getName();
+		e->getAttrs()["type"] = (source->getType() == Source::TYPE_RASTER ? "raster" : "feature");
+		if(source->getFilterGraph())
+			e->getAttrs()["graph"] = source->getFilterGraph()->getName();
+		if (source->getParentSource() != NULL)
+			e->getAttrs()["parent"] = source->getParentSource()->getName();
+
+		e->getChildren().push_back(encodeURI(source->getURI()));
+	}
+    return e;
+}
 
 static Terrain*
 decodeTerrain( XmlElement* e, Project* proj )
@@ -379,6 +505,18 @@ decodeTerrain( XmlElement* e, Project* proj )
     return terrain;
 }
 
+static XmlElement *
+encodeTerrain(Terrain *terrain)
+{
+	XmlElement *e = NULL;
+    if ( terrain )
+    {
+    	e = new XmlElement("terrain");
+    	e->getAttrs()["name"] = terrain->getName();
+    	e->getChildren().push_back(encodeURI(terrain->getURI()));
+    }
+    return e;
+}
 
 static BuildLayerSlice*
 decodeSlice( XmlElement* e, Project* proj )
@@ -396,10 +534,10 @@ decodeSlice( XmlElement* e, Project* proj )
         // required filter graph:
         std::string graph = e->getAttr( "graph" );
         slice->setFilterGraph( proj->getFilterGraph( graph ) ); //TODO: warning?
-       
+
         // optional source:
         slice->setSource( proj->getSource( e->getAttr( "source" ) ) );
-        
+
         // properties particular to this slice:
         XmlNodeList props = e->getSubElements( "property" );
         for( XmlNodeList::const_iterator i = props.begin(); i != props.end(); i++ )
@@ -422,6 +560,43 @@ decodeSlice( XmlElement* e, Project* proj )
     return slice;
 }
 
+static XmlElement *
+encodeSlice(BuildLayerSlice *slice)
+{
+	XmlElement *e = NULL;
+    if ( slice )
+    {
+    	e = new XmlElement("slice");
+    	if (slice->getMinRange() > 0)
+    	{
+    		Property p("ignore",slice->getMinRange());
+    		e->getAttrs()["min_range"] = p.getValue();
+    	}
+    	if (slice->getMaxRange() < FLT_MAX)
+    	{
+    		Property p("ignore",slice->getMaxRange());
+    	    e->getAttrs()["max_range"] = p.getValue();
+    	}
+    	e->getAttrs()["graph"] = slice->getFilterGraph()->getName();
+
+    	if (slice->getSource())
+    		e->getAttrs()["source"] = slice->getSource()->getName();
+
+    	for( Properties::iterator it = slice->getProperties().begin(); it != slice->getProperties().end(); it++ )
+        {
+            e->getChildren().push_back( encodeProperty( *it ) );
+        }
+
+    	for( BuildLayerSliceList::iterator it = slice->getSubSlices().begin(); it != slice->getSubSlices().end(); it++ )
+        {
+            e->getChildren().push_back( encodeSlice( (*it).get() ) );
+        }
+
+
+
+    }
+    return e;
+}
 
 static BuildLayer*
 decodeLayer( XmlElement* e, Project* proj )
@@ -431,7 +606,7 @@ decodeLayer( XmlElement* e, Project* proj )
     {
         layer = new BuildLayer();
         layer->setBaseURI( proj->getBaseURI() );
-        layer->setName( e->getAttr( "name" ) ); 
+        layer->setName( e->getAttr( "name" ) );
 
         std::string type = e->getAttr( "type" );
         if ( type == "correlated" )
@@ -440,7 +615,7 @@ decodeLayer( XmlElement* e, Project* proj )
             layer->setType( BuildLayer::TYPE_GRIDDED );
         else if ( type == "quadtree" || type == "new" )
             layer->setType( BuildLayer::TYPE_QUADTREE );
-        
+
         std::string source = e->getAttr( "source" );
         layer->setSource( proj->getSource( source ) );
 
@@ -469,6 +644,44 @@ decodeLayer( XmlElement* e, Project* proj )
     return layer;
 }
 
+static XmlElement *
+encodeLayer(BuildLayer *layer)
+{
+	XmlElement *e = NULL;
+    if ( layer )
+    {
+    	e = new XmlElement("layer");
+    	e->getAttrs()["name"] = layer->getName();
+
+    	switch(layer->getType())
+    	{
+    	case BuildLayer::TYPE_CORRELATED :
+    		e->getAttrs()["type"] = "correlated";
+    		break;
+    	case BuildLayer::TYPE_GRIDDED :
+    		e->getAttrs()["type"] = "gridded";
+    		break;
+    	case BuildLayer::TYPE_QUADTREE :
+			e->getAttrs()["type"] = "quadtree";
+			break;
+    	}
+    	e->getAttrs()["source"] = layer->getSource()->getName();
+    	e->getAttrs()["terrain"] = layer->getTerrain()->getName();
+    	e->getAttrs()["target"] = layer->getTargetPath();
+
+    	for( BuildLayerSliceList::iterator it = layer->getSlices().begin(); it != layer->getSlices().end(); it++ )
+        {
+            e->getChildren().push_back( encodeSlice( (*it).get() ) );
+        }
+
+    	for( Properties::iterator it = layer->getProperties().begin(); it != layer->getProperties().end(); it++ )
+        {
+            e->getChildren().push_back( encodeProperty( *it ) );
+        }
+
+    }
+    return e;
+}
 
 static BuildTarget*
 decodeTarget( XmlElement* e, Project* proj )
@@ -478,7 +691,7 @@ decodeTarget( XmlElement* e, Project* proj )
     {
         target = new BuildTarget();
         target->setName( e->getAttr( "name" ) );
-        
+
         Terrain* terrain = proj->getTerrain( e->getAttr( "terrain" ) );
         target->setTerrain( terrain );
 
@@ -498,7 +711,27 @@ decodeTarget( XmlElement* e, Project* proj )
     return target;
 }
 
+static XmlElement *
+encodeTarget(BuildTarget *target, Project * project)
+{
+	XmlElement *e = NULL;
+	// don't output targets that are in fact layer targets
+    if ( target && !project->getLayer(target->getName()))
+    {
+    	e = new XmlElement("target");
+    	e->getAttrs()["name"] = target->getName();
 
+    	if(target->getTerrain())
+    		e->getAttrs()["terrain"] = target->getTerrain()->getName();
+
+    	for (BuildLayerList::const_iterator it = target->getLayers().begin(); it != target->getLayers().end() ; ++it) {
+			XmlElement *layer = new XmlElement("layer");
+			layer->getChildren().push_back(new XmlText((*it)->getName()));
+			e->getChildren().push_back(layer);
+    	}
+    }
+    return e;
+}
 static Project*
 decodeInclude( XmlElement* e, Project* proj )
 {
@@ -520,7 +753,7 @@ decodeInclude( XmlElement* e, Project* proj )
 }
 
 
-static Project* 
+static Project*
 decodeProject( XmlElement* e, const std::string& source_uri )
 {
     Project* project = NULL;
@@ -537,7 +770,7 @@ decodeProject( XmlElement* e, const std::string& source_uri )
         {
             decodeInclude( static_cast<XmlElement*>( j->get() ), project );
         }
-        
+
         // scripts
         XmlNodeList scripts = e->getSubElements( "script" );
         for( XmlNodeList::const_iterator j = scripts.begin(); j != scripts.end(); j++ )
@@ -588,7 +821,7 @@ decodeProject( XmlElement* e, const std::string& source_uri )
                 resource->setBaseURI( project->getBaseURI() );
                 resource->setURI( source->getURI() );
                 resource->setName( source->getName() );
-                project->getResources().push_back( resource );                
+                project->getResources().push_back( resource );
             }
         }
         for( XmlNodeList::const_iterator j = sources.begin(); j != sources.end(); j++ )
@@ -634,10 +867,99 @@ decodeProject( XmlElement* e, const std::string& source_uri )
     return project;
 }
 
+static XmlElement*
+encodeProject( Project* project )
+{
+	XmlElement* e = new XmlElement("project");
+    if ( e )
+    {
+    	e->getAttrs()["name"] = project->getName();
+    	e->getAttrs()["workdir"] = project->getWorkingDirectory();
+
+    	/*
+    	includes merges another project into this one, not possible to write it back
+        // includes
+        XmlNodeList includes = e->getSubElements( "include" );
+        for( XmlNodeList::const_iterator j = includes.begin(); j != includes.end(); j++ )
+        {
+            decodeInclude( static_cast<XmlElement*>( j->get() ), project );
+        }
+    	*/
+
+    	for ( ScriptList::iterator it = project->getScripts().begin();
+    	      it != project->getScripts().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeScript((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( ResourceList::iterator it = project->getResources().begin();
+    	      it != project->getResources().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeResource((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( FilterGraphList::iterator it = project->getFilterGraphs().begin();
+    	      it != project->getFilterGraphs().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeFilterGraph((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( TerrainList::iterator it = project->getTerrains().begin();
+    	      it != project->getTerrains().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeTerrain((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( SourceList::iterator it = project->getSources().begin();
+    	      it != project->getSources().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeSource((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( BuildLayerList::iterator it = project->getLayers().begin();
+    	      it != project->getLayers().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeLayer((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( BuildTargetList::iterator it = project->getTargets().begin();
+    	      it != project->getTargets().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeTarget((*it).get(), project);
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    	for ( RuntimeMapList::iterator it = project->getMaps().begin();
+    	      it != project->getMaps().end();
+    	      ++it)
+    	{
+    		XmlElement *sub_e = encodeRuntimeMap((*it).get());
+    		if (sub_e) e->getChildren().push_back(sub_e);
+    	}
+
+    }
+
+    return e;
+}
+
+
 
 FilterGraph*
 XmlSerializer::readFilterGraph( Document* doc )
-{    
+{
     FilterGraph* result = NULL;
     if ( doc )
     {
@@ -680,8 +1002,40 @@ XmlSerializer::readProject( Document* doc )
 Document*
 XmlSerializer::writeProject( Project* project )
 {
-    //TODO
-    return new XmlDocument();
+	XmlDocument *doc = new XmlDocument();
+	if (project)
+	{
+		doc->getChildren().push_back(encodeProject(project));
+	}
+    return doc;
 }
 
+
+bool
+XmlSerializer::writeProject( Project* project , const std::string& uri )
+{
+	std::ofstream output;
+	output.open( uri.c_str() );
+	if ( output.is_open() )
+	{
+		XmlSerializer ser;
+		Document* doc = ser.writeProject(project);
+		if (doc) {
+			XmlDocument *xmldoc = static_cast<XmlDocument *>(doc);
+			xmldoc->store(output);
+			return true;
+		}
+		else
+		{
+			osgGIS::notify(osg::WARN) << "unable to encode project" << std::endl;
+		}
+		output.close();
+	}
+	else
+	{
+		osgGIS::notify(osg::WARN) << "unable to open URI : " << uri << std::endl;
+	}
+
+    return false;
+}
 

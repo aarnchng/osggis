@@ -60,7 +60,7 @@ namespace osgGISProjects
         const XmlAttributes& getAttrs() const;
 
         const std::string& getAttr( const std::string& key ) const;
-
+      
         XmlNodeList& getChildren();
         
         const XmlNodeList& getChildren() const;

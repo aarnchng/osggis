@@ -28,6 +28,7 @@
 namespace osgGIS
 {    
     typedef std::list< std::string > TagList;
+    typedef std::set< std::string > TagSet;
 
     /* (internal)
      * Helper class that implements tagging.
@@ -53,6 +54,7 @@ namespace osgGIS
             }
             return true;
         }
+        const TagSet& getTags() const { return tags; }
 
     private:
         std::set<std::string> tags;
@@ -70,6 +72,7 @@ namespace osgGIS
         virtual void removeTag( const std::string& tag ) =0;        
         virtual bool containsTag( const std::string& tag ) const =0;        
         virtual bool containsTags( const TagList& tags ) const =0;
+        virtual const TagSet& getTags() const =0;
     };
 
     class OSGGIS_EXPORT ObjectWithTags : public IObjectWithTags
@@ -79,6 +82,7 @@ namespace osgGIS
         virtual void removeTag( const std::string& tag ) { helper.removeTag( tag ); }
         virtual bool containsTag( const std::string& tag ) const { return helper.containsTag( tag ); }
         virtual bool containsTags( const TagList& tags ) const { return helper.containsTags( tags ); }
+        virtual const TagSet& getTags()  const { return helper.getTags(); }
     private:
         TagHelper helper;
     };

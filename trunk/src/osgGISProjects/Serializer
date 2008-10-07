@@ -39,7 +39,7 @@ namespace osgGISProjects
         
         virtual Document* load( const std::string& uri ) =0;
         
-        virtual void store( Document* doc, std::ostream& out ) =0;
+        virtual bool store( Document* doc, std::ostream& out ) =0;
 
         
         virtual FilterGraph* readFilterGraph( Document* doc ) =0;

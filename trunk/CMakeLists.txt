@@ -217,6 +217,10 @@ IF(APPLE)
     
 ENDIF(APPLE)
 
+#add tests
+ENABLE_TESTING()
+ADD_SUBDIRECTORY(tests)
+
 
 # This needs to be run very last so other parts of the scripts can take
 # advantage of this.
