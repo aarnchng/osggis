@@ -41,13 +41,15 @@ namespace osgGISProjects
     
         static Project* loadProject( const std::string& uri );
         
+        static bool writeProject( Project* project ,const std::string& uri );
+        
     public:
         
         virtual Document* load( std::istream& in );
         
         virtual Document* load( const std::string& uri );
         
-        virtual void store( Document* doc, std::ostream& out );
+        virtual bool store( Document* doc, std::ostream& out );
         
         
         virtual FilterGraph* readFilterGraph( Document* doc );
@@ -58,12 +60,6 @@ namespace osgGISProjects
         virtual Project* readProject( Document* doc );
         
         virtual Document* writeProject( Project* project );
-    
-        
-    protected:
-        
-        XmlElement* encodeFilterGraph( FilterGraph* );
-        XmlElement* encodeProject( Project* );
     };
 }
 

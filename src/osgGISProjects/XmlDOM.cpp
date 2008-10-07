@@ -80,7 +80,7 @@ XmlElement::getChildren() const
 {
     return children;
 }
-        
+
 XmlElement*
 XmlElement::getSubElement( const std::string& name ) const
 {
@@ -128,7 +128,7 @@ XmlElement::getSubElementText( const std::string& name ) const
 }
 
 
-XmlNodeList 
+XmlNodeList
 XmlElement::getSubElements( const std::string& name ) const
 {
     XmlNodeList results;
@@ -162,4 +162,5 @@ XmlText::getValue() const
 {
     return value;
 }
+
 

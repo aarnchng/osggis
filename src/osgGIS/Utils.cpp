@@ -85,11 +85,12 @@ StringUtils::trim( const std::string& in )
 {
     // by Rodrigo C F Dias
     // http://www.codeproject.com/KB/stl/stdstringtrim.aspx
+	std::string whitespaces (" \t\f\v\n\r");
     std::string str = in;
-    std::string::size_type pos = str.find_last_not_of(' ');
+    std::string::size_type pos = str.find_last_not_of(whitespaces);
     if(pos != std::string::npos) {
         str.erase(pos + 1);
-        pos = str.find_first_not_of(' ');
+        pos = str.find_first_not_of(whitespaces);
         if(pos != std::string::npos) str.erase(0, pos);
     }
     else str.erase(str.begin(), str.end());
@@ -166,7 +167,7 @@ GeomUtils::getPolygonArea2D( const GeoPointList& polygon )
     return .5*sum;
 }
 
-bool 
+bool
 GeomUtils::isPolygonCCW( const GeoPointList& points )
 {
     return getPolygonArea2D( points ) >= 0.0;
@@ -298,7 +299,7 @@ GeomUtils::createClampingIntersector( const GeoPoint& p, double& out_hat )
     }
 
     else if ( p.getSRS()->isGeocentric() )
-    {            
+    {
         GeoPoint p_geo = p.getSRS()->getGeographicSRS()->transform( p ); //p_world );
         out_hat = p_geo.getDim() > 2? p_geo.z() : 0.0;
 
@@ -323,7 +324,7 @@ GeomUtils::clampToTerrain( const GeoPoint& input, osg::Node* terrain, SpatialRef
     GeoPoint output = GeoPoint::invalid();
 
     if ( terrain && terrain_srs )
-    {        
+    {
         double out_hat = 0;
         osg::ref_ptr<LineSegmentIntersector2> isector =
             createClampingIntersector( input, out_hat );

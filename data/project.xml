@@ -9,7 +9,7 @@
         <uri>terrain/out.ive</uri>
     </terrain>
 
-    <script name="outlines">
+    <graph name="outlines">
         <filter type="ChangeShapeTypeFilter">
             <property name="new_shape_type" value="line"/>
         </filter>
@@ -27,14 +27,14 @@
             <property name="optimize" value="true"/>
             <property name="disable_lighting" value="true"/>
         </filter>
-    </script>
+    </graph>
 
     <layer name="borders" source="borders" terrain="default" target="out/borders/out.ive">
-        <slice min_range="0" max_range="1e+10" script="outlines"/>
+        <slice min_range="0" max_range="1e+10" graph="outlines"/>
     </layer>
 
     <target name="all">
-        <depends-on-layer>borders</depends-on-layer>
+        <layer>borders</layer>
     </target>
 
 </project>
