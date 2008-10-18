@@ -214,9 +214,9 @@ MapLayer::getOutputSRS( Session* session, SpatialReference* terrain_srs ) const
                     {
                         ScriptResult r = env->getScriptEngine()->run( xf->getSRSScript(), env.get() );
                         if ( r.isValid() )
-                        {
                             const_cast<MapLayer*>(this)->output_srs = session->getResources()->getSRS( r.asString() );
-                        }
+                        else
+                            env->getReport()->error( r.asString() );
                     }
                 }
             }

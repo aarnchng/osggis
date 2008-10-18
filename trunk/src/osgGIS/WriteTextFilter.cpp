@@ -159,14 +159,17 @@ WriteTextFilter::process( Feature* input, FilterEnv* env )
                         osgGIS::notify(osg::NOTICE) << "WriteText: writing to " << output_path << std::endl;
                     }
                 }
+                else
+                {
+                    env->getReport()->error( r.asString() );
+                }
             }
         }
         
         ScriptResult r = env->getScriptEngine()->run( getTextScript(), input, env );
         if ( r.isValid() )
-        {
             file->write( r.asString() );
-        }
+        // no error handling 
     }
 
     return output;

@@ -82,8 +82,13 @@ SelectFilter::process( Feature* input, FilterEnv* env )
     {
         ScriptResult r = env->getScriptEngine()->run( getSelectScript(), input, env );
 
-        if ( r.isValid() && r.asBool( false ) )
-            output.push_back( input );
+        if ( r.isValid() ) 
+        {
+            if ( r.asBool( false ) )
+                output.push_back( input );
+        }
+        else
+            env->getReport()->error( r.asString() );
     }
 
     return output;

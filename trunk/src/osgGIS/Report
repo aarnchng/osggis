@@ -156,6 +156,8 @@ namespace osgGIS
 
         void error( const std::string& msg );
 
+        const std::list<std::string>& getMessages() const;
+
     public: // report nesting
 
         /**

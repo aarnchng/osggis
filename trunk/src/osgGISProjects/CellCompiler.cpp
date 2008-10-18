@@ -45,6 +45,7 @@ CellCompiler::CellCompiler(const std::string& _cell_id,
     smart->setMinRange( min_range );
     env->setTerrainReadCallback( smart );
     setUserData( _user_data );
+    output_status = CellCompiler::OUTPUT_UNKNOWN;
 }
 
 const std::string&
@@ -63,7 +64,8 @@ CellCompiler::run() // overrides FeatureLayerCompiler::run()
     // first check to see whether this cell needs compiling:
     need_to_compile = archive.valid() || !osgDB::fileExists( abs_output_uri );
 
-    has_drawables = false;
+    output_status = CellCompiler::OUTPUT_UNKNOWN;
+    //has_drawables = false;
 
     if ( need_to_compile )
     {
@@ -72,15 +74,23 @@ CellCompiler::run() // overrides FeatureLayerCompiler::run()
 
         // Write the resulting node graph to disk, first ensuring that the output folder exists:
         // TODO: consider whether this belongs in the runSynchronousPostProcess() method
-        if ( getResult().isOK() && getResultNode() )
+        if ( getResult().isOK() )
         {
-            has_drawables = GeomUtils::hasDrawables( getResultNode() );
+            if ( getResultNode() && GeomUtils::hasDrawables( getResultNode() ) )
+            {
+                output_status = CellCompiler::OUTPUT_NON_EMPTY;
+            }
+            else
+            {
+                output_status = CellCompiler::OUTPUT_EMPTY;
+            }
         }
     }
     else
     {
         result = FilterGraphResult::ok();
-        has_drawables = true;
+        output_status = CellCompiler::OUTPUT_ALREADY_EXISTS;
+        //has_drawables = true;
     }
 }
 
@@ -95,7 +105,7 @@ CellCompiler::runSynchronousPostProcess( Report* report )
             return;
         }
 
-        if ( !getResultNode() || !has_drawables )
+        if ( output_status == CellCompiler::OUTPUT_EMPTY ) //!getResultNode() || !has_drawables )
         {
             osgGIS::info() << getName() << " resulted in no geometry" << std::endl;
             result_node = NULL;
@@ -122,4 +132,10 @@ CellCompiler::runSynchronousPostProcess( Report* report )
             }
         }
     }
+}
+
+CellCompiler::OutputStatus
+CellCompiler::getOutputStatus() const
+{
+    return output_status;
 }

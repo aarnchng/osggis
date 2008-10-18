@@ -24,6 +24,7 @@
 #include <osg/Geometry>
 #include <osg/Geode>
 #include <osg/Notify>
+#include <osg/AutoTransform>
 #include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
 #include <osgDB/ReadFile>
@@ -39,6 +40,7 @@ OSGGIS_DEFINE_FILTER( SubstituteModelFilter );
 #define DEFAULT_CLUSTER        false
 #define DEFAULT_OPTIMIZE_MODEL false
 #define DEFAULT_INLINE_MODEL   true
+#define DEFAULT_AUTO_SCALE     false
 
 
 SubstituteModelFilter::SubstituteModelFilter()
@@ -46,6 +48,7 @@ SubstituteModelFilter::SubstituteModelFilter()
     setCluster( DEFAULT_CLUSTER );
     setOptimizeModel( DEFAULT_OPTIMIZE_MODEL );
     setInlineModel( DEFAULT_INLINE_MODEL );
+    setAutoScale( DEFAULT_AUTO_SCALE );
 }
 
 SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
@@ -53,6 +56,7 @@ SubstituteModelFilter::SubstituteModelFilter( const SubstituteModelFilter& rhs )
   cluster( rhs.cluster ),
   optimize_model( rhs.optimize_model ),
   inline_model( rhs.inline_model ),
+  auto_scale( rhs.auto_scale ),
   model_script( rhs.model_script.get() ),
   model_path_script( rhs.model_path_script.get() ),
   model_scale_script( rhs.model_scale_script.get() ),
@@ -175,6 +179,18 @@ SubstituteModelFilter::getInlineModel() const
 }
 
 void
+SubstituteModelFilter::setAutoScale( bool value )
+{
+    auto_scale = value;
+}
+
+bool
+SubstituteModelFilter::getAutoScale() const
+{
+    return auto_scale;
+}
+
+void
 SubstituteModelFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "model" )
@@ -195,6 +211,8 @@ SubstituteModelFilter::setProperty( const Property& p )
         setOptimizeModel( p.getBoolValue( getOptimizeModel() ) );
     else if ( p.getName() == "inline_model" )
         setInlineModel( p.getBoolValue( getInlineModel() ) );
+    else if ( p.getName() == "auto_scale" )
+        setAutoScale( p.getBoolValue( getAutoScale() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -223,6 +241,8 @@ SubstituteModelFilter::getProperties() const
         p.push_back( Property( "optimize_model", getOptimizeModel() ) );
     if ( getInlineModel() != DEFAULT_INLINE_MODEL )
         p.push_back( Property( "inline_model", getInlineModel() ) );
+    if ( getAutoScale() != DEFAULT_AUTO_SCALE )
+        p.push_back( Property( "auto_scale", getAutoScale() ) );
 
     return p;
 }
@@ -291,6 +311,8 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
                                 ScriptResult r = env->getScriptEngine()->run( filter->getModelScaleScript(), j->get(), env );
                                 if ( r.isValid() )
                                     scale_mx = osg::Matrix::scale( r.asVec3() );
+                                else
+                                    env->getReport()->error( r.asString() );
                                 //scaler = r.asVec3();
                             }
 
@@ -301,6 +323,8 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
                                 ScriptResult r = env->getScriptEngine()->run( filter->getModelHeadingScript(), j->get(), env );
                                 if ( r.isValid() )
                                     heading_mx = osg::Matrix::rotate( osg::DegreesToRadians( r.asDouble(0) ), 0, 0, -1 );
+                                else
+                                    env->getReport()->error( r.asString() );
                             }
 
                             osg::Matrix mx = heading_mx * scale_mx * translate_mx;
@@ -418,14 +442,21 @@ SubstituteModelFilter::assignFeatureName( osg::Node* node, Feature* input, Filte
     if ( getFeatureNameScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), input, env );
-        if ( r.isValid() && r.asString().length() > 0 )
+        if ( r.isValid() )
         {
-            node->addDescription( r.asString() );
+            if ( r.asString().length() > 0 )
+            {
+                node->addDescription( r.asString() );
 
-            // there's a bug in the OSG optimizer ... it will still flatten a static xform
-            // even if it has descriptions set. This is a workaround for now. TODO: track
-            // this down and submit a bugfix to OSG
-            env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
+                // there's a bug in the OSG optimizer ... it will still flatten a static xform
+                // even if it has descriptions set. This is a workaround for now. TODO: track
+                // this down and submit a bugfix to OSG
+                env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
+            }
+        }
+        else
+        {
+            env->getReport()->error( r.asString() );
         }
     }
 }
@@ -457,14 +488,23 @@ osg::Node*
 SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, FilterEnv* env )
 {
     osg::Matrix heading_mx = osg::Matrix::identity();
-
     if ( getModelHeadingScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getModelHeadingScript(), input, env );
         if ( r.isValid() ) 
-        {
             heading_mx = osg::Matrix::rotate( osg::DegreesToRadians( r.asDouble(0) ), 0, 0, -1 );
-        }
+        else
+            env->getReport()->error( r.asString() );
+    }
+    
+    osg::Matrix scale_mx = osg::Matrix::identity();
+    if ( getModelScaleScript() )
+    {
+        ScriptResult r = env->getScriptEngine()->run( getModelScaleScript(), input, env );
+        if ( r.isValid() )
+            scale_mx = osg::Matrix::scale( r.asVec3() );
+        else
+            env->getReport()->error( r.asString() );
     }
 
     // the sub-point will be the centroid combined with the minimum Z-value in the shape (or 0).
@@ -472,17 +512,38 @@ SubstituteModelFilter::buildOutputNode( osg::Node* model_node, Feature* input, F
     centroid.z() = getLowestZ( input );
     centroid.setDim( 3 );
 
-    osg::Matrix translate_mx = osg::Matrix::translate( centroid );
+    osg::Group* top = NULL;
 
-    osg::MatrixTransform* xform = new osg::MatrixTransform( heading_mx * translate_mx );
+    if ( getAutoScale() )
+    {
+        osg::AutoTransform* at = new osg::AutoTransform();
+        at->setRotation( heading_mx.getRotate() );
+        at->setPosition( centroid );
+        at->setAutoScaleToScreen( true );
+        top = at;
 
-    xform->addChild( model_node );
-    xform->setDataVariance( osg::Object::STATIC );
+        if ( !scale_mx.isIdentity() )
+        {
+            osg::MatrixTransform* xform = new osg::MatrixTransform( scale_mx );
+            xform->addChild( model_node );
+            model_node = xform;
+        }
+
+        at->addChild( model_node );
+    }
+    else
+    {
+        osg::Matrix translate_mx = osg::Matrix::translate( centroid );
+        osg::MatrixTransform* xform = new osg::MatrixTransform( heading_mx * scale_mx * translate_mx );
+        xform->addChild( model_node );
+        xform->setDataVariance( osg::Object::STATIC );
+        top = xform;
+    }
 
     // if a feature name was requested, add it now:
-    assignFeatureName( xform, input, env );
+    assignFeatureName( top, input, env );
 
-    return xform;
+    return top;
 }
 
 AttributedNodeList
@@ -490,7 +551,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
 {
     AttributedNodeList output;
 
-    if ( input.size() > 1 && getCluster() && !getFeatureNameScript() )
+    if ( input.size() > 1 && getCluster() && !getFeatureNameScript() && !getAutoScale() )
     {
         // There is a bug, or an order-of-ops problem, with "FLATTEN" that causes grid
         // cell features to be improperly offset...especially with SubstituteModelFilter
@@ -514,6 +575,10 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                     output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
             }
+            else
+            {
+                env->getReport()->error( r.asString() );
+            }
         }
         else if ( getModelPathScript() )
         {
@@ -528,6 +593,10 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                     output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
             }
+            else
+            {
+                env->getReport()->error( r.asString() );
+            }
         }
 
         unsigned int max_texture_size = 0;
@@ -536,6 +605,8 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
             ScriptResult r = env->getScriptEngine()->run( getModelMaxTextureSizeScript(), env );
             if ( r.isValid() )
                 max_texture_size = r.asInt( 0 );
+            else
+                env->getReport()->error( r.asString() );
         }
             
         // register textures for localization.
@@ -579,10 +650,6 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
             ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
             if ( model )
             {
-                //osg::Node* node = getNodeFromModelCache( model );
-                //if ( !node )
-                //    node = cloneAndCacheModelNode( model, env );
-
                 osg::Node* node = getInlineModel()?
                     env->getResourceCache()->getNode( model, getOptimizeModel() ) :
                     env->getResourceCache()->getExternalReferenceNode( model );
@@ -594,6 +661,10 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                     env->getSession()->markResourceUsed( model ); //dep.
                 }
             }
+        }
+        else
+        {
+            env->getReport()->error( r.asString() );
         }
     }
     else if ( getModelPathScript() )
@@ -618,6 +689,10 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
                 output.push_back( new AttributedNode( output_node, input->getAttributes() ) );
             }
         }
+        else
+        {
+            env->getReport()->error( r.asString() );
+        }
     }
     
     unsigned int max_texture_size = 0;
@@ -626,6 +701,8 @@ SubstituteModelFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getModelMaxTextureSizeScript(), input, env );
         if ( r.isValid() )
             max_texture_size = r.asInt( 0 );
+        else
+            env->getReport()->error( r.asString() );
     }
     
     //osgGIS::debug() << "Setting a max texture size hint = " << max_texture_size << std::endl;

@@ -82,6 +82,8 @@ GroupFilter::assign( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getGroupScript(), input, env );
         if ( r.isValid() )
             return r.asString();
+        else
+            env->getReport()->error( r.asString() );
     }
     return "";
 }

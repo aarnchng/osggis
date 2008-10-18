@@ -29,6 +29,7 @@
 #include <osgGIS/Property>
 #include <osgGIS/OptimizerHints>
 #include <osgGIS/ResourceCache>
+#include <osgGIS/Report>
 #include <osg/Node>
 
 namespace osgGIS
@@ -240,6 +241,12 @@ namespace osgGIS
          */
         ResourceCache* getResourceCache();
 
+        /**
+         * Gets the report object contained in this environment, returning NULL if
+         * it does not exist.
+         */
+        Report* getReport();
+
     public:
 
         virtual void setProperty( const Property& prop );
@@ -261,6 +268,7 @@ namespace osgGIS
         osg::ref_ptr<SmartReadCallback> terrain_read_cb;
         osg::ref_ptr<ScriptEngine>      script_engine;
         osg::ref_ptr<Session>           session;
+        osg::ref_ptr<Report>            report;
         osg::ref_ptr<ResourceCache>     resource_cache;
         Properties                      properties;
         OptimizerHints                  optimizer_hints;

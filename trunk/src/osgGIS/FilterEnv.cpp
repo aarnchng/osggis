@@ -27,6 +27,7 @@ FilterEnv::FilterEnv( Session* _session )
     feature_extent = GeoExtent::infinite();  
     cell_extent = GeoExtent::infinite();
     resource_cache = new ResourceCache();
+    report = new Report();
 }
 
 
@@ -44,6 +45,7 @@ FilterEnv::FilterEnv( const FilterEnv& rhs )
     properties = rhs.properties;
     optimizer_hints = rhs.optimizer_hints;
     resource_cache = rhs.resource_cache.get();
+    report = rhs.report.get();
 }
 
 
@@ -70,6 +72,11 @@ FilterEnv::~FilterEnv()
     //NOP
 }
 
+Report*
+FilterEnv::getReport()
+{
+    return report.get();
+}
 
 void
 FilterEnv::setExtent( const GeoExtent& _feature_extent )

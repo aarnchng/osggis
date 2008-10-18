@@ -188,9 +188,37 @@ namespace osgGIS
          */
         int getRasterOverlayMaxSize() const;
         
-        void setEmbedAttributes( bool );
+        /**
+         * Sets whether to embed the feature attributes into the scene graph as a
+         * osgSim::ShapeAttributeList userdata structure. Default = false.
+         *
+         * @param value
+         *      True to embed the attr name/value pairs; false if not.
+         */
+        void setEmbedAttributes( bool value );
 
+        /**
+         * Gets whether to embed the feature attributes into the scene graph as a
+         * osgSim::ShapeAttributeList userdata structure. Default = false.
+         *
+         * @return True to embed the attr name/value pairs; false if not.
+         */
         bool getEmbedAttributes() const;
+
+        /**
+         * Sets whether to enable alpha blending on the node's stateset.
+         *
+         * @param value
+         *      True to enable alpha blending (transparency)
+         */
+        void setAlphaBlending( bool value );
+
+        /**
+         * Gets whether to enable alpha blending on the node's stateset.
+         *
+         * @return True to enable transparency; false otherwise.
+         */
+        bool getAlphaBlending() const;
 
     public: // Filter overrides    
         virtual void setProperty( const Property& );
@@ -211,6 +239,7 @@ namespace osgGIS
         bool optimize;
         bool disable_lighting;
         bool embed_attrs;
+        bool alpha_blending;
 
         void init();
     };

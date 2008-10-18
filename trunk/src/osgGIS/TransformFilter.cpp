@@ -224,9 +224,9 @@ TransformFilter::process( FeatureList& input, FilterEnv* env )
             {
                 ScriptResult r = env->getScriptEngine()->run( getSRSScript(), env );
                 if ( r.isValid() )
-                {
                     setSRS( env->getSession()->getResources()->getSRS( r.asString() ) );
-                }
+                else
+                    env->getReport()->error( r.asString() );
             }
 
             new_out_srs = srs.get();
@@ -297,6 +297,8 @@ TransformFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getTranslateScript(), input, env );
         if ( r.isValid() )
             working_matrix = osg::Matrix::translate( r.asVec3() );
+        else
+            env->getReport()->error( r.asString() );
     }
 
     if ( working_srs.valid() || ( working_matrix.valid() && !working_matrix.isIdentity() ) )

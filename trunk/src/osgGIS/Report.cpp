@@ -22,8 +22,8 @@
 
 using namespace osgGIS;
 
-Report::Report()
-: state( STATE_OK ),
+Report::Report() :
+state( STATE_OK ),
 first_start_time( 0 ),
 start_time( 0 ),
 end_time( 0 )
@@ -172,4 +172,10 @@ Report::error( const std::string& msg )
     buf << "ERROR: " << msg;
     messages.push_back( msg );
     setState( STATE_ERROR );
+}
+
+const std::list<std::string>&
+Report::getMessages() const
+{
+    return messages;
 }

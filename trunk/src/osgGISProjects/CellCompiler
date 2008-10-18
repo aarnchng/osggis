@@ -31,8 +31,18 @@ using namespace osgGIS;
 
 namespace osgGISProjects
 {
+
     class OSGGISPROJECTS_EXPORT CellCompiler : public FeatureLayerCompiler
     {
+    public:
+        enum OutputStatus
+        {
+            OUTPUT_UNKNOWN,
+            OUTPUT_ALREADY_EXISTS,
+            OUTPUT_NON_EMPTY,
+            OUTPUT_EMPTY
+        };
+
     public:
         CellCompiler(
             const std::string&     cell_id,
@@ -54,14 +64,17 @@ namespace osgGISProjects
 
         const std::string& getLocation() const;
 
+        OutputStatus getOutputStatus() const;
+
     private:
         std::string cell_id;
         std::string abs_output_uri;
         osg::ref_ptr<osgDB::Archive> archive;
         osg::ref_ptr<ResourcePackager> packager;
         bool need_to_compile;
-        bool has_drawables;
+        //bool has_drawables;
         float min_range, max_range;
+        OutputStatus output_status;
     };}
 
 #endif // _OSGGISPROJECTS_CELL_COMPILER_H_

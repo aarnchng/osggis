@@ -205,6 +205,16 @@ namespace osgGIS
          */
         bool getInlineModel() const;
 
+        /**
+         * Sets whether the model should automatically scale to be a constant screen size.
+         */
+        void setAutoScale( bool value );
+
+        /*
+         * Gets whether the model should automatically scale to be a constant screen size.
+         */
+        bool getAutoScale() const;
+
     public:
     
         virtual void setProperty( const Property& );
@@ -236,6 +246,7 @@ namespace osgGIS
         bool cluster;
         bool optimize_model;
         bool inline_model;
+        bool auto_scale;
 
         //typedef std::map<std::string,osg::ref_ptr<osg::Node> > ModelCache;
         //ModelCache non_clustered_model_cache;

@@ -167,6 +167,12 @@ namespace osgGIS
          */
         osg::ref_ptr<Task> getNextCompletedTask();
 
+        /**
+         * Removes any pending tasks (tasks that have not yet been dispatched)
+         * from the queue.
+         */
+        void cancelPendingTasks();
+
     private:
         bool           multi_threaded;
         TaskThreadList threads;

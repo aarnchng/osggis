@@ -78,6 +78,8 @@ FeatureLayerCompiler::run()
     }
     else 
     {
+        env->getReport()->markStartTime();
+
         // ensure the input SRS matches that of the layer:
         env->setInputSRS( layer->getSRS() );
 
@@ -88,5 +90,7 @@ FeatureLayerCompiler::run()
         osg::Group* temp = NULL;
         result = filter_graph->computeNodes( cursor, env.get(), temp );
         result_node = temp;
+
+        env->getReport()->markEndTime();
     }
 }

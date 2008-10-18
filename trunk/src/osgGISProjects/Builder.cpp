@@ -49,9 +49,12 @@ getTerrainData(Terrain*                        terrain,
                osg::ref_ptr<SpatialReference>& out_terrain_srs,
                GeoExtent&                      out_terrain_extent)
 {
-    if ( terrain && terrain->getURI().length() > 0 )
+    if ( terrain )
     {
-        out_terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() );
+        if ( terrain->getURI().length() > 0 )
+        {
+            out_terrain_node = osgDB::readNodeFile( terrain->getAbsoluteURI() );
+        }
 
         // first check for an explicity defined SRS:
         out_terrain_srs = terrain->getExplicitSRS();
@@ -74,7 +77,8 @@ getTerrainData(Terrain*                        terrain,
                 << (out_terrain_srs.valid()? out_terrain_srs->getName() : "unknown")
                 << std::endl;
         }
-        else
+
+        else if ( terrain->getURI().length() > 0 )
         {
             osgGIS::warn()
                 << "Unable to load data for terrain \""

@@ -24,6 +24,7 @@
 #include <osg/Depth>
 #include <osg/LineWidth>
 #include <osg/Point>
+#include <osg/BlendFunc>
 #include <osg/CullFace>
 #include <osg/MatrixTransform>
 #include <osg/ClusterCullingCallback>
@@ -51,6 +52,7 @@ OSGGIS_DEFINE_FILTER( BuildNodesFilter );
 #define DEFAULT_DISABLE_LIGHTING         false
 #define DEFAULT_OPTIMIZE                 true
 #define DEFAULT_EMBED_ATTRIBUTES         false
+#define DEFAULT_ALPHA_BLENDING           false
 
 BuildNodesFilter::BuildNodesFilter()
 {
@@ -68,7 +70,8 @@ BuildNodesFilter::BuildNodesFilter( const BuildNodesFilter& rhs )
   apply_cluster_culling( rhs.apply_cluster_culling ),
   disable_lighting( rhs.disable_lighting ),
   optimize( rhs.optimize ),
-  embed_attrs( rhs.embed_attrs )
+  embed_attrs( rhs.embed_attrs ),
+  alpha_blending( rhs.alpha_blending )
 {
     //NOP
 }
@@ -85,6 +88,7 @@ BuildNodesFilter::init()
     draw_cluster_culling_normals = false;
     raster_overlay_max_size      = DEFAULT_RASTER_OVERLAY_MAX_SIZE;
     embed_attrs                  = DEFAULT_EMBED_ATTRIBUTES;
+    alpha_blending               = DEFAULT_ALPHA_BLENDING;
 }
 
 BuildNodesFilter::~BuildNodesFilter()
@@ -201,6 +205,18 @@ BuildNodesFilter::getEmbedAttributes() const
 }
 
 void
+BuildNodesFilter::setAlphaBlending( bool value )
+{
+    alpha_blending = value; 
+}
+
+bool
+BuildNodesFilter::getAlphaBlending() const
+{
+    return alpha_blending;
+}
+
+void
 BuildNodesFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "optimize" )
@@ -221,6 +237,8 @@ BuildNodesFilter::setProperty( const Property& p )
         setRasterOverlayMaxSize( p.getIntValue( getRasterOverlayMaxSize() ) );
     else if ( p.getName() == "embed_attributes" )
         setEmbedAttributes( p.getBoolValue( getEmbedAttributes() ) );
+    else if ( p.getName() == "alpha_blending" )
+        setAlphaBlending( p.getBoolValue( getAlphaBlending() ) );
 
     NodeFilter::setProperty( p );
 }
@@ -242,6 +260,8 @@ BuildNodesFilter::getProperties() const
         p.push_back( Property( "raster_overlay_max_size", getRasterOverlayMaxSize() ) );
     if ( getEmbedAttributes() != DEFAULT_EMBED_ATTRIBUTES )
         p.push_back( Property( "embed_attributes", getEmbedAttributes() ) );
+    if ( getAlphaBlending() != DEFAULT_ALPHA_BLENDING )
+        p.push_back( Property( "alpha_blending", getAlphaBlending() ) );
     return p;
 }
 
@@ -422,6 +442,14 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
         result->getOrCreateStateSet()->setAttribute( point, osg::StateAttribute::ON );
     }
 
+    if ( getAlphaBlending() )
+    {
+        osg::BlendFunc* blend_func = new osg::BlendFunc();
+        blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        result->getOrCreateStateSet()->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
+        result->getOrCreateStateSet()->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );     
+    }
+
     if ( getRasterOverlayScript() )
     {
         ScriptResult r = env->getScriptEngine()->run( getRasterOverlayScript(), env );
@@ -454,6 +482,10 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
                     env->getResourceCache()->addSkin( result->getOrCreateStateSet() );
                 }
             }
+        }
+        else
+        {
+            env->getReport()->error( r.asString() );
         }
     }
 

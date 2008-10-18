@@ -56,6 +56,17 @@ namespace osgGISProjects
 
 
     /**
+     * A callback that returns a value indicating whether to compile
+     * the cell in question.
+     */
+    class OSGGISPROJECTS_EXPORT CellSelector : public osg::Referenced
+    {
+    public:
+        virtual bool selectCell( const std::string& cell_id ) const =0; 
+    };
+
+
+    /**
      * Compiles scene graphs from MapLayer definitions.
      */
     class OSGGISPROJECTS_EXPORT MapLayerCompiler : public osg::Referenced
@@ -129,13 +140,6 @@ namespace osgGISProjects
             osg::Node*              terrain, 
             const SpatialReference* terrain_srs =NULL,
             const GeoExtent&        terrain_extent =GeoExtent::infinite() );
-           
-        /** 
-         * Sets the reference terrain against which to compile.
-         */ 
-        //void setTerrain(
-        //    osg::Node*              terrain, 
-        //    const SpatialReference* terrain_srs =NULL );
             
         /**
          * Gets the scene graph holding the reference terrain, if set.
@@ -164,10 +168,29 @@ namespace osgGISProjects
         osgDB::Archive* getArchive();
         const std::string& getArchiveFileName() const;
             
-        /* Gets the session under which this compiler will operate. */
+        /**
+         * Gets the session under which this compiler will operate.
+         *
+         * @return A session
+         */
         Session* getSession();
 
+        /**
+         * Gets the spatial reference system of the output data that this
+         * compiler will generate.
+         *
+         * @return A spatial reference, or NULL if it cannot be determined.
+         */
         osgGIS::SpatialReference* getOutputSRS();
+
+        /**
+         * Sets a callback that the compiler will use to determine whether
+         * to queue a particular cell for compilation.
+         *
+         * @param selector
+         *      Selector callback
+         */
+        void setCellSelector( CellSelector* selector );
 
     public:
         /**
@@ -233,6 +256,8 @@ namespace osgGISProjects
         GeoExtent                       terrain_extent;
 
         osg::ref_ptr<Session>           session;
+
+        osg::ref_ptr<CellSelector>      cell_selector;
 
         void setCenterAndRadius( osg::Node* plod_or_proxy, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };
