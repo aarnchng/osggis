@@ -169,6 +169,8 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getTextScript(), input, env );
         if ( r.isValid() ) 
             text = r.asString();
+        else
+            env->getReport()->error( r.asString() );
     }
 
     // resolve the size:
@@ -178,6 +180,8 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getFontSizeScript(), input, env );
         if ( r.isValid() )
             font_size = r.asDouble( font_size );
+        else
+            env->getReport()->error( r.asString() );
     }
 
     // the text color:

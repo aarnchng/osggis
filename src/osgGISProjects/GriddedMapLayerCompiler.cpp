@@ -331,7 +331,6 @@ GriddedMapLayerCompiler::GriddedMapLayerCompiler( MapLayer* _layer, Session* _se
 Profile*
 GriddedMapLayerCompiler::createProfile()
 {
-
     // figure out the bounds of the compilation area and create a Q map. We want a sqaure AOI..maybe
     GeoExtent aoi = map_layer->getAreaOfInterest();
 
@@ -384,7 +383,10 @@ GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
         //int total_tasks = keys.size();
         for( GridCellKeyList::iterator i = keys.begin(); i != keys.end(); i++ )
         {
-            task_man->queueTask( createTask( *i, this ) );
+            if ( !cell_selector.valid() || cell_selector->selectCell( i->toString() ) )
+            {
+                task_man->queueTask( createTask( *i, this ) );
+            }
         }
 
         return keys.size();

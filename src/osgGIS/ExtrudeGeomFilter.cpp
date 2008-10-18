@@ -342,10 +342,9 @@ ExtrudeGeomFilter::getWallSkinForFeature( Feature* f, FilterEnv* env )
     {
         ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), f, env );
         if ( r.isValid() )
-        {
-            //osgGIS::notify(osg::NOTICE) << "==== choose skin: " << r.asString() << std::endl;
             result = env->getSession()->getResources()->getSkin( r.asString() );
-        }
+        else
+            env->getReport()->error( r.asString() );
     }
     return result;
 }
@@ -361,6 +360,8 @@ ExtrudeGeomFilter::process( FeatureList& input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getWallSkinScript(), env );
         if ( r.isValid() )
             batch_wall_skin = dynamic_cast<SkinResource*>( r.asRef() );
+        else
+            env->getReport()->error( r.asString() );
     }
 
     return BuildGeomFilter::process( input, env );
@@ -390,6 +391,8 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         {
             ScriptResult r = env->getScriptEngine()->run( getHeightScript(), input, env );
             height = r.isValid()? r.asDouble( height ) : height;
+            if ( !r.isValid() )
+                env->getReport()->error( r.asString() );
         }
 
         // establish the wall skin resource:

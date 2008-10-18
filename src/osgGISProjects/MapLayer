@@ -32,31 +32,6 @@ using namespace osgGIS;
 
 namespace osgGISProjects
 {
-    ///* (internal)
-    // * A single cell within a MapLayer.
-    // */
-    //class OSGGISPROJECTS_EXPORT MapLayerCell : public osg::Referenced
-    //{
-    //public:
-    //    MapLayerCell(
-    //        unsigned int col, unsigned int row, unsigned int level, 
-    //        const GeoExtent& extent, MapLayerLevelOfDetail* def );
-
-    //    unsigned int getCellRow() const;
-    //    unsigned int getCellColumn() const;
-    //    unsigned int getLevel() const;
-    //    const GeoExtent& getExtent() const;
-    //    MapLayerLevelOfDetail* getDefinition() const;
-
-    //    std::string toString() const;
-    //    //std::string makeURIFromTemplate( const std::string& uri_tempate );
-    //    osg::BoundingSphere getBoundingSphere( SpatialReference* srs =NULL);
-
-    //private:
-    //    unsigned int row, col, level;
-    //    GeoExtent extent;
-    //    osg::ref_ptr<MapLayerLevelOfDetail> def;
-    //};
 
     /**
      * A complete definition of a single runtime map layer, which is a set of one or

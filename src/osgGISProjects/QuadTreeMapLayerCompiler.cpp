@@ -200,7 +200,10 @@ QuadTreeMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
         //int total_tasks = keys.size();
         for( QuadKeyList::iterator i = keys.begin(); i != keys.end(); i++ )
         {
-            task_man->queueTask( createQuadKeyTask( *i ) );
+            if ( !cell_selector.valid() || cell_selector->selectCell( i->toString() ) )
+            {
+                task_man->queueTask( createQuadKeyTask( *i ) );
+            }
         }
 
         return keys.size();

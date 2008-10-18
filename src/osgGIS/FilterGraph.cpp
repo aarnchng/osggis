@@ -51,7 +51,7 @@ FilterGraphResult::ok( FilterEnv* _out_env )
 FilterGraphResult
 FilterGraphResult::ok()
 {
-    return FilterGraphResult( true, NULL ); //GeoExtent::invalid(), NULL );
+    return FilterGraphResult( true, NULL );
 }
 
 FilterGraphResult

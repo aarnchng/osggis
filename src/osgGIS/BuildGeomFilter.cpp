@@ -160,6 +160,8 @@ BuildGeomFilter::process( FeatureList& input, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getColorScript(), env );
         if ( r.isValid() )
             batch_feature_color = r.asVec4();
+        else
+            env->getReport()->error( r.asString() );
     }
 
     return FragmentFilter::process( input, env );
@@ -270,6 +272,8 @@ BuildGeomFilter::getColorForFeature( Feature* feature, FilterEnv* env )
         ScriptResult r = env->getScriptEngine()->run( getColorScript(), feature, env );
         if ( r.isValid() )
             result = r.asVec4();
+        else
+            env->getReport()->error( r.asString() );
     }
 
     return result;
@@ -293,10 +297,9 @@ BuildGeomFilter::applyFragmentName( Fragment* frag, Feature* feature, FilterEnv*
     {
         ScriptResult r = env->getScriptEngine()->run( getFeatureNameScript(), feature, env );
         if ( r.isValid() )
-        {
             frag->setName( r.asString() );
-            //frag->setAttribute( ".fragment-name", r.asString() );
-        }
+        else
+            env->getReport()->error( r.asString() );
     }
 }
 
@@ -383,6 +386,10 @@ BuildGeomFilter::applyOverlayTexturing( osg::Geometry* geom, Feature* input, Fil
                     env->getResourceCache()->addSkin( raster_ss.get() );
                 }
             }
+        }
+        else
+        {
+            env->getReport()->error( r.asString() );
         }
     }
 }

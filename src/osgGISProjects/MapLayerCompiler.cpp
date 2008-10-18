@@ -110,8 +110,8 @@ public:
 
     Report* getReport()
     {
-        if ( !report.valid() )
-            report = new Report();
+        //if ( !report.valid() )
+        //    report = new Report();
         return report.get();
     }
 
@@ -268,6 +268,12 @@ std::string
 MapLayerCompiler::createRelPathFromTemplate( const std::string& core )
 {
     return core + "." + osgDB::getLowerCaseFileExtension( output_uri );
+}
+
+void
+MapLayerCompiler::setCellSelector( CellSelector* _selector )
+{
+    cell_selector = _selector;
 }
 
 void

@@ -184,9 +184,12 @@ bool
 TaskManager::hasMoreTasks()
 {
     return getNumTasks() > 0;
-        //pending_tasks.size()   > 0 ||
-        //num_running_tasks      > 0 ||
-        //completed_tasks.size() > 0;
+}
+
+void
+TaskManager::cancelPendingTasks()
+{
+    pending_tasks = TaskQueue();
 }
 
 unsigned int
