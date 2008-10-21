@@ -88,6 +88,14 @@ namespace osgGIS
         void addScript( Script* script );
 
         /**
+         * Gets a read-only reference to the list of scripts that have been added to this
+         * session.
+         *
+         * @return A read-only list of scripts
+         */
+        const ScriptList& getScripts() const;
+
+        /**
          * Gets a read-only reference to the resource library that manages shared resources
          * for this session.
          *
