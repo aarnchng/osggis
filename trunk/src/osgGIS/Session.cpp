@@ -73,6 +73,12 @@ Session::addScript( Script* script )
     scripts.push_back( script );
 }
 
+const ScriptList&
+Session::getScripts() const 
+{
+    return scripts;
+}
+
 const ResourceLibrary*
 Session::getResources() const
 {
