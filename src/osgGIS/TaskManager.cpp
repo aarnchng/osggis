@@ -86,19 +86,11 @@ TaskThread::getResultDuration()
 }
 
 osg::ref_ptr<Task>
-TaskThread::getResult()
+TaskThread::removeTask()
 {
-    osg::ref_ptr<Task> result = NULL;
-    if ( getState() == STATE_RESULT_READY )
-    {
-        result = task.get();
-        task = NULL;
-        setState( STATE_READY );
-    }
-    else
-    {
-        osgGIS::notify(osg::FATAL) << "ILLEGAL STATE" << std::endl;
-    }
+    osg::ref_ptr<Task> result = task.get();
+    task = NULL;
+    setState( STATE_READY );
     return result;
 }
 
@@ -228,7 +220,7 @@ TaskManager::update()
             if ( thread->getState() == TaskThread::STATE_RESULT_READY )
             {
                 double seconds = thread->getResultDuration();
-                osg::ref_ptr<Task> task = thread->getResult();
+                osg::ref_ptr<Task> task = thread->removeTask();
                 completed_tasks.push( task.get() );
                 num_running_tasks--;
                 osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
@@ -242,6 +234,16 @@ TaskManager::update()
                 num_running_tasks++;
                 thread->runTask( task.get() );
                 osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << task->getName() << ": started" << std::endl;
+            }
+
+            // check for orphaned threads :(
+            if ( thread->getState() == TaskThread::STATE_RUNNING && !thread->isRunning() )
+            {
+                osg::ref_ptr<Task> dead_task = thread->removeTask();
+                completed_tasks.push( dead_task.get() );
+                dead_task->setException(); // puts the task into an EXCEPTION state
+                num_running_tasks--;
+                osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << dead_task->getName() << " appears to have died and taken its thread with it." << std::endl;
             }
         }
     }

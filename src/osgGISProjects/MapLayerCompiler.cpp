@@ -135,20 +135,16 @@ private:
 
 MapLayerCompiler::MapLayerCompiler( MapLayer* _layer, Session* _session )
 {
-    map_layer = _layer;
-    session   = _session;
-    paged     = true;
+    map_layer   = _layer;
+    session     = _session;
+    paged       = true;
+    depth_first = true;
 }
 
 MapLayer*
 MapLayerCompiler::getMapLayer() const {
     return map_layer.get();
 }
-
-//const CellKeys&
-//MapLayerCompiler::getCellKeys() const {
-//    return cell_keys;
-//}
 
 void
 MapLayerCompiler::setPaged( bool value )
@@ -162,6 +158,11 @@ MapLayerCompiler::setPaged( bool value )
 bool
 MapLayerCompiler::getPaged() const {
     return paged;
+}
+
+void
+MapLayerCompiler::setBuildDepthFirst( bool value ) {
+    depth_first = value;
 }
 
 void
@@ -184,14 +185,6 @@ MapLayerCompiler::setTerrain(osg::Node*              _terrain,
     if ( !terrain_srs.valid() )
         osgGIS::warn() << "[MapLayerCompiler] WARNING: cannot determine SRS of terrain!" << std::endl;
 }
-
-
-//void
-//MapLayerCompiler::setTerrain(osg::Node*              _terrain,
-//                             const SpatialReference* _terrain_srs )
-//{
-//    setTerrain( _terrain, _terrain_srs, GeoExtent::infinite() );
-//}
 
 osg::Node*
 MapLayerCompiler::getTerrainNode()
@@ -387,7 +380,13 @@ MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
         if ( completed_task.valid() )
         {
             CellCompiler* cell_compiler = reinterpret_cast<CellCompiler*>( completed_task.get() );
-            if ( cell_compiler->getResult().isOK() )
+            if ( cell_compiler->isInExceptionState() )
+            {
+                //TODO: replace this with Report facility
+                osgGIS::notify( osg::WARN ) << "ERROR: cell failed; unhandled exception state."
+                    << std::endl;
+            }
+            else if ( cell_compiler->getResult().isOK() )
             {
                 cell_compiler->runSynchronousPostProcess( cs->getReport() );
 

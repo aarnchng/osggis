@@ -236,6 +236,14 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
         {
             std::string filename = osgDB::getSimpleFileName( image->getFileName() );
 
+            // create a filename if one is not set.
+            if ( filename.empty() )
+            {
+                std::stringstream buf;
+                buf << "tex" << (int)image.get() << ".rgb" << std::endl; //TODO: assign proper extension
+                filename = buf.str();
+            }
+
             osg::ref_ptr<osg::Image> output_image = image.get();
 
             // determine the maximum texture size by consulting the skin's limit and the
@@ -245,11 +253,6 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
                 new_size = skin->getMaxTextureSize();
             if ( max_tex_size > 0 )
                 new_size = new_size == 0? max_tex_size : std::min( new_size, max_tex_size );
-
-            //osgGIS::debug() 
-            //    << "TEX: skin max = " << skin->getMaxTextureSize() << ", global max = "
-            //    << max_tex_size << ", using = " << new_size
-            //    << std::endl;
                 
             // restrict the image size to the max texture size:
             if ( new_size > 0 && new_size < output_image->s() && new_size < output_image->t() )
