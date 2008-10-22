@@ -192,6 +192,17 @@ namespace osgGISProjects
          */
         void setCellSelector( CellSelector* selector );
 
+        /**
+         * For multi-level map layers, whether to build all LODs in a cell before
+         * moving on to the next cell.
+         *
+         * @param value
+         *       True to build map layer levels depth-first; false to build
+         *      map layers breadth first (i.e. build all level 0 cells before moving
+         *      on to level 1.
+         */
+        void setBuildDepthFirst( bool value );
+
     public:
         /**
          * Compiles the entire cell graph.
@@ -258,6 +269,7 @@ namespace osgGISProjects
         osg::ref_ptr<Session>           session;
 
         osg::ref_ptr<CellSelector>      cell_selector;
+        bool                            depth_first;
 
         void setCenterAndRadius( osg::Node* plod_or_proxy, const GeoExtent& cell_extent, SmartReadCallback* reader );
     };

@@ -55,7 +55,7 @@ namespace osgGIS
         void dispose();
 
         double getResultDuration();
-        osg::ref_ptr<Task> getResult();
+        osg::ref_ptr<Task> removeTask();
       
     public:
         void run(); // override

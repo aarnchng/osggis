@@ -261,17 +261,35 @@ getLodForKey( const GridCellKey& key, MapLayer* map_layer )
 }
 
 static void
-collectGeometryKeys( GridProfile* profile, MapLayer* map_layer, GridCellKeyList& out_keys )
+collectGeometryKeys( GridProfile* profile, MapLayer* map_layer, bool depth_first, GridCellKeyList& out_keys )
 {
-    for( unsigned int col = 0; col < profile->getNumColumns(); col++ )
-    {
-        for( unsigned int row = 0; row < profile->getNumRows(); row++ )
+    if ( depth_first )
+    {        
+        for( unsigned int col = 0; col < profile->getNumColumns(); col++ )
         {
-            for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
+            for( unsigned int row = 0; row < profile->getNumRows(); row++ )
             {
-                MapLayerLevelOfDetail* level_def = i->get();
-                GridCellKey key( col, row, level_def->getDepth(), profile );
-                out_keys.push_back( key );
+                for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
+                {
+                    MapLayerLevelOfDetail* level_def = i->get();
+                    GridCellKey key( col, row, level_def->getDepth(), profile );
+                    out_keys.push_back( key );
+                }
+            }
+        }
+    }
+    else
+    {
+        for( MapLayerLevelsOfDetail::iterator i = map_layer->getLevels().begin(); i != map_layer->getLevels().end(); i++ )
+        {
+            MapLayerLevelOfDetail* level_def = i->get();
+            for( unsigned int col = 0; col < profile->getNumColumns(); col++ )
+            {
+                for( unsigned int row = 0; row < profile->getNumRows(); row++ )
+                {
+                    GridCellKey key( col, row, level_def->getDepth(), profile );
+                    out_keys.push_back( key );
+                }
             }
         }
     }
@@ -377,7 +395,7 @@ GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
     {
         // Now, build the index and collect the list of keys for which to compile data.
         GridCellKeyList keys;
-        collectGeometryKeys( profile, map_layer.get(), keys );
+        collectGeometryKeys( profile, map_layer.get(), depth_first, keys );
 
         // make a build task for each quad cell we collected:
         //int total_tasks = keys.size();

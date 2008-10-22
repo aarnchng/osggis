@@ -72,6 +72,19 @@ namespace osgGIS
          *      User data.
          */
         void setUserData( osg::Referenced* user_data );
+
+        /**
+         * Puts the task into an Exception state, meaning that something
+         * unrecoverable happened during its execution.
+         */
+        void setException();
+
+        /**
+         * Gets whether the task was put into an exception state.
+         *
+         * @return True or false
+         */
+        bool isInExceptionState() const;
         
     public:
         /** 
@@ -85,6 +98,7 @@ namespace osgGIS
     private:
         std::string name;
         osg::ref_ptr<osg::Referenced> user_data;
+        bool exception_state;
     };
 
     typedef std::queue< osg::ref_ptr<Task> > TaskQueue;

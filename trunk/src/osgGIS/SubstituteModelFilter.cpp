@@ -400,13 +400,17 @@ registerTextures( osg::Node* node, ResourceCache* resources, unsigned int max_te
                     osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
                     if ( tex && tex->getImage() )
                     {
+                        SkinResource* skin = resources->addSkin( ss );
+                        skin->setMaxTextureSize( max_texture_size );
                         std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
-                        if ( abs_path.length() > 0 )
-                        {
-                            SkinResource* skin = resources->addSkin( ss );
-                            skin->setURI( abs_path );
-                            skin->setMaxTextureSize( max_texture_size );
-                        }
+                        skin->setURI( abs_path ); // may be empty if this was an inlined texture
+
+                        //if ( abs_path.length() > 0 )
+                        //{
+                        //    SkinResource* skin = resources->addSkin( ss );
+                        //    skin->setURI( abs_path );
+                        //    skin->setMaxTextureSize( max_texture_size );
+                        //}
                     }
                 }
             }
