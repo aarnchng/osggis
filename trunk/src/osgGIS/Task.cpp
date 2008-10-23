@@ -11,6 +11,7 @@ Task::Task()
 Task::Task( const std::string& _name )
 {
     setName( _name );
+    exception_state = false;
 }
 
 void

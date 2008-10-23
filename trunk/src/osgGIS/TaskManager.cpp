@@ -42,6 +42,8 @@ TaskThread::getState()
 void
 TaskThread::run()
 {
+    task = NULL;
+    state = STATE_READY;
     while( true )
     {
         // wait until the next task arrives:
@@ -243,6 +245,7 @@ TaskManager::update()
                 completed_tasks.push( dead_task.get() );
                 dead_task->setException(); // puts the task into an EXCEPTION state
                 num_running_tasks--;
+                thread->startThread(); // restart the thread
                 osgGIS::notify(osg::NOTICE) << thread->getID() << "> " << dead_task->getName() << " appears to have died and taken its thread with it." << std::endl;
             }
         }
@@ -266,7 +269,7 @@ TaskManager::update()
 
                 double seconds = osg::Timer::instance()->delta_s( t0, t1 );
 
-                osgGIS::notify(osg::NOTICE) << "0> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
+                osgGIS::notify(osg::NOTICE) << "> " << task->getName() << ": completed, time = " << seconds << "s" << std::endl;
             }
         }
     }

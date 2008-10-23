@@ -318,9 +318,9 @@ MapLayerCompiler::setCenterAndRadius( osg::Node* node, const GeoExtent& cell_ext
         osgGIS::warn() << "*** Failed to clamp Center/Radius for cell" << std::endl;
     }
 
-    if ( dynamic_cast<osg::PagedLOD*>( node ) )
+    if ( dynamic_cast<osg::LOD*>( node ) )
     {
-        osg::PagedLOD* plod = static_cast<osg::PagedLOD*>(node);
+        osg::LOD* plod = static_cast<osg::LOD*>(node);
         plod->setCenter( centroid );
         plod->setRadius( radius );
     }
@@ -385,6 +385,7 @@ MapLayerCompiler::continueCompiling( CompileSession* cs_interface )
                 //TODO: replace this with Report facility
                 osgGIS::notify( osg::WARN ) << "ERROR: cell failed; unhandled exception state."
                     << std::endl;
+                cs->getTaskQueue().push( cell_compiler );
             }
             else if ( cell_compiler->getResult().isOK() )
             {
