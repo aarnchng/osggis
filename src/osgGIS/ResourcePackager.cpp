@@ -259,7 +259,11 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
             {
                 int new_s = std::min( (int)new_size, output_image->s() );
                 int new_t = std::min( (int)new_size, output_image->t() );
-                output_image = ImageUtils::resizeImage( output_image.get(), new_s, new_t );
+                osg::Image* resized = ImageUtils::resizeImage( output_image.get(), new_s, new_t );
+                if ( resized )
+                    output_image = resized;
+                else
+                    osgGIS::warn() << "Unable to resize image " << image->getFileName() << std::endl;                    
             }
 
             // compress all textures to DDS if necessary. Note, the compressor will automatically

@@ -81,13 +81,16 @@ ImageUtils::resizeImage( osg::Image* input, unsigned int new_s, unsigned int new
 {
     osg::Image* output = NULL;
 
-    if ( input && new_s > 0 && new_t > 0 && (input->getPixelFormat() == GL_RGBA || input->getPixelFormat() == GL_RGB) )
+    GLenum pf = input->getPixelFormat();
+
+    if ( input && new_s > 0 && new_t > 0 && 
+        (pf == GL_RGBA || pf == GL_RGB || pf == GL_LUMINANCE || pf == GL_LUMINANCE_ALPHA) )
     {
         float s_ratio = (float)input->s()/(float)new_s;
         float t_ratio = (float)input->t()/(float)new_t;
 
         output = new osg::Image();
-        output->allocateImage( new_s, new_t, 1, input->getPixelFormat(), input->getDataType(), input->getPacking() );
+        output->allocateImage( new_s, new_t, 1, pf, input->getDataType(), input->getPacking() );
 
         unsigned int pixel_size_bytes = input->getRowSizeInBytes() / input->s();
 
