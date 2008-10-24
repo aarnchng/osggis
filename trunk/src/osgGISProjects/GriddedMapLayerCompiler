@@ -57,7 +57,7 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT GridCell : public Cell
     {
     public:
-        GridCell( unsigned int col, unsigned int row, unsigned int depth, const GeoExtent& extent, const CellStatus& status );
+        GridCell( const std::string& id, unsigned int col, unsigned int row, unsigned int depth, const GeoExtent& extent, const CellStatus& status );
 
         unsigned int getColumn() const;
         unsigned int getRow() const;

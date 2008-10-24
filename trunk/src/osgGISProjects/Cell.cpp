@@ -48,16 +48,20 @@ CellStatus::getCompiledTime() const {
 
 /************************************************************************/
 
-Cell::Cell( const GeoExtent& _extent, const CellStatus& _status ) :
-extent( _extent ),
-status( _status )
+Cell::Cell( const std::string& _id, const GeoExtent& _extent) : //, const CellStatus& _status ) :
+id( _id ),
+extent( _extent )
+//status( _status )
 {
     //NOP
 }
 
+const std::string&
+Cell::getId() const { return id; }
+
 const GeoExtent&
 Cell::getExtent() const { return extent; }
 
-const CellStatus&
-Cell::getStatus() const { return status; }
+//const CellStatus&
+//Cell::getStatus() const { return status; }
 
