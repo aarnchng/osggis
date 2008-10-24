@@ -134,12 +134,13 @@ GridProfile::getCellId( unsigned int col, unsigned int row, unsigned int depth )
 /*****************************************************************************/
 
 
-GridCell::GridCell(unsigned int _col,
+GridCell::GridCell(const std::string& _id,
+                   unsigned int _col,
                    unsigned int _row,
                    unsigned int _depth,
                    const GeoExtent& _extent,
                    const CellStatus& _status ) :
-Cell(_extent,_status),
+Cell(_id,_extent),
 col(_col),
 row(_row),
 depth(_depth)
@@ -243,7 +244,7 @@ GridCellCursor::next()
         }                
     }
 
-    return new GridCell( old_col, old_row, old_lod, extent, status );
+    return new GridCell( key.toString(), old_col, old_row, old_lod, extent, status );
 }
 
 /*****************************************************************************/
@@ -401,7 +402,8 @@ GriddedMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
         //int total_tasks = keys.size();
         for( GridCellKeyList::iterator i = keys.begin(); i != keys.end(); i++ )
         {
-            if ( !cell_selector.valid() || cell_selector->selectCell( i->toString() ) )
+            osg::ref_ptr<Cell> cell = new Cell( i->toString(), i->getExtent() );
+            if ( !cell_selector.valid() || cell_selector->selectCell( cell.get() ) )
             {
                 task_man->queueTask( createTask( *i, this ) );
             }

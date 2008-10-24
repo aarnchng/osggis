@@ -54,7 +54,14 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT Cell : public osg::Referenced
     {
     public:
-        Cell( const GeoExtent& extent, const CellStatus& status );
+        Cell( const std::string& id, const GeoExtent& extent); //, const CellStatus& status );
+
+        /**
+         * Gets the id string for the cell
+         * @return
+         *    readable string
+         */
+        const std::string& getId() const;
 
         /**
          * Gets the geospatial extent of the cell
@@ -68,11 +75,12 @@ namespace osgGISProjects
          * @return
          *      Compilation status
          */
-        const CellStatus& getStatus() const;
+        //const CellStatus& getStatus() const;
 
     private:
-        GeoExtent  extent;
-        CellStatus status;
+        std::string id;
+        GeoExtent extent;
+        //CellStatus status;
     };
 
     /**

@@ -142,6 +142,13 @@ FilterGraph::appendFilter( Filter* filter )
     return true;
 }
 
+bool
+FilterGraph::insertFilter( Filter* filter, int index )
+{
+    index = index < 0? 0 : index > filter_prototypes.size()? filter_prototypes.size() : index;
+    filter_prototypes.insert( filter_prototypes.begin()+index, filter );
+    return true;
+}
 
 Filter*
 FilterGraph::getFilter( const std::string& name )
@@ -153,7 +160,6 @@ FilterGraph::getFilter( const std::string& name )
     }
     return NULL;
 }
-
 
 FilterGraphResult
 FilterGraph::computeFeatureStore(FeatureCursor&     cursor,

@@ -129,6 +129,19 @@ namespace osgGIS
          *      True if the filter appended succesfully.
          */
         bool appendFilter( Filter* filter );
+
+        /**
+         * Inserts a filter into the graph's filter chain.
+         *
+         * @param filter
+         *      Filter to insert.
+         * @param at_index
+         *      Index before which to insert the filter.
+         *
+         * @return
+         *      True if the filter inserted succesfully.
+         */
+        bool insertFilter( Filter* filter, int at_index );
         
         /**
          * Runs the graph to generate a scene graph.

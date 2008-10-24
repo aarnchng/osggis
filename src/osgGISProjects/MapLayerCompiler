@@ -62,7 +62,7 @@ namespace osgGISProjects
     class OSGGISPROJECTS_EXPORT CellSelector : public osg::Referenced
     {
     public:
-        virtual bool selectCell( const std::string& cell_id ) const =0; 
+        virtual bool selectCell( Cell* cell ) const =0; //const std::string& cell_id ) const =0; 
     };
 
 
