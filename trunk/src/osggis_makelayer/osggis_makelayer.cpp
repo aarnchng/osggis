@@ -37,6 +37,7 @@
 #include <osgGIS/TransformFilter>
 #include <osgGIS/ChangeShapeTypeFilter>
 #include <osgGIS/DecimateFilter>
+#include <osgGIS/BufferFilter>
 #include <osgGIS/BuildGeomFilter>
 #include <osgGIS/ExtrudeGeomFilter>
 #include <osgGIS/BuildNodesFilter>
@@ -101,6 +102,7 @@ bool fade_lods = false;
 int num_threads = 0;
 bool overlay = false;
 bool embed_attrs = false;
+double buffer_distance = 0.0;
 osg::ref_ptr<osgGIS::SpatialReference> terrain_srs;
 
 int
@@ -153,6 +155,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << ENDL;
     NOUT << "  Feature options:" << ENDL;
     NOUT << "    --extrude-attr             - Extrude geometry to the height in this attribute" << ENDL;
+    NOUT << "    --buffer <num>             - Buffer the feature geometry by <num> meters" << ENDL;
     NOUT << "    --remove-holes             - Removes holes in polygons" << ENDL;
     NOUT << "    --decimate <num>           - Decimate feature shapes to this threshold" << ENDL;
     //NOUT << "    --convex-hull              - Replace feature data with its convex hull" << ENDL;
@@ -211,11 +214,11 @@ parseCommandLine( int argc, char** argv )
         gridded = true;
     }
 
-    while( arguments.read( "--correlated" ) ) {
-        NOUT << "The --correlated option is no longer supported." <<ENDL;
-        exit(0);
-        correlated = true;
-    }
+    //while( arguments.read( "--correlated" ) ) {
+    //    NOUT << "The --correlated option is no longer supported." <<ENDL;
+    //    exit(0);
+    //    correlated = true;
+    //}
 
     while( arguments.read( "--range-near", str ) )
         sscanf( str.c_str(), "%f", &range_near );
@@ -295,6 +298,9 @@ parseCommandLine( int argc, char** argv )
     while( arguments.read( "--decimate", str ) )
         sscanf( str.c_str(), "%lf", &decimate_threshold );
 
+    while( arguments.read( "--buffer", str ) )
+        sscanf( str.c_str(), "%lf", &buffer_distance );
+
     while( arguments.read( "--no-lighting" ) )
         lighting = false;
 
@@ -342,6 +348,12 @@ createFilterGraph()
     {
         graph->appendFilter( new osgGIS::CollectionFilter() );
         graph->appendFilter( new osgGIS::ConvexHullFilter() );
+    }
+
+    // Buffer the shapes
+    if ( buffer_distance != 0.0 )
+    {
+        graph->appendFilter( new osgGIS::BufferFilter( buffer_distance ) );
     }
 
     // Crop the feature data to the compiler environment's working extent:
@@ -495,28 +507,28 @@ main(int argc, char* argv[])
         num_threads < 1? new osgGIS::TaskManager() :
         NULL;
 
-    // for a PagedLOD terrain, generating matching PagedLOD geometry.
-    if ( correlated )
-    {
-        // Compile the feature layer into a paged scene graph. This utility class
-        // will traverse an entire PagedLOD scene graph and generate a geometry 
-        // tile for each terrain tile.
-        osgGIS::PagedLayerCompiler compiler;
+    //// for a PagedLOD terrain, generating matching PagedLOD geometry.
+    //if ( correlated )
+    //{
+    //    // Compile the feature layer into a paged scene graph. This utility class
+    //    // will traverse an entire PagedLOD scene graph and generate a geometry 
+    //    // tile for each terrain tile.
+    //    osgGIS::PagedLayerCompiler compiler;
 
-        compiler.addFilterGraph( range_near, range_far, graph.get() );
-        compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
-        compiler.setPriorityOffset( priority_offset );
-        compiler.setFadeLODs( fade_lods );
-        //compiler.setOverlay( overlay );
-        compiler.setArchive( archive.get(), archive_file );
-        compiler.setTaskManager( manager.get() );
+    //    compiler.addFilterGraph( range_near, range_far, graph.get() );
+    //    compiler.setTerrain( terrain.get(), terrain_srs.get(), terrain_extent );
+    //    compiler.setPriorityOffset( priority_offset );
+    //    compiler.setFadeLODs( fade_lods );
+    //    //compiler.setOverlay( overlay );
+    //    compiler.setArchive( archive.get(), archive_file );
+    //    compiler.setTaskManager( manager.get() );
 
-        compiler.compile(
-            layer.get(),
-            output_file );
-    }
+    //    compiler.compile(
+    //        layer.get(),
+    //        output_file );
+    //}
 
-    else if ( gridded )
+    if ( gridded )
     {
         osgGIS::GriddedLayerCompiler compiler;
 
