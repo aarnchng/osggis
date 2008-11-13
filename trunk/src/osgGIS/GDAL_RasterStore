@@ -55,10 +55,10 @@ namespace osgGIS
 
         GLenum getImagePixelFormat() const;
 
-        osg::Image* createImage( 
-            const GeoExtent& extent, 
-            int max_span_pixels,
-            bool force_power_of_2_dimensions ) const;
+        //osg::Image* createImage( 
+        //    const GeoExtent& extent, 
+        //    int max_span_pixels,
+        //    bool force_power_of_2_dimensions ) const;
 
         osg::Image* createImage(
             const GeoExtent& extent,

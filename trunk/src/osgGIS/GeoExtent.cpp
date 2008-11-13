@@ -20,8 +20,11 @@
 #include <osgGIS/GeoExtent>
 #include <osg/Notify>
 #include <sstream>
+#include <iomanip>
 
 using namespace osgGIS;
+
+#define EPSILON 0.00001
 
 
 GeoExtent GeoExtent::invalid()
@@ -322,8 +325,12 @@ GeoExtent::intersects( const GeoPoint& input ) const
 
         return
             point.isValid() && 
-            point.x() >= sw.x() && point.x() <= ne.x() &&
-            point.y() >= sw.y() && point.y() <= ne.y();
+            (point.x() >= sw.x() || fabs(point.x()-sw.x()) < EPSILON) &&
+            (point.x() <= ne.x() || fabs(point.x()-ne.x()) < EPSILON) &&
+            (point.y() >= sw.y() || fabs(point.y()-sw.y()) < EPSILON) &&
+            (point.y() <= ne.y() || fabs(point.y()-ne.y()) < EPSILON);
+            //point.x() >= sw.x() && point.x() <= ne.x() &&
+            //point.y() >= sw.y() && point.y() <= ne.y();
     }
 
     return false;              
@@ -386,7 +393,13 @@ GeoExtent::contains( const GeoPoint& input ) const
     if ( !p.isValid() )
         return false;
 
-    return sw.x() <= p.x() && p.x() <= ne.x() && sw.y() <= p.y() && p.y() <= ne.y();
+    return
+        (sw.x() <= p.x() || fabs(sw.x()-p.x()) < EPSILON) &&
+        (p.x() <= ne.x() || fabs(p.x()-ne.x()) < EPSILON) &&
+        (sw.y() <= p.y() || fabs(sw.y()-p.y()) < EPSILON) &&
+        (p.y() <= ne.y() || fabs(p.y()-ne.y()) < EPSILON);
+
+    //return sw.x() <= p.x() && p.x() <= ne.x() && sw.y() <= p.y() && p.y() <= ne.y();
 }
 
 
@@ -513,6 +526,7 @@ GeoExtent::toString() const
 	{
 		std::stringstream str;
 		str
+            << std::fixed << std::setprecision(5) 
 			<< "("
 			<< sw.x() << ", " << sw.y()
 			<< " => "
