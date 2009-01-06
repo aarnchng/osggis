@@ -32,6 +32,7 @@ using namespace OpenThreads;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_RESOURCE(RasterResource);
 
+#define DEFAULT_TEXTURE_MODE osg::TexEnv::MODULATE
 
 RasterResource::RasterResource()
 {
@@ -48,6 +49,7 @@ void
 RasterResource::init()
 {
     parts_initialized = false;
+    texture_mode = DEFAULT_TEXTURE_MODE;
 }
 
 RasterResource::~RasterResource()
@@ -65,6 +67,8 @@ RasterResource::addPartURI( const std::string& uri )
 void
 RasterResource::setProperty( const Property& prop )
 {
+    if ( prop.getName() == "texture_mode" )
+        setTextureMode( prop.getValue()=="decal"? osg::TexEnv::DECAL: prop.getValue()=="replace"? osg::TexEnv::REPLACE: prop.getValue()=="blend"? osg::TexEnv::BLEND : osg::TexEnv::MODULATE );
     Resource::setProperty( prop );
 }
 
@@ -72,7 +76,21 @@ Properties
 RasterResource::getProperties() const
 {
     Properties props = Resource::getProperties();
+    if ( getTextureMode() != DEFAULT_TEXTURE_MODE )
+        props.push_back( Property( "texture_mode", getTextureMode()==osg::TexEnv::DECAL? "decal" : getTextureMode()==osg::TexEnv::REPLACE? "replace" : getTextureMode()==osg::TexEnv::BLEND? "blend" : "modulate" ) );
     return props;
+}
+
+void
+RasterResource::setTextureMode( const osg::TexEnv::Mode& value )
+{
+    texture_mode = value;
+}
+
+const osg::TexEnv::Mode&
+RasterResource::getTextureMode() const
+{
+    return texture_mode;
 }
 
 bool
@@ -153,7 +171,7 @@ RasterResource::applyToStateSet(osg::StateSet*     state_set,
 
         osg::TexEnv* texenv = new osg::TexEnv();
         texenv = new osg::TexEnv();
-        texenv->setMode( osg::TexEnv::DECAL );
+        texenv->setMode( getTextureMode() );
 
         state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
         state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );
@@ -168,53 +186,6 @@ RasterResource::applyToStateSet(osg::StateSet*     state_set,
 
     return result;
 }
-
-
-//bool
-//RasterResource::applyToStateSet( osg::StateSet* state_set, const GeoExtent& aoi, int max_span_pixels, osg::Image** out_image )
-//{
-//    bool result = false;
-//
-//    osg::ref_ptr<RasterStore> rstore = Registry::instance()->getRasterStoreFactory()->connectToRasterStore( getAbsoluteURI() );
-//    if ( rstore.valid() )
-//    {
-//        osg::ref_ptr<osg::Image> image = rstore->createImage( aoi, max_span_pixels, true );
-//        if ( image.valid() )
-//        {
-//            // handy in case we want to write it out later
-//            //image->setFileName( image_name );
-//
-//            osg::Texture* tex = new osg::Texture2D( image.get() );
-//            tex->setWrap( osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE );
-//            tex->setWrap( osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE );
-//            tex->setResizeNonPowerOfTwoHint( false );
-//
-//            osg::TexEnv* texenv = new osg::TexEnv();
-//            texenv = new osg::TexEnv();
-//            texenv->setMode( osg::TexEnv::DECAL );
-//
-//            state_set->setTextureAttributeAndModes( 0, tex, osg::StateAttribute::ON );
-//            state_set->setTextureAttribute( 0, texenv, osg::StateAttribute::ON );
-//
-//            if ( out_image )
-//            {
-//                *out_image = image.get();
-//            }
-//
-//            result = true;
-//        }
-//        else
-//        {
-//            osgGIS::notify(osg::WARN) << "RasterResource::createStateSet failed to get Image from raster store" << std::endl;
-//        }
-//    }
-//    else
-//    {
-//        osgGIS::notify(osg::WARN) << "RasterResource::createStateSet failed to connect to raster store at " << getAbsoluteURI() << std::endl;
-//    }
-//
-//    return result;
-//}
 
 void
 RasterResource::initParts()
