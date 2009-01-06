@@ -25,6 +25,7 @@
 #include <osgGIS/RasterStore>
 #include <osg/Vec4>
 #include <osg/StateSet>
+#include <osg/TexEnv>
 
 namespace osgGIS
 {
@@ -52,6 +53,22 @@ namespace osgGIS
          *     Readable name of the new resource
          */
         RasterResource( const std::string& name );
+
+        /**
+         * Sets the OpenGL texture mapping mode for the image (default
+         * is GL_MODULATE)
+         *
+         * @param mode
+         *      OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
+        void setTextureMode( const osg::TexEnv::Mode& mode );
+        
+        /**
+         * Gets the OpenGL texture mapping mode for the image
+         *
+         * @return OpenGL mode (GL_DECAL, GL_REPLACE, GL_MODULATE, GL_BLEND)
+         */
+        const osg::TexEnv::Mode& getTextureMode() const;
 
     public:
 
@@ -105,6 +122,7 @@ namespace osgGIS
         RasterParts parts;
         bool parts_initialized;
         GLenum pixel_format;
+        osg::TexEnv::Mode texture_mode;
     };
     
     typedef std::vector< osg::ref_ptr<RasterResource> > RasterResourceVec;
