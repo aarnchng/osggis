@@ -204,9 +204,10 @@ OGR_SpatialReferenceFactory::createSRSfromTerrain( osg::Node* node )
             else if ( v.result->getFormat() == "ESRI" )
                 result = createSRSfromESRI( v.result->getCoordinateSystem() );
 
-            // if the CS node has a lat/lon SRS, it's really a geocentric model
-            // based on that SRS.
-            if ( result->isGeographic() )
+            // OSG-hack:
+            // if the CS node has a lat/lon SRS, AND the terrain has a non-null
+            // ellipsoid model set, it's really a geocentric model based on that SRS.
+            if ( result->isGeographic() && v.result->getEllipsoidModel() != NULL )
             {
                 result = createGeocentricSRS( result );
             }
