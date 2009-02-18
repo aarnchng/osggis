@@ -491,12 +491,14 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
 
     if ( getOptimize() )
     {
+        //osgGIS::notice() << "[BuildNodes] Optimizing..." << std::endl;
+
         osgUtil::Optimizer opt;
         int opt_mask = 
             osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS |
             osgUtil::Optimizer::MERGE_GEODES |
             osgUtil::Optimizer::TRISTRIP_GEOMETRY |
-            osgUtil::Optimizer::SPATIALIZE_GROUPS; //::ALL_OPTIMIZATIONS; //getOptimizerOptions();
+            osgUtil::Optimizer::SPATIALIZE_GROUPS;
 
         // disable texture atlases, since they mess with our shared skin resources and
         // don't work correctly during multi-threaded building

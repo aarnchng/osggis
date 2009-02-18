@@ -198,7 +198,8 @@ FilterEnv::getSession()
 void 
 FilterEnv::setProperty( const Property& prop )
 {
-    properties.push_back( prop );
+    properties.set( prop );
+    //properties.push_back( prop );
 }
 
 Properties&

@@ -404,13 +404,6 @@ registerTextures( osg::Node* node, ResourceCache* resources, unsigned int max_te
                         skin->setMaxTextureSize( max_texture_size );
                         std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
                         skin->setURI( abs_path ); // may be empty if this was an inlined texture
-
-                        //if ( abs_path.length() > 0 )
-                        //{
-                        //    SkinResource* skin = resources->addSkin( ss );
-                        //    skin->setURI( abs_path );
-                        //    skin->setMaxTextureSize( max_texture_size );
-                        //}
                     }
                 }
             }
@@ -562,6 +555,12 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
         // TODO: investigate this later.
         env->getOptimizerHints().exclude( osgUtil::Optimizer::FLATTEN_STATIC_TRANSFORMS );
 
+        // If the clustered cell is "large" enough, the SPATIALIZE_GROUPS optimization 
+        // causes textures on the clustered geometry to disappear. I have no time to figure 
+        // out why at the moment, so here is the workaround:
+        env->getOptimizerHints().exclude( osgUtil::Optimizer::SPATIALIZE_GROUPS );
+
+
         bool share_textures = false;
 
         if ( getModelScript() )
@@ -574,7 +573,7 @@ SubstituteModelFilter::process( FeatureList& input, FilterEnv* env )
                 ModelResource* model = env->getSession()->getResources()->getModel( r.asString() );
                 if ( model )
                 {
-                    //osg::Node* node = env->getSession()->getResources()->getNode( model, getOptimizeModel() );
+                    osgGIS::info() << "[SubModelFilter] bulk mode, chose model [" << model->getName() << "] using script [" << getModelScript()->getCode() << "]" << std::endl;
                     osg::Node* node = env->getResourceCache()->getNode( model, getOptimizeModel() );
                     output.push_back( new AttributedNode( materializeAndClusterFeatures( input, env, node ) ) );
                 }
