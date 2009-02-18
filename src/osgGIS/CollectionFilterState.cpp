@@ -127,7 +127,10 @@ meterGroups( CollectionFilter* filter, A groups, B state, unsigned int metering,
     for( typename A::iterator i = groups.begin(); i != groups.end() && result.isOK(); i++ )
     {
         if ( !prop.empty() )
+        {
             env->setProperty( Property( prop, i->first ) );
+            osgGIS::debug() << "[CollectionFilterState] Metering group '" << i->first << "', prop='" << prop << "'" << std::endl;
+        }
 
         filter->preMeter( i->second, env );
         result = meterData( i->second, state, metering, env );
