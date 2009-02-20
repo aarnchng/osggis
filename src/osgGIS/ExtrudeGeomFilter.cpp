@@ -260,24 +260,22 @@ extrudeWallsUp(const GeoShape&         shape,
 
                     double h;
                     if ( tex_repeats_y ) {
-                        h = (extrude_vec - *m).length();
-                        double fm = fmod( h, tex_height_m );
-                        h += fm > 0.0? tex_height_m - fm : 0.0;
+                        h = -(extrude_vec - *m).length();
                     }
                     else {
-                        h = tex_height_m;
+                        h = -tex_height_m;
                     }
                     int p;
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = extrude_vec;
-                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
+                    (*texcoords)[p].set( part_len/tex_width_m, 0.0f );
 
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = *m;
-                    (*texcoords)[p].set( part_len/tex_width_m, 0.0f );
+                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
                 }
             }
 
@@ -309,7 +307,7 @@ extrudeWallsUp(const GeoShape&         shape,
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = (*verts)[wall_part_ptr+1];
-                    (*texcoords)[p].set( part_len/tex_width_m, 0.0f );
+                    (*texcoords)[p].set( part_len/tex_width_m, (*texcoords)[wall_part_ptr+1].y() );
                 }
 
                 walls->addPrimitiveSet( new osg::DrawArrays(
