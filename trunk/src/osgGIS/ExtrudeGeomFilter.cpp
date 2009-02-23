@@ -133,6 +133,8 @@ extrudeWallsUp(const GeoShape&         shape,
 
     double tex_width_m = skin? skin->getTextureWidthMeters() : 1.0;
     double tex_height_m = skin? skin->getTextureHeightMeters() : 1.0;
+
+    //Adjust the texture height so it is a multiple of the extrusion height
     bool   tex_repeats_y = skin? skin->getRepeatsVertically() : true;
 
     int point_count = shape.getTotalPointCount();
@@ -172,6 +174,11 @@ extrudeWallsUp(const GeoShape&         shape,
     for( GeoPartList::const_iterator k = shape.getParts().begin(); k != shape.getParts().end(); k++ )
     {
         double target_len = -DBL_MAX;
+        double max_height = -DBL_MAX;
+
+        osg::Vec3d min_loc(DBL_MAX, DBL_MAX, DBL_MAX);
+
+        double tex_height_m_adj = tex_height_m;
 
         for( int pass=0; pass<2; pass++ )
         {
@@ -179,6 +186,22 @@ extrudeWallsUp(const GeoShape&         shape,
             unsigned int wall_part_ptr = wall_vert_ptr;
             unsigned int roof_part_ptr = roof_vert_ptr;
             double part_len = 0.0;
+
+            if (pass == 1)
+            {
+                double max_height = 0;
+                if (srs && srs->isGeocentric())
+                {
+                    max_height = target_len - min_loc.length();
+                }
+                else
+                {
+                    max_height = target_len - min_loc.z();
+                }
+
+                //Adjust the texture height so it is a multiple of the maximum height
+                tex_height_m_adj = max_height / (round(max_height / tex_height_m));
+            }
 
             for( GeoPointList::const_iterator m = part.begin(); m != part.end(); m++ )
             {
@@ -191,9 +214,17 @@ extrudeWallsUp(const GeoShape&         shape,
                         osg::Vec3d e_vec = p_vec;
                         e_vec.normalize();
                         p_vec = p_vec + (e_vec * height);
+
+                        if (m_world.length() < min_loc.length())
+                        {
+                            min_loc = m_world;
+                        }
+
                         double p_ex_len = p_vec.length();
                         if ( p_ex_len > target_len )
+                        {
                             target_len = p_ex_len;
+                        }
                     }
                     else
                     {
@@ -201,6 +232,11 @@ extrudeWallsUp(const GeoShape&         shape,
                         {
                             target_len = m_world.z() + height;
                         }
+
+                        if (m_world.z() < min_loc.z())
+                        {
+                            min_loc = m_world;
+                        }                     
                     }
                 }
                 else // if ( pass == 1 )
@@ -263,7 +299,7 @@ extrudeWallsUp(const GeoShape&         shape,
                         h = -(extrude_vec - *m).length();
                     }
                     else {
-                        h = -tex_height_m;
+                        h = -tex_height_m_adj;
                     }
                     int p;
 
@@ -275,7 +311,7 @@ extrudeWallsUp(const GeoShape&         shape,
                     p = wall_vert_ptr++;
                     (*colors)[p] = color;
                     (*verts)[p] = *m;
-                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m );
+                    (*texcoords)[p].set( part_len/tex_width_m, h/tex_height_m_adj );
                 }
             }
 
