@@ -26,6 +26,7 @@
 #include <osgDB/FileNameUtils>
 #include <osg/Notify>
 #include <ogr_api.h>
+#include <sys/stat.h>
 
 
 using namespace osgGIS;
@@ -62,6 +63,14 @@ OGR_FeatureStore::OGR_FeatureStore( const std::string& abs_path )
                         << std::endl;
                 }
             }
+
+            // store the mod-time so we can detect the need for spatial index updates
+            struct stat statbuf;
+            if ( ::stat( abs_path.c_str(), &statbuf ) == 0 )
+            {
+                mtime = statbuf.st_mtime;
+            }
+
         }
 	}
 
@@ -191,6 +200,11 @@ OGR_FeatureStore::~OGR_FeatureStore()
 	}
 
     //osgGIS::notify(osg::NOTICE) << "Closed feature store at " << getName() << std::endl;
+}
+
+const time_t
+OGR_FeatureStore::getModTime() const {
+    return mtime;
 }
 
 

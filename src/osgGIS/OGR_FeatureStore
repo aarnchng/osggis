@@ -24,6 +24,7 @@
 #include <osgGIS/FeatureStore>
 #include <osgGIS/SpatialReference>
 #include <string>
+#include <sys/types.h>
 
 namespace osgGIS
 {
@@ -65,6 +66,8 @@ namespace osgGIS
         bool insertFeature( Feature* input );
         
         const AttributeSchemaTable& getAttributeSchemas();
+
+        const time_t getModTime() const;
 		
 	public:
 		virtual ~OGR_FeatureStore();
@@ -77,6 +80,7 @@ namespace osgGIS
 		GeoExtent extent;
         bool supports_random_read;
         AttributeSchemaTable schema;
+        time_t mtime;
         
         void calcExtent();
 	};

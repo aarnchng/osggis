@@ -24,6 +24,7 @@
 #include <osgDB/FileNameUtils>
 #include <algorithm>
 #include <fstream>
+#include <sys/stat.h>
 
 using namespace osgGIS;
 
@@ -76,15 +77,21 @@ RTreeSpatialIndex::buildIndex()
             Registry::instance()->getWorkDirectory(),
             index_name );
 
-        std::ifstream input( cache_path.c_str() );
-        if ( input.is_open() )
+        // compare the modification times of the cached index and the feature store. If the store
+        // is newer than the index, the index needs rebuilding, so skip the load.
+        struct stat statbuf;
+        if ( ::stat( cache_path.c_str(), &statbuf ) == 0 && statbuf.st_mtime > store->getModTime() )
         {
-            rtree = new RTree<FeatureOID>();
-            loaded = rtree->readFrom( input, store->getSRS(), extent );
-            input.close();
-            if ( loaded )
-                osgGIS::notify(osg::NOTICE) << "Loaded cached spatial index OK..";
-        }    
+            std::ifstream input( cache_path.c_str() );
+            if ( input.is_open() )
+            {
+                rtree = new RTree<FeatureOID>();
+                loaded = rtree->readFrom( input, store->getSRS(), extent );
+                input.close();
+                if ( loaded )
+                    osgGIS::notify(osg::NOTICE) << "Loaded cached spatial index OK..";
+            }
+        }
     }
     
     if ( !loaded )
@@ -95,7 +102,7 @@ RTreeSpatialIndex::buildIndex()
         {
             Feature* f = cursor.next();
             const GeoExtent& f_extent = f->getExtent();
-            if ( f_extent.isValid() && !f_extent.isInfinite() ) //extent.getArea() > 0 )
+            if ( f_extent.isValid() && !f_extent.isInfinite() )
             {
                 rtree->insert( f_extent, f->getOID() );
                 if ( extent.isValid() )
@@ -105,6 +112,7 @@ RTreeSpatialIndex::buildIndex()
             }
         }
 
+        // now cache it to disk.
         if ( cache_index )
         {
             std::string cache_path = PathUtils::combinePaths(

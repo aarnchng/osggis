@@ -25,6 +25,7 @@
 #include <osgGIS/FeatureCursor>
 #include <osgGIS/SpatialReference>
 #include <osgGIS/GeoExtent>
+#include <sys/types.h>
 
 namespace osgGIS
 {
@@ -121,9 +122,16 @@ namespace osgGIS
          *
          * @return
          *      Attribute schema table
-         */
-         
+         */         
         virtual const AttributeSchemaTable& getAttributeSchemas() =0;
+
+        /**
+         * Gets the modification timestamp of the feature store source data.
+         *
+         * @return
+         *      Raw modification timestamp
+         */
+        virtual const time_t getModTime() const =0;
 	};
 }
 
