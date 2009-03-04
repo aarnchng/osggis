@@ -334,7 +334,7 @@ bool
 RTree<DATA>::writeTo( std::ostream& out, const GeoExtent& extent )
 {
     out << "OSGGIS_RTREE_1.0" << std::endl;
-    out << root_id << ' ' << node_id_gen << ' ' << std::setprecision(10) << extent.getXMin() << ' ' << extent.getYMin() << ' ' << extent.getXMax() << ' ' << extent.getYMax() << std::endl;
+    out << root_id << ' ' << node_id_gen << ' ' << std::setprecision(13) << extent.getXMin() << ' ' << extent.getYMin() << ' ' << extent.getXMax() << ' ' << extent.getYMax() << std::endl;
     for( typename RtNodeMap<DATA>::iterator i = node_table.begin(); i != node_table.end(); i++ )
     {
         RtNode<DATA>* node = i->second.get();
@@ -342,7 +342,7 @@ RTree<DATA>::writeTo( std::ostream& out, const GeoExtent& extent )
         for( typename RtEntryList<DATA>::iterator j = node->entries.begin(); j != node->entries.end(); j++ )
         {
             RtEntry<DATA>& entry = *j;
-            out << std::setprecision(10) << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
+            out << std::setprecision(13) << entry.extent.getXMin() << ' ' << entry.extent.getYMin() << ' ' << entry.extent.getXMax() << ' ' << entry.extent.getYMax() << ' ';
             if ( node->isLeaf() )
                 out << entry.data << ' ';
             else
