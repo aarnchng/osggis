@@ -200,7 +200,10 @@ extrudeWallsUp(const GeoShape&         shape,
                 }
 
                 //Adjust the texture height so it is a multiple of the maximum height
-                tex_height_m_adj = max_height / (round(max_height / tex_height_m));
+                double div = osg::round(max_height / tex_height_m);
+                //Prevent divide by zero
+                if (div == 0) div = 1;
+                tex_height_m_adj = max_height / div;
             }
 
             for( GeoPointList::const_iterator m = part.begin(); m != part.end(); m++ )
