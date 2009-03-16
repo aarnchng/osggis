@@ -461,6 +461,11 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
                 //env->getSession()->getResources()->getStateSet( skin ) );
                 //env->getSession()->markResourceUsed( skin );
             }
+            else
+            {
+                //There is no skin, so disable texturing for the walls to prevent other textures from being applied to the walls
+                walls->getOrCreateStateSet()->setTextureMode(0, GL_TEXTURE_2D, osg::StateAttribute::OFF);
+            }
 
             // generate per-vertex normals
             generateNormals( walls.get() );
