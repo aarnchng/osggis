@@ -38,6 +38,26 @@ static std::string EMPTY_STRING = "";
 #define DEFAULT_TEXTURE_MODE osg::TexEnv::MODULATE
 #define DEFAULT_MAX_TEXTURE_SIZE 0
 
+osg::Image* createErrorImage()
+{
+    osg::Image* image = new osg::Image;
+
+    image->allocateImage(32,32,1,GL_RGB, GL_UNSIGNED_BYTE);
+
+    for (int c = 0; c < image->s(); ++c)
+    {
+        for (int r = 0; r < image->t(); ++r)
+        {
+            bool red = ((c == r) || ((image->s() - c) == r));
+            unsigned char* data = image->data(c,r);
+            *(data+0) = red ? 255 : 0;
+            *(data+1) = 0;
+            *(data+2) = 0;
+        }
+    }
+    return image;
+}
+
 
 SkinResource::SkinResource()
 {
@@ -247,8 +267,15 @@ osg::Image*
 SkinResource::createImage()
 {
     ScopedLock<ReentrantMutex> lock( getMutex() );
-    return osgDB::readImageFile( getAbsoluteURI() );
-
+    osg::Image* image = osgDB::readImageFile( getAbsoluteURI() );
+    if (!image)
+    {
+        //There was an error reading the SkinResource, so display a red X for the texture
+        osg::notify(osg::NOTICE) << "Error loading SkinResource from " << getAbsoluteURI() << std::endl;
+        image = createErrorImage();
+        image->setFileName(std::string(getName()) + "error.png");
+    }
+    return image;
     //if ( !image.valid() )
     //{
     //    ScopedLock<ReentrantMutex> lock( getMutex() );
