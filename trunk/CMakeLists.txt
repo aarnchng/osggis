@@ -97,7 +97,7 @@ FIND_PACKAGE(TOLUA)
 
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
-    ${OSG_DIR}/include
+    ${OSG_INCLUDE_DIR}
     ${OSGGIS_SOURCE_DIR}/src
     ${GDAL_INCLUDE_DIR}
     ${EXPAT_INCLUDE_DIR}
