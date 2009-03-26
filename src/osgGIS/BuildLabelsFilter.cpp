@@ -107,8 +107,8 @@ BuildLabelsFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "text" )
         setTextScript( new Script( p.getValue() ) );
-    else if ( p.getName() == "topmost" )
-        setDisableDepthTest( true );
+    else if ( p.getName() == "disable_depth_test" )
+        setDisableDepthTest( p.getBoolValue( getDisableDepthTest() ) );
     else if ( p.getName() == "font_size" )
         setFontSizeScript( new Script( p.getValue() ) );
     else if ( p.getName() == "font" )
@@ -128,7 +128,7 @@ BuildLabelsFilter::getProperties() const
     if ( getFontName() != DEFAULT_FONT_NAME )
         p.push_back( Property( "font", getFontName() ) );
     if ( getDisableDepthTest() != DEFAULT_DISABLE_DEPTH_TEST )
-        p.push_back( Property( "topmost", true ) );
+        p.push_back( Property( "disable_depth_test", getDisableDepthTest() ) );
     return p;
 }
 
