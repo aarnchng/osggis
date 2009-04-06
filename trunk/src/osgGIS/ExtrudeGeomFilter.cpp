@@ -441,12 +441,12 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
         if ( shape.getShapeType() == GeoShape::TYPE_POLYGON )
         {
             rooflines = new osg::Geometry();
-        }
-        
-        // prep the shapes by making sure all polys are open:
-        for( GeoPartList::iterator i = shape.getParts().begin(); i != shape.getParts().end(); i++ )
-        {
-            GeomUtils::openPolygon( *i );
+
+            // prep the shapes by making sure all polys are open:
+            for( GeoPartList::iterator i = shape.getParts().begin(); i != shape.getParts().end(); i++ )
+            {
+                GeomUtils::openPolygon( *i );
+            }
         }
 
         if ( extrudeWallsUp( shape, env->getInputSRS(), height, getUniformHeight(), walls.get(), rooflines.get(), color, skin ) )
