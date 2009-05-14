@@ -21,6 +21,8 @@
 #include <osg/Texture2D>
 #include <osgGIS/Notify>
 
+#include <string.h>
+
 using namespace osgGIS;
 
 
