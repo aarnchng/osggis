@@ -96,6 +96,20 @@ namespace osgGIS
         const std::string& getClampedZOutputAttribute() const;
 
         /**
+         * Sets whether to simulate clamping. When used in conjuction with the
+         * setClampedZOutputAttribute property, the filter will calculate the
+         * "minimum clamped Z" coordinate without actually altering the input
+         * feature.
+         */
+        void setSimulate( bool value );
+
+        /**
+         * Gets whether to simulate the clamp without actually altering the
+         * input geometry. See setSimulate() for details.
+         */
+        bool getSimulate() const;
+
+        /**
          * Sets the script tha will evaluate to the name of the elevation resource
          * to use for clamping.
          */
@@ -118,6 +132,7 @@ namespace osgGIS
 
     private:
         bool ignore_z;
+        bool simulate;
         std::string clamped_z_output_attribute;
         osg::ref_ptr<Script> elevation_resource_script;
     };

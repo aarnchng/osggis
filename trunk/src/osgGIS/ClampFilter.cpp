@@ -35,11 +35,13 @@ OSGGIS_DEFINE_FILTER( ClampFilter );
 ClampFilter::ClampFilter()
 {
     ignore_z = false;
+    simulate = false;
 }
 
 ClampFilter::ClampFilter( const ClampFilter& rhs )
 : FeatureFilter( rhs ),
   ignore_z( rhs.ignore_z ),
+  simulate( rhs.simulate ),
   clamped_z_output_attribute( rhs.clamped_z_output_attribute ),
   elevation_resource_script( rhs.elevation_resource_script.get() )
 {
@@ -75,6 +77,18 @@ ClampFilter::getClampedZOutputAttribute() const
     return clamped_z_output_attribute;
 }
 
+void
+ClampFilter::setSimulate( bool value )
+{ 
+    simulate = value;
+}
+
+bool
+ClampFilter::getSimulate() const
+{
+    return simulate;
+}
+
 //void
 //ClampFilter::setElevationResourceScript( Script* value )
 //{
@@ -94,6 +108,8 @@ ClampFilter::setProperty( const Property& p )
         setIgnoreZ( p.getBoolValue( getIgnoreZ() ) );
     else if ( p.getName() == "clamped_z_output_attribute" )
         setClampedZOutputAttribute( p.getValue() );
+    else if ( p.getName() == "simulate" )
+        setSimulate( p.getBoolValue( getSimulate() ) );
     //else if ( p.getName() == "elevation" )
     //    setElevationResourceScript( new Script( p.getValue() ) );
 
@@ -109,6 +125,8 @@ ClampFilter::getProperties() const
 
     if ( getClampedZOutputAttribute().length() > 0 )
         p.push_back( Property( "clamped_z_output_attribute", getClampedZOutputAttribute() ) );
+    if ( getSimulate() == true )
+        p.push_back( Property( "simulate", getSimulate() ) );
     //if ( getElevationResourceScript() )
     //    p.push_back( Property( "elevation", getElevationResourceScript()->getCode() ) );
 
@@ -139,7 +157,8 @@ clampPointPartToTerrain(GeoPointList&           part,
                         const SpatialReference* srs,
                         bool                    ignore_z,
                         SmartReadCallback*      reader,
-                        double&                 out_clamped_z )
+                        double&                 out_clamped_z,
+                        bool                    simulate =false)
 {
     int clamps = 0;
     out_clamped_z = DBL_MAX;
@@ -149,55 +168,20 @@ clampPointPartToTerrain(GeoPointList&           part,
     if ( reader )
         iv.setReadCallback( reader );
 
+    GeoPoint simulated_p;
+
     for( GeoPointList::iterator i = part.begin(); i != part.end(); i++ )
     {
-        GeoPoint& p = *i;
+        if ( simulate ) simulated_p = *i;
+        GeoPoint& p = simulate? simulated_p : *i;
         GeoPoint  p_world = p.getAbsolute();
 
-        //osg::Vec3d p_world = p * srs->getInverseReferenceFrame();
         osg::Vec3d clamp_vec;
-
-//        double lat = 0.0, lon = 0.0;
         double hat = 0.0;
 
         osg::ref_ptr<LineSegmentIntersector2> isector;
 
         isector = GeomUtils::createClampingIntersector( p_world, hat );
-
-        //if ( srs->isGeographic() )
-        //{
-        //    lat = p.y(); lon = p.x(); hat = p.getDim() > 2? p.z() : 0.0;
-        //    osg::Vec3d ep0, ep1;
-        //    calculateEndpoints( p, ep0, ep1 );
-        //    clamp_vec = ep0 - ep1;
-        //    clamp_vec.normalize();
-        //    isector = new LineSegmentIntersector2( ep0, ep1 );
-        //}
-
-        //else if ( srs->isGeocentric() )
-        //{            
-        //    GeoPoint p_geo = srs->getGeographicSRS()->transform( p ); //p_world );
-        //    lat = p_geo.y(); lon = p_geo.x(); hat = p_geo.getDim() > 2? p_geo.z() : 0.0;
-
-        //    osg::Vec3d ep0, ep1;
-        //    calculateEndpoints( p_geo, ep0, ep1 );
-        //    clamp_vec = ep0 - ep1;
-        //    clamp_vec.normalize();
-        //    isector = new LineSegmentIntersector2( ep0, ep1 );
-        //}
-        //else // srs->isProjected()
-        //{
-        //    clamp_vec = osg::Vec3d( 0, 0, 1 );
-        //    osg::Vec3d ext_vec = clamp_vec * ALTITUDE_EXTENSION;
-        //    isector = new LineSegmentIntersector2(
-        //        p_world + ext_vec,
-        //        p_world - ext_vec );
-
-        //    if ( p.getDim() > 2 && !ignore_z )
-        //    {
-        //        hat = p.z();
-        //    }
-        //}
 
         iv.setIntersector( isector.get() );
 
@@ -249,11 +233,6 @@ clampPointPartToTerrain(GeoPointList&           part,
             {
                 if ( hat < out_clamped_z )
                     out_clamped_z = hat;
-
-                //double lat, lon, h;
-                //srs->getEllipsoid().xyzToLatLonHeight( offset_point.x(), offset_point.y(), offset_point.z(), lat, lon, h );
-                //if ( h < out_clamped_z )
-                //    out_clamped_z = h;
             }
             else
             {
@@ -521,22 +500,30 @@ ClampFilter::process( Feature* input, FilterEnv* env )
 
                 double out_clamped_z = DBL_MAX;
 
-                switch( shape.getShapeType() )
+                if ( getSimulate() )
                 {
-                case GeoShape::TYPE_POINT:
-                    clampPointPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
-                    break;
+                    clampPointPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z, true );
+                }
+                else
+                {
+                    switch( shape.getShapeType() )
+                    {
+                    case GeoShape::TYPE_POINT:
+                        clampPointPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
+                        break;
 
-                case GeoShape::TYPE_LINE:
-                    clampLinePartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), new_parts );
-                    break;
+                    case GeoShape::TYPE_LINE:
+                        clampLinePartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), new_parts );
+                        break;
 
-                case GeoShape::TYPE_POLYGON:
-                    clampPolyPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
-                    break;
+                    case GeoShape::TYPE_POLYGON:
+                        clampPolyPartToTerrain( part, terrain, env->getInputSRS(), ignore_z, env->getTerrainReadCallback(), out_clamped_z );
+                        break;
+                    }
+
+                    cleansePart( part );
                 }
 
-                cleansePart( part );
 
                 if ( out_clamped_z < min_clamped_z )
                     min_clamped_z = out_clamped_z;

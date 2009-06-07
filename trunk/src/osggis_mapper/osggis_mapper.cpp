@@ -104,7 +104,7 @@ static void usage( const char* prog, const char* msg )
     NOUT << prog << " views an osgGIS project." << ENDL;
     NOUT << ENDL;
     NOUT << "Usage:" << ENDL;
-    NOUT << "    " << prog << " [-f project-file]" << ENDL;
+    NOUT << "    " << prog << " [-f project-file] [-t overlay_texture_unit]" << ENDL;
     NOUT << ENDL;
     NOUT << "You may also use any argument supported by osgviewer." << ENDL;
 }
@@ -274,6 +274,7 @@ main(int argc, char* argv[])
     std::string map_name;
     std::string temp;
     bool unlit_terrain = false;
+    int overlay_tex_unit = 1;
     osg::ref_ptr<osgText::Text> text = new osgText::Text();
 
     // Begin by parsing the command-line arguments:
@@ -293,6 +294,11 @@ main(int argc, char* argv[])
     if ( args.read( "--map", temp ) )
     {
         map_name = temp;
+    }
+
+    if ( args.read( "--overlay-texture-unit", temp) || args.read( "-t", temp) )
+    {
+        overlay_tex_unit = atoi( temp.c_str() );
     }
 
     unlit_terrain = args.read( "--unlit-terrain" );
@@ -377,6 +383,7 @@ main(int argc, char* argv[])
     overlay->setOverlaySubgraph( NULL );
     overlay->setOverlayTextureSizeHint( 1024 );
     overlay->addChild( map_node.get() );
+    overlay->setOverlayTextureUnit( overlay_tex_unit );
 
     // replicate the terrain's CSN above the overlay:
     osg::Group* root = overlay;

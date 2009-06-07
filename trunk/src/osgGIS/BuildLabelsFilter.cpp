@@ -206,6 +206,20 @@ BuildLabelsFilter::process( Feature* input, FilterEnv* env )
     t->setBackdropType( osgText::Text::OUTLINE );
     t->setBackdropColor( osg::Vec4(0,0,0,1) );
 
+#if 0
+    // testing the flat-label approach here:
+    osg::Matrix cell2map = env->getInputSRS()->getInverseReferenceFrame();
+    osg::Vec3d feature_center = point * cell2map;
+    feature_center.normalize();
+    osg::Vec3d cell_center = osg::Vec3d(0,0,1) * cell2map;
+    cell_center.normalize();
+    osg::Quat q;
+    q.makeRotate( cell_center, feature_center );
+    t->setRotation( q );
+    t->setAutoRotateToScreen( false );
+    // end of flat label approach
+#endif
+
     if ( font.valid() )
     {
         t->setFont( font.get() );

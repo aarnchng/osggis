@@ -405,6 +405,7 @@ createFilterGraph()
     osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter();
     bnf->setDisableLighting( !lighting );
     bnf->setEmbedAttributes( embed_attrs );
+    bnf->setOptimize( false );
 
     // cluster culling causes overlay geometry not to work properly.
     if ( overlay )

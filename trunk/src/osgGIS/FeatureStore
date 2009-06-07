@@ -64,7 +64,7 @@ namespace osgGIS
          *
          * @return A spatial reference system
          */
-		virtual SpatialReference* getSRS() =0;
+		virtual SpatialReference* getSRS() const =0;
 		
         /**
          * Gets the total number of features in the backing store.
@@ -109,6 +109,13 @@ namespace osgGIS
          *      True if inserting succeeded, false if it failed.
 		 */
 		virtual bool insertFeature( Feature* feature ) =0;
+
+        /**
+         * Creates and returns a new, empty feature instance. This method does NOT
+         * insert the new feature into the store (see insertFeature). The called is
+         * responsible for deallocating the returned object.
+         */
+        virtual Feature* createFeature() const =0;
 
         /**
          * Returns true if the feature store supports random access to
