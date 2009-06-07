@@ -223,7 +223,7 @@ OGR_FeatureStore::getName() const
 
 
 SpatialReference*
-OGR_FeatureStore::getSRS()
+OGR_FeatureStore::getSRS() const
 {
 	if ( !spatial_ref.get() )
 	{
@@ -235,7 +235,7 @@ OGR_FeatureStore::getSRS()
             result = new OGR_SpatialReference( sr_handle, false, osg::Matrixd() );
             result = Registry::SRSFactory()->validateSRS( result.get() );
 		}
-		spatial_ref = result.get();
+		const_cast<OGR_FeatureStore*>(this)->spatial_ref = result.get();
 	}
 	return spatial_ref.get();
 }
@@ -266,6 +266,13 @@ OGR_FeatureStore::getFeature( const FeatureOID& oid )
         osgGIS::notify( osg::WARN ) << "Feature store does not support getFeature(OID)" << std::endl;
     }
 	return result;
+}
+
+
+Feature*
+OGR_FeatureStore::createFeature() const
+{
+    return new OGR_Feature( NULL, this->getSRS() );
 }
 
 

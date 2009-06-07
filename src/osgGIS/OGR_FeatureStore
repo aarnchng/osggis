@@ -51,7 +51,7 @@ namespace osgGIS
 
         const std::string& getName() const;
 		
-		SpatialReference* getSRS();
+		SpatialReference* getSRS() const;
 	
 		Feature* getFeature( const FeatureOID& oid );
 		
@@ -62,6 +62,8 @@ namespace osgGIS
 		const GeoExtent& getExtent() const;
 
         bool supportsRandomRead() const;
+
+        Feature* createFeature() const;
                         
         bool insertFeature( Feature* input );
         

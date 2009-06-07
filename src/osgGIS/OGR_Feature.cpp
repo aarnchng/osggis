@@ -30,14 +30,16 @@ OGR_Feature::OGR_Feature( void* _handle, SpatialReference* _sr )
 {
     handle = _handle;
 	spatial_ref = _sr;
-    load( _handle );
+    if ( handle )
+        load( _handle );
 }
 
 
 OGR_Feature::~OGR_Feature()
 {
     OGR_SCOPE_LOCK();
-    OGR_F_Destroy( handle );
+    if ( handle )
+        OGR_F_Destroy( handle );
 }
 
 
@@ -161,7 +163,7 @@ OGR_Feature::load( void* handle )
 }
 
 
-void
+static void
 decodePart( void* handle, GeoShape& shape, int dim )
 {
     OGR_SCOPE_LOCK();
@@ -234,38 +236,40 @@ OGR_Feature::getAttribute( const std::string& key ) const
 void
 OGR_Feature::loadAttributes()
 {
-    OGR_SCOPE_LOCK();
-
-    store_attrs.clear();
-
-    int count = OGR_F_GetFieldCount( handle );
-    for( int i=0; i<count; i++ )
+    if ( handle )
     {
-        Attribute attr;
+        OGR_SCOPE_LOCK();
 
-        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
-        const char* field_name = OGR_Fld_GetNameRef( field_handle_ref );
-        std::string lkey = StringUtils::toLower( std::string( field_name ) );
-        OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
-        switch( ft )
-        {
-            case OFTInteger:
-                attr = Attribute( lkey, OGR_F_GetFieldAsInteger( handle, i ) );
-                break;
-            case OFTReal:
-                attr =  Attribute( lkey, OGR_F_GetFieldAsDouble( handle, i ) );
-                break;
-            case OFTString:
-                attr =  Attribute( lkey, OGR_F_GetFieldAsString( handle, i ) );
-                break;
-        }
+        store_attrs.clear();
 
-        if ( attr.isValid() )
+        int count = OGR_F_GetFieldCount( handle );
+        for( int i=0; i<count; i++ )
         {
-            store_attrs[ lkey ] = attr;
+            Attribute attr;
+
+            void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
+            const char* field_name = OGR_Fld_GetNameRef( field_handle_ref );
+            std::string lkey = StringUtils::toLower( std::string( field_name ) );
+            OGRFieldType ft = OGR_Fld_GetType( field_handle_ref );
+            switch( ft )
+            {
+                case OFTInteger:
+                    attr = Attribute( lkey, OGR_F_GetFieldAsInteger( handle, i ) );
+                    break;
+                case OFTReal:
+                    attr =  Attribute( lkey, OGR_F_GetFieldAsDouble( handle, i ) );
+                    break;
+                case OFTString:
+                    attr =  Attribute( lkey, OGR_F_GetFieldAsString( handle, i ) );
+                    break;
+            }
+
+            if ( attr.isValid() )
+            {
+                store_attrs[ lkey ] = attr;
+            }
         }
     }
-
     store_attrs_loaded = true;
 }
 
@@ -304,54 +308,58 @@ OGR_Feature::getAttributeSchemas() const
 {
     AttributeSchemaTable table;
 
-    // first collect the in-store attrs:
-    OGR_SCOPE_LOCK();
-    int count = OGR_F_GetFieldCount( handle );
-    for( int i=0; i<count; i++ )
+    if ( handle )
     {
-        void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
-
-        OGRFieldType field_type  = OGR_Fld_GetType( field_handle_ref );
-        const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
-        int          field_width = OGR_Fld_GetWidth( field_handle_ref );
-        int          field_just  = OGR_Fld_GetJustify( field_handle_ref );
-        int          field_prec  = OGR_Fld_GetPrecision( field_handle_ref );
-
-        Attribute::Type type;
-        Properties props;
-
-        switch( field_type )
+        // first collect the in-store attrs:
+        OGR_SCOPE_LOCK();
+        int count = OGR_F_GetFieldCount( handle );
+        for( int i=0; i<count; i++ )
         {
-        case OFTInteger:
-            type = Attribute::TYPE_INT;
-            props.push_back( Property( "width", field_width ) );
-            props.push_back( Property( "precision", field_prec ) );
-            break;
+            void* field_handle_ref = OGR_F_GetFieldDefnRef( handle, i );
 
-        case OFTReal:
-            type = Attribute::TYPE_DOUBLE;
-            props.push_back( Property( "width", field_width ) );
-            props.push_back( Property( "precision", field_prec ) );
-            break;
+            OGRFieldType field_type  = OGR_Fld_GetType( field_handle_ref );
+            const char*  field_name  = OGR_Fld_GetNameRef( field_handle_ref );
+            int          field_width = OGR_Fld_GetWidth( field_handle_ref );
+            int          field_just  = OGR_Fld_GetJustify( field_handle_ref );
+            int          field_prec  = OGR_Fld_GetPrecision( field_handle_ref );
 
-        case OFTString:
-            type = Attribute::TYPE_STRING;
-            props.push_back( Property( "width", field_width ) );
-            props.push_back( Property( "justification", field_just ) );
-            break;
+            Attribute::Type type;
+            Properties props;
 
-        default:
-            type = Attribute::TYPE_UNSPECIFIED;
+            switch( field_type )
+            {
+            case OFTInteger:
+                type = Attribute::TYPE_INT;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "precision", field_prec ) );
+                break;
+
+            case OFTReal:
+                type = Attribute::TYPE_DOUBLE;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "precision", field_prec ) );
+                break;
+
+            case OFTString:
+                type = Attribute::TYPE_STRING;
+                props.push_back( Property( "width", field_width ) );
+                props.push_back( Property( "justification", field_just ) );
+                break;
+
+            default:
+                type = Attribute::TYPE_UNSPECIFIED;
+            }
+
+            std::string name(field_name);
+            table[ name ] = AttributeSchema( name, type, props );
         }
 
-        std::string name(field_name);
-        table[ name ] = AttributeSchema( name, type, props );
-    }
-
-    // collect the user attrs second:
-    for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end(); i++ )
-    {
-        table[ i->first ] = AttributeSchema( i->first, i->second.getType(), Properties() );
+        // collect the user attrs second:
+        for( AttributeTable::const_iterator i = getUserAttrs().begin(); i != getUserAttrs().end(); i++ )
+        {
+            table[ i->first ] = AttributeSchema( i->first, i->second.getType(), Properties() );
+        }
+        
     }
 
     // convert to a list

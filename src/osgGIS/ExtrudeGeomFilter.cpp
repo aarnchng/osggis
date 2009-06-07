@@ -152,6 +152,10 @@ extrudeWallsUp(const GeoShape&         shape,
     walls->setColorArray( colors );
     walls->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
 
+    osg::Vec3Array* normals = new osg::Vec3Array( num_verts );
+    walls->setNormalArray( normals );
+    walls->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
+
     osg::Vec3Array* roof_verts = NULL;
     osg::Vec4Array* roof_colors = NULL;
     if ( rooflines )
@@ -326,15 +330,6 @@ extrudeWallsUp(const GeoShape&         shape,
                     part_len += wall_vert_ptr > wall_part_ptr?
                         ((*verts)[wall_part_ptr] - (*verts)[wall_vert_ptr-2]).length() :
                         0.0;
-
-                    //double h;
-                    //if ( tex_repeats_y ) {
-                    //    h = ((*verts)[wall_part_ptr] - (*verts)[wall_part_ptr+1]).length();
-                    //    h += (tex_height_m - fmod( h, tex_height_m ) );
-                    //}
-                    //else {
-                    //    h = tex_height_m; //1.0;
-                    //}
 
                     int p;
 

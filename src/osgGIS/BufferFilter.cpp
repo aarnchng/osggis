@@ -25,15 +25,19 @@ using namespace osgGIS;
 #include <osgGIS/Registry>
 OSGGIS_DEFINE_FILTER( BufferFilter );
 
+#define DEFAULT_CONVERT_TO_POLYGON true
+
 
 BufferFilter::BufferFilter()
 {
     setDistance( 0.0 );
+    setConvertToPolygon( DEFAULT_CONVERT_TO_POLYGON );
 }
 
 BufferFilter::BufferFilter( const BufferFilter& rhs )
 : FeatureFilter( rhs ),
-  distance( rhs.distance )
+  distance( rhs.distance ),
+  convert_to_polygon( rhs.convert_to_polygon )
 {
     //NOP
 }
@@ -61,10 +65,24 @@ BufferFilter::getDistance() const
 }
 
 void
+BufferFilter::setConvertToPolygon( bool value )
+{
+    convert_to_polygon = value;
+}
+
+bool
+BufferFilter::getConvertToPolygon() const
+{
+    return convert_to_polygon;
+}
+
+void
 BufferFilter::setProperty( const Property& p )
 {
     if ( p.getName() == "distance" )
         setDistance( p.getDoubleValue( getDistance() ) );
+    if ( p.getName() == "convert_to_polygon" )
+        setConvertToPolygon( p.getBoolValue( getConvertToPolygon() ) );
     FeatureFilter::setProperty( p );
 }
 
@@ -74,6 +92,8 @@ BufferFilter::getProperties() const
     Properties p = FeatureFilter::getProperties();
     if ( getDistance() > 0.0 )
         p.push_back( Property( "distance", getDistance() ) );
+    if ( getConvertToPolygon() != DEFAULT_CONVERT_TO_POLYGON )
+        p.push_back( Property( "convert_to_polygon", getConvertToPolygon() ) );
     return p;
 }
 
@@ -97,7 +117,7 @@ getLineIntersection( Segment& s0, Segment& s1, osg::Vec3d& output )
     osg::Vec3d& p4 = s1.p1;
 
     double denom = (p4.y()-p3.y())*(p2.x()-p1.x()) - (p4.x()-p3.x())*(p2.y()-p1.y());
-    if ( denom != 0.0 )
+    if ( ::fabs(denom) >= 0.001 ) //denom != 0.0 )
     {
         double ua_num = (p4.x()-p3.x())*(p1.y()-p3.y()) - (p4.y()-p3.y())*(p1.x()-p3.x());
         double ub_num = (p2.x()-p1.x())*(p1.y()-p3.y()) - (p2.y()-p1.y())*(p1.x()-p3.x());
@@ -108,12 +128,14 @@ getLineIntersection( Segment& s0, Segment& s1, osg::Vec3d& output )
         double isect_x = p1.x() + ua*(p2.x()-p1.x());
         double isect_y = p1.y() + ua*(p2.y()-p1.y());
         output.set( isect_x, isect_y, p2.z() );
+        return true;
     }
-    else
+    else // colinear or parallel
     {
         output.set( p2 );
+        return false;
     }
-    return true;
+    //return true;
 }
 
 static void
@@ -134,7 +156,8 @@ bufferPolygons( const GeoShape& shape, double b, GeoPartList& output )
             const osg::Vec3d& p0 = *j;
             const osg::Vec3d& p1 = (j+1) != part.end()? *(j+1) : *part.begin();
 
-            osg::Vec3d d = p1-p0; d.normalize();
+            osg::Vec3d d = p1-p0;
+            d.normalize();
 
             osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
             osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
@@ -163,7 +186,7 @@ bufferPolygons( const GeoShape& shape, double b, GeoPartList& output )
 
 
 static void
-bufferLines( const GeoShape& input, double b, GeoShape& output )
+bufferLinesToPolygons( const GeoShape& input, double b, GeoShape& output )
 {
     // buffering lines turns them into polygons
     for( GeoPartList::const_iterator i = input.getParts().begin(); i != input.getParts().end(); i++ )
@@ -180,7 +203,8 @@ bufferLines( const GeoShape& input, double b, GeoShape& output )
             const osg::Vec3d& p0 = *j;
             const osg::Vec3d& p1 = *(j+1);
 
-            osg::Vec3d d = p1-p0; d.normalize();
+            osg::Vec3d d = p1-p0;
+            d.normalize();
 
             osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
             osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
@@ -200,7 +224,8 @@ bufferLines( const GeoShape& input, double b, GeoShape& output )
             const osg::Vec3d& p0 = *j;
             const osg::Vec3d& p1 = *(j+1);
 
-            osg::Vec3d d = p1-p0; d.normalize();
+            osg::Vec3d d = p1-p0;
+            d.normalize();
 
             osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
             osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
@@ -233,6 +258,67 @@ bufferLines( const GeoShape& input, double b, GeoShape& output )
             output.getParts().push_back( new_part );
     }
 }
+
+
+static void
+bufferLinesToLines( const GeoShape& input, double b, GeoShape& output )
+{
+    // buffering lines turns them into polygons
+    for( GeoPartList::const_iterator i = input.getParts().begin(); i != input.getParts().end(); i++ )
+    {
+        const GeoPointList& part = *i;
+        if ( part.size() < 2 ) continue;
+
+        GeoPointList new_part;
+
+        // collect all the shifted segments:
+        SegmentList segments;
+        for( GeoPointList::const_iterator j = part.begin(); j != part.end()-1; j++ )
+        {
+            const osg::Vec3d& p0 = *j;
+            const osg::Vec3d& p1 = *(j+1);
+
+            osg::Vec3d d = p1-p0; d.normalize();
+
+            osg::Vec3d b0( p0.x() + b*d.y(), p0.y() - b*d.x(), p1.z() );
+            osg::Vec3d b1( p1.x() + b*d.y(), p1.y() - b*d.x(), p1.z() );
+            segments.push_back( Segment( b0, b1 ) );
+        }
+
+        // then intersect each pair of shifted segments to find the new verts:
+        for( SegmentList::iterator k = segments.begin(); k != segments.end()-1; k++ )
+        {
+            Segment& s0 = *k;
+            Segment& s1 = *(k+1); //(k+1) != segments.end()? *(k+1) : *segments.begin();
+
+            if ( k == segments.begin() )
+            {
+                GeoPoint first( s0.p0, part[0].getSRS() );
+                first.setDim( part[0].getDim() );
+                new_part.push_back( first );
+            }
+
+            osg::Vec3d isect;
+            if ( getLineIntersection( s0, s1, isect ) )
+            {
+                GeoPoint r( isect, part[0].getSRS() );
+                r.setDim( part[0].getDim() );
+                new_part.push_back( r );
+            }
+
+            if ( k == segments.end()-2 )
+            {
+                GeoPoint last( s1.p1, part[0].getSRS() );
+                last.setDim( part[0].getDim() );
+                new_part.push_back( last );
+            }
+        }
+
+        if ( new_part.size() > 1 )
+            output.getParts().push_back( new_part );
+    }
+}
+
 
 FeatureList
 BufferFilter::process( Feature* input, FilterEnv* env )
@@ -272,9 +358,18 @@ BufferFilter::process( Feature* input, FilterEnv* env )
         }
         else if ( shape.getShapeType() == GeoShape::TYPE_LINE )
         {
-            GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
-            bufferLines( shape, b, new_shape );
-            new_shapes.push_back( new_shape );
+            if ( getConvertToPolygon() )
+            {
+                GeoShape new_shape( GeoShape::TYPE_POLYGON, shape.getSRS() );
+                bufferLinesToPolygons( shape, b, new_shape );
+                new_shapes.push_back( new_shape );
+            }
+            else
+            {
+                GeoShape new_shape( GeoShape::TYPE_LINE, shape.getSRS() );
+                bufferLinesToLines( shape, b, new_shape );
+                new_shapes.push_back( new_shape );
+            }
         }
     }
 

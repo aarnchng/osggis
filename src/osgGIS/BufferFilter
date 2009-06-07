@@ -77,6 +77,21 @@ namespace osgGIS
          */
         double getDistance() const;
 
+        /**
+         * Sets whether line shapes should be converted to polygons when buffered.
+         * The default is TRUE; when you buffer a line, it becomes a polygon centered
+         * on the original line. Set this to FALSE and the filter acts more line an
+         * expand/contract function, shifting the line in or out.
+         */
+        void setConvertToPolygon( bool value );
+
+        /**
+         * Gets whether to convert lines shapes into polygons when buffering. Default
+         * is true.
+         */
+        bool getConvertToPolygon() const;
+
+
     public: // FeatureFilter overrides
         FeatureList process( Feature* input, FilterEnv* env );
 
@@ -86,6 +101,7 @@ namespace osgGIS
 
     protected:
         double distance;
+        bool convert_to_polygon;
     };
 }
 
