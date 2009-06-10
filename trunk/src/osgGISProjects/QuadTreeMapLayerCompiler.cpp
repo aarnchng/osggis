@@ -108,6 +108,8 @@ QuadTreeMapLayerCompiler::createQuadKeyTask( const QuadKey& key )
         cell_env->setInputSRS( def->getFeatureLayer()->getSRS() );
         cell_env->setExtent( map_layer->getAreaOfInterest().getSRS()->transform( key.getExtent() ) );
         cell_env->setProperty( Property( "compiler.cell_id", key.toString() ) );
+        for( Properties::const_iterator i = def->getEnvProperties().begin(); i != def->getEnvProperties().end(); i++ )
+            cell_env->setProperty( *i );
 
         task = new CellCompiler(
             key.toString(),

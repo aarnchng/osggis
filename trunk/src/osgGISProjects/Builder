@@ -60,6 +60,7 @@ namespace osgGISProjects
 
         bool addSlicesToMapLayer( 
             BuildLayerSliceList& slices, 
+            const Properties& env_props,
             MapLayer* map_layer,
             ResourcePackager* default_packager, 
             unsigned int lod, 

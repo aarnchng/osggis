@@ -150,6 +150,7 @@ MapLayer::getEncodeCellRadius() const
 
 void
 MapLayer::push(FeatureLayer* layer, FilterGraph* graph, 
+               const Properties& env_properties,
                ResourcePackager* packager,
                float min_range, float max_range, 
                bool replace_previous, unsigned int depth,
@@ -164,7 +165,8 @@ MapLayer::push(FeatureLayer* layer, FilterGraph* graph,
             aoi_auto.expandToInclude( layer->getExtent() );
 
         // store the LOD definition:
-        levels.push_back( new MapLayerLevelOfDetail( layer, graph, packager, min_range, max_range, replace_previous, depth, user_data ) );
+        levels.push_back( new MapLayerLevelOfDetail( 
+            layer, graph, env_properties, packager, min_range, max_range, replace_previous, depth, user_data ) );
         
         grid_valid = false;
     }  

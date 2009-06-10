@@ -24,6 +24,7 @@ using namespace osgGISProjects;
 
 MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer*     _layer,
                                              FilterGraph*      _graph,
+                                             const Properties& _env_props,
                                              ResourcePackager* _packager,
                                              float             _min_range,
                                              float             _max_range,
@@ -33,6 +34,7 @@ MapLayerLevelOfDetail::MapLayerLevelOfDetail(FeatureLayer*     _layer,
 {
     layer            = _layer;
     graph            = _graph;
+    env_props        = _env_props;
     packager         = _packager;
     min_range        = _min_range;
     max_range        = _max_range;
@@ -79,4 +81,9 @@ MapLayerLevelOfDetail::getDepth() const {
 osg::Referenced*
 MapLayerLevelOfDetail::getUserData() const {
     return user_data.get();
+}
+
+const Properties&
+MapLayerLevelOfDetail::getEnvProperties() const {
+    return env_props;
 }

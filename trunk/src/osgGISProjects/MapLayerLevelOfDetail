@@ -40,6 +40,7 @@ namespace osgGISProjects
         MapLayerLevelOfDetail( 
             FeatureLayer* layer,
             FilterGraph* graph,
+            const Properties& env_props,
             ResourcePackager* packager,
             float min_range,
             float max_range,
@@ -55,10 +56,12 @@ namespace osgGISProjects
         unsigned int getDepth() const;
         ResourcePackager* getResourcePackager() const;
         osg::Referenced* getUserData() const;
+        const Properties& getEnvProperties() const;
 
     private:
         osg::ref_ptr<FeatureLayer>     layer;
         osg::ref_ptr<FilterGraph>      graph;
+        Properties                     env_props;
         osg::ref_ptr<ResourcePackager> packager;
         float                          min_range, max_range;
         bool                           replace_previous;

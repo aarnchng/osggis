@@ -249,6 +249,7 @@ Builder::build( Source* source, Session* session )
 
 bool
 Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
+                             const Properties& env_properties,
                              MapLayer* map_layer,
                              ResourcePackager* default_packager,
                              unsigned int depth, 
@@ -294,6 +295,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
             map_layer->push(
                 feature_layer,
                 slice->getFilterGraph(),
+                env_properties,
                 packager.get(),
                 slice->getMinRange(),
                 slice->getMaxRange(),
@@ -303,7 +305,7 @@ Builder::addSlicesToMapLayer(BuildLayerSliceList& slices,
         }
 
         // now add any sub-slice children:
-        if ( !addSlicesToMapLayer( slice->getSubSlices(), map_layer, packager.get(), depth+1, session, slice_source ) )
+        if ( !addSlicesToMapLayer( slice->getSubSlices(), env_properties, map_layer, packager.get(), depth+1, session, slice_source ) )
         {
             return false;
         }
@@ -455,7 +457,7 @@ Builder::build( BuildLayer* layer )
         packager->setInlineTextures( layer->getProperties().getBoolValue( "inline_textures", false ) );
     }
 
-    if ( !addSlicesToMapLayer( layer->getSlices(), map_layer.get(), packager.get(), 0, session.get(), source ) )
+    if ( !addSlicesToMapLayer( layer->getSlices(), layer->getEnvProperties(), map_layer.get(), packager.get(), 0, session.get(), source ) )
     {
         osgGIS::warn() << "Failed to add all slices to layer " << layer->getName() << std::endl;
         return false;

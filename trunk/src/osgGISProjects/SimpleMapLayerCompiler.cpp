@@ -88,6 +88,8 @@ SimpleMapLayerCompiler::queueTasks( Profile* _profile, TaskManager* task_man )
         cell_env->setExtent( map_layer->getAreaOfInterest() ); //GeoExtent::infinite() );
         cell_env->setTerrainNode( getTerrainNode() );
         cell_env->setTerrainSRS( getTerrainSRS() );
+        for( Properties::const_iterator i = level_def->getEnvProperties().begin(); i != level_def->getEnvProperties().end(); i++ )
+            cell_env->setProperty( *i );
 
         Task* task = new CellCompiler(
             s.str(),

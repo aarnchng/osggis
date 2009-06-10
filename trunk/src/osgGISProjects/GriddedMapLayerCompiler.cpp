@@ -318,6 +318,12 @@ createTask( const GridCellKey& key, MapLayerCompiler* compiler )
         cell_env->setExtent( extent );
         cell_env->setProperty( Property( "compiler.cell_id", key.toString() ) );
 
+        // copy over the user env properties:
+        for( Properties::const_iterator i = def->getEnvProperties().begin(); i != def->getEnvProperties().end(); i++ )
+        {
+            cell_env->setProperty( *i );
+        }
+
         task = new CellCompiler(
             key.toString(),
             abs_path,
