@@ -111,6 +111,7 @@ namespace osgGISProjects
         void push(
             FeatureLayer*     layer,
             FilterGraph*      graph,
+            const Properties& env_props,
             ResourcePackager* packager,
             float             min_range,
             float             max_range,

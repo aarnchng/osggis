@@ -640,12 +640,21 @@ decodeLayer( XmlElement* e, Project* proj )
             std::string value = k_e->getAttr( "value" );
             layer->getProperties().push_back( Property( name, value ) );
         }
+
+        XmlNodeList env_props = e->getSubElements( "env_property" );
+        for( XmlNodeList::const_iterator i = env_props.begin(); i != env_props.end(); i++ )
+        {
+            XmlElement* k_e = (XmlElement*)i->get();
+            std::string name = k_e->getAttr( "name" );
+            std::string value = k_e->getAttr( "value" );
+            layer->getEnvProperties().push_back( Property( name, value ) );
+        }
     }
     return layer;
 }
 
-static XmlElement *
-encodeLayer(BuildLayer *layer)
+static XmlElement*
+encodeLayer(BuildLayer* layer)
 {
 	XmlElement *e = NULL;
     if ( layer )

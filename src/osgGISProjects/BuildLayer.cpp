@@ -131,3 +131,16 @@ BuildLayer::getProperties()
     return properties;
 }
 
+const Properties&
+BuildLayer::getEnvProperties() const
+{
+    return env_properties;
+}
+
+Properties&
+BuildLayer::getEnvProperties()
+{
+    return env_properties;
+}
+
+

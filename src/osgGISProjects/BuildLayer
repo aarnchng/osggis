@@ -80,6 +80,10 @@ namespace osgGISProjects
         std::string getPropertyAsString( const std::string& name ) const;
         
         double getPropertyAsDouble( const std::string& name ) const;
+
+        // user properties that will get installed into each FilterEnv.
+        Properties& getEnvProperties();
+        const Properties& getEnvProperties() const;
         
     private:
         std::string name;
@@ -90,6 +94,7 @@ namespace osgGISProjects
         std::string target_path;
         LayerType type;
         Properties properties;
+        Properties env_properties;
     };
     
     typedef std::list<osg::ref_ptr<BuildLayer> > BuildLayerList;
