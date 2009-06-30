@@ -445,7 +445,7 @@ BuildNodesFilter::process( AttributedNodeList& input, FilterEnv* env )
     if ( getAlphaBlending() )
     {
         osg::BlendFunc* blend_func = new osg::BlendFunc();
-        blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        //blend_func->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
         result->getOrCreateStateSet()->setAttributeAndModes( blend_func, osg::StateAttribute::ON );
         result->getOrCreateStateSet()->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );     
     }
