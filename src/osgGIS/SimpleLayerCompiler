@@ -89,8 +89,8 @@ namespace osgGIS
             FeatureCursor&     cursor,
             const std::string& output_file ="");
             
-    private:
-        osg::Node* compileLOD(
+
+        osg::Node* compile(
             FeatureLayer*  layer,
             FeatureCursor& cursor,
             FilterGraph*   graph );

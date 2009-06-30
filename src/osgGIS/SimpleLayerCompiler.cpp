@@ -41,7 +41,7 @@ SimpleLayerCompiler::SimpleLayerCompiler( FilterGraph* graph )
 }
 
 osg::Node*
-SimpleLayerCompiler::compileLOD( FeatureLayer* layer, FeatureCursor& cursor, FilterGraph* graph )
+SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, FilterGraph* graph )
 {
     osg::ref_ptr<FilterEnv> env = getSession()->createFilterEnv();
     env->setExtent( getAreaOfInterest( layer ) );
@@ -83,7 +83,7 @@ SimpleLayerCompiler::compile( FeatureLayer* layer, FeatureCursor& cursor, const 
 
     for( FilterGraphRangeList::iterator i = graph_ranges.begin(); i != graph_ranges.end(); i++ )
     {
-        osg::Node* range = compileLOD( layer, cursor, i->graph.get() );
+        osg::Node* range = compile( layer, cursor, i->graph.get() );
         if ( range )
         {
             lod->addChild( range, i->min_range, i->max_range );

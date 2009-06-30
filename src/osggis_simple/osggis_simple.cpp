@@ -162,12 +162,15 @@ createFilterGraph()
 
     // Construct a Node that contains the drawables and adjust its state set.
     osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter();
-    bnf->setDisableLighting( true );
+    //bnf->setDisableLighting( true );
+
+    bnf->setAlphaBlending( true );
+    bnf->setOptimize( false );
+
     graph->appendFilter( bnf );
 
     return graph;
 }
-
 
 int
 main(int argc, char* argv[])
@@ -187,9 +190,8 @@ main(int argc, char* argv[])
     // Create a graph that the compiler will use to build the geometry:
     osg::ref_ptr<osgGIS::FilterGraph> graph = createFilterGraph();
 
-    // Compile the feature layer into a scene graph.
-    osgGIS::SimpleLayerCompiler compiler( graph.get() );
-    osg::ref_ptr<osg::Node> output = compiler.compile( layer.get() );
+    osgGIS::SimpleLayerCompiler compiler;
+    osg::ref_ptr<osg::Node> output = compiler.compile( layer.get(), layer->getCursor(), graph.get() );
 
     if ( !output.valid() )
         return die( "Compilation failed!" );
