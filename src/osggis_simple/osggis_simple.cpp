@@ -191,7 +191,8 @@ main(int argc, char* argv[])
     osg::ref_ptr<osgGIS::FilterGraph> graph = createFilterGraph();
 
     osgGIS::SimpleLayerCompiler compiler;
-    osg::ref_ptr<osg::Node> output = compiler.compile( layer.get(), layer->getCursor(), graph.get() );
+    osgGIS::FeatureCursor cursor = layer->getCursor();
+    osg::ref_ptr<osg::Node> output = compiler.compile( layer.get(), cursor, graph.get() );
 
     if ( !output.valid() )
         return die( "Compilation failed!" );
