@@ -48,7 +48,7 @@ std::string project_file = "project.xml";
 std::string target_name = "";
 bool list_targets = false;
 bool test_sources = false;
-int num_threads = 0; // defaults to logical proc count
+int num_threads = 1; // defaults to logical proc count
 
 int
 die( const std::string& msg )
