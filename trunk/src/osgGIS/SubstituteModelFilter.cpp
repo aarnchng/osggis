@@ -380,55 +380,54 @@ SubstituteModelFilter::materializeAndClusterFeatures( const FeatureList& feature
 	return clone;
 }
 
+class ImageFinder : public osg::NodeVisitor {
+public:
+    ImageFinder( ResourceCache* _resources, unsigned int _max_texture_size )
+        : resources(_resources),
+        max_texture_size(_max_texture_size),
+        osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+
+    void processStateSet( osg::StateSet* ss )
+    {
+        if ( ss )
+        {
+            for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
+            {
+                osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
+                if ( tex && tex->getImage() )
+                {
+                    SkinResource* skin = resources->addSkin( ss );
+                    skin->setMaxTextureSize( max_texture_size );
+                    std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
+                    skin->setURI( abs_path ); // may be empty if this was an inlined texture
+                }
+            }
+        }
+    }
+
+    void apply( osg::Node& node )
+    {
+        processStateSet( node.getStateSet() );
+        osg::NodeVisitor::apply( node ); // up the tree
+    }
+
+    void apply( osg::Geode& geode )
+    {
+        for( unsigned int i=0; i<geode.getNumDrawables(); i++ )
+        {
+            osg::Drawable* d = geode.getDrawable( i );
+            processStateSet( d->getStateSet() );
+        }
+        osg::NodeVisitor::apply( geode );
+    }
+
+    ResourceCache* resources;
+    unsigned int max_texture_size;
+};
 
 static void
 registerTextures( osg::Node* node, ResourceCache* resources, unsigned int max_texture_size )
 {
-    class ImageFinder : public osg::NodeVisitor {
-    public:
-        ImageFinder( ResourceCache* _resources, unsigned int _max_texture_size )
-            : resources(_resources),
-              max_texture_size(_max_texture_size),
-              osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
-
-        void processStateSet( osg::StateSet* ss )
-        {
-            if ( ss )
-            {
-                for( unsigned int i=0; i<ss->getTextureAttributeList().size(); i++ )
-                {
-                    osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>( ss->getTextureAttribute( i, osg::StateAttribute::TEXTURE ) );
-                    if ( tex && tex->getImage() )
-                    {
-                        SkinResource* skin = resources->addSkin( ss );
-                        skin->setMaxTextureSize( max_texture_size );
-                        std::string abs_path = osgDB::findDataFile( tex->getImage()->getFileName() );
-                        skin->setURI( abs_path ); // may be empty if this was an inlined texture
-                    }
-                }
-            }
-        }
-
-        void apply( osg::Node& node )
-        {
-            processStateSet( node.getStateSet() );
-            osg::NodeVisitor::apply( node ); // up the tree
-        }
-
-        void apply( osg::Geode& geode )
-        {
-            for( unsigned int i=0; i<geode.getNumDrawables(); i++ )
-            {
-                osg::Drawable* d = geode.getDrawable( i );
-                processStateSet( d->getStateSet() );
-            }
-            osg::NodeVisitor::apply( geode );
-        }
-
-        ResourceCache* resources;
-        unsigned int max_texture_size;
-    };
-
     ImageFinder image_finder( resources, max_texture_size );
     node->accept( image_finder );
 }
