@@ -121,6 +121,18 @@ namespace osgGIS
     public: // Filter overrides
         virtual void setProperty( const Property& p );
         virtual Properties getProperties() const;
+
+    protected:
+        bool extrudeWallsUp(
+            const GeoShape&         shape, 
+            const SpatialReference* srs, 
+            double                  height,
+            bool                    uniform_height,
+            osg::Geometry*          walls,
+            osg::Geometry*          top_cap,
+            osg::Geometry*          bottom_cap,
+            const osg::Vec4&        color,
+            SkinResource*           skin );
         
     private:
         osg::ref_ptr<Script> height_script;
