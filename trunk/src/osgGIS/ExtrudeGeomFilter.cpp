@@ -362,15 +362,16 @@ ExtrudeGeomFilter::getProperties() const
 //}
 
 
-static bool
-extrudeWallsUp(const GeoShape&         shape, 
-               const SpatialReference* srs, 
-               double                  height,
-               bool                    uniform_height,
-               osg::Geometry*          walls,
-               osg::Geometry*          rooflines,
-               const osg::Vec4&        color,
-               SkinResource*           skin )
+bool
+ExtrudeGeomFilter::extrudeWallsUp(const GeoShape&         shape, 
+                                  const SpatialReference* srs, 
+                                  double                  height,
+                                  bool                    uniform_height,
+                                  osg::Geometry*          walls,
+                                  osg::Geometry*          top_cap,
+                                  osg::Geometry*          bottom_cap,
+                                  const osg::Vec4&        color,
+                                  SkinResource*           skin )
 {
     bool made_geom = true;
 
@@ -399,20 +400,28 @@ extrudeWallsUp(const GeoShape&         shape,
     walls->setNormalArray( normals );
     walls->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
 
-    osg::Vec3Array* roof_verts = NULL;
-    osg::Vec4Array* roof_colors = NULL;
-    if ( rooflines )
+    osg::Vec3Array* top_verts = NULL;
+    osg::Vec4Array* top_colors = NULL;
+    if ( top_cap )
     {
-        roof_verts = new osg::Vec3Array( point_count );
-        rooflines->setVertexArray( roof_verts );
+        top_verts = new osg::Vec3Array( point_count );
+        top_cap->setVertexArray( top_verts );
 
-        roof_colors = new osg::Vec4Array( point_count );
-        rooflines->setColorArray( roof_colors );
-        rooflines->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
+        top_colors = new osg::Vec4Array( point_count );
+        top_cap->setColorArray( top_colors );
+        top_cap->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
+    }
+
+    osg::Vec3Array* bottom_verts = NULL;
+    if ( bottom_cap )
+    {
+        bottom_verts = new osg::Vec3Array( point_count );
+        bottom_cap->setVertexArray( bottom_verts );
     }
 
     int wall_vert_ptr = 0;
-    int roof_vert_ptr = 0;
+    int top_vert_ptr = 0;
+    int bottom_vert_ptr = 0;
 
     GLenum prim_type = shape.getShapeType() == GeoShape::TYPE_POINT?
         osg::PrimitiveSet::LINES :
@@ -470,7 +479,8 @@ extrudeWallsUp(const GeoShape&         shape,
 
         const GeoPointList& part = *k;
         unsigned int wall_part_ptr = wall_vert_ptr;
-        unsigned int roof_part_ptr = roof_vert_ptr;
+        unsigned int top_part_ptr = top_vert_ptr;
+        unsigned int bottom_part_ptr = bottom_vert_ptr;
         double part_len = 0.0;
 
         double max_height = 0;
@@ -533,10 +543,14 @@ extrudeWallsUp(const GeoShape&         shape,
                 extrude_vec.set( m->x(), m->y(), target_len );
             }
 
-            if ( rooflines )
+            if ( top_cap )
             {
-                (*roof_colors)[roof_vert_ptr] = color;
-                (*roof_verts)[roof_vert_ptr++] = extrude_vec;
+                (*top_colors)[top_vert_ptr] = color;
+                (*top_verts)[top_vert_ptr++] = extrude_vec;
+            }
+            if ( bottom_cap )
+            {
+                (*bottom_verts)[bottom_vert_ptr++] = *m;
             }
              
             part_len += wall_vert_ptr > wall_part_ptr?
@@ -587,11 +601,22 @@ extrudeWallsUp(const GeoShape&         shape,
             prim_type,
             wall_part_ptr, wall_vert_ptr - wall_part_ptr ) );
 
-        if ( rooflines )
+        if ( top_cap )
         {
-            rooflines->addPrimitiveSet( new osg::DrawArrays(
+            top_cap->addPrimitiveSet( new osg::DrawArrays(
                 osg::PrimitiveSet::LINE_LOOP,
-                roof_part_ptr, roof_vert_ptr - roof_part_ptr ) );
+                top_part_ptr, top_vert_ptr - top_part_ptr ) );
+        }
+        if ( bottom_cap )
+        {
+            // reverse the bottom verts:
+            int len = bottom_vert_ptr - bottom_part_ptr;
+            for( int i=bottom_part_ptr; i<len/2; i++ )
+                std::swap( (*bottom_verts)[i], (*bottom_verts)[bottom_part_ptr+(len-1)-i] );
+
+            bottom_cap->addPrimitiveSet( new osg::DrawArrays(
+                osg::PrimitiveSet::LINE_LOOP,
+                bottom_part_ptr, bottom_vert_ptr - bottom_part_ptr ) );
         }
     }
 
@@ -681,7 +706,7 @@ ExtrudeGeomFilter::process( Feature* input, FilterEnv* env )
             }
         }
 
-        if ( extrudeWallsUp( shape, env->getInputSRS(), height, getUniformHeight(), walls.get(), rooflines.get(), color, skin ) )
+        if ( extrudeWallsUp( shape, env->getInputSRS(), height, getUniformHeight(), walls.get(), rooflines.get(), NULL, color, skin ) )
         {      
             if ( skin )
             {

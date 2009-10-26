@@ -137,9 +137,9 @@ namespace osgGIS
 #define OSGGIS_META_FILTER(name) \
     public: \
         virtual std::string getFilterType() { return getStaticFilterType(); } \
-        virtual Filter* clone() const { return new name ( *this ); } \
+        virtual osgGIS::Filter* clone() const { return new name ( *this ); } \
         static std::string getStaticFilterType() { return #name; } \
-        static FilterFactory* getFilterFactory() { return new FilterFactoryImpl<name>(); }     
+        static osgGIS::FilterFactory* getFilterFactory() { return new osgGIS::FilterFactoryImpl<name>(); }     
 
     /* Handy macro for defining all the basic required implementation methods in a Filter class */
 #define OSGGIS_DEFINE_FILTER(name) \
