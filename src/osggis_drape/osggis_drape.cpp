@@ -45,6 +45,7 @@
 #include <osgDB/ReadFile>
 #include <osgViewer/Viewer>
 #include <osgGA/StateSetManipulator>
+#include <osgGA/TerrainManipulator>
 #include <osgViewer/ViewerEventHandlers>
 #include <osgUtil/Tessellator>
 #include <osg/GLExtensions>
@@ -236,6 +237,13 @@ protected:
 
         bool zFail = true;
         osg::Group* root = new osg::Group();
+        //Just add the group
+#if 0
+        root->addChild( input->getNode() );
+        root->getOrCreateStateSet()->setAttributeAndModes( new osg::CullFace(osg::CullFace::Mode::FRONT), osg::StateAttribute::ON);
+        output.push_back( new osgGIS::AttributedNode( root, input->getAttributes() ) );        
+        return output;
+#endif
 
         bool s_EXT_stencil_wrap = osg::isGLExtensionSupported(0, "GL_EXT_stencil_wrap");
         bool s_EXT_stencil_two_side = osg::isGLExtensionSupported(0, "GL_EXT_stencil_two_side");
@@ -369,7 +377,7 @@ protected:
         }
 
         // make a full screen quad:
-        osg::Geometry* quad = new osg::Geometry();
+        /*osg::Geometry* quad = new osg::Geometry();
         osg::Vec3Array* verts = new osg::Vec3Array(4);
         (*verts)[0].set( 0, 1, 0 );
         (*verts)[1].set( 0, 0, 0 );
@@ -408,7 +416,23 @@ protected:
         proj->setMatrix( osg::Matrix::ortho(0, 1, 0, 1, 0, -1) );
         proj->addChild( abs );
 
-        root->addChild( proj );
+        root->addChild( proj );*/
+
+        osg::Group* finalGroup = new osg::Group;
+        finalGroup->addChild( input->getNode() );
+        osg::StateSet* finalGroup_ss = finalGroup->getOrCreateStateSet();
+        finalGroup_ss->setRenderBinDetails( priority++, "RenderBin" );
+        //finalGroup_ss->setMode( GL_CULL_FACE, OFF_AND_PROTECTED );
+        //finalGroup_ss->setMode( GL_DEPTH_TEST, OFF_AND_PROTECTED );
+        finalGroup_ss->setMode( GL_LIGHTING, OFF_AND_PROTECTED );
+        finalGroup_ss->setAttributeAndModes( new osg::CullFace(osg::CullFace::BACK), ON_AND_PROTECTED);
+
+        osg::Stencil* finalGroup_stencil = new osg::Stencil();
+        finalGroup_stencil->setFunction( osg::Stencil::NOTEQUAL, 128, (unsigned int)~0 );
+        finalGroup_stencil->setOperation( osg::Stencil::KEEP, osg::Stencil::KEEP, osg::Stencil::KEEP );
+        finalGroup_ss->setAttributeAndModes( finalGroup_stencil, ON_AND_PROTECTED );
+        root->addChild( finalGroup );
+
 
         root->getOrCreateStateSet()->setMode( GL_BLEND, 1 );
 
@@ -465,6 +489,7 @@ createFilterGraph()
 
     // Construct a Node that contains the drawables and adjust its state set.
     osgGIS::BuildNodesFilter* bnf = new osgGIS::BuildNodesFilter();
+    bnf->setCullBackfaces( false );
     //bnf->setDisableLighting( true );
 
     bnf->setAlphaBlending( true );
@@ -511,15 +536,17 @@ main(int argc, char* argv[])
         return die( "Compilation failed!" );
 
     osg::Group* root = new osg::Group();
+    root->addChild( output.get() );
     if ( terrain.valid() )
         root->addChild( terrain.get() );
-    root->addChild( output.get() );
+
     
     osg::DisplaySettings::instance()->setMinimumNumStencilBits( 8 );
 
     osgViewer::Viewer viewer;
     viewer.setUpViewInWindow( 10, 10, 1024, 768 );
     viewer.addEventHandler(new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()));
+    viewer.setCameraManipulator( new osgGA::TerrainManipulator() );
     viewer.setSceneData( root );
     viewer.getCamera()->setClearStencil(128);
     viewer.getCamera()->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
