@@ -30,6 +30,7 @@
 #include <osgDB/Archive>
 #include <osgUtil/IntersectionVisitor>
 #include <osg/Timer>
+#include <osg/PagedLOD>
 #include <string>
 
 namespace osgGIS
