@@ -22,6 +22,7 @@
 #include <osgGIS/Registry>
 #include <osg/CoordinateSystemNode>
 #include <osg/Notify>
+#include <osg/PagedLOD>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 #include <osgDB/FileNameUtils>

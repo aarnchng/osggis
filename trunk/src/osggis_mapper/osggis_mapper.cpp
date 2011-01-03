@@ -59,6 +59,7 @@
 #include <osg/Geode>
 #include <osg/LightSource>
 #include <osg/CullFace>
+#include <osg/Version>
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/ReaderWriter>
@@ -89,6 +90,15 @@
 #define NOUT osgGIS::notify(osg::NOTICE)
 #define ENDL std::endl
 #define TEXT_SIZE 14.0f
+
+#if OSG_MIN_VERSION_REQUIRED(2,9,8)
+#include <osgGA/CameraManipulator>
+namespace osgGA {
+    typedef CameraManipulator MatrixManipulator;
+};
+#else
+#include <osgGA/MatrixManipulator>
+#endif
 
 int
 die( const std::string& msg )
