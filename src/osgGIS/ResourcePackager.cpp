@@ -240,7 +240,7 @@ ResourcePackager::packageResources( ResourceCache* resources, Report* report )
             if ( filename.empty() )
             {
                 std::stringstream buf;
-                buf << "tex" << (int)image.get() << ".rgb" << std::endl; //TODO: assign proper extension
+                buf << "tex" << (long)image.get() << ".rgb" << std::endl; //TODO: assign proper extension
                 filename = buf.str();
             }
 
